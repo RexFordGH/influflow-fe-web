@@ -1,103 +1,267 @@
-import Image from "next/image";
+'use client';
+
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Chip,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Progress,
+  Slider,
+  Switch,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+  Tabs,
+  useDisclosure,
+} from '@heroui/react';
+import { useState } from 'react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [switchValue, setSwitchValue] = useState(false);
+  const [sliderValue, setSliderValue] = useState(50);
+  const [inputValue, setInputValue] = useState('');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="min-h-screen p-8">
+      <div className="mx-auto max-w-6xl space-y-8">
+        <div className="text-center">
+          <h1 className="mb-4 text-4xl font-bold">HeroUI 组件测试</h1>
+          <p className="text-gray-600">这里展示了各种 HeroUI 组件的使用示例</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="p-4">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">按钮组件</h3>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <Button color="primary">主要按钮</Button>
+              <Button color="secondary">次要按钮</Button>
+              <Button color="success">成功按钮</Button>
+              <Button color="warning">警告按钮</Button>
+              <Button color="danger">危险按钮</Button>
+              <Button variant="ghost">幽灵按钮</Button>
+            </CardBody>
+          </Card>
+
+          <Card className="p-4">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">输入组件</h3>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <Input
+                label="用户名"
+                placeholder="请输入用户名"
+                value={inputValue}
+                onValueChange={setInputValue}
+              />
+              <Input
+                label="密码"
+                placeholder="请输入密码"
+                type="password"
+              />
+              <Input
+                label="邮箱"
+                placeholder="请输入邮箱"
+                type="email"
+                variant="bordered"
+              />
+            </CardBody>
+          </Card>
+
+          <Card className="p-4">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">开关和滑块</h3>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span>开关状态</span>
+                <Switch
+                  isSelected={switchValue}
+                  onValueChange={setSwitchValue}
+                />
+              </div>
+              <div>
+                <p className="mb-2">滑块值: {sliderValue}</p>
+                <Slider
+                  size="md"
+                  step={10}
+                  color="primary"
+                  showSteps
+                  showTooltip
+                  value={sliderValue}
+                  onChange={(value) => setSliderValue(value as number)}
+                  className="max-w-md"
+                />
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="p-4">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">进度条</h3>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <Progress value={30} className="max-w-md" />
+              <Progress value={60} color="success" className="max-w-md" />
+              <Progress value={80} color="warning" className="max-w-md" />
+              <Progress
+                value={sliderValue}
+                color="primary"
+                className="max-w-md"
+              />
+            </CardBody>
+          </Card>
+
+          <Card className="p-4">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">标签组件</h3>
+            </CardHeader>
+            <CardBody>
+              <div className="flex flex-wrap gap-2">
+                <Chip color="primary">主要标签</Chip>
+                <Chip color="secondary">次要标签</Chip>
+                <Chip color="success">成功标签</Chip>
+                <Chip color="warning">警告标签</Chip>
+                <Chip color="danger">危险标签</Chip>
+                <Chip variant="bordered">边框标签</Chip>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="p-4">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">模态框</h3>
+            </CardHeader>
+            <CardBody>
+              <Button onPress={onOpen}>打开模态框</Button>
+              <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalContent>
+                  <ModalHeader className="flex flex-col gap-1">
+                    模态框标题
+                  </ModalHeader>
+                  <ModalBody>
+                    <p>这是一个 HeroUI 模态框的示例内容。</p>
+                    <p>你可以在这里放置任何内容。</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      关闭
+                    </Button>
+                    <Button color="primary" onPress={onClose}>
+                      确认
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+            </CardBody>
+          </Card>
+        </div>
+
+        <Card className="p-4">
+          <CardHeader>
+            <h3 className="text-lg font-semibold">标签页组件</h3>
+          </CardHeader>
+          <CardBody>
+            <Tabs aria-label="示例标签页">
+              <Tab key="photos" title="照片">
+                <Card>
+                  <CardBody>
+                    这里是照片内容。你可以在这里展示图片或相关内容。
+                  </CardBody>
+                </Card>
+              </Tab>
+              <Tab key="music" title="音乐">
+                <Card>
+                  <CardBody>
+                    这里是音乐内容。你可以在这里展示音乐播放器或播放列表。
+                  </CardBody>
+                </Card>
+              </Tab>
+              <Tab key="videos" title="视频">
+                <Card>
+                  <CardBody>
+                    这里是视频内容。你可以在这里展示视频播放器或视频列表。
+                  </CardBody>
+                </Card>
+              </Tab>
+            </Tabs>
+          </CardBody>
+        </Card>
+
+        <Card className="p-4">
+          <CardHeader>
+            <h3 className="text-lg font-semibold">表格组件</h3>
+          </CardHeader>
+          <CardBody>
+            <Table aria-label="示例表格">
+              <TableHeader>
+                <TableColumn>姓名</TableColumn>
+                <TableColumn>角色</TableColumn>
+                <TableColumn>状态</TableColumn>
+              </TableHeader>
+              <TableBody>
+                <TableRow key="1">
+                  <TableCell>张三</TableCell>
+                  <TableCell>管理员</TableCell>
+                  <TableCell>
+                    <Chip color="success" size="sm">
+                      活跃
+                    </Chip>
+                  </TableCell>
+                </TableRow>
+                <TableRow key="2">
+                  <TableCell>李四</TableCell>
+                  <TableCell>用户</TableCell>
+                  <TableCell>
+                    <Chip color="warning" size="sm">
+                      暂停
+                    </Chip>
+                  </TableCell>
+                </TableRow>
+                <TableRow key="3">
+                  <TableCell>王五</TableCell>
+                  <TableCell>编辑</TableCell>
+                  <TableCell>
+                    <Chip color="success" size="sm">
+                      活跃
+                    </Chip>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardBody>
+        </Card>
+
+        <Card className="p-4">
+          <CardHeader>
+            <h3 className="text-lg font-semibold">综合卡片示例</h3>
+          </CardHeader>
+          <CardBody>
+            <p className="mb-4">当前输入值: {inputValue || '未输入'}</p>
+            <p className="mb-4">开关状态: {switchValue ? '开启' : '关闭'}</p>
+            <p>滑块值: {sliderValue}</p>
+          </CardBody>
+          <CardFooter>
+            <Button color="primary" className="w-full">
+              提交数据
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
