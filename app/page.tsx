@@ -1,266 +1,276 @@
 'use client';
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Chip,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Progress,
-  Slider,
-  Switch,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  Tabs,
-  useDisclosure,
-} from '@heroui/react';
-import { useState } from 'react';
+import { useAuthStore } from '@/stores/authStore';
+import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
+import { Button } from '@heroui/react';
+import { useState, useEffect } from 'react';
+
+interface Note {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+}
 
 export default function Home() {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [switchValue, setSwitchValue] = useState(false);
-  const [sliderValue, setSliderValue] = useState(50);
-  const [inputValue, setInputValue] = useState('');
+  const { user, isAuthenticated, openLoginModal } = useAuthStore();
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState('');
+  const [topicInput, setTopicInput] = useState('');
+
+  useEffect(() => {
+    console.log('Selected note changed:', selectedNote);
+    console.log('Notes array:', notes);
+  }, [selectedNote, notes]);
+
+  const createNewNote = () => {
+    // TODO: 恢复登录校验
+    // if (!isAuthenticated) {
+    //   openLoginModal();
+    //   return;
+    // }
+    
+    const newNote: Note = {
+      id: Date.now().toString(),
+      title: 'Untitled',
+      content: '',
+      createdAt: new Date(),
+    };
+    setNotes([...notes, newNote]);
+    setSelectedNote(newNote);
+    console.log('Created new note:', newNote);
+  };
+
+  const startEditTitle = (note: Note) => {
+    setEditingTitle(note.id);
+    setTempTitle(note.title);
+  };
+
+  const saveTitle = (noteId: string) => {
+    setNotes(
+      notes.map((note) =>
+        note.id === noteId ? { ...note, title: tempTitle } : note,
+      ),
+    );
+    setEditingTitle(null);
+    if (selectedNote?.id === noteId) {
+      setSelectedNote((prev) => (prev ? { ...prev, title: tempTitle } : null));
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingTitle(null);
+    setTempTitle('');
+  };
+
+  const handleTopicSubmit = () => {
+    // TODO: 恢复登录校验
+    // if (!isAuthenticated) {
+    //   openLoginModal();
+    //   return;
+    // }
+
+    if (topicInput.trim()) {
+      // TODO: 集成AI生成功能
+      console.log('Starting AI generation for topic:', topicInput);
+      setTopicInput('');
+    }
+  };
+
+  const handleWriteByMyself = () => {
+    // TODO: 恢复登录校验
+    // if (!isAuthenticated) {
+    //   openLoginModal();
+    //   return;
+    // }
+
+    // TODO: 进入手动编辑模式
+    console.log('Entering manual edit mode');
+  };
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <div className="text-center">
-          <h1 className="mb-4 text-4xl font-bold">HeroUI 组件测试</h1>
-          <p className="text-gray-600">这里展示了各种 HeroUI 组件的使用示例</p>
+    <div className="flex h-screen bg-gray-50">
+      {/* TODO: 恢复登录按钮条件显示 */}
+      {/* {!isAuthenticated && (
+        <div className="fixed top-0 w-full h-[50px] z-50 flex justify-between items-center px-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+          <p className="text-[20px] font-bold leading-[1]">InfluFlow</p>
+          <Button
+            className="px-[24px] py-[6px] bg-[#448AFF] text-white rounded-[24px]"
+            color="primary"
+            variant="flat"
+            onPress={openLoginModal}
+          >
+            Login
+          </Button>
+        </div>
+      )} */}
+
+      {/* 左侧导航栏 */}
+      <div className="w-[320px] bg-white border-r border-gray-200 flex flex-col">
+        {/* 用户信息 */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <UserIcon className="h-6 w-6 text-gray-600" />
+            <span className="font-medium text-gray-900">
+              Kelly
+              {/* TODO: 恢复用户状态显示 */}
+              {/* {isAuthenticated ? user?.name || 'User' : 'Guest'} */}
+            </span>
+          </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">按钮组件</h3>
-            </CardHeader>
-            <CardBody className="space-y-3">
-              <Button color="primary">主要按钮</Button>
-              <Button color="secondary">次要按钮</Button>
-              <Button color="success">成功按钮</Button>
-              <Button color="warning">警告按钮</Button>
-              <Button color="danger">危险按钮</Button>
-              <Button variant="ghost">幽灵按钮</Button>
-            </CardBody>
-          </Card>
+        {/* 笔记列表 */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4">
+            <div className="group flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-gray-900">Campaigns</h3>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                onPress={createNewNote}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <PlusIcon className="h-4 w-4 text-gray-600" />
+              </Button>
+            </div>
 
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">输入组件</h3>
-            </CardHeader>
-            <CardBody className="space-y-3">
-              <Input
-                label="用户名"
-                placeholder="请输入用户名"
-                value={inputValue}
-                onValueChange={setInputValue}
-              />
-              <Input
-                label="密码"
-                placeholder="请输入密码"
-                type="password"
-              />
-              <Input
-                label="邮箱"
-                placeholder="请输入邮箱"
-                type="email"
-                variant="bordered"
-              />
-            </CardBody>
-          </Card>
-
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">开关和滑块</h3>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span>开关状态</span>
-                <Switch
-                  isSelected={switchValue}
-                  onValueChange={setSwitchValue}
-                />
-              </div>
-              <div>
-                <p className="mb-2">滑块值: {sliderValue}</p>
-                <Slider
-                  size="md"
-                  step={10}
-                  color="primary"
-                  showSteps
-                  showTooltip
-                  value={sliderValue}
-                  onChange={(value) => setSliderValue(value as number)}
-                  className="max-w-md"
-                />
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">进度条</h3>
-            </CardHeader>
-            <CardBody className="space-y-3">
-              <Progress value={30} className="max-w-md" />
-              <Progress value={60} color="success" className="max-w-md" />
-              <Progress value={80} color="warning" className="max-w-md" />
-              <Progress
-                value={sliderValue}
-                color="primary"
-                className="max-w-md"
-              />
-            </CardBody>
-          </Card>
-
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">标签组件</h3>
-            </CardHeader>
-            <CardBody>
-              <div className="flex flex-wrap gap-2">
-                <Chip color="primary">主要标签</Chip>
-                <Chip color="secondary">次要标签</Chip>
-                <Chip color="success">成功标签</Chip>
-                <Chip color="warning">警告标签</Chip>
-                <Chip color="danger">危险标签</Chip>
-                <Chip variant="bordered">边框标签</Chip>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">模态框</h3>
-            </CardHeader>
-            <CardBody>
-              <Button onPress={onOpen}>打开模态框</Button>
-              <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalContent>
-                  <ModalHeader className="flex flex-col gap-1">
-                    模态框标题
-                  </ModalHeader>
-                  <ModalBody>
-                    <p>这是一个 HeroUI 模态框的示例内容。</p>
-                    <p>你可以在这里放置任何内容。</p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      关闭
-                    </Button>
-                    <Button color="primary" onPress={onClose}>
-                      确认
-                    </Button>
-                  </ModalFooter>
-                </ModalContent>
-              </Modal>
-            </CardBody>
-          </Card>
+            <div className="space-y-1">
+              {notes.map((note) => (
+                <div
+                  key={note.id}
+                  className={`p-2 rounded cursor-pointer transition-colors ${
+                    selectedNote?.id === note.id
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => setSelectedNote(note)}
+                >
+                  {editingTitle === note.id ? (
+                    <input
+                      type="text"
+                      value={tempTitle}
+                      onChange={(e) => setTempTitle(e.target.value)}
+                      onBlur={() => saveTitle(note.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveTitle(note.id);
+                        if (e.key === 'Escape') cancelEdit();
+                      }}
+                      className="w-full text-sm bg-transparent border-none outline-none"
+                      autoFocus
+                    />
+                  ) : (
+                    <div
+                      className="text-sm truncate"
+                      onDoubleClick={() => startEditTitle(note)}
+                    >
+                      {note.title}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      </div>
 
-        <Card className="p-4">
-          <CardHeader>
-            <h3 className="text-lg font-semibold">标签页组件</h3>
-          </CardHeader>
-          <CardBody>
-            <Tabs aria-label="示例标签页">
-              <Tab key="photos" title="照片">
-                <Card>
-                  <CardBody>
-                    这里是照片内容。你可以在这里展示图片或相关内容。
-                  </CardBody>
-                </Card>
-              </Tab>
-              <Tab key="music" title="音乐">
-                <Card>
-                  <CardBody>
-                    这里是音乐内容。你可以在这里展示音乐播放器或播放列表。
-                  </CardBody>
-                </Card>
-              </Tab>
-              <Tab key="videos" title="视频">
-                <Card>
-                  <CardBody>
-                    这里是视频内容。你可以在这里展示视频播放器或视频列表。
-                  </CardBody>
-                </Card>
-              </Tab>
-            </Tabs>
-          </CardBody>
-        </Card>
+      {/* 右侧主内容区 */}
+      <div className="flex-1 flex flex-col">
+        {!selectedNote ? (
+          /* 欢迎界面 */
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                Hey Kelly, what would you like to write about today?
+                {/* TODO: 恢复用户名动态显示 */}
+                {/* Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today? */}
+              </h2>
 
-        <Card className="p-4">
-          <CardHeader>
-            <h3 className="text-lg font-semibold">表格组件</h3>
-          </CardHeader>
-          <CardBody>
-            <Table aria-label="示例表格">
-              <TableHeader>
-                <TableColumn>姓名</TableColumn>
-                <TableColumn>角色</TableColumn>
-                <TableColumn>状态</TableColumn>
-              </TableHeader>
-              <TableBody>
-                <TableRow key="1">
-                  <TableCell>张三</TableCell>
-                  <TableCell>管理员</TableCell>
-                  <TableCell>
-                    <Chip color="success" size="sm">
-                      活跃
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-                <TableRow key="2">
-                  <TableCell>李四</TableCell>
-                  <TableCell>用户</TableCell>
-                  <TableCell>
-                    <Chip color="warning" size="sm">
-                      暂停
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-                <TableRow key="3">
-                  <TableCell>王五</TableCell>
-                  <TableCell>编辑</TableCell>
-                  <TableCell>
-                    <Chip color="success" size="sm">
-                      活跃
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardBody>
-        </Card>
+              <div className="mt-8 space-y-6">
+                <div className="relative">
+                  <textarea
+                    placeholder="You can start with a topic or an opinion."
+                    value={topicInput}
+                    onChange={(e) => setTopicInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleTopicSubmit();
+                      }
+                    }}
+                    className="w-full h-[120px] p-4 pr-12 rounded-2xl border border-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400"
+                    rows={4}
+                  />
+                  <Button
+                    isIconOnly
+                    color="primary"
+                    className="absolute right-3 bottom-3 min-w-8 h-8 rounded-full"
+                    onPress={handleTopicSubmit}
+                    disabled={!topicInput.trim()}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M7 11L12 6L17 11M12 18V7"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        transform="rotate(90 12 12)"
+                      />
+                    </svg>
+                  </Button>
+                </div>
 
-        <Card className="p-4">
-          <CardHeader>
-            <h3 className="text-lg font-semibold">综合卡片示例</h3>
-          </CardHeader>
-          <CardBody>
-            <p className="mb-4">当前输入值: {inputValue || '未输入'}</p>
-            <p className="mb-4">开关状态: {switchValue ? '开启' : '关闭'}</p>
-            <p>滑块值: {sliderValue}</p>
-          </CardBody>
-          <CardFooter>
-            <Button color="primary" className="w-full">
-              提交数据
-            </Button>
-          </CardFooter>
-        </Card>
+                <div className="text-center">
+                  <Button
+                    variant="light"
+                    onPress={handleWriteByMyself}
+                    className="text-gray-700 hover:text-gray-900 underline text-base font-medium p-0 h-auto bg-transparent"
+                  >
+                    Write by Myself
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* 笔记内容区 */
+          <div className="flex-1 p-6 bg-gray-50">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  {selectedNote.title}
+                </h1>
+                <p className="text-gray-500 text-sm">
+                  Created: {selectedNote.createdAt.toLocaleDateString()}
+                </p>
+              </div>
+
+              {/* TODO: 在这里添加思维导图和文章内容的双栏布局 */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 min-h-[500px]">
+                <div className="text-center py-20">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Welcome to your note: "{selectedNote.title}"
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Content editing interface will be implemented here
+                  </p>
+                  <div className="text-sm text-gray-400">
+                    Note ID: {selectedNote.id}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
