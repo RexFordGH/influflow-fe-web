@@ -1,9 +1,10 @@
 'use client';
 
-import { useAuthStore } from '@/stores/authStore';
+// import { useAuthStore } from '@/stores/authStore';
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import { useState, useEffect } from 'react';
+import { EnhancedContentGeneration } from '@/components/content/EnhancedContentGeneration';
 
 interface Note {
   id: string;
@@ -13,7 +14,9 @@ interface Note {
 }
 
 export default function Home() {
-  const { user, isAuthenticated, openLoginModal } = useAuthStore();
+  // const { openLoginModal } = useAuthStore();
+  const [showContentGeneration, setShowContentGeneration] = useState(false);
+  const [currentTopic, setCurrentTopic] = useState('');
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
@@ -73,8 +76,8 @@ export default function Home() {
     // }
 
     if (topicInput.trim()) {
-      // TODO: 集成AI生成功能
-      console.log('Starting AI generation for topic:', topicInput);
+      setCurrentTopic(topicInput);
+      setShowContentGeneration(true);
       setTopicInput('');
     }
   };
@@ -89,6 +92,21 @@ export default function Home() {
     // TODO: 进入手动编辑模式
     console.log('Entering manual edit mode');
   };
+
+  const handleBackToHome = () => {
+    setShowContentGeneration(false);
+    setCurrentTopic('');
+  };
+
+  // 如果正在显示内容生成页面
+  if (showContentGeneration && currentTopic) {
+    return (
+      <EnhancedContentGeneration 
+        topic={currentTopic}
+        onBack={handleBackToHome}
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
