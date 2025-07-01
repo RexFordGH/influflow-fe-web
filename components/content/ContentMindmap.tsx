@@ -1,6 +1,5 @@
 'use client';
 
-import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { Button } from '@heroui/react';
 import { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
@@ -16,6 +15,8 @@ import ReactFlow, {
   useNodesState,
   useReactFlow,
 } from 'reactflow';
+
+import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 
 // 导入 React Flow 样式
 import 'reactflow/dist/style.css';
@@ -173,7 +174,7 @@ export function ContentMindmap({
   );
 
   return (
-    <div className="w-full h-full relative">
+    <div className="relative size-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -192,7 +193,7 @@ export function ContentMindmap({
           showZoom
           showFitView
           showInteractive={false}
-          className="bg-white border border-gray-200 rounded-lg"
+          className="rounded-lg border border-gray-200 bg-white"
         />
 
         <MiniMap
@@ -208,7 +209,7 @@ export function ContentMindmap({
             ];
             return colors[level - 1] || colors[5];
           }}
-          className="bg-white border border-gray-200 rounded-lg"
+          className="rounded-lg border border-gray-200 bg-white"
         />
 
         <Background gap={20} size={1} className="opacity-30" />

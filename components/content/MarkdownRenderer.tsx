@@ -1,12 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkGfm from 'remark-gfm';
-import remarkStringify from 'remark-stringify';
-import { Button } from '@heroui/react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { Button } from '@heroui/react';
+import { useMemo } from 'react';
 
 interface MarkdownRendererProps {
   content: string;
@@ -28,14 +24,13 @@ interface MarkdownSection {
   rawContent: string;
 }
 
-export function MarkdownRenderer({ 
-  content, 
-  image, 
-  onSectionHover, 
+export function MarkdownRenderer({
+  content,
+  image,
+  onSectionHover,
   onSourceClick,
-  highlightedSection 
+  highlightedSection,
 }: MarkdownRendererProps) {
-  
   // 解析Markdown为结构化数据
   const sections = useMemo(() => {
     const lines = content.split('\n');
@@ -45,24 +40,28 @@ export function MarkdownRenderer({
 
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
-      
+
       if (trimmedLine.startsWith('#')) {
         // 标题
         if (currentSection) {
           sections.push(currentSection);
         }
-        
+
         const level = trimmedLine.match(/^#+/)?.[0].length || 1;
         const text = trimmedLine.replace(/^#+\s*/, '');
-        
+
         currentSection = {
           id: `section-${sectionIndex++}`,
           type: 'heading',
           level,
           content: text,
-          rawContent: line
+          rawContent: line,
         };
-      } else if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*') || /^\d+\./.test(trimmedLine)) {
+      } else if (
+        trimmedLine.startsWith('-') ||
+        trimmedLine.startsWith('*') ||
+        /^\d+\./.test(trimmedLine)
+      ) {
         // 列表项
         if (!currentSection || currentSection.type !== 'list') {
           if (currentSection) {
@@ -72,7 +71,7 @@ export function MarkdownRenderer({
             id: `section-${sectionIndex++}`,
             type: 'list',
             content: trimmedLine,
-            rawContent: line
+            rawContent: line,
           };
         } else {
           currentSection.content += '\n' + trimmedLine;
@@ -88,7 +87,7 @@ export function MarkdownRenderer({
             id: `section-${sectionIndex++}`,
             type: 'paragraph',
             content: trimmedLine,
-            rawContent: line
+            rawContent: line,
           };
         } else {
           currentSection.content += ' ' + trimmedLine;
@@ -96,26 +95,35 @@ export function MarkdownRenderer({
         }
       }
     });
-    
+
     if (currentSection) {
       sections.push(currentSection);
     }
-    
+
     return sections;
   }, [content]);
 
   // 渲染单个段落
   const renderSection = (section: MarkdownSection, index: number) => {
     const isHighlighted = highlightedSection === section.id;
-    const baseClasses = "transition-all duration-200 p-2 rounded-lg relative group";
-    const highlightClasses = isHighlighted ? "bg-yellow-50 border-l-4 border-yellow-400" : "hover:bg-gray-50";
+    const baseClasses =
+      'transition-all duration-200 p-2 rounded-lg relative group';
+    const highlightClasses = isHighlighted
+      ? 'bg-yellow-50 border-l-4 border-yellow-400'
+      : 'hover:bg-gray-50';
 
     const handleMouseEnter = () => onSectionHover?.(section.id);
     const handleMouseLeave = () => onSectionHover?.(null);
 
     switch (section.type) {
       case 'heading':
-        const HeadingTag = `h${Math.min(section.level || 1, 6)}` as keyof JSX.IntrinsicElements;
+        const HeadingTag = `h${Math.min(section.level || 1, 6)}` as
+          | 'h1'
+          | 'h2'
+          | 'h3'
+          | 'h4'
+          | 'h5'
+          | 'h6';
         const headingClasses = {
           1: 'text-3xl font-bold text-gray-900 mb-4',
           2: 'text-2xl font-semibold text-gray-800 mb-3',
@@ -124,54 +132,72 @@ export function MarkdownRenderer({
           5: 'text-base font-medium text-gray-700 mb-1',
           6: 'text-sm font-medium text-gray-600 mb-1',
         };
-        
+
         return (
-          <div 
+          <div
             key={section.id}
             className={`${baseClasses} ${highlightClasses}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <HeadingTag className={headingClasses[section.level as keyof typeof headingClasses] || headingClasses[6]}>
+            <HeadingTag
+              className={
+                headingClasses[section.level as keyof typeof headingClasses] ||
+                headingClasses[6]
+              }
+            >
               {section.content}
             </HeadingTag>
-            <SourceButton sectionId={section.id} onSourceClick={onSourceClick} />
+            <SourceButton
+              sectionId={section.id}
+              onSourceClick={onSourceClick}
+            />
           </div>
         );
 
       case 'paragraph':
         return (
-          <div 
+          <div
             key={section.id}
             className={`${baseClasses} ${highlightClasses}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="mb-4 leading-relaxed text-gray-700">
               {section.content}
             </p>
-            <SourceButton sectionId={section.id} onSourceClick={onSourceClick} />
+            <SourceButton
+              sectionId={section.id}
+              onSourceClick={onSourceClick}
+            />
           </div>
         );
 
       case 'list':
-        const listItems = section.content.split('\n').filter(item => item.trim());
+        const listItems = section.content
+          .split('\n')
+          .filter((item) => item.trim());
         return (
-          <div 
+          <div
             key={section.id}
             className={`${baseClasses} ${highlightClasses}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <ul className="space-y-2 mb-4">
+            <ul className="mb-4 space-y-2">
               {listItems.map((item, idx) => (
-                <li key={idx} className="text-gray-700 flex items-start">
-                  <span className="inline-block w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0" />
-                  <span>{item.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '')}</span>
+                <li key={idx} className="flex items-start text-gray-700">
+                  <span className="mr-3 mt-2 inline-block size-2 shrink-0 rounded-full bg-gray-400" />
+                  <span>
+                    {item.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '')}
+                  </span>
                 </li>
               ))}
             </ul>
-            <SourceButton sectionId={section.id} onSourceClick={onSourceClick} />
+            <SourceButton
+              sectionId={section.id}
+              onSourceClick={onSourceClick}
+            />
           </div>
         );
 
@@ -186,14 +212,14 @@ export function MarkdownRenderer({
         {/* 图片显示 */}
         {image && (
           <div className="mb-8">
-            <div className="relative rounded-lg overflow-hidden shadow-md">
-              <img 
-                src={image.url} 
+            <div className="relative overflow-hidden rounded-lg shadow-md">
+              <img
+                src={image.url}
                 alt={image.alt}
-                className="w-full h-auto object-cover"
+                className="h-auto w-full object-cover"
               />
               {image.caption && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-3">
+                <div className="absolute inset-x-0 bottom-0 bg-black bg-opacity-50 p-3 text-white">
                   <p className="text-sm">{image.caption}</p>
                 </div>
               )}
@@ -211,22 +237,22 @@ export function MarkdownRenderer({
 }
 
 // 信息来源按钮组件
-function SourceButton({ 
-  sectionId, 
-  onSourceClick 
-}: { 
-  sectionId: string; 
-  onSourceClick?: (sectionId: string) => void; 
+function SourceButton({
+  sectionId,
+  onSourceClick,
+}: {
+  sectionId: string;
+  onSourceClick?: (sectionId: string) => void;
 }) {
   return (
     <Button
       isIconOnly
       size="sm"
       variant="light"
-      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+      className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
       onPress={() => onSourceClick?.(sectionId)}
     >
-      <InformationCircleIcon className="h-4 w-4" />
+      <InformationCircleIcon className="size-4" />
     </Button>
   );
 }

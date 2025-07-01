@@ -3,7 +3,8 @@
 // import { useAuthStore } from '@/stores/authStore';
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import { EnhancedContentGeneration } from '@/components/content/EnhancedContentGeneration';
 
 interface Note {
@@ -34,7 +35,7 @@ export default function Home() {
     //   openLoginModal();
     //   return;
     // }
-    
+
     const newNote: Note = {
       id: Date.now().toString(),
       title: 'Untitled',
@@ -101,7 +102,7 @@ export default function Home() {
   // 如果正在显示内容生成页面
   if (showContentGeneration && currentTopic) {
     return (
-      <EnhancedContentGeneration 
+      <EnhancedContentGeneration
         topic={currentTopic}
         onBack={handleBackToHome}
       />
@@ -126,11 +127,11 @@ export default function Home() {
       )} */}
 
       {/* 左侧导航栏 */}
-      <div className="w-[320px] bg-white border-r border-gray-200 flex flex-col">
+      <div className="flex w-[320px] flex-col border-r border-gray-200 bg-white">
         {/* 用户信息 */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="border-b border-gray-200 p-4">
           <div className="flex items-center space-x-2">
-            <UserIcon className="h-6 w-6 text-gray-600" />
+            <UserIcon className="size-6 text-gray-600" />
             <span className="font-medium text-gray-900">
               Kelly
               {/* TODO: 恢复用户状态显示 */}
@@ -142,16 +143,16 @@ export default function Home() {
         {/* 笔记列表 */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
-            <div className="group flex items-center justify-between mb-2">
+            <div className="group mb-2 flex items-center justify-between">
               <h3 className="text-sm font-medium text-gray-900">Campaigns</h3>
               <Button
                 isIconOnly
                 size="sm"
                 variant="light"
                 onPress={createNewNote}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                className="opacity-0 transition-opacity group-hover:opacity-100"
               >
-                <PlusIcon className="h-4 w-4 text-gray-600" />
+                <PlusIcon className="size-4 text-gray-600" />
               </Button>
             </div>
 
@@ -159,7 +160,7 @@ export default function Home() {
               {notes.map((note) => (
                 <div
                   key={note.id}
-                  className={`p-2 rounded cursor-pointer transition-colors ${
+                  className={`cursor-pointer rounded p-2 transition-colors ${
                     selectedNote?.id === note.id
                       ? 'bg-blue-50 text-blue-700'
                       : 'hover:bg-gray-100'
@@ -176,12 +177,12 @@ export default function Home() {
                         if (e.key === 'Enter') saveTitle(note.id);
                         if (e.key === 'Escape') cancelEdit();
                       }}
-                      className="w-full text-sm bg-transparent border-none outline-none"
+                      className="w-full border-none bg-transparent text-sm outline-none"
                       autoFocus
                     />
                   ) : (
                     <div
-                      className="text-sm truncate"
+                      className="truncate text-sm"
                       onDoubleClick={() => startEditTitle(note)}
                     >
                       {note.title}
@@ -195,12 +196,12 @@ export default function Home() {
       </div>
 
       {/* 右侧主内容区 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-1 flex-col">
         {!selectedNote ? (
           /* 欢迎界面 */
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center max-w-md">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+          <div className="flex flex-1 items-center justify-center">
+            <div className="max-w-md text-center">
+              <h2 className="mb-2 text-2xl font-semibold text-gray-900">
                 Hey Kelly, what would you like to write about today?
                 {/* TODO: 恢复用户名动态显示 */}
                 {/* Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today? */}
@@ -218,13 +219,13 @@ export default function Home() {
                         handleTopicSubmit();
                       }
                     }}
-                    className="w-full h-[120px] p-4 pr-12 rounded-2xl border border-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400"
+                    className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={4}
                   />
                   <Button
                     isIconOnly
                     color="primary"
-                    className="absolute right-3 bottom-3 min-w-8 h-8 rounded-full"
+                    className="absolute bottom-3 right-3 h-8 min-w-8 rounded-full"
                     onPress={handleTopicSubmit}
                     disabled={!topicInput.trim()}
                   >
@@ -251,7 +252,7 @@ export default function Home() {
                   <Button
                     variant="light"
                     onPress={handleWriteByMyself}
-                    className="text-gray-700 hover:text-gray-900 underline text-base font-medium p-0 h-auto bg-transparent"
+                    className="h-auto bg-transparent p-0 text-base font-medium text-gray-700 underline hover:text-gray-900"
                   >
                     Write by Myself
                   </Button>
@@ -261,24 +262,24 @@ export default function Home() {
           </div>
         ) : (
           /* 笔记内容区 */
-          <div className="flex-1 p-6 bg-gray-50">
-            <div className="max-w-4xl mx-auto">
+          <div className="flex-1 bg-gray-50 p-6">
+            <div className="mx-auto max-w-4xl">
               <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="mb-2 text-3xl font-bold text-gray-900">
                   {selectedNote.title}
                 </h1>
-                <p className="text-gray-500 text-sm">
+                <p className="text-sm text-gray-500">
                   Created: {selectedNote.createdAt.toLocaleDateString()}
                 </p>
               </div>
 
               {/* TODO: 在这里添加思维导图和文章内容的双栏布局 */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 min-h-[500px]">
-                <div className="text-center py-20">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <div className="min-h-[500px] rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+                <div className="py-20 text-center">
+                  <h3 className="mb-2 text-xl font-semibold text-gray-900">
                     Welcome to your note: "{selectedNote.title}"
                   </h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="mb-6 text-gray-500">
                     Content editing interface will be implemented here
                   </p>
                   <div className="text-sm text-gray-400">

@@ -5,10 +5,11 @@
 
 'use client';
 
-import { useContentStore } from '@/stores/contentStore';
 import { cn, Input } from '@heroui/react';
 import { memo, useEffect, useRef, useState } from 'react';
 import { Handle, NodeProps, Position } from 'reactflow';
+
+import { useContentStore } from '@/stores/contentStore';
 
 // 节点数据类型
 export interface MindmapNodeData {
@@ -203,7 +204,7 @@ const MindmapNode = memo<NodeProps<MindmapNodeData>>(
             />
           ) : (
             <div
-              className={`${nodeStyle.className} text-center whitespace-nowrap`}
+              className={`${nodeStyle.className} whitespace-nowrap text-center`}
               title="双击编辑"
             >
               {data.label}

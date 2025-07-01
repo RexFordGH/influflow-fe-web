@@ -12,7 +12,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoginModalOpen: boolean;
-  
+
   // Actions
   setUser: (user: User | null) => void;
   logout: () => void;
@@ -28,23 +28,27 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoginModalOpen: false,
 
-      setUser: (user) => set({ 
-        user, 
-        isAuthenticated: !!user 
-      }),
+      setUser: (user) =>
+        set({
+          user,
+          isAuthenticated: !!user,
+        }),
 
-      logout: () => set({ 
-        user: null, 
-        isAuthenticated: false 
-      }),
+      logout: () =>
+        set({
+          user: null,
+          isAuthenticated: false,
+        }),
 
-      openLoginModal: () => set({ 
-        isLoginModalOpen: true 
-      }),
+      openLoginModal: () =>
+        set({
+          isLoginModalOpen: true,
+        }),
 
-      closeLoginModal: () => set({ 
-        isLoginModalOpen: false 
-      }),
+      closeLoginModal: () =>
+        set({
+          isLoginModalOpen: false,
+        }),
 
       checkAuthStatus: async () => {
         try {
@@ -56,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
           // } else {
           //   set({ user: null, isAuthenticated: false });
           // }
-          
+
           // 临时模拟：检查localStorage中是否有用户信息
           const { user } = get();
           if (user) {
@@ -70,10 +74,10 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ 
+      partialize: (state) => ({
         user: state.user,
-        isAuthenticated: state.isAuthenticated 
+        isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

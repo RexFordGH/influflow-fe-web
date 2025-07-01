@@ -1,11 +1,6 @@
 'use client';
 
 import {
-  GeneratedContent,
-  MindmapEdgeData,
-  MindmapNodeData,
-} from '@/types/content';
-import {
   ArrowLeftIcon,
   ArrowPathIcon,
   PhotoIcon,
@@ -13,6 +8,13 @@ import {
 import { Button, Card, CardBody, Progress, Spinner } from '@heroui/react';
 import { useCallback, useEffect, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
+
+import {
+  GeneratedContent,
+  MindmapEdgeData,
+  MindmapNodeData,
+} from '@/types/content';
+
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
 
@@ -485,9 +487,9 @@ export function EnhancedContentGeneration({
   // 加载状态
   if (isGenerating) {
     return (
-      <div className="h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="flex h-screen flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
         {/* 顶部栏 */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-6 py-4">
+        <div className="border-b border-gray-200 bg-white/80 px-6 py-4 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -496,7 +498,7 @@ export function EnhancedContentGeneration({
                 onPress={onBack}
                 className="hover:bg-gray-100"
               >
-                <ArrowLeftIcon className="h-5 w-5" />
+                <ArrowLeftIcon className="size-5" />
               </Button>
               <h1 className="text-xl font-semibold text-gray-900">
                 {isRegenerating ? '重新生成中...' : 'AI 正在思考和创作'}
@@ -506,28 +508,28 @@ export function EnhancedContentGeneration({
         </div>
 
         {/* 生成进度 */}
-        <div className="flex-1 flex items-center justify-center p-6">
+        <div className="flex flex-1 items-center justify-center p-6">
           <Card className="w-full max-w-2xl shadow-lg">
             <CardBody className="p-8">
               <div className="text-center">
                 <div className="mb-8">
                   <Spinner size="lg" color="primary" className="mb-4" />
-                  <div className="relative w-16 h-16 mx-auto mb-4">
-                    <div className="absolute inset-0 rounded-full bg-blue-100 animate-pulse"></div>
-                    <div className="absolute inset-2 rounded-full bg-blue-200 animate-ping"></div>
+                  <div className="relative mx-auto mb-4 size-16">
+                    <div className="absolute inset-0 animate-pulse rounded-full bg-blue-100"></div>
+                    <div className="absolute inset-2 animate-ping rounded-full bg-blue-200"></div>
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="mb-2 text-2xl font-bold text-gray-900">
                   AI 正在为您创作内容
                 </h2>
 
-                <p className="text-gray-600 mb-2">
+                <p className="mb-2 text-gray-600">
                   主题:{' '}
                   <span className="font-medium text-blue-600">{topic}</span>
                 </p>
 
-                <p className="text-sm text-gray-500 mb-8">
+                <p className="mb-8 text-sm text-gray-500">
                   正在运用先进的AI技术为您生成思维导图和深度内容
                 </p>
 
@@ -545,14 +547,14 @@ export function EnhancedContentGeneration({
                     {generationSteps.map((step, index) => (
                       <div
                         key={index}
-                        className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
+                        className={`flex items-center space-x-3 rounded-lg p-3 transition-all duration-300 ${
                           index <= generationStep
-                            ? 'text-blue-600 bg-blue-50 border border-blue-200'
-                            : 'text-gray-400 bg-gray-50'
+                            ? 'border border-blue-200 bg-blue-50 text-blue-600'
+                            : 'bg-gray-50 text-gray-400'
                         }`}
                       >
                         <div
-                          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                          className={`flex size-6 shrink-0 items-center justify-center rounded-full ${
                             index <= generationStep
                               ? 'bg-blue-600 text-white'
                               : 'bg-gray-300'
@@ -560,7 +562,7 @@ export function EnhancedContentGeneration({
                         >
                           {index < generationStep ? (
                             <svg
-                              className="w-4 h-4"
+                              className="size-4"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -571,7 +573,7 @@ export function EnhancedContentGeneration({
                               />
                             </svg>
                           ) : index === generationStep ? (
-                            <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
+                            <div className="size-2 animate-pulse rounded-full bg-current" />
                           ) : (
                             <span className="text-xs font-medium">
                               {index + 1}
@@ -593,10 +595,10 @@ export function EnhancedContentGeneration({
 
   if (!generatedContent) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">生成失败</h2>
-          <p className="text-gray-600 mb-4">内容生成过程中出现错误</p>
+          <h2 className="mb-2 text-xl font-semibold text-red-600">生成失败</h2>
+          <p className="mb-4 text-gray-600">内容生成过程中出现错误</p>
           <Button color="primary" onPress={() => setIsGenerating(true)}>
             重新生成
           </Button>
@@ -606,9 +608,9 @@ export function EnhancedContentGeneration({
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="flex h-screen flex-col bg-gray-50">
       {/* 顶部工具栏 */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+      <div className="shrink-0 border-b border-gray-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
@@ -617,7 +619,7 @@ export function EnhancedContentGeneration({
               onPress={onBack}
               className="hover:bg-gray-100"
             >
-              <ArrowLeftIcon className="h-5 w-5" />
+              <ArrowLeftIcon className="size-5" />
             </Button>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
@@ -634,7 +636,7 @@ export function EnhancedContentGeneration({
             <Button
               color="primary"
               variant="flat"
-              startContent={<ArrowPathIcon className="h-4 w-4" />}
+              startContent={<ArrowPathIcon className="size-4" />}
               onPress={handleRegenerate}
               disabled={isRegenerating}
             >
@@ -651,9 +653,9 @@ export function EnhancedContentGeneration({
       </div>
 
       {/* 主要内容区域 */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* 左侧思维导图 */}
-        <div className="w-1/2 border-r border-gray-200 bg-white relative">
+        <div className="relative w-1/2 border-r border-gray-200 bg-white">
           <ReactFlowProvider>
             <EditableContentMindmap
               nodes={currentNodes}
@@ -667,30 +669,30 @@ export function EnhancedContentGeneration({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="w-1/2 flex flex-col bg-white">
+        <div className="flex w-1/2 flex-col bg-white">
           {/* 顶部图片区域 */}
-          <div className="flex-shrink-0 relative">
+          <div className="relative shrink-0">
             <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
               <img
                 src={generatedContent.image.url}
                 alt={generatedContent.image.alt}
-                className="w-full h-full object-cover"
+                className="size-full object-cover"
               />
               <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-              <div className="absolute bottom-4 left-4 right-4">
-                <p className="text-white text-sm font-medium drop-shadow-lg">
+              <div className="absolute inset-x-4 bottom-4">
+                <p className="text-sm font-medium text-white drop-shadow-lg">
                   {generatedContent.image.caption}
                 </p>
               </div>
-              <div className="absolute top-4 right-4">
+              <div className="absolute right-4 top-4">
                 <Button
                   isIconOnly
                   size="sm"
                   variant="flat"
-                  className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
+                  className="bg-white/20 text-white backdrop-blur-sm hover:bg-white/30"
                   onPress={handleImageEdit}
                 >
-                  <PhotoIcon className="h-4 w-4" />
+                  <PhotoIcon className="size-4" />
                 </Button>
               </div>
             </div>

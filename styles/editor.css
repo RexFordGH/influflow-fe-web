@@ -23,11 +23,11 @@
 }
 
 /* 标题样式 */
-.ProseMirror h1, 
-.ProseMirror h2, 
-.ProseMirror h3, 
-.ProseMirror h4, 
-.ProseMirror h5, 
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
 .ProseMirror h6 {
   font-weight: bold;
   margin: 0.5rem 0 0.25rem 0;
@@ -52,19 +52,49 @@
   color: #f3f4f6;
 }
 
-.ProseMirror h1 { font-size: 2rem; color: #dc2626; }
-.ProseMirror h2 { font-size: 1.75rem; color: #0891b2; }
-.ProseMirror h3 { font-size: 1.5rem; color: #2563eb; }
-.ProseMirror h4 { font-size: 1.25rem; color: #059669; }
-.ProseMirror h5 { font-size: 1.125rem; color: #d97706; }
-.ProseMirror h6 { font-size: 1rem; color: #9333ea; }
+.ProseMirror h1 {
+  font-size: 2rem;
+  color: #dc2626;
+}
+.ProseMirror h2 {
+  font-size: 1.75rem;
+  color: #0891b2;
+}
+.ProseMirror h3 {
+  font-size: 1.5rem;
+  color: #2563eb;
+}
+.ProseMirror h4 {
+  font-size: 1.25rem;
+  color: #059669;
+}
+.ProseMirror h5 {
+  font-size: 1.125rem;
+  color: #d97706;
+}
+.ProseMirror h6 {
+  font-size: 1rem;
+  color: #9333ea;
+}
 
-.dark .ProseMirror h1 { color: #fca5a5; }
-.dark .ProseMirror h2 { color: #67e8f9; }
-.dark .ProseMirror h3 { color: #93c5fd; }
-.dark .ProseMirror h4 { color: #6ee7b7; }
-.dark .ProseMirror h5 { color: #fbbf24; }
-.dark .ProseMirror h6 { color: #c4b5fd; }
+.dark .ProseMirror h1 {
+  color: #fca5a5;
+}
+.dark .ProseMirror h2 {
+  color: #67e8f9;
+}
+.dark .ProseMirror h3 {
+  color: #93c5fd;
+}
+.dark .ProseMirror h4 {
+  color: #6ee7b7;
+}
+.dark .ProseMirror h5 {
+  color: #fbbf24;
+}
+.dark .ProseMirror h6 {
+  color: #c4b5fd;
+}
 
 /* 段落样式 */
 .ProseMirror p {
@@ -88,7 +118,7 @@
 }
 
 /* 列表样式 */
-.ProseMirror ul, 
+.ProseMirror ul,
 .ProseMirror ol {
   margin-left: 1.5rem;
   margin-bottom: 1rem;

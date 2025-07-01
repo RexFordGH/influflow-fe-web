@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { useAuthStore } from '@/stores/authStore';
+
 import { LoginModal } from './LoginModal';
 
 interface AuthProviderProps {
@@ -19,10 +21,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <>
       {children}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={closeLoginModal} 
-      />
+      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
     </>
   );
 }

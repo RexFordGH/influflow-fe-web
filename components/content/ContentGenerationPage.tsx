@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { ReactFlowProvider } from 'reactflow';
-import { Button, Progress, Spinner } from '@heroui/react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { GeneratedContent, MindmapNodeData, MindmapEdgeData } from '@/types/content';
+import { Button, Progress, Spinner } from '@heroui/react';
+import { useCallback, useState } from 'react';
+import { ReactFlowProvider } from 'reactflow';
+
+import {
+  GeneratedContent,
+  MindmapEdgeData,
+  MindmapNodeData,
+} from '@/types/content';
+
 import ContentMindmap from './ContentMindmap';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -21,43 +27,43 @@ const generateMockContent = (topic: string): GeneratedContent => {
       label: topic,
       level: 1,
       type: 'topic',
-      position: { x: 50, y: 200 }
+      position: { x: 50, y: 200 },
     },
     {
-      id: 'node-2', 
+      id: 'node-2',
       label: '背景介绍',
       level: 2,
       type: 'subtopic',
-      position: { x: 300, y: 100 }
+      position: { x: 300, y: 100 },
     },
     {
       id: 'node-3',
       label: '核心观点',
-      level: 2, 
+      level: 2,
       type: 'subtopic',
-      position: { x: 300, y: 200 }
+      position: { x: 300, y: 200 },
     },
     {
       id: 'node-4',
       label: '实践建议',
       level: 2,
-      type: 'subtopic', 
-      position: { x: 300, y: 300 }
+      type: 'subtopic',
+      position: { x: 300, y: 300 },
     },
     {
       id: 'node-5',
       label: '发展趋势',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 150 }
+      position: { x: 550, y: 150 },
     },
     {
       id: 'node-6',
       label: '关键要素',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 250 }
-    }
+      position: { x: 550, y: 250 },
+    },
   ];
 
   const edges: MindmapEdgeData[] = [
@@ -65,7 +71,7 @@ const generateMockContent = (topic: string): GeneratedContent => {
     { id: 'edge-1-3', source: 'node-1', target: 'node-3' },
     { id: 'edge-1-4', source: 'node-1', target: 'node-4' },
     { id: 'edge-3-5', source: 'node-3', target: 'node-5' },
-    { id: 'edge-3-6', source: 'node-3', target: 'node-6' }
+    { id: 'edge-3-6', source: 'node-3', target: 'node-6' },
   ];
 
   const markdown = `# ${topic}
@@ -119,21 +125,27 @@ const generateMockContent = (topic: string): GeneratedContent => {
       url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=400&fit=crop',
       alt: `${topic}相关配图`,
       caption: `关于${topic}的示意图`,
-      prompt: `Generate an image related to ${topic}`
+      prompt: `Generate an image related to ${topic}`,
     },
     metadata: {
       wordCount: markdown.length,
       estimatedReadTime: Math.ceil(markdown.length / 200),
-      sources: ['AI生成内容', '相关研究资料']
-    }
+      sources: ['AI生成内容', '相关研究资料'],
+    },
   };
 };
 
-export function ContentGenerationPage({ topic, onBack }: ContentGenerationPageProps) {
+export function ContentGenerationPage({
+  topic,
+  onBack,
+}: ContentGenerationPageProps) {
   const [isGenerating, setIsGenerating] = useState(true);
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
+  const [generatedContent, setGeneratedContent] =
+    useState<GeneratedContent | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+  const [highlightedSection, setHighlightedSection] = useState<string | null>(
+    null,
+  );
   const [generationStep, setGenerationStep] = useState(0);
 
   // 模拟生成过程
@@ -143,7 +155,7 @@ export function ContentGenerationPage({ topic, onBack }: ContentGenerationPagePr
       '构建思维导图结构...',
       '生成文章内容...',
       '创建配图...',
-      '完善细节...'
+      '完善细节...',
     ];
 
     let currentStep = 0;
@@ -183,7 +195,7 @@ export function ContentGenerationPage({ topic, onBack }: ContentGenerationPagePr
     setIsGenerating(true);
     setGeneratedContent(null);
     setGenerationStep(0);
-    
+
     // 重新生成
     setTimeout(() => {
       setGeneratedContent(generateMockContent(topic));
@@ -197,21 +209,17 @@ export function ContentGenerationPage({ topic, onBack }: ContentGenerationPagePr
       '构建思维导图结构...',
       '生成文章内容...',
       '创建配图...',
-      '完善细节...'
+      '完善细节...',
     ];
 
     return (
-      <div className="h-screen flex flex-col bg-gray-50">
+      <div className="flex h-screen flex-col bg-gray-50">
         {/* 顶部栏 */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="border-b border-gray-200 bg-white px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button
-                isIconOnly
-                variant="light"
-                onPress={onBack}
-              >
-                <ArrowLeftIcon className="h-5 w-5" />
+              <Button isIconOnly variant="light" onPress={onBack}>
+                <ArrowLeftIcon className="size-5" />
               </Button>
               <h1 className="text-xl font-semibold">正在生成内容</h1>
             </div>
@@ -219,38 +227,40 @@ export function ContentGenerationPage({ topic, onBack }: ContentGenerationPagePr
         </div>
 
         {/* 生成进度 */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-md w-full px-6">
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-md px-6 text-center">
             <div className="mb-8">
               <Spinner size="lg" color="primary" />
             </div>
-            
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+
+            <h2 className="mb-4 text-2xl font-semibold text-gray-900">
               AI正在为您生成内容
             </h2>
-            
-            <p className="text-gray-600 mb-8">
-              主题：{topic}
-            </p>
+
+            <p className="mb-8 text-gray-600">主题：{topic}</p>
 
             <div className="space-y-4">
-              <Progress 
-                value={(generationStep + 1) / steps.length * 100} 
+              <Progress
+                value={((generationStep + 1) / steps.length) * 100}
                 color="primary"
                 className="mb-4"
               />
-              
+
               <div className="space-y-2">
                 {steps.map((step, index) => (
-                  <div 
+                  <div
                     key={index}
                     className={`flex items-center space-x-3 ${
-                      index <= generationStep ? 'text-blue-600' : 'text-gray-400'
+                      index <= generationStep
+                        ? 'text-blue-600'
+                        : 'text-gray-400'
                     }`}
                   >
-                    <div className={`w-2 h-2 rounded-full ${
-                      index <= generationStep ? 'bg-blue-600' : 'bg-gray-300'
-                    }`} />
+                    <div
+                      className={`size-2 rounded-full ${
+                        index <= generationStep ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    />
                     <span className="text-sm">{step}</span>
                   </div>
                 ))}
@@ -267,32 +277,27 @@ export function ContentGenerationPage({ topic, onBack }: ContentGenerationPagePr
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="flex h-screen flex-col bg-gray-50">
       {/* 顶部栏 */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+      <div className="shrink-0 border-b border-gray-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button
-              isIconOnly
-              variant="light"
-              onPress={onBack}
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
+            <Button isIconOnly variant="light" onPress={onBack}>
+              <ArrowLeftIcon className="size-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-semibold">{generatedContent.topic}</h1>
+              <h1 className="text-xl font-semibold">
+                {generatedContent.topic}
+              </h1>
               <p className="text-sm text-gray-500">
-                约{generatedContent.metadata.wordCount}字 · 预计阅读{generatedContent.metadata.estimatedReadTime}分钟
+                约{generatedContent.metadata.wordCount}字 · 预计阅读
+                {generatedContent.metadata.estimatedReadTime}分钟
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            <Button
-              color="primary"
-              variant="flat"
-              onPress={handleRegenerate}
-            >
+            <Button color="primary" variant="flat" onPress={handleRegenerate}>
               重新生成
             </Button>
           </div>
@@ -300,7 +305,7 @@ export function ContentGenerationPage({ topic, onBack }: ContentGenerationPagePr
       </div>
 
       {/* 主要内容区域 */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* 左侧思维导图 */}
         <div className="w-1/2 border-r border-gray-200 bg-white">
           <ReactFlowProvider>

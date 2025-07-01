@@ -30,16 +30,20 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <div className="rounded-2xl bg-white p-8">
             {/* 品牌Logo区域 */}
             <div className="mb-8 text-center">
-              <h1 className="mb-2 text-3xl font-bold text-gray-900">InfluFlow</h1>
-              <p className="text-gray-600">Transform your ideas into posts, in seconds.</p>
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
+                InfluFlow
+              </h1>
+              <p className="text-gray-600">
+                Transform your ideas into posts, in seconds.
+              </p>
             </div>
 
             {/* 登录按钮 */}
             <div className="space-y-4">
               <Button
-                className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium"
+                className="h-12 w-full border border-gray-300 bg-white text-base font-medium text-gray-700 hover:bg-gray-50"
                 startContent={
-                  <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <svg className="size-5" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

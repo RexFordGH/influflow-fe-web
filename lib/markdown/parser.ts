@@ -4,30 +4,30 @@
  * 主要功能：解析 Markdown 为 AST，提取标题结构用于思维导图
  */
 
-import { unified } from 'unified'
-import remarkParse from 'remark-parse'
-import remarkGfm from 'remark-gfm'
-import remarkStringify from 'remark-stringify'
-import type { Root, Heading, Text } from 'mdast'
+import type { Heading, Root, Text } from 'mdast';
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import remarkStringify from 'remark-stringify';
+import { unified } from 'unified';
 
 // 思维导图节点类型
 export interface MindmapNode {
-  id: string
-  level: number // 标题层级 (1-6)
-  title: string
-  content: string
-  children: MindmapNode[]
+  id: string;
+  level: number; // 标题层级 (1-6)
+  title: string;
+  content: string;
+  children: MindmapNode[];
   position?: {
-    line: number
-    column: number
-  }
+    line: number;
+    column: number;
+  };
 }
 
 // Markdown 解析结果
 export interface ParseResult {
-  ast: Root
-  nodes: MindmapNode[]
-  content: string
+  ast: Root;
+  nodes: MindmapNode[];
+  content: string;
 }
 
 /**
@@ -37,9 +37,9 @@ export interface ParseResult {
 export const createMarkdownProcessor = () => {
   return unified()
     .use(remarkParse) // 解析 Markdown
-    .use(remarkGfm)   // 支持 GitHub 风格的 Markdown
-    .use(remarkStringify) // 序列化为 Markdown
-}
+    .use(remarkGfm) // 支持 GitHub 风格的 Markdown
+    .use(remarkStringify); // 序列化为 Markdown
+};
 
 /**
  * 解析 Markdown 内容为 AST 和思维导图节点
@@ -47,18 +47,18 @@ export const createMarkdownProcessor = () => {
  * @returns ParseResult 包含 AST 和节点信息
  */
 export const parseMarkdown = async (markdown: string): Promise<ParseResult> => {
-  const processor = createMarkdownProcessor()
-  const ast = processor.parse(markdown) as Root
-  
+  const processor = createMarkdownProcessor();
+  const ast = processor.parse(markdown) as Root;
+
   // 提取标题节点用于构建思维导图
-  const nodes = extractHeadingNodes(ast)
-  
+  const nodes = extractHeadingNodes(ast);
+
   return {
     ast,
     nodes,
-    content: markdown
-  }
-}
+    content: markdown,
+  };
+};
 
 /**
  * 从 AST 中提取标题节点，构建层级结构
@@ -66,14 +66,14 @@ export const parseMarkdown = async (markdown: string): Promise<ParseResult> => {
  * @returns MindmapNode[] 思维导图节点数组
  */
 const extractHeadingNodes = (ast: Root): MindmapNode[] => {
-  const headings: MindmapNode[] = []
-  const stack: MindmapNode[] = [] // 用于构建层级关系的栈
-  
+  const headings: MindmapNode[] = [];
+  const stack: MindmapNode[] = []; // 用于构建层级关系的栈
+
   ast.children.forEach((node, index) => {
     if (node.type === 'heading') {
-      const heading = node as Heading
-      const title = extractTextFromNode(heading)
-      
+      const heading = node as Heading;
+      const title = extractTextFromNode(heading);
+
       const mindmapNode: MindmapNode = {
         id: `heading-${index}`,
         level: heading.depth,
@@ -82,17 +82,17 @@ const extractHeadingNodes = (ast: Root): MindmapNode[] => {
         children: [],
         position: {
           line: heading.position?.start.line || 0,
-          column: heading.position?.start.column || 0
-        }
-      }
-      
+          column: heading.position?.start.column || 0,
+        },
+      };
+
       // 构建层级关系
-      buildHierarchy(stack, mindmapNode, headings)
+      buildHierarchy(stack, mindmapNode, headings);
     }
-  })
-  
-  return headings
-}
+  });
+
+  return headings;
+};
 
 /**
  * 构建节点的层级关系
@@ -101,25 +101,28 @@ const extractHeadingNodes = (ast: Root): MindmapNode[] => {
  * @param rootNodes - 根节点数组
  */
 const buildHierarchy = (
-  stack: MindmapNode[], 
-  currentNode: MindmapNode, 
-  rootNodes: MindmapNode[]
+  stack: MindmapNode[],
+  currentNode: MindmapNode,
+  rootNodes: MindmapNode[],
 ) => {
   // 找到合适的父节点
-  while (stack.length > 0 && stack[stack.length - 1].level >= currentNode.level) {
-    stack.pop()
+  while (
+    stack.length > 0 &&
+    stack[stack.length - 1].level >= currentNode.level
+  ) {
+    stack.pop();
   }
-  
+
   if (stack.length === 0) {
     // 根节点
-    rootNodes.push(currentNode)
+    rootNodes.push(currentNode);
   } else {
     // 添加到父节点的子节点
-    stack[stack.length - 1].children.push(currentNode)
+    stack[stack.length - 1].children.push(currentNode);
   }
-  
-  stack.push(currentNode)
-}
+
+  stack.push(currentNode);
+};
 
 /**
  * 从节点中提取纯文本内容
@@ -128,17 +131,17 @@ const buildHierarchy = (
  */
 const extractTextFromNode = (node: any): string => {
   if (node.type === 'text') {
-    return (node as Text).value
+    return (node as Text).value;
   }
-  
+
   if (node.children) {
     return node.children
       .map((child: any) => extractTextFromNode(child))
-      .join('')
+      .join('');
   }
-  
-  return ''
-}
+
+  return '';
+};
 
 /**
  * 将思维导图节点转换回 Markdown
@@ -146,33 +149,33 @@ const extractTextFromNode = (node: any): string => {
  * @returns string Markdown 内容
  */
 export const nodesToMarkdown = (nodes: MindmapNode[]): string => {
-  const lines: string[] = []
-  
+  const lines: string[] = [];
+
   const processNode = (node: MindmapNode) => {
     // 生成标题
-    const heading = '#'.repeat(node.level) + ' ' + node.title
-    lines.push(heading)
-    
+    const heading = '#'.repeat(node.level) + ' ' + node.title;
+    lines.push(heading);
+
     // 添加内容（如果有）
     if (node.content.trim()) {
-      lines.push('')
-      lines.push(node.content)
+      lines.push('');
+      lines.push(node.content);
     }
-    
+
     // 处理子节点
-    node.children.forEach(child => {
-      lines.push('')
-      processNode(child)
-    })
-  }
-  
+    node.children.forEach((child) => {
+      lines.push('');
+      processNode(child);
+    });
+  };
+
   nodes.forEach((node, index) => {
-    if (index > 0) lines.push('')
-    processNode(node)
-  })
-  
-  return lines.join('\n')
-}
+    if (index > 0) lines.push('');
+    processNode(node);
+  });
+
+  return lines.join('\n');
+};
 
 /**
  * 示例使用方法和测试数据
@@ -205,4 +208,4 @@ GPT系列模型展示了语言理解的巨大潜力。
 
 #### Transformer架构
 注意力机制成为现代AI的核心技术。
-`
+`;

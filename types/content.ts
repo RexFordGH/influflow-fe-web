@@ -3,16 +3,16 @@ export interface GeneratedContent {
   id: string;
   topic: string;
   createdAt: string;
-  
+
   // 思维导图数据
   mindmap: {
     nodes: MindmapNodeData[];
     edges: MindmapEdgeData[];
   };
-  
+
   // Markdown内容
   markdown: string;
-  
+
   // 图片信息
   image: {
     url: string;
@@ -20,7 +20,7 @@ export interface GeneratedContent {
     caption?: string;
     prompt?: string; // AI生成图片的提示词
   };
-  
+
   // 元数据
   metadata: {
     wordCount: number;

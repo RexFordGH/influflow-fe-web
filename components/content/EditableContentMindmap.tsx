@@ -1,6 +1,5 @@
 'use client';
 
-import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Button, Input } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -18,6 +17,8 @@ import ReactFlow, {
   useNodesState,
   useReactFlow,
 } from 'reactflow';
+
+import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 
 import 'reactflow/dist/style.css';
 
@@ -37,14 +38,14 @@ const EditableMindmapNode = ({
   // 根据层级确定样式
   const getNodeStyle = () => {
     const baseStyle =
-      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group bg-[#E3E3E3] text-[12px] text-black font-[500]';
+      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group text-[12px] text-black font-[500]';
     const levelColors = {
       1: 'bg-[#000000] text-white text-center min-w-[180px]',
       2: 'bg-[#E3E3E3]',
-      3: 'bg-gray-300',
-      4: 'bg-gray-300',
-      5: 'bg-gray-300',
-      6: 'bg-gray-300',
+      3: 'bg-[#E3E3E3]',
+      4: 'bg-[#E3E3E3]',
+      5: 'bg-[#E3E3E3]',
+      6: 'bg-[#E3E3E3]',
     };
 
     const levelStyle =
@@ -102,7 +103,7 @@ const EditableMindmapNode = ({
         {level > 1 && ( // 不允许删除根节点
           <button
             onClick={handleDelete}
-            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs hover:bg-red-600"
+            className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
           >
             ×
           </button>
@@ -433,7 +434,7 @@ export function EditableContentMindmap({
   );
 
   return (
-    <div className="w-full h-full relative">
+    <div className="relative size-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -514,7 +515,7 @@ export function EditableContentMindmap({
               size="sm"
               color="primary"
               variant="flat"
-              startContent={<PlusIcon className="h-4 w-4" />}
+              startContent={<PlusIcon className="size-4" />}
               onPress={() => addChildNode(highlightedNodeId)}
             >
               添加子节点
