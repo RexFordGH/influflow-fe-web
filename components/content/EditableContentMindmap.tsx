@@ -218,6 +218,7 @@ interface EditableContentMindmapProps {
   onNodeSelect?: (nodeId: string | null) => void;
   onNodesChange?: (nodes: MindmapNodeData[]) => void;
   onEdgesChange?: (edges: MindmapEdgeData[]) => void;
+  onRegenerate?: () => void;
   highlightedNodeId?: string | null;
 }
 
@@ -227,6 +228,7 @@ export function EditableContentMindmap({
   onNodeSelect,
   onNodesChange,
   onEdgesChange,
+  onRegenerate,
   highlightedNodeId,
 }: EditableContentMindmapProps) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
@@ -697,6 +699,22 @@ export function EditableContentMindmap({
             </Button>
           </Panel>
         )}
+
+        {/* Regenerate 按钮 - 底部中心 */}
+        <Panel position="bottom-center" className="mb-4">
+          <Button
+            size="md"
+            color="primary"
+            variant="solid"
+            onPress={() => {
+              console.log('Regenerating markdown from mindmap');
+              onRegenerate?.();
+            }}
+            className="bg-[#4285F4] hover:bg-[#3367D6] text-white font-medium px-8 py-3 rounded-xl shadow-lg"
+          >
+            Regenerate
+          </Button>
+        </Panel>
 
         {/* 调试面板 */}
         <Panel
