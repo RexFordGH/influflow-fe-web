@@ -2,7 +2,7 @@
 
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Button, Input } from '@heroui/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Connection,
@@ -31,21 +31,23 @@ const EditableMindmapNode = ({
   id: string;
   selected: boolean;
 }) => {
-  const { label, level, onEdit, onDelete } = data;
+  const { label, level, onEdit, addChildNode } = data;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // 根据层级确定样式
   const getNodeStyle = () => {
     const baseStyle =
-      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group text-[12px] text-black font-[500]';
+      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group text-[12px] font-[500]';
+
     const levelColors = {
       1: 'bg-[#000000] text-white text-center min-w-[180px]',
-      2: 'bg-[#E3E3E3]',
-      3: 'bg-[#E3E3E3]',
-      4: 'bg-[#E3E3E3]',
-      5: 'bg-[#E3E3E3]',
-      6: 'bg-[#E3E3E3]',
+      2: 'bg-[#E3E3E3] text-black',
+      3: 'bg-[#E3E3E3] text-black',
+      4: 'bg-[#E3E3E3] text-black',
+      5: 'bg-[#E3E3E3] text-black',
+      6: 'bg-[#E3E3E3] text-black',
     };
 
     const levelStyle =
@@ -62,12 +64,12 @@ const EditableMindmapNode = ({
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    if (editValue.trim() && editValue !== label) {
+  const handleSave = useCallback(() => {
+    if (editValue.trim()) {
       onEdit?.(id, editValue.trim());
     }
     setIsEditing(false);
-  };
+  }, [editValue, onEdit, id]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -78,13 +80,52 @@ const EditableMindmapNode = ({
     }
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onDelete?.(id);
+  // 移除了新节点自动编辑逻辑，简化交互
+
+  // 处理点击外部区域自动保存
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isEditing && 
+        inputRef.current && 
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        handleSave();
+      }
+    };
+
+    if (isEditing) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isEditing, handleSave]);
+
+  // 自动聚焦输入框
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
+
+  // Hover 状态管理
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
   };
 
   return (
-    <div className="relative">
+    <div 
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <Handle
         type="target"
         position={Position.Left}
@@ -99,18 +140,11 @@ const EditableMindmapNode = ({
       />
 
       <div className={getNodeStyle()}>
-        {/* 删除按钮 */}
-        {level > 1 && ( // 不允许删除根节点
-          <button
-            onClick={handleDelete}
-            className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-          >
-            ×
-          </button>
-        )}
+        {/* 删除按钮已移除 - 只保留键盘 Delete 功能 */}
 
         {isEditing ? (
           <Input
+            ref={inputRef}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleSave}
@@ -130,6 +164,20 @@ const EditableMindmapNode = ({
           </div>
         )}
       </div>
+
+      {/* 添加子节点按钮 - hover 时显示 */}
+      {isHovered && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            addChildNode(id);
+          }}
+          className="absolute -right-6 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
+          title="添加子节点"
+        >
+          <PlusIcon className="w-3 h-3" />
+        </button>
+      )}
 
       <Handle
         type="source"
@@ -209,6 +257,9 @@ export function EditableContentMindmap({
 
           onNodesChange?.(filteredNodes);
           onEdgesChange?.(filteredEdges);
+        },
+        addChildNode: (parentId: string) => {
+          addChildNode(parentId);
         },
         ...node.data,
       },
@@ -341,12 +392,61 @@ export function EditableContentMindmap({
 
       if (!parentNode) return;
 
+      // 智能计算新节点位置，避免与现有子节点重叠
+      const parentPosition = parentNode.position || { x: 50, y: 100 };
+      
+      // 找到当前父节点的所有子节点
+      const parentChildEdges = mindmapEdges.filter(edge => edge.source === parentId);
+      const childNodeIds = parentChildEdges.map(edge => edge.target);
+      const childNodes = mindmapNodes.filter(node => childNodeIds.includes(node.id));
+      
+      let newPosition;
+      
+      if (childNodes.length === 0) {
+        // 如果没有子节点，放在父节点右侧
+        newPosition = {
+          x: parentPosition.x + 250,
+          y: parentPosition.y,
+        };
+      } else {
+        // 如果有子节点，找到合适的Y位置避免重叠
+        const childPositions = childNodes
+          .map(node => node.position?.y || 0)
+          .sort((a, b) => a - b);
+          
+        // 节点高度约为 60px，间距为 30px
+        const nodeHeight = 60;
+        const nodeSpacing = 30;
+        
+        // 策略1：尝试在现有子节点下方放置新节点
+        const maxY = Math.max(...childPositions);
+        newPosition = {
+          x: parentPosition.x + 250,
+          y: maxY + nodeHeight + nodeSpacing,
+        };
+        
+        // 策略2：如果子节点太分散，尝试找到空隙插入
+        if (childPositions.length > 1) {
+          for (let i = 0; i < childPositions.length - 1; i++) {
+            const gap = childPositions[i + 1] - childPositions[i];
+            if (gap > nodeHeight + nodeSpacing * 2) {
+              // 找到足够大的空隙，在其中放置新节点
+              newPosition = {
+                x: parentPosition.x + 250,
+                y: childPositions[i] + nodeHeight + nodeSpacing,
+              };
+              break;
+            }
+          }
+        }
+      }
+
       const newNode: MindmapNodeData = {
         id: newNodeId,
         label: '新节点',
         level: parentNode.level + 1,
         type: 'point',
-        position: { x: 0, y: 0 },
+        position: newPosition,
       };
 
       const newEdge: MindmapEdgeData = {
@@ -365,19 +465,18 @@ export function EditableContentMindmap({
   // 更新节点和边
   useEffect(() => {
     const { flowNodes, flowEdges } = convertToFlowData();
-    console.log('EditableContentMindmap: 更新数据', {
-      nodes: flowNodes.length,
-      edges: flowEdges.length,
-      edgeDetails: flowEdges,
-    });
+    // 更新节点和边数据
     setNodes(flowNodes);
     setEdges(flowEdges);
 
     // 如果有节点但没有运行过布局，自动运行布局
-    if (
-      flowNodes.length > 0 &&
-      flowNodes.some((node) => node.position.x === 0 && node.position.y === 0)
-    ) {
+    const hasNodesAtOrigin = flowNodes.some(
+      (node) => 
+        node.position.x === 0 && 
+        node.position.y === 0
+    );
+    
+    if (flowNodes.length > 0 && hasNodesAtOrigin) {
       setTimeout(() => {
         autoLayout();
       }, 100);

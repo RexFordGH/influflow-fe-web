@@ -171,7 +171,7 @@ export function ContentGenerationPage({
           setIsGenerating(false);
         }, 1000);
       }
-    }, 1500);
+    }, 500);
 
     return () => clearInterval(interval);
   });
