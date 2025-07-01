@@ -1,53 +1,58 @@
 'use client';
 
-import { useCallback, useMemo, useEffect, useState } from 'react';
-import ReactFlow, {
-  Node,
-  Edge,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  Controls,
-  MiniMap,
-  Background,
-  NodeTypes,
-  ConnectionMode,
-  Panel,
-  addEdge,
-  Connection,
-  Handle,
-  Position,
-  MarkerType
-} from 'reactflow';
+import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { Button, Input } from '@heroui/react';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { MindmapNodeData, MindmapEdgeData } from '@/types/content';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import ReactFlow, {
+  Background,
+  Connection,
+  ConnectionMode,
+  Edge,
+  Handle,
+  Node,
+  NodeTypes,
+  Panel,
+  Position,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+} from 'reactflow';
 
-// 导入 React Flow 样式
 import 'reactflow/dist/style.css';
 
-
-// 可编辑节点组件
-const EditableMindmapNode = ({ data, id, selected }: { data: any; id: string; selected: boolean }) => {
+const EditableMindmapNode = ({
+  data,
+  id,
+  selected,
+}: {
+  data: any;
+  id: string;
+  selected: boolean;
+}) => {
   const { label, level, onEdit, onDelete } = data;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
-  
+
   // 根据层级确定样式
   const getNodeStyle = () => {
-    const baseStyle = 'px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer relative group';
+    const baseStyle =
+      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group bg-[#E3E3E3] text-[12px] text-black font-[500]';
     const levelColors = {
-      1: 'bg-red-500 text-white text-lg font-bold',
-      2: 'bg-blue-500 text-white text-base font-semibold', 
-      3: 'bg-green-500 text-white text-sm font-medium',
-      4: 'bg-purple-500 text-white text-sm',
-      5: 'bg-orange-500 text-white text-xs',
-      6: 'bg-gray-500 text-white text-xs',
+      1: 'bg-[#000000] text-white text-center min-w-[180px]',
+      2: 'bg-[#E3E3E3]',
+      3: 'bg-gray-300',
+      4: 'bg-gray-300',
+      5: 'bg-gray-300',
+      6: 'bg-gray-300',
     };
-    
-    const levelStyle = levelColors[level as keyof typeof levelColors] || levelColors[6];
-    const selectedStyle = selected ? 'ring-2 ring-yellow-400 ring-offset-2' : '';
-    
+
+    const levelStyle =
+      levelColors[level as keyof typeof levelColors] || levelColors[6];
+    const selectedStyle = selected
+      ? 'ring-2 ring-yellow-400 ring-offset-2'
+      : '';
+
     return `${baseStyle} ${levelStyle} ${selectedStyle}`;
   };
 
@@ -79,7 +84,6 @@ const EditableMindmapNode = ({ data, id, selected }: { data: any; id: string; se
 
   return (
     <div className="relative">
-      {/* 输入连接点 */}
       <Handle
         type="target"
         position={Position.Left}
@@ -88,7 +92,8 @@ const EditableMindmapNode = ({ data, id, selected }: { data: any; id: string; se
           width: '8px',
           height: '8px',
           border: '2px solid #fff',
-          left: '-4px',
+          left: '0',
+          opacity: 0,
         }}
       />
 
@@ -102,7 +107,7 @@ const EditableMindmapNode = ({ data, id, selected }: { data: any; id: string; se
             ×
           </button>
         )}
-        
+
         {isEditing ? (
           <Input
             value={editValue}
@@ -115,7 +120,7 @@ const EditableMindmapNode = ({ data, id, selected }: { data: any; id: string; se
             className="min-w-[100px]"
             classNames={{
               input: 'text-center bg-white/20 text-current',
-              inputWrapper: 'bg-white/20'
+              inputWrapper: 'bg-white/20',
             }}
           />
         ) : (
@@ -125,16 +130,16 @@ const EditableMindmapNode = ({ data, id, selected }: { data: any; id: string; se
         )}
       </div>
 
-      {/* 输出连接点 */}
       <Handle
         type="source"
         position={Position.Right}
         style={{
-          background: '#555',
+          background: '#000000',
           width: '8px',
           height: '8px',
           border: '2px solid #fff',
-          right: '-4px',
+          right: '0',
+          opacity: 0,
         }}
       />
     </div>
@@ -150,13 +155,13 @@ interface EditableContentMindmapProps {
   highlightedNodeId?: string | null;
 }
 
-export function EditableContentMindmap({ 
-  nodes: mindmapNodes, 
-  edges: mindmapEdges, 
+export function EditableContentMindmap({
+  nodes: mindmapNodes,
+  edges: mindmapEdges,
   onNodeSelect,
   onNodesChange,
   onEdgesChange,
-  highlightedNodeId 
+  highlightedNodeId,
 }: EditableContentMindmapProps) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
@@ -164,7 +169,7 @@ export function EditableContentMindmap({
 
   // 转换数据格式为 React Flow 格式
   const convertToFlowData = useCallback(() => {
-    const flowNodes: Node[] = mindmapNodes.map(node => ({
+    const flowNodes: Node[] = mindmapNodes.map((node) => ({
       id: node.id,
       type: 'editableMindmapNode',
       position: node.position || { x: 0, y: 0 },
@@ -173,8 +178,8 @@ export function EditableContentMindmap({
         level: node.level,
         highlighted: highlightedNodeId === node.id,
         onEdit: (nodeId: string, newLabel: string) => {
-          const updatedNodes = mindmapNodes.map(n => 
-            n.id === nodeId ? { ...n, label: newLabel } : n
+          const updatedNodes = mindmapNodes.map((n) =>
+            n.id === nodeId ? { ...n, label: newLabel } : n,
           );
           onNodesChange?.(updatedNodes);
         },
@@ -182,36 +187,38 @@ export function EditableContentMindmap({
           // 删除节点及其所有子节点
           const getDescendants = (id: string): string[] => {
             const children = mindmapEdges
-              .filter(edge => edge.source === id)
-              .map(edge => edge.target);
-            
+              .filter((edge) => edge.source === id)
+              .map((edge) => edge.target);
+
             const descendants: string[] = [...children];
-            children.forEach(childId => {
+            children.forEach((childId) => {
               descendants.push(...getDescendants(childId));
             });
-            
+
             return descendants;
           };
-          
+
           const toDelete = [nodeId, ...getDescendants(nodeId)];
-          const filteredNodes = mindmapNodes.filter(n => !toDelete.includes(n.id));
-          const filteredEdges = mindmapEdges.filter(e => 
-            !toDelete.includes(e.source) && !toDelete.includes(e.target)
+          const filteredNodes = mindmapNodes.filter(
+            (n) => !toDelete.includes(n.id),
           );
-          
+          const filteredEdges = mindmapEdges.filter(
+            (e) => !toDelete.includes(e.source) && !toDelete.includes(e.target),
+          );
+
           onNodesChange?.(filteredNodes);
           onEdgesChange?.(filteredEdges);
         },
-        ...node.data
+        ...node.data,
       },
       style: {
         border: 'none',
         background: 'transparent',
         padding: 0,
-      }
+      },
     }));
 
-    const flowEdges: Edge[] = mindmapEdges.map(edge => ({
+    const flowEdges: Edge[] = mindmapEdges.map((edge) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
@@ -219,28 +226,34 @@ export function EditableContentMindmap({
       animated: false,
       deletable: true,
       style: {
-        stroke: '#6B7280',
-        strokeWidth: 3,
+        stroke: '#000000',
+        strokeWidth: 1,
       },
     }));
 
     return { flowNodes, flowEdges };
-  }, [mindmapNodes, mindmapEdges, highlightedNodeId, onNodesChange, onEdgesChange]);
+  }, [
+    mindmapNodes,
+    mindmapEdges,
+    highlightedNodeId,
+    onNodesChange,
+    onEdgesChange,
+  ]);
 
   // 自动布局算法
   const autoLayout = useCallback(() => {
     if (mindmapNodes.length === 0) return;
 
     const { flowNodes } = convertToFlowData();
-    
+
     // 构建父子关系
     const parentChildMap = new Map<string, string[]>();
     const childParentMap = new Map<string, string>();
-    
-    mindmapEdges.forEach(edge => {
+
+    mindmapEdges.forEach((edge) => {
       const parentId = edge.source;
       const childId = edge.target;
-      
+
       if (!parentChildMap.has(parentId)) {
         parentChildMap.set(parentId, []);
       }
@@ -249,96 +262,104 @@ export function EditableContentMindmap({
     });
 
     // 找到根节点
-    const rootNodes = flowNodes.filter(node => !childParentMap.has(node.id));
-    
+    const rootNodes = flowNodes.filter((node) => !childParentMap.has(node.id));
+
     // 计算子树高度
     const calculateSubtreeHeight = (nodeId: string): number => {
       const childIds = parentChildMap.get(nodeId) || [];
-      
+
       if (childIds.length === 0) {
         return 80; // 叶子节点高度
       }
-      
+
       const childrenTotalHeight = childIds.reduce((total, childId) => {
         return total + calculateSubtreeHeight(childId);
       }, 0);
-      
+
       return Math.max(80, childrenTotalHeight + (childIds.length - 1) * 20);
     };
 
     // 递归布局
     const layoutNodeTree = (nodeId: string, x: number, y: number): number => {
-      const node = flowNodes.find(n => n.id === nodeId);
+      const node = flowNodes.find((n) => n.id === nodeId);
       if (!node) return y + 80;
-      
+
       const childIds = parentChildMap.get(nodeId) || [];
-      
+
       if (childIds.length === 0) {
         node.position = { x, y };
         return 80;
       }
-      
+
       const childX = x + 250;
-      const childSubtreeHeights = childIds.map(childId => calculateSubtreeHeight(childId));
-      const totalChildrenHeight = childSubtreeHeights.reduce((sum, h) => sum + h, 0);
+      const childSubtreeHeights = childIds.map((childId) =>
+        calculateSubtreeHeight(childId),
+      );
+      const totalChildrenHeight = childSubtreeHeights.reduce(
+        (sum, h) => sum + h,
+        0,
+      );
       const totalSpacing = (childIds.length - 1) * 20;
       const totalRequiredHeight = totalChildrenHeight + totalSpacing;
-      
+
       const startY = y - totalRequiredHeight / 2;
       let currentChildY = startY;
-      
+
       childIds.forEach((childId, index) => {
         const childSubtreeHeight = childSubtreeHeights[index];
         const childCenterY = currentChildY + childSubtreeHeight / 2;
-        
+
         layoutNodeTree(childId, childX, childCenterY);
         currentChildY += childSubtreeHeight + 20;
       });
-      
+
       node.position = { x, y };
       return totalRequiredHeight;
     };
 
     // 布局所有根节点
     let currentRootY = 100;
-    rootNodes.forEach(rootNode => {
+    rootNodes.forEach((rootNode) => {
       const subtreeHeight = calculateSubtreeHeight(rootNode.id);
       layoutNodeTree(rootNode.id, 50, currentRootY);
       currentRootY += subtreeHeight + 100;
     });
 
     setNodes(flowNodes);
-    
+
     setTimeout(() => {
       fitView({ duration: 500 });
     }, 100);
   }, [mindmapNodes, mindmapEdges, convertToFlowData, fitView, setNodes]);
 
   // 添加子节点
-  const addChildNode = useCallback((parentId: string) => {
-    const newNodeId = `node-${Date.now()}`;
-    const parentNode = mindmapNodes.find(n => n.id === parentId);
-    
-    if (!parentNode) return;
-    
-    const newNode: MindmapNodeData = {
-      id: newNodeId,
-      label: '新节点',
-      level: parentNode.level + 1,
-      type: 'point',
-      position: { x: 0, y: 0 }
-    };
-    
-    const newEdge: MindmapEdgeData = {
-      id: `edge-${parentId}-${newNodeId}`,
-      source: parentId,
-      target: newNodeId,
-      type: 'smoothstep'
-    };
-    
-    onNodesChange?.([...mindmapNodes, newNode]);
-    onEdgesChange?.([...mindmapEdges, newEdge]);
-  }, [mindmapNodes, mindmapEdges, onNodesChange, onEdgesChange]);
+  const addChildNode = useCallback(
+    (parentId: string) => {
+      const newNodeId = `node-${Date.now()}`;
+      const parentNode = mindmapNodes.find((n) => n.id === parentId);
+
+      if (!parentNode) return;
+
+      const newNode: MindmapNodeData = {
+        id: newNodeId,
+        label: '新节点',
+        level: parentNode.level + 1,
+        type: 'point',
+        position: { x: 0, y: 0 },
+      };
+
+      const newEdge: MindmapEdgeData = {
+        id: `edge-${parentId}-${newNodeId}`,
+        source: parentId,
+        target: newNodeId,
+        type: 'smoothstep',
+      };
+
+      onNodesChange?.([...mindmapNodes, newNode]);
+      onEdgesChange?.([...mindmapEdges, newEdge]);
+    },
+    [mindmapNodes, mindmapEdges, onNodesChange, onEdgesChange],
+  );
 
   // 更新节点和边
   useEffect(() => {
@@ -346,13 +367,16 @@ export function EditableContentMindmap({
     console.log('EditableContentMindmap: 更新数据', {
       nodes: flowNodes.length,
       edges: flowEdges.length,
-      edgeDetails: flowEdges
+      edgeDetails: flowEdges,
     });
     setNodes(flowNodes);
     setEdges(flowEdges);
-    
+
     // 如果有节点但没有运行过布局，自动运行布局
-    if (flowNodes.length > 0 && flowNodes.some(node => node.position.x === 0 && node.position.y === 0)) {
+    if (
+      flowNodes.length > 0 &&
+      flowNodes.some((node) => node.position.x === 0 && node.position.y === 0)
+    ) {
       setTimeout(() => {
         autoLayout();
       }, 100);
@@ -360,37 +384,43 @@ export function EditableContentMindmap({
   }, [convertToFlowData, setNodes, setEdges, autoLayout]);
 
   // 处理连接创建
-  const onConnect = useCallback((params: Connection) => {
-    if (params.source && params.target) {
-      const newEdge: MindmapEdgeData = {
-        id: `edge-${params.source}-${params.target}`,
-        source: params.source,
-        target: params.target,
-        type: 'smoothstep'
-      };
-      onEdgesChange?.([...mindmapEdges, newEdge]);
-    }
-  }, [mindmapEdges, onEdgesChange]);
+  const onConnect = useCallback(
+    (params: Connection) => {
+      if (params.source && params.target) {
+        const newEdge: MindmapEdgeData = {
+          id: `edge-${params.source}-${params.target}`,
+          source: params.source,
+          target: params.target,
+          type: 'smoothstep',
+        };
+        onEdgesChange?.([...mindmapEdges, newEdge]);
+      }
+    },
+    [mindmapEdges, onEdgesChange],
+  );
 
   // 处理边删除
-  const handleEdgesChange = useCallback((changes: any[]) => {
-    onEdgesChangeInternal(changes);
-    
-    const deletedEdges = changes.filter(change => change.type === 'remove');
-    if (deletedEdges.length > 0) {
-      const remainingEdges = mindmapEdges.filter(edge => 
-        !deletedEdges.some(deleted => deleted.id === edge.id)
-      );
-      onEdgesChange?.(remainingEdges);
-    }
-  }, [onEdgesChangeInternal, mindmapEdges, onEdgesChange]);
+  const handleEdgesChange = useCallback(
+    (changes: any[]) => {
+      onEdgesChangeInternal(changes);
+
+      const deletedEdges = changes.filter((change) => change.type === 'remove');
+      if (deletedEdges.length > 0) {
+        const remainingEdges = mindmapEdges.filter(
+          (edge) => !deletedEdges.some((deleted) => deleted.id === edge.id),
+        );
+        onEdgesChange?.(remainingEdges);
+      }
+    },
+    [onEdgesChangeInternal, mindmapEdges, onEdgesChange],
+  );
 
   // 节点类型定义
   const nodeTypes: NodeTypes = useMemo(
     () => ({
-      editableMindmapNode: EditableMindmapNode
+      editableMindmapNode: EditableMindmapNode,
     }),
-    []
+    [],
   );
 
   // 处理节点选择
@@ -399,7 +429,7 @@ export function EditableContentMindmap({
       const selectedNode = selectedNodes[0];
       onNodeSelect?.(selectedNode?.id || null);
     },
-    [onNodeSelect]
+    [onNodeSelect],
   );
 
   return (
@@ -421,33 +451,36 @@ export function EditableContentMindmap({
         deleteKeyCode={['Delete', 'Backspace']}
         defaultEdgeOptions={{
           type: 'default',
-          style: { strokeWidth: 3, stroke: '#6B7280' },
+          style: { strokeWidth: 1, stroke: '#6B7280' },
           animated: false,
         }}
       >
-        <Controls
+        {/* <Controls
           showZoom
           showFitView
           showInteractive={true}
           className="bg-white border border-gray-200 rounded-lg"
-        />
-        
-        <MiniMap
+        /> */}
+
+        {/* <MiniMap
           nodeColor={(node) => {
             const level = node.data?.level || 1;
-            const colors = ['#EF4444', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#6B7280'];
+            const colors = [
+              '#EF4444',
+              '#3B82F6',
+              '#10B981',
+              '#8B5CF6',
+              '#F59E0B',
+              '#6B7280',
+            ];
             return colors[level - 1] || colors[5];
           }}
           className="bg-white border border-gray-200 rounded-lg"
-        />
-        
-        <Background 
-          gap={20} 
-          size={1}
-          className="opacity-30"
-        />
-        
-        <Panel position="top-right" className="flex flex-col gap-2">
+        /> */}
+
+        <Background gap={20} size={1} className="opacity-30" />
+
+        {/* <Panel position="top-right" className="flex flex-col gap-2">
           <Button
             size="sm"
             color="primary"
@@ -472,7 +505,7 @@ export function EditableContentMindmap({
           >
             添加节点
           </Button>
-        </Panel>
+        </Panel> */}
 
         {/* 悬浮工具栏 - 选中节点时显示 */}
         {highlightedNodeId && (
@@ -488,22 +521,24 @@ export function EditableContentMindmap({
             </Button>
           </Panel>
         )}
-        
-        <Panel position="bottom-left" className="text-sm text-gray-500">
+
+        {/* <Panel position="bottom-left" className="text-sm text-gray-500">
           <div className="bg-white p-2 rounded border border-gray-200">
             节点: {nodes.length} | 连接: {edges.length}
             <br />
-            <span className="text-xs">双击节点编辑 | 拖拽调整位置 | Delete删除</span>
+            <span className="text-xs">
+              双击节点编辑 | 拖拽调整位置 | Delete删除
+            </span>
           </div>
-        </Panel>
+        </Panel> */}
       </ReactFlow>
     </div>
   );
 }
 
 // 包装组件，提供 ReactFlow 上下文
-export default function EditableContentMindmapWrapper(props: EditableContentMindmapProps) {
-  return (
-    <EditableContentMindmap {...props} />
-  );
+export default function EditableContentMindmapWrapper(
+  props: EditableContentMindmapProps,
+) {
+  return <EditableContentMindmap {...props} />;
 }

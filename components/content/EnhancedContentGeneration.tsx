@@ -1,10 +1,18 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import {
+  GeneratedContent,
+  MindmapEdgeData,
+  MindmapNodeData,
+} from '@/types/content';
+import {
+  ArrowLeftIcon,
+  ArrowPathIcon,
+  PhotoIcon,
+} from '@heroicons/react/24/outline';
+import { Button, Card, CardBody, Progress, Spinner } from '@heroui/react';
+import { useCallback, useEffect, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
-import { Button, Progress, Spinner, Card, CardBody } from '@heroui/react';
-import { ArrowLeftIcon, PhotoIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { GeneratedContent, MindmapNodeData, MindmapEdgeData } from '@/types/content';
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
 
@@ -14,10 +22,13 @@ interface EnhancedContentGenerationProps {
 }
 
 // 基于思维导图节点生成Markdown内容
-const generateMarkdownFromNodes = (nodes: MindmapNodeData[], topic: string): string => {
+const generateMarkdownFromNodes = (
+  nodes: MindmapNodeData[],
+  topic: string,
+): string => {
   // 按层级分组节点
   const nodesByLevel: { [level: number]: MindmapNodeData[] } = {};
-  nodes.forEach(node => {
+  nodes.forEach((node) => {
     if (!nodesByLevel[node.level]) {
       nodesByLevel[node.level] = [];
     }
@@ -30,16 +41,16 @@ const generateMarkdownFromNodes = (nodes: MindmapNodeData[], topic: string): str
   const level2Nodes = nodesByLevel[2] || [];
   level2Nodes.forEach((node, index) => {
     markdown += `## ${node.label} 📊\n\n`;
-    
+
     // 查找该节点的子节点
-    const childNodes = (nodesByLevel[3] || []).filter(child => {
+    const childNodes = (nodesByLevel[3] || []).filter((child) => {
       // 这里简单地按索引关联，实际应该根据edges来确定关系
       return true; // 暂时包含所有三级节点
     });
 
     if (childNodes.length > 0) {
       markdown += `### 核心要点\n\n`;
-      childNodes.forEach(child => {
+      childNodes.forEach((child) => {
         markdown += `- **${child.label}**：这是关于${child.label}的详细说明，展示了在${node.label}方面的重要性和实际应用价值。\n`;
       });
       markdown += '\n';
@@ -47,7 +58,7 @@ const generateMarkdownFromNodes = (nodes: MindmapNodeData[], topic: string): str
 
     // 添加段落内容
     markdown += `在${node.label}方面，我们需要深入理解其核心价值和实践意义。通过系统性的分析和研究，可以发现这一领域的发展趋势和关键要素。\n\n`;
-    
+
     if (index < level2Nodes.length - 1) {
       markdown += `---\n\n`;
     }
@@ -71,92 +82,92 @@ const generateEnhancedMockContent = (topic: string): GeneratedContent => {
       label: topic,
       level: 1,
       type: 'topic',
-      position: { x: 50, y: 200 }
+      position: { x: 50, y: 200 },
     },
     {
-      id: 'node-2', 
+      id: 'node-2',
       label: '背景分析',
       level: 2,
       type: 'subtopic',
-      position: { x: 300, y: 80 }
+      position: { x: 300, y: 80 },
     },
     {
       id: 'node-3',
       label: '核心观点',
-      level: 2, 
+      level: 2,
       type: 'subtopic',
-      position: { x: 300, y: 160 }
+      position: { x: 300, y: 160 },
     },
     {
       id: 'node-4',
       label: '实践方法',
       level: 2,
-      type: 'subtopic', 
-      position: { x: 300, y: 240 }
+      type: 'subtopic',
+      position: { x: 300, y: 240 },
     },
     {
       id: 'node-5',
       label: '未来趋势',
       level: 2,
-      type: 'subtopic', 
-      position: { x: 300, y: 320 }
+      type: 'subtopic',
+      position: { x: 300, y: 320 },
     },
     {
       id: 'node-6',
       label: '市场现状',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 60 }
+      position: { x: 550, y: 60 },
     },
     {
       id: 'node-7',
       label: '痛点问题',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 100 }
+      position: { x: 550, y: 100 },
     },
     {
       id: 'node-8',
       label: '关键要素',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 140 }
+      position: { x: 550, y: 140 },
     },
     {
       id: 'node-9',
       label: '价值主张',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 180 }
+      position: { x: 550, y: 180 },
     },
     {
       id: 'node-10',
       label: '实施步骤',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 220 }
+      position: { x: 550, y: 220 },
     },
     {
       id: 'node-11',
       label: '评估指标',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 260 }
+      position: { x: 550, y: 260 },
     },
     {
       id: 'node-12',
       label: '技术发展',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 300 }
+      position: { x: 550, y: 300 },
     },
     {
       id: 'node-13',
       label: '应用前景',
       level: 3,
       type: 'point',
-      position: { x: 550, y: 340 }
-    }
+      position: { x: 550, y: 340 },
+    },
   ];
 
   const edges: MindmapEdgeData[] = [
@@ -171,7 +182,7 @@ const generateEnhancedMockContent = (topic: string): GeneratedContent => {
     { id: 'edge-4-10', source: 'node-4', target: 'node-10' },
     { id: 'edge-4-11', source: 'node-4', target: 'node-11' },
     { id: 'edge-5-12', source: 'node-5', target: 'node-12' },
-    { id: 'edge-5-13', source: 'node-5', target: 'node-13' }
+    { id: 'edge-5-13', source: 'node-5', target: 'node-13' },
   ];
 
   // 生成更详细的推文串格式内容
@@ -283,40 +294,46 @@ ${topic}未来发展将呈现以下趋势：
       url: `https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center`,
       alt: `${topic}主题配图`,
       caption: `关于${topic}的深度分析和思考`,
-      prompt: `Create a professional, modern illustration about ${topic}, focusing on innovation and technology`
+      prompt: `Create a professional, modern illustration about ${topic}, focusing on innovation and technology`,
     },
     metadata: {
       wordCount: markdown.length,
       estimatedReadTime: Math.ceil(markdown.length / 200),
       sources: [
         '行业研究报告',
-        '专家访谈记录', 
+        '专家访谈记录',
         '市场数据分析',
         '用户调研反馈',
-        'AI知识整合'
-      ]
-    }
+        'AI知识整合',
+      ],
+    },
   };
 };
 
-export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGenerationProps) {
+export function EnhancedContentGeneration({
+  topic,
+  onBack,
+}: EnhancedContentGenerationProps) {
   const [isGenerating, setIsGenerating] = useState(true);
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
+  const [generatedContent, setGeneratedContent] =
+    useState<GeneratedContent | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+  const [highlightedSection, setHighlightedSection] = useState<string | null>(
+    null,
+  );
   const [generationStep, setGenerationStep] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
   const [currentEdges, setCurrentEdges] = useState<MindmapEdgeData[]>([]);
 
-  // 生成思维过程步骤  
+  // 生成思维过程步骤
   const generationSteps = [
     '🔍 分析主题内容和相关背景...',
     '🧠 构建思维导图结构框架...',
     '📝 生成结构化文章内容...',
     '🎨 创建主题相关配图...',
     '🔗 建立内容间关联关系...',
-    '✨ 完善细节和优化排版...'
+    '✨ 完善细节和优化排版...',
   ];
 
   // 模拟AI生成过程
@@ -344,44 +361,49 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
     return () => clearInterval(interval);
   }, [topic, isGenerating]);
 
-  const handleNodeSelect = useCallback((nodeId: string | null) => {
-    setSelectedNodeId(nodeId);
-    
-    // 根据选中的节点高亮对应的内容段落
-    if (nodeId && generatedContent) {
-      const node = generatedContent.mindmap.nodes.find(n => n.id === nodeId);
-      if (node) {
-        // 简单的内容段落映射逻辑
-        const sectionMapping: { [key: string]: string } = {
-          'node-2': 'background-analysis',    // 背景分析
-          'node-3': 'core-viewpoints',        // 核心观点
-          'node-4': 'practical-methods',      // 实践方法
-          'node-5': 'future-trends',          // 未来趋势
-          'node-6': 'market-status',          // 市场现状
-          'node-7': 'pain-points',            // 痛点问题
-          'node-8': 'key-elements',           // 关键要素
-          'node-9': 'value-proposition',      // 价值主张
-          'node-10': 'implementation-steps',   // 实施步骤
-          'node-11': 'evaluation-metrics',     // 评估指标
-          'node-12': 'technology-development', // 技术发展
-          'node-13': 'application-prospects'   // 应用前景
-        };
-        
-        setHighlightedSection(sectionMapping[nodeId] || null);
+  const handleNodeSelect = useCallback(
+    (nodeId: string | null) => {
+      setSelectedNodeId(nodeId);
+
+      // 根据选中的节点高亮对应的内容段落
+      if (nodeId && generatedContent) {
+        const node = generatedContent.mindmap.nodes.find(
+          (n) => n.id === nodeId,
+        );
+        if (node) {
+          // 简单的内容段落映射逻辑
+          const sectionMapping: { [key: string]: string } = {
+            'node-2': 'background-analysis', // 背景分析
+            'node-3': 'core-viewpoints', // 核心观点
+            'node-4': 'practical-methods', // 实践方法
+            'node-5': 'future-trends', // 未来趋势
+            'node-6': 'market-status', // 市场现状
+            'node-7': 'pain-points', // 痛点问题
+            'node-8': 'key-elements', // 关键要素
+            'node-9': 'value-proposition', // 价值主张
+            'node-10': 'implementation-steps', // 实施步骤
+            'node-11': 'evaluation-metrics', // 评估指标
+            'node-12': 'technology-development', // 技术发展
+            'node-13': 'application-prospects', // 应用前景
+          };
+
+          setHighlightedSection(sectionMapping[nodeId] || null);
+        }
+      } else {
+        setHighlightedSection(null);
       }
-    } else {
-      setHighlightedSection(null);
-    }
-  }, [generatedContent]);
+    },
+    [generatedContent],
+  );
 
   const handleSectionHover = useCallback((sectionId: string | null) => {
     setHighlightedSection(sectionId);
-    
+
     // 根据内容段落高亮对应的思维导图节点
     if (sectionId) {
       const nodeMappings: { [key: string]: string } = {
         'background-analysis': 'node-2',
-        'core-viewpoints': 'node-3', 
+        'core-viewpoints': 'node-3',
         'practical-methods': 'node-4',
         'future-trends': 'node-5',
         'market-status': 'node-6',
@@ -391,9 +413,9 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
         'implementation-steps': 'node-10',
         'evaluation-metrics': 'node-11',
         'technology-development': 'node-12',
-        'application-prospects': 'node-13'
+        'application-prospects': 'node-13',
       };
-      
+
       setSelectedNodeId(nodeMappings[sectionId] || null);
     }
   }, []);
@@ -416,27 +438,27 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
   // 基于思维导图重新生成内容
   const regenerateFromMindmap = useCallback(async () => {
     if (!generatedContent) return;
-    
+
     setIsRegenerating(true);
-    
+
     // 模拟基于思维导图重新生成Markdown内容
     setTimeout(() => {
       const newMarkdown = generateMarkdownFromNodes(currentNodes, topic);
-      
+
       setGeneratedContent({
         ...generatedContent,
         mindmap: {
           nodes: currentNodes,
-          edges: currentEdges
+          edges: currentEdges,
         },
         markdown: newMarkdown,
         metadata: {
           ...generatedContent.metadata,
           wordCount: newMarkdown.length,
-          estimatedReadTime: Math.ceil(newMarkdown.length / 200)
-        }
+          estimatedReadTime: Math.ceil(newMarkdown.length / 200),
+        },
       });
-      
+
       setIsRegenerating(false);
     }, 2000);
   }, [currentNodes, currentEdges, generatedContent, topic]);
@@ -448,7 +470,7 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
     setGenerationStep(0);
     setSelectedNodeId(null);
     setHighlightedSection(null);
-    
+
     // 模拟重新生成过程
     setTimeout(() => {
       setIsRegenerating(false);
@@ -495,48 +517,65 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
                     <div className="absolute inset-2 rounded-full bg-blue-200 animate-ping"></div>
                   </div>
                 </div>
-                
+
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   AI 正在为您创作内容
                 </h2>
-                
+
                 <p className="text-gray-600 mb-2">
-                  主题: <span className="font-medium text-blue-600">{topic}</span>
+                  主题:{' '}
+                  <span className="font-medium text-blue-600">{topic}</span>
                 </p>
-                
+
                 <p className="text-sm text-gray-500 mb-8">
                   正在运用先进的AI技术为您生成思维导图和深度内容
                 </p>
 
                 <div className="space-y-6">
-                  <Progress 
-                    value={(generationStep + 1) / generationSteps.length * 100} 
+                  <Progress
+                    value={
+                      ((generationStep + 1) / generationSteps.length) * 100
+                    }
                     color="primary"
                     size="md"
                     className="mb-6"
                   />
-                  
+
                   <div className="space-y-3">
                     {generationSteps.map((step, index) => (
-                      <div 
+                      <div
                         key={index}
                         className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
-                          index <= generationStep 
-                            ? 'text-blue-600 bg-blue-50 border border-blue-200' 
+                          index <= generationStep
+                            ? 'text-blue-600 bg-blue-50 border border-blue-200'
                             : 'text-gray-400 bg-gray-50'
                         }`}
                       >
-                        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                          index <= generationStep ? 'bg-blue-600 text-white' : 'bg-gray-300'
-                        }`}>
+                        <div
+                          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                            index <= generationStep
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-300'
+                          }`}
+                        >
                           {index < generationStep ? (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           ) : index === generationStep ? (
                             <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
                           ) : (
-                            <span className="text-xs font-medium">{index + 1}</span>
+                            <span className="text-xs font-medium">
+                              {index + 1}
+                            </span>
                           )}
                         </div>
                         <span className="text-sm font-medium">{step}</span>
@@ -581,13 +620,16 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
               <ArrowLeftIcon className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{generatedContent.topic}</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                {generatedContent.topic}
+              </h1>
               <p className="text-sm text-gray-500">
-                约 {generatedContent.metadata.wordCount} 字 · 预计阅读 {generatedContent.metadata.estimatedReadTime} 分钟
+                约 {generatedContent.metadata.wordCount} 字 · 预计阅读{' '}
+                {generatedContent.metadata.estimatedReadTime} 分钟
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <Button
               color="primary"
@@ -612,23 +654,6 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
       <div className="flex-1 flex overflow-hidden">
         {/* 左侧思维导图 */}
         <div className="w-1/2 border-r border-gray-200 bg-white relative">
-          <div className="absolute top-4 left-4 z-10 flex gap-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-2">
-              <span className="text-sm font-medium text-gray-700">思维导图</span>
-            </div>
-            {currentNodes.length > 0 && (
-              <Button
-                size="sm"
-                color="primary"
-                variant="flat"
-                onPress={regenerateFromMindmap}
-                disabled={isRegenerating}
-                className="bg-white border border-gray-200"
-              >
-                {isRegenerating ? '生成中...' : '重新生成内容'}
-              </Button>
-            )}
-          </div>
           <ReactFlowProvider>
             <EditableContentMindmap
               nodes={currentNodes}
@@ -646,8 +671,8 @@ export function EnhancedContentGeneration({ topic, onBack }: EnhancedContentGene
           {/* 顶部图片区域 */}
           <div className="flex-shrink-0 relative">
             <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
-              <img 
-                src={generatedContent.image.url} 
+              <img
+                src={generatedContent.image.url}
                 alt={generatedContent.image.alt}
                 className="w-full h-full object-cover"
               />

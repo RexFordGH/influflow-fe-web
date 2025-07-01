@@ -1,53 +1,57 @@
 'use client';
 
-import { useCallback, useMemo, useEffect } from 'react';
-import ReactFlow, {
-  Node,
-  Edge,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  Controls,
-  MiniMap,
-  Background,
-  NodeTypes,
-  ConnectionMode,
-  Panel
-} from 'reactflow';
+import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { Button } from '@heroui/react';
-import { MindmapNodeData, MindmapEdgeData } from '@/types/content';
+import { useCallback, useEffect, useMemo } from 'react';
+import ReactFlow, {
+  Background,
+  ConnectionMode,
+  Controls,
+  Edge,
+  MiniMap,
+  Node,
+  NodeTypes,
+  Panel,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+} from 'reactflow';
 
 // 导入 React Flow 样式
 import 'reactflow/dist/style.css';
 
 // 简化的节点组件
-const ContentMindmapNode = ({ data, selected }: { data: any; selected: boolean }) => {
+const ContentMindmapNode = ({
+  data,
+  selected,
+}: {
+  data: any;
+  selected: boolean;
+}) => {
   const { label, level, highlighted } = data;
-  
+
   // 根据层级确定样式
   const getNodeStyle = () => {
-    const baseStyle = 'px-3 py-2 rounded-lg font-medium transition-all duration-200';
+    const baseStyle =
+      'px-3 py-2 rounded-lg font-medium transition-all duration-200';
     const levelColors = {
-      1: 'bg-red-500 text-white text-lg',
-      2: 'bg-blue-500 text-white text-base', 
-      3: 'bg-green-500 text-white text-sm',
-      4: 'bg-purple-500 text-white text-sm',
-      5: 'bg-orange-500 text-white text-xs',
-      6: 'bg-gray-500 text-white text-xs',
+      1: 'bg-black text-white text-lg',
+      2: 'bg-gray-300 text-black text-base',
+      3: 'bg-gray-300 text-black text-sm',
+      4: 'bg-gray-300 text-black text-sm',
+      5: 'bg-gray-300 text-black text-xs',
+      6: 'bg-gray-300 text-black text-xs',
     };
-    
-    const levelStyle = levelColors[level as keyof typeof levelColors] || levelColors[6];
+
+    const levelStyle =
+      levelColors[level as keyof typeof levelColors] || levelColors[6];
     const selectedStyle = selected ? 'ring-2 ring-yellow-400' : '';
     const highlightStyle = highlighted ? 'animate-pulse' : '';
-    
+
     return `${baseStyle} ${levelStyle} ${selectedStyle} ${highlightStyle}`;
   };
 
-  return (
-    <div className={getNodeStyle()}>
-      {label}
-    </div>
-  );
+  return <div className={getNodeStyle()}>{label}</div>;
 };
 
 interface ContentMindmapProps {
@@ -57,11 +61,11 @@ interface ContentMindmapProps {
   highlightedNodeId?: string | null;
 }
 
-export function ContentMindmap({ 
-  nodes: mindmapNodes, 
-  edges: mindmapEdges, 
+export function ContentMindmap({
+  nodes: mindmapNodes,
+  edges: mindmapEdges,
   onNodeSelect,
-  highlightedNodeId 
+  highlightedNodeId,
 }: ContentMindmapProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -69,7 +73,7 @@ export function ContentMindmap({
 
   // 转换数据格式为 React Flow 格式
   const convertToFlowData = useCallback(() => {
-    const flowNodes: Node[] = mindmapNodes.map(node => ({
+    const flowNodes: Node[] = mindmapNodes.map((node) => ({
       id: node.id,
       type: 'contentMindmapNode',
       position: node.position || { x: 0, y: 0 },
@@ -77,24 +81,24 @@ export function ContentMindmap({
         label: node.label,
         level: node.level,
         highlighted: highlightedNodeId === node.id,
-        ...node.data
+        ...node.data,
       },
       style: {
         border: 'none',
         background: 'transparent',
         padding: 0,
-      }
+      },
     }));
 
-    const flowEdges: Edge[] = mindmapEdges.map(edge => ({
+    const flowEdges: Edge[] = mindmapEdges.map((edge) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
       type: edge.type || 'smoothstep',
       style: {
         stroke: '#6B7280',
-        strokeWidth: 2,
-      }
+        strokeWidth: 1,
+      },
     }));
 
     return { flowNodes, flowEdges };
@@ -105,10 +109,10 @@ export function ContentMindmap({
     if (mindmapNodes.length === 0) return;
 
     const { flowNodes } = convertToFlowData();
-    
+
     // 简单的层级布局
     const nodesByLevel: { [level: number]: Node[] } = {};
-    flowNodes.forEach(node => {
+    flowNodes.forEach((node) => {
       const level = node.data.level;
       if (!nodesByLevel[level]) nodesByLevel[level] = [];
       nodesByLevel[level].push(node);
@@ -120,20 +124,20 @@ export function ContentMindmap({
 
     Object.keys(nodesByLevel)
       .sort((a, b) => parseInt(a) - parseInt(b))
-      .forEach(level => {
+      .forEach((level) => {
         const levelNodes = nodesByLevel[parseInt(level)];
         let currentY = 50;
-        
-        levelNodes.forEach(node => {
+
+        levelNodes.forEach((node) => {
           node.position = { x: currentX, y: currentY };
           currentY += nodeHeight + 30;
         });
-        
+
         currentX += levelWidth;
       });
 
     setNodes(flowNodes);
-    
+
     // 适应视图
     setTimeout(() => {
       fitView({ duration: 500 });
@@ -154,9 +158,9 @@ export function ContentMindmap({
   // 节点类型定义
   const nodeTypes: NodeTypes = useMemo(
     () => ({
-      contentMindmapNode: ContentMindmapNode
+      contentMindmapNode: ContentMindmapNode,
     }),
-    []
+    [],
   );
 
   // 处理节点选择
@@ -165,7 +169,7 @@ export function ContentMindmap({
       const selectedNode = selectedNodes[0];
       onNodeSelect?.(selectedNode?.id || null);
     },
-    [onNodeSelect]
+    [onNodeSelect],
   );
 
   return (
@@ -190,29 +194,27 @@ export function ContentMindmap({
           showInteractive={false}
           className="bg-white border border-gray-200 rounded-lg"
         />
-        
+
         <MiniMap
           nodeColor={(node) => {
             const level = node.data?.level || 1;
-            const colors = ['#EF4444', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#6B7280'];
+            const colors = [
+              '#EF4444',
+              '#3B82F6',
+              '#10B981',
+              '#8B5CF6',
+              '#F59E0B',
+              '#6B7280',
+            ];
             return colors[level - 1] || colors[5];
           }}
           className="bg-white border border-gray-200 rounded-lg"
         />
-        
-        <Background 
-          gap={20} 
-          size={1}
-          className="opacity-30"
-        />
-        
+
+        <Background gap={20} size={1} className="opacity-30" />
+
         <Panel position="top-right" className="flex gap-2">
-          <Button
-            size="sm"
-            color="primary"
-            variant="flat"
-            onPress={autoLayout}
-          >
+          <Button size="sm" color="primary" variant="flat" onPress={autoLayout}>
             重新布局
           </Button>
         </Panel>
@@ -223,7 +225,5 @@ export function ContentMindmap({
 
 // 包装组件，提供 ReactFlow 上下文
 export default function ContentMindmapWrapper(props: ContentMindmapProps) {
-  return (
-    <ContentMindmap {...props} />
-  );
+  return <ContentMindmap {...props} />;
 }
