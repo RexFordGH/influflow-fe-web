@@ -86,8 +86,8 @@ const EditableMindmapNode = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        isEditing && 
-        inputRef.current && 
+        isEditing &&
+        inputRef.current &&
         !inputRef.current.contains(event.target as Node)
       ) {
         handleSave();
@@ -121,7 +121,7 @@ const EditableMindmapNode = ({
   };
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -172,7 +172,7 @@ const EditableMindmapNode = ({
             e.stopPropagation();
             addChildNode(id);
           }}
-          className="absolute -right-6 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
+          className="absolute -right-[20px] top-1/2 -translate-y-1/2 w-[20px] h-[20px] bg-[#7EABFF] hover:opacity-80 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
           title="添加子节点"
         >
           <PlusIcon className="w-3 h-3" />
@@ -394,14 +394,18 @@ export function EditableContentMindmap({
 
       // 智能计算新节点位置，避免与现有子节点重叠
       const parentPosition = parentNode.position || { x: 50, y: 100 };
-      
+
       // 找到当前父节点的所有子节点
-      const parentChildEdges = mindmapEdges.filter(edge => edge.source === parentId);
-      const childNodeIds = parentChildEdges.map(edge => edge.target);
-      const childNodes = mindmapNodes.filter(node => childNodeIds.includes(node.id));
-      
+      const parentChildEdges = mindmapEdges.filter(
+        (edge) => edge.source === parentId,
+      );
+      const childNodeIds = parentChildEdges.map((edge) => edge.target);
+      const childNodes = mindmapNodes.filter((node) =>
+        childNodeIds.includes(node.id),
+      );
+
       let newPosition;
-      
+
       if (childNodes.length === 0) {
         // 如果没有子节点，放在父节点右侧
         newPosition = {
@@ -411,20 +415,20 @@ export function EditableContentMindmap({
       } else {
         // 如果有子节点，找到合适的Y位置避免重叠
         const childPositions = childNodes
-          .map(node => node.position?.y || 0)
+          .map((node) => node.position?.y || 0)
           .sort((a, b) => a - b);
-          
+
         // 节点高度约为 60px，间距为 30px
         const nodeHeight = 60;
         const nodeSpacing = 30;
-        
+
         // 策略1：尝试在现有子节点下方放置新节点
         const maxY = Math.max(...childPositions);
         newPosition = {
           x: parentPosition.x + 250,
           y: maxY + nodeHeight + nodeSpacing,
         };
-        
+
         // 策略2：如果子节点太分散，尝试找到空隙插入
         if (childPositions.length > 1) {
           for (let i = 0; i < childPositions.length - 1; i++) {
@@ -471,11 +475,9 @@ export function EditableContentMindmap({
 
     // 如果有节点但没有运行过布局，自动运行布局
     const hasNodesAtOrigin = flowNodes.some(
-      (node) => 
-        node.position.x === 0 && 
-        node.position.y === 0
+      (node) => node.position.x === 0 && node.position.y === 0,
     );
-    
+
     if (flowNodes.length > 0 && hasNodesAtOrigin) {
       setTimeout(() => {
         autoLayout();
