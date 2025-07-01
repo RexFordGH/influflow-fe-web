@@ -6,6 +6,7 @@ import { Button } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
 import { EnhancedContentGeneration } from '@/components/content/EnhancedContentGeneration';
+import { ApiTest } from '@/components/test/ApiTest';
 
 interface Note {
   id: string;
@@ -285,6 +286,11 @@ export default function Home() {
                   <div className="text-sm text-gray-400">
                     Note ID: {selectedNote.id}
                   </div>
+                </div>
+                
+                {/* 临时API测试区域 */}
+                <div className="mt-8">
+                  <ApiTest />
                 </div>
               </div>
             </div>
