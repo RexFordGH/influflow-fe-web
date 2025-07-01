@@ -1,7 +1,7 @@
 'use client';
 
-import { PlusIcon } from '@heroicons/react/24/outline';
-import { Button, Input } from '@heroui/react';
+import { PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Textarea } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
@@ -42,12 +42,12 @@ const EditableMindmapNode = ({
       'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group text-[12px] font-[500]';
 
     const levelColors = {
-      1: 'bg-[#000000] text-white text-center min-w-[180px]',
-      2: 'bg-[#E3E3E3] text-black',
-      3: 'bg-[#E3E3E3] text-black',
-      4: 'bg-[#E3E3E3] text-black',
-      5: 'bg-[#E3E3E3] text-black',
-      6: 'bg-[#E3E3E3] text-black',
+      1: 'bg-[#000000] text-white text-center min-w-[180px] hover:bg-[rgba(0,0,0,0.6)]',
+      2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
+      3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
+      4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
+      5: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
+      6: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
     };
 
     const levelStyle =
@@ -62,6 +62,12 @@ const EditableMindmapNode = ({
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsEditing(true);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // 确保单击事件不被阻止，让 ReactFlow 处理节点选择
+    // 不调用 e.stopPropagation()，让事件继续冒泡到 ReactFlow
+    console.log('Node clicked:', id); // 调试日志
   };
 
   const handleSave = useCallback(() => {
@@ -125,6 +131,7 @@ const EditableMindmapNode = ({
       className="relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       <Handle
         type="target"
@@ -159,7 +166,11 @@ const EditableMindmapNode = ({
             }}
           />
         ) : (
-          <div onDoubleClick={handleDoubleClick} title="双击编辑">
+          <div 
+            onClick={handleClick}
+            onDoubleClick={handleDoubleClick} 
+            title="双击编辑"
+          >
             {label}
           </div>
         )}
@@ -216,6 +227,12 @@ export function EditableContentMindmap({
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
   const { fitView } = useReactFlow();
 
+  // AI 编辑相关状态
+  const [selectedNodeForAI, setSelectedNodeForAI] = useState<string | null>(null);
+  const [showAIEditModal, setShowAIEditModal] = useState(false);
+  const [aiEditInstruction, setAiEditInstruction] = useState('');
+  const [isAIProcessing, setIsAIProcessing] = useState(false);
+
   // 转换数据格式为 React Flow 格式
   const convertToFlowData = useCallback(() => {
     const flowNodes: Node[] = mindmapNodes.map((node) => ({
@@ -268,6 +285,8 @@ export function EditableContentMindmap({
         background: 'transparent',
         padding: 0,
       },
+      draggable: true,
+      selectable: true,
     }));
 
     const flowEdges: Edge[] = mindmapEdges.map((edge) => ({
@@ -528,11 +547,68 @@ export function EditableContentMindmap({
   // 处理节点选择
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Node[] }) => {
+      console.log('Selection changed:', selectedNodes); // 调试日志
       const selectedNode = selectedNodes[0];
+      console.log('Selected node ID:', selectedNode?.id); // 调试日志
       onNodeSelect?.(selectedNode?.id || null);
+      // 设置选中的节点为AI编辑目标
+      setSelectedNodeForAI(selectedNode?.id || null);
     },
     [onNodeSelect],
   );
+
+  // 处理AI编辑按钮点击
+  const handleAIEditClick = () => {
+    setShowAIEditModal(true);
+  };
+
+  // 处理AI编辑指令提交
+  const handleAIEditSubmit = async () => {
+    if (!selectedNodeForAI || !aiEditInstruction.trim()) return;
+
+    setIsAIProcessing(true);
+    
+    // 模拟AI处理延迟
+    setTimeout(() => {
+      // 找到要编辑的节点
+      const targetNode = mindmapNodes.find(n => n.id === selectedNodeForAI);
+      if (targetNode) {
+        // 模拟AI增强内容 - 根据用户指令生成新内容
+        const enhancedContent = generateAIEnhancedContent(targetNode.label, aiEditInstruction);
+        
+        // 更新节点内容
+        const updatedNodes = mindmapNodes.map(node => 
+          node.id === selectedNodeForAI 
+            ? { ...node, label: enhancedContent }
+            : node
+        );
+        
+        onNodesChange?.(updatedNodes);
+      }
+      
+      setIsAIProcessing(false);
+      setShowAIEditModal(false);
+      setAiEditInstruction('');
+    }, 2000); // 2秒模拟处理时间
+  };
+
+  // 模拟AI内容增强功能
+  const generateAIEnhancedContent = (originalContent: string, instruction: string): string => {
+    // 简单的模拟逻辑，根据指令关键词生成不同的增强内容
+    const lowerInstruction = instruction.toLowerCase();
+    
+    if (lowerInstruction.includes('详细') || lowerInstruction.includes('详') || lowerInstruction.includes('detail')) {
+      return `${originalContent}（已详细化）`;
+    } else if (lowerInstruction.includes('简化') || lowerInstruction.includes('简') || lowerInstruction.includes('simple')) {
+      return `${originalContent}（已简化）`;
+    } else if (lowerInstruction.includes('专业') || lowerInstruction.includes('专') || lowerInstruction.includes('professional')) {
+      return `${originalContent}（专业版）`;
+    } else if (lowerInstruction.includes('通俗') || lowerInstruction.includes('易懂') || lowerInstruction.includes('easy')) {
+      return `${originalContent}（通俗版）`;
+    } else {
+      return `${originalContent}（AI增强版）`;
+    }
+  };
 
   return (
     <div className="relative size-full">
@@ -550,6 +626,8 @@ export function EditableContentMindmap({
         nodesDraggable={true}
         nodesConnectable={true}
         elementsSelectable={true}
+        selectNodesOnDrag={false}
+        multiSelectionKeyCode={null}
         deleteKeyCode={['Delete', 'Backspace']}
         defaultEdgeOptions={{
           type: 'default',
@@ -582,6 +660,11 @@ export function EditableContentMindmap({
 
         <Background gap={20} size={1} className="opacity-30" />
 
+        {/* 调试面板 */}
+        <Panel position="bottom-right" className="text-xs bg-white p-2 rounded shadow">
+          <div>选中节点: {selectedNodeForAI || '无'}</div>
+        </Panel>
+
         {/* <Panel position="top-right" className="flex flex-col gap-2">
           <Button
             size="sm"
@@ -610,14 +693,24 @@ export function EditableContentMindmap({
         </Panel> */}
 
         {/* 悬浮工具栏 - 选中节点时显示 */}
-        {highlightedNodeId && (
+        {selectedNodeForAI && (
           <Panel position="top-center" className="flex gap-2">
+            <Button
+              size="sm"
+              color="primary"
+              variant="solid"
+              startContent={<PencilIcon className="size-4" />}
+              onPress={handleAIEditClick}
+              className="bg-[#4285F4] hover:bg-[#3367D6] text-white font-medium px-6 py-2 rounded-full shadow-lg"
+            >
+              Edit with AI
+            </Button>
             <Button
               size="sm"
               color="primary"
               variant="flat"
               startContent={<PlusIcon className="size-4" />}
-              onPress={() => addChildNode(highlightedNodeId)}
+              onPress={() => addChildNode(selectedNodeForAI)}
             >
               添加子节点
             </Button>
@@ -634,6 +727,69 @@ export function EditableContentMindmap({
           </div>
         </Panel> */}
       </ReactFlow>
+
+      {/* AI编辑对话框 */}
+      <Modal 
+        isOpen={showAIEditModal} 
+        onClose={() => {
+          setShowAIEditModal(false);
+          setAiEditInstruction('');
+        }}
+        size="2xl"
+        placement="center"
+        backdrop="blur"
+        classNames={{
+          base: "mx-4",
+          body: "py-6",
+          header: "pb-4 text-center",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <h3 className="text-xl font-semibold">How would you like to enhance this part?</h3>
+          </ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <Textarea
+                value={aiEditInstruction}
+                onChange={(e) => setAiEditInstruction(e.target.value)}
+                placeholder="Please limit to 300 words."
+                maxLength={300}
+                minRows={4}
+                maxRows={8}
+                variant="bordered"
+                className="w-full"
+                classNames={{
+                  input: "text-sm",
+                  inputWrapper: "border-gray-200 focus:border-blue-500",
+                }}
+              />
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="flat"
+                  onPress={() => {
+                    setShowAIEditModal(false);
+                    setAiEditInstruction('');
+                  }}
+                  className="px-6"
+                >
+                  取消
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleAIEditSubmit}
+                  isLoading={isAIProcessing}
+                  disabled={!aiEditInstruction.trim()}
+                  className="bg-[#4285F4] hover:bg-[#3367D6] px-6"
+                >
+                  {isAIProcessing ? '生成中...' : '提交'}
+                </Button>
+              </div>
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
