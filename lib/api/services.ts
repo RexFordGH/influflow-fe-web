@@ -9,6 +9,7 @@ import {
   type ModifyOutlineResponse,
 } from '@/types/api';
 import { apiGet, apiPost } from './client';
+import { localGenerateThreadResponse } from './local.res';
 
 export const QUERY_KEYS = {
   HEALTH: ['health'] as const,
@@ -36,8 +37,16 @@ export function useGenerateThread() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: GenerateThreadRequest) =>
-      apiPost<GenerateThreadResponse>('/api/twitter/generate', data, 60000), // 60秒超时
+    mutationFn: async (data: GenerateThreadRequest): Promise<GenerateThreadResponse> => {
+      // 本地开发使用固定数据
+      if (process.env.NODE_ENV === 'development') {
+        // 模拟网络延迟
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return localGenerateThreadResponse as GenerateThreadResponse;
+      }
+      // 生产环境调用真实接口
+      return apiPost<GenerateThreadResponse>('/api/twitter/generate', data, 60000);
+    },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
       // 可以在这里更新相关的查询缓存

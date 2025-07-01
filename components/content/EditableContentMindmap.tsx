@@ -31,7 +31,7 @@ const EditableMindmapNode = ({
   id: string;
   selected: boolean;
 }) => {
-  const { label, level, onEdit, addChildNode } = data;
+  const { label, level, onEdit, addChildNode, onNodeHover, hoveredTweetId } = data;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,7 +56,15 @@ const EditableMindmapNode = ({
       ? 'ring-2 ring-yellow-400 ring-offset-2'
       : '';
 
-    return `${baseStyle} ${levelStyle} ${selectedStyle}`;
+    // 检查是否应该高亮（基于hoveredTweetId）
+    const isTweetHovered = hoveredTweetId && data.tweetId && data.tweetId.toString() === hoveredTweetId;
+    const isGroupHovered = hoveredTweetId && hoveredTweetId.startsWith('group-') && 
+                          data.outlineIndex !== undefined && 
+                          data.outlineIndex.toString() === hoveredTweetId.replace('group-', '');
+    const isHovered = isTweetHovered || isGroupHovered;
+    const hoverStyle = isHovered ? 'ring-2 ring-blue-400 ring-offset-1 bg-blue-100' : '';
+
+    return `${baseStyle} ${levelStyle} ${selectedStyle} ${hoverStyle}`;
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
@@ -122,10 +130,26 @@ const EditableMindmapNode = ({
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    // 触发上级hover回调
+    if (onNodeHover) {
+      if (data.tweetId) {
+        // 三级节点：传递tweetId
+        console.log('EditableMindmapNode hover tweet:', data.tweetId);
+        onNodeHover(data.tweetId.toString());
+      } else if (data.outlineIndex !== undefined) {
+        // 二级节点：传递groupIndex
+        console.log('EditableMindmapNode hover group:', data.outlineIndex);
+        onNodeHover(`group-${data.outlineIndex}`);
+      }
+    }
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
+    // 清除hover状态
+    if (onNodeHover) {
+      onNodeHover(null);
+    }
   };
 
   return (
@@ -216,20 +240,24 @@ interface EditableContentMindmapProps {
   nodes: MindmapNodeData[];
   edges: MindmapEdgeData[];
   onNodeSelect?: (nodeId: string | null) => void;
+  onNodeHover?: (nodeId: string | null) => void;
   onNodesChange?: (nodes: MindmapNodeData[]) => void;
   onEdgesChange?: (edges: MindmapEdgeData[]) => void;
   onRegenerate?: () => void;
   highlightedNodeId?: string | null;
+  hoveredTweetId?: string | null;
 }
 
 export function EditableContentMindmap({
   nodes: mindmapNodes,
   edges: mindmapEdges,
   onNodeSelect,
+  onNodeHover,
   onNodesChange,
   onEdgesChange,
   onRegenerate,
   highlightedNodeId,
+  hoveredTweetId,
 }: EditableContentMindmapProps) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
@@ -294,6 +322,8 @@ export function EditableContentMindmap({
           onNodeSelect?.(nodeId);
         },
         onDirectSelect: setSelectedNodeForAI,
+        onNodeHover: onNodeHover, // 传递hover回调
+        hoveredTweetId: hoveredTweetId, // 传递hover状态
         ...node.data,
       },
       style: {
@@ -319,7 +349,7 @@ export function EditableContentMindmap({
     }));
 
     return { flowNodes, flowEdges };
-  }, [mindmapNodes, mindmapEdges, highlightedNodeId, onNodesChange, onEdgesChange]);
+  }, [mindmapNodes, mindmapEdges, highlightedNodeId, onNodesChange, onEdgesChange, onNodeHover, hoveredTweetId]);
 
   // 自动布局算法
   const autoLayout = useCallback(() => {
@@ -478,7 +508,7 @@ export function EditableContentMindmap({
         id: newNodeId,
         label: '新节点',
         level: parentNode.level + 1,
-        type: 'point',
+        type: parentNode.level >= 2 ? 'tweet' : 'outline_point',
         position: newPosition,
       };
 

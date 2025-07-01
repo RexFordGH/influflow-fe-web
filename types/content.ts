@@ -57,9 +57,12 @@ export interface MindmapNodeData {
   data?: {
     content?: string;
     highlighted?: boolean;
+    title?: string; // tweet的标题
     // 关联到Tweet或outline数据
     tweetId?: number; // 关联的Tweet ID
     outlineIndex?: number; // 关联的大纲点索引
+    groupIndex?: number; // 分组索引用于hover联动
+    tweetIndex?: number; // tweet索引用于hover联动
   };
 }
 

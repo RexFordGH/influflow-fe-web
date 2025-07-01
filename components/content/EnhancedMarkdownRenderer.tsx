@@ -24,15 +24,25 @@ interface EnhancedMarkdownRendererProps {
   onSourceClick?: (sectionId: string) => void;
   highlightedSection?: string | null;
   sources?: string[];
+  hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
+  imageData?: {
+    url: string;
+    alt: string;
+    caption?: string;
+  };
 }
 
 interface MarkdownSection {
   id: string;
-  type: 'heading' | 'paragraph' | 'list';
+  type: 'heading' | 'paragraph' | 'list' | 'tweet' | 'group';
   level?: number;
   content: string;
   rawContent: string;
   mappingId?: string; // 用于与思维导图节点映射
+  tweetId?: string; // 用于tweet高亮
+  groupIndex?: number;
+  tweetIndex?: number;
+  groupId?: string; // 用于group高亮
 }
 
 // 模拟信息来源数据
@@ -121,38 +131,129 @@ export function EnhancedMarkdownRenderer({
   onSourceClick,
   highlightedSection,
   sources = [],
+  hoveredTweetId, // 新增参数
+  imageData, // 图片数据
 }: EnhancedMarkdownRendererProps) {
   const [selectedSourceSection, setSelectedSourceSection] = useState<
     string | null
   >(null);
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
 
-  // 解析Markdown为结构化数据，包含映射ID
+  // 处理图片占位符
+  const processedContent = useMemo(() => {
+    if (imageData) {
+      return content.replace('PLACEHOLDER_IMAGE', imageData.url);
+    }
+    return content;
+  }, [content, imageData]);
+
+  // 解析含有HTML标签的Markdown为结构化数据
   const sections = useMemo(() => {
-    const lines = content.split('\n');
+    const lines = processedContent.split('\n');
     const sections: MarkdownSection[] = [];
     let currentSection: MarkdownSection | null = null;
     let sectionIndex = 0;
-
-    // 定义内容映射关系
-    const headingMappings: { [key: string]: string } = {
-      背景分析: 'background-analysis',
-      市场现状: 'market-status',
-      痛点问题: 'pain-points',
-      核心观点: 'core-viewpoints',
-      关键要素: 'key-elements',
-      价值主张: 'value-proposition',
-      实践方法: 'practical-methods',
-      实施步骤: 'implementation-steps',
-      评估指标: 'evaluation-metrics',
-      未来趋势: 'future-trends',
-      技术发展: 'technology-development',
-      应用前景: 'application-prospects',
-    };
+    let inTweetDiv = false;
+    let inGroupDiv = false;
+    let currentTweetId: string | null = null;
+    let currentGroupIndex: number | null = null;
+    let currentTweetIndex: number | null = null;
+    let currentGroupId: string | null = null;
 
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
 
+      // 检查是否是group div开始标签
+      const groupDivMatch = trimmedLine.match(/<div\s+data-group-id="(\d+)">/);
+      if (groupDivMatch) {
+        if (currentSection) {
+          sections.push(currentSection);
+        }
+        inGroupDiv = true;
+        currentGroupId = groupDivMatch[1];
+        
+        currentSection = {
+          id: `group-section-${currentGroupId}`,
+          type: 'group',
+          content: '',
+          rawContent: line,
+          groupId: currentGroupId,
+        };
+        return;
+      }
+
+      // 检查是否是tweet div开始标签
+      const tweetDivMatch = trimmedLine.match(/<div\s+data-tweet-id="(\d+)"\s+data-group-index="(\d+)"\s+data-tweet-index="(\d+)">/);
+      if (tweetDivMatch) {
+        if (currentSection) {
+          sections.push(currentSection);
+        }
+        inTweetDiv = true;
+        currentTweetId = tweetDivMatch[1];
+        currentGroupIndex = parseInt(tweetDivMatch[2]);
+        currentTweetIndex = parseInt(tweetDivMatch[3]);
+        
+        currentSection = {
+          id: `tweet-section-${currentTweetId}`,
+          type: 'tweet',
+          content: '',
+          rawContent: line,
+          tweetId: currentTweetId,
+          groupIndex: currentGroupIndex,
+          tweetIndex: currentTweetIndex,
+        };
+        return;
+      }
+
+      // 检查是否是div结束标签
+      if (trimmedLine === '</div>') {
+        if (inTweetDiv) {
+          if (currentSection) {
+            sections.push(currentSection);
+            currentSection = null;
+          }
+          inTweetDiv = false;
+          currentTweetId = null;
+          currentGroupIndex = null;
+          currentTweetIndex = null;
+          return;
+        } else if (inGroupDiv) {
+          if (currentSection) {
+            sections.push(currentSection);
+            currentSection = null;
+          }
+          inGroupDiv = false;
+          currentGroupId = null;
+          return;
+        }
+      }
+
+      // 如果在div内，累积内容
+      if (inTweetDiv && currentSection) {
+        if (trimmedLine && !trimmedLine.startsWith('---')) {
+          if (currentSection.content) {
+            currentSection.content += '\n\n' + trimmedLine; // 使用\n\n保持段落分隔
+          } else {
+            currentSection.content = trimmedLine;
+          }
+          currentSection.rawContent += '\n' + line;
+        }
+        return;
+      }
+
+      if (inGroupDiv && currentSection) {
+        if (trimmedLine && !trimmedLine.startsWith('---')) {
+          if (currentSection.content) {
+            currentSection.content += '\n\n' + trimmedLine;
+          } else {
+            currentSection.content = trimmedLine;
+          }
+          currentSection.rawContent += '\n' + line;
+        }
+        return;
+      }
+
+      // 普通markdown解析逻辑
       if (trimmedLine.startsWith('#')) {
         // 标题
         if (currentSection) {
@@ -165,18 +266,12 @@ export function EnhancedMarkdownRenderer({
           .replace(/[🧵📊💡🔧🚀✨]/gu, '')
           .trim();
 
-        // 查找映射ID
-        const mappingId = Object.keys(headingMappings).find(
-          (key) => text.includes(key) || key.includes(text),
-        );
-
         currentSection = {
           id: `section-${sectionIndex++}`,
           type: 'heading',
           level,
           content: text,
           rawContent: line,
-          mappingId: mappingId ? headingMappings[mappingId] : undefined,
         };
       } else if (
         trimmedLine.startsWith('-') ||
@@ -198,8 +293,8 @@ export function EnhancedMarkdownRenderer({
           currentSection.content += '\n' + trimmedLine;
           currentSection.rawContent += '\n' + line;
         }
-      } else if (trimmedLine) {
-        // 段落
+      } else if (trimmedLine && !trimmedLine.startsWith('---')) {
+        // 段落（排除分隔线）
         if (!currentSection || currentSection.type !== 'paragraph') {
           if (currentSection) {
             sections.push(currentSection);
@@ -222,7 +317,7 @@ export function EnhancedMarkdownRenderer({
     }
 
     return sections;
-  }, [content]);
+  }, [processedContent]);
 
   const handleSourceClick = (sectionId: string, mappingId?: string) => {
     const targetId = mappingId || sectionId;
@@ -233,18 +328,39 @@ export function EnhancedMarkdownRenderer({
 
   // 渲染单个段落
   const renderSection = (section: MarkdownSection, index: number) => {
+    // 检查是否应该高亮：传统高亮逻辑或基于tweetId/groupId的高亮
     const isHighlighted =
       highlightedSection === section.mappingId ||
-      highlightedSection === section.id;
+      highlightedSection === section.id ||
+      (hoveredTweetId && section.tweetId === hoveredTweetId) ||
+      (hoveredTweetId && hoveredTweetId.startsWith('group-') && section.groupId === hoveredTweetId.replace('group-', ''));
+    
+    // Debug信息
+    if (section.type === 'tweet') {
+      console.log(`Tweet ${section.tweetId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`);
+    }
+    if (section.type === 'group') {
+      console.log(`Group ${section.groupId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`);
+    }
+    
     const baseClasses =
-      'transition-all duration-200 p-3 rounded-lg relative group';
+      'transition-all duration-300 p-4 rounded-lg relative group cursor-pointer';
     const highlightClasses = isHighlighted
-      ? 'bg-blue-50 border-l-4 border-blue-400 shadow-sm'
-      : 'hover:bg-gray-50 hover:shadow-sm';
+      ? 'bg-blue-50 border-2 border-blue-400 shadow-lg transform scale-[1.02]'
+      : 'hover:bg-gray-50 hover:shadow-md hover:border-gray-200';
 
     const handleMouseEnter = () => {
-      const targetId = section.mappingId || section.id;
-      onSectionHover?.(targetId);
+      // 根据section类型传递不同的hover标识
+      if (section.type === 'tweet' && section.tweetId) {
+        console.log('Markdown section hover tweet:', section.tweetId);
+        onSectionHover?.(section.tweetId);
+      } else if (section.type === 'group' && section.groupId) {
+        console.log('Markdown section hover group:', section.groupId);
+        onSectionHover?.(`group-${section.groupId}`);
+      } else {
+        const targetId = section.mappingId || section.id;
+        onSectionHover?.(targetId);
+      }
     };
 
     const handleMouseLeave = () => onSectionHover?.(null);
@@ -298,13 +414,42 @@ export function EnhancedMarkdownRenderer({
         );
 
       case 'paragraph':
-        // 处理粗体文本
-        const processedContent = section.content
+        // 检查是否是图片markdown语法
+        const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
+        if (imageMatch) {
+          const [, altText, imageSrc] = imageMatch;
+          return (
+            <div
+              key={section.id}
+              className={`${baseClasses} ${highlightClasses} mb-6`}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="relative">
+                <img
+                  src={imageSrc}
+                  alt={altText}
+                  className="w-full h-48 object-cover rounded-lg shadow-md"
+                />
+                {imageData?.caption && (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg p-4">
+                    <p className="text-sm font-medium text-white drop-shadow-lg">
+                      {imageData.caption}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        // 处理普通段落
+        const processedParagraphContent = section.content
           .replace(
             /\*\*(.*?)\*\*/g,
             '<strong class="font-semibold text-gray-900">$1</strong>',
           )
-          .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+          .replace(/\*(.*?)\*/g, '<em class="italic text-gray-600">$1</em>')
           .replace(
             /#([^\s#]+)/g,
             '<span class="text-blue-600 font-medium">#$1</span>',
@@ -319,7 +464,7 @@ export function EnhancedMarkdownRenderer({
           >
             <p
               className="mb-3 text-sm leading-relaxed text-gray-700"
-              dangerouslySetInnerHTML={{ __html: processedContent }}
+              dangerouslySetInnerHTML={{ __html: processedParagraphContent }}
             />
             <SourceButton
               sectionId={section.id}
@@ -385,6 +530,80 @@ export function EnhancedMarkdownRenderer({
             <SourceButton
               sectionId={section.id}
               mappingId={section.mappingId}
+              onSourceClick={handleSourceClick}
+            />
+          </div>
+        );
+
+      case 'tweet':
+        // 分离title和content - 支持H3标题格式
+        const lines = section.content.split('\n\n');
+        const titleLine = lines.find(line => line.startsWith('### '));
+        const contentLines = lines.filter(line => line !== titleLine && line.trim() !== '');
+        
+        const title = titleLine ? titleLine.replace(/^### /, '') : '';
+        const content = contentLines.join('\n\n');
+        
+        // 处理内容，保留换行和格式
+        const processedTweetContent = content
+          .replace(/\n/g, '<br>') // 转换换行为HTML
+          .replace(
+            /\*\*(.*?)\*\*/g,
+            '<strong class="font-semibold text-gray-900">$1</strong>',
+          )
+          .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+          .replace(
+            /#([^\s#]+)/g,
+            '<span class="text-blue-600 font-medium">#$1</span>',
+          );
+
+        return (
+          <div
+            key={section.id}
+            className={`${baseClasses} ${highlightClasses} mb-6 border border-gray-100`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Tweet Title */}
+            {title && (
+              <div className="mb-4 pb-3 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+                  {title}
+                </h3>
+              </div>
+            )}
+            
+            {/* Tweet Content */}
+            <div
+              className="text-sm leading-relaxed text-gray-700"
+              dangerouslySetInnerHTML={{ __html: processedTweetContent }}
+            />
+            
+            <SourceButton
+              sectionId={section.id}
+              mappingId={section.tweetId}
+              onSourceClick={handleSourceClick}
+            />
+          </div>
+        );
+
+      case 'group':
+        // 处理分组标题 (H2)
+        const groupTitle = section.content.replace(/^## /, '');
+        
+        return (
+          <div
+            key={section.id}
+            className={`${baseClasses} ${highlightClasses} mb-6`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {groupTitle}
+            </h2>
+            <SourceButton
+              sectionId={section.id}
+              mappingId={section.groupId}
               onSourceClick={handleSourceClick}
             />
           </div>

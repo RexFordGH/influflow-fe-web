@@ -3,7 +3,6 @@
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
-  PhotoIcon,
 } from '@heroicons/react/24/outline';
 import { Button, Card, CardBody, Progress, Spinner } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -17,6 +16,7 @@ import {
 import { useGenerateThread, getErrorMessage } from '@/lib/api/services';
 import { 
   convertAPIDataToGeneratedContent, 
+  convertAPIDataToMarkdown,
   convertTweetsToMarkdown,
   convertMindmapToTweets 
 } from '@/lib/data/converters';
@@ -60,6 +60,8 @@ export function EnhancedContentGeneration({
   const [currentEdges, setCurrentEdges] = useState<MindmapEdgeData[]>([]);
   const [apiError, setApiError] = useState<string | null>(null);
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false); // 防止重复请求
+  const [rawAPIData, setRawAPIData] = useState<any>(null); // 存储原始API数据
+  const [hoveredTweetId, setHoveredTweetId] = useState<string | null>(null); // hover状态
   
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
@@ -117,6 +119,9 @@ export function EnhancedContentGeneration({
         clearInterval(interval);
         console.log('API生成成功:', response);
         
+        // 存储原始API数据
+        setRawAPIData(response);
+        
         // 转换API数据为组件所需格式
         const content = convertAPIDataToGeneratedContent(response);
         setGeneratedContent(content);
@@ -152,59 +157,33 @@ export function EnhancedContentGeneration({
     (nodeId: string | null) => {
       setSelectedNodeId(nodeId);
 
-      // 根据选中的节点高亮对应的内容段落
-      if (nodeId && generatedContent) {
-        const node = generatedContent.mindmap.nodes.find(
-          (n) => n.id === nodeId,
-        );
-        if (node) {
-          // 简单的内容段落映射逻辑
-          const sectionMapping: { [key: string]: string } = {
-            'node-2': 'background-analysis', // 背景分析
-            'node-3': 'core-viewpoints', // 核心观点
-            'node-4': 'practical-methods', // 实践方法
-            'node-5': 'future-trends', // 未来趋势
-            'node-6': 'market-status', // 市场现状
-            'node-7': 'pain-points', // 痛点问题
-            'node-8': 'key-elements', // 关键要素
-            'node-9': 'value-proposition', // 价值主张
-            'node-10': 'implementation-steps', // 实施步骤
-            'node-11': 'evaluation-metrics', // 评估指标
-            'node-12': 'technology-development', // 技术发展
-            'node-13': 'application-prospects', // 应用前景
-          };
-
-          setHighlightedSection(sectionMapping[nodeId] || null);
+      // 根据选中的节点高亮对应的推文
+      if (nodeId && currentNodes) {
+        const node = currentNodes.find((n) => n.id === nodeId);
+        if (node && node.data?.tweetId) {
+          setHoveredTweetId(node.data.tweetId.toString());
+        } else {
+          setHoveredTweetId(null);
         }
       } else {
-        setHighlightedSection(null);
+        setHoveredTweetId(null);
       }
     },
-    [generatedContent],
+    [currentNodes],
   );
 
-  const handleSectionHover = useCallback((sectionId: string | null) => {
-    setHighlightedSection(sectionId);
+  // 处理思维导图节点的 hover 事件
+  const handleNodeHover = useCallback(
+    (tweetId: string | null) => {
+      console.log('EnhancedContentGeneration handleNodeHover called with:', tweetId);
+      setHoveredTweetId(tweetId);
+    },
+    [],
+  );
 
-    // 根据内容段落高亮对应的思维导图节点
-    if (sectionId) {
-      const nodeMappings: { [key: string]: string } = {
-        'background-analysis': 'node-2',
-        'core-viewpoints': 'node-3',
-        'practical-methods': 'node-4',
-        'future-trends': 'node-5',
-        'market-status': 'node-6',
-        'pain-points': 'node-7',
-        'key-elements': 'node-8',
-        'value-proposition': 'node-9',
-        'implementation-steps': 'node-10',
-        'evaluation-metrics': 'node-11',
-        'technology-development': 'node-12',
-        'application-prospects': 'node-13',
-      };
-
-      setSelectedNodeId(nodeMappings[sectionId] || null);
-    }
+  // 处理 markdown 区域的 hover 事件（从 markdown 到思维导图的反向联动）
+  const handleMarkdownHover = useCallback((tweetId: string | null) => {
+    setHoveredTweetId(tweetId);
   }, []);
 
   const handleSourceClick = useCallback((sectionId: string) => {
@@ -268,11 +247,6 @@ export function EnhancedContentGeneration({
     setTimeout(() => {
       setIsRegenerating(false);
     }, 2000);
-  }, []);
-
-  const handleImageEdit = useCallback(() => {
-    // TODO: 实现图片编辑功能
-    console.log('编辑图片');
   }, []);
 
   // 加载状态和错误状态
@@ -495,53 +469,29 @@ export function EnhancedContentGeneration({
               nodes={currentNodes}
               edges={currentEdges}
               onNodeSelect={handleNodeSelect}
+              onNodeHover={handleNodeHover}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
               onRegenerate={regenerateFromMindmap}
               highlightedNodeId={selectedNodeId}
+              hoveredTweetId={hoveredTweetId}
             />
           </ReactFlowProvider>
         </div>
 
         {/* 右侧内容区域 */}
         <div className="flex w-1/2 flex-col bg-white">
-          {/* 顶部图片区域 */}
-          <div className="relative shrink-0">
-            <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
-              <img
-                src={generatedContent?.image.url}
-                alt={generatedContent?.image.alt}
-                className="size-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-              <div className="absolute inset-x-4 bottom-4">
-                <p className="text-sm font-medium text-white drop-shadow-lg">
-                  {generatedContent?.image.caption}
-                </p>
-              </div>
-              <div className="absolute right-4 top-4">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="flat"
-                  className="bg-white/20 text-white backdrop-blur-sm hover:bg-white/30"
-                  onPress={handleImageEdit}
-                >
-                  <PhotoIcon className="size-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
           {/* Twitter Thread内容区域 */}
           <div className="flex-1 overflow-hidden">
-            {generatedContent && (
+            {rawAPIData && (
               <EnhancedMarkdownRenderer
-                content={convertTweetsToMarkdown(generatedContent.tweets, generatedContent.topic, generatedContent.outline)}
-                onSectionHover={handleSectionHover}
+                content={convertAPIDataToMarkdown(rawAPIData)}
+                onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}
-                highlightedSection={highlightedSection}
-                sources={generatedContent.metadata.sources}
+                highlightedSection={hoveredTweetId}
+                sources={generatedContent?.metadata.sources}
+                hoveredTweetId={hoveredTweetId}
+                imageData={generatedContent?.image}
               />
             )}
           </div>

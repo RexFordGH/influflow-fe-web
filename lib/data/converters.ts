@@ -54,12 +54,12 @@ export function convertThreadDataToMindmap(
       type: 'smoothstep',
     });
 
-    // 3. 创建Tweet内容节点（Level 3）
+    // 3. 创建Tweet内容节点（Level 3）- 只显示 title
     tweetGroup.tweets.forEach((tweetItem, tweetIndex) => {
       const tweetNodeId = `tweet-${groupIndex}-${tweetItem.tweet_number}`;
       const tweetNode: MindmapNodeData = {
         id: tweetNodeId,
-        label: tweetItem.content,
+        label: tweetItem.title, // 只显示 title
         level: 3,
         type: 'tweet',
         position: { 
@@ -70,6 +70,8 @@ export function convertThreadDataToMindmap(
           tweetId: tweetItem.tweet_number,
           content: tweetItem.content,
           title: tweetItem.title,
+          groupIndex, // 添加分组索引用于高亮联动
+          tweetIndex, // 添加tweet索引用于高亮联动
         },
       };
       nodes.push(tweetNode);
@@ -136,7 +138,52 @@ export function convertAPIDataToGeneratedContent(
 }
 
 /**
- * 将tweets转换为markdown格式
+ * 将API数据直接转换为markdown格式（支持hover高亮）
+ */
+export function convertAPIDataToMarkdown(
+  data: GenerateThreadResponse
+): string {
+  let markdown = '';
+  
+  // 添加一级标题
+  markdown += `# ${data.outline.topic}\n\n`;
+  
+  // 添加当前时间
+  const currentTime = new Date().toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    weekday: 'long'
+  });
+  markdown += `*生成时间：${currentTime}*\n\n`;
+  
+  // 添加图片占位标记
+  markdown += `![${data.outline.topic}主题配图](PLACEHOLDER_IMAGE)\n\n`;
+  
+  // 按接口数据数组排列，包含分组标题
+  data.outline.nodes.forEach((tweetGroup, groupIndex) => {
+    // 添加分组标题 (H2) 包含group标识符
+    markdown += `<div data-group-id="${groupIndex}">\n\n`;
+    markdown += `## ${tweetGroup.title}\n\n`;
+    markdown += `</div>\n\n`;
+    
+    // 添加该分组下的tweets
+    tweetGroup.tweets.forEach((tweetItem, tweetIndex) => {
+      // 添加可用于高亮的标识符
+      markdown += `<div data-tweet-id="${tweetItem.tweet_number}" data-group-index="${groupIndex}" data-tweet-index="${tweetIndex}">\n\n`;
+      markdown += `### ${tweetItem.title}\n\n`;
+      markdown += `${tweetItem.content}\n\n`;
+      markdown += `</div>\n\n`;
+    });
+  });
+  
+  return markdown;
+}
+
+/**
+ * 将tweets转换为markdown格式（兼容性保留）
  */
 export function convertTweetsToMarkdown(
   tweets: ContentTweet[],
