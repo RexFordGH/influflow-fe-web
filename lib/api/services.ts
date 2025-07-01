@@ -37,7 +37,7 @@ export function useGenerateThread() {
   
   return useMutation({
     mutationFn: (data: GenerateThreadRequest) =>
-      apiPost<GenerateThreadResponse>('/api/twitter/generate', data, 30000), // 30秒超时
+      apiPost<GenerateThreadResponse>('/api/twitter/generate', data, 60000), // 60秒超时
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
       // 可以在这里更新相关的查询缓存

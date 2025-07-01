@@ -6,7 +6,7 @@ import {
   PhotoIcon,
 } from '@heroicons/react/24/outline';
 import { Button, Card, CardBody, Progress, Spinner } from '@heroui/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
 import {
@@ -14,6 +14,12 @@ import {
   MindmapEdgeData,
   MindmapNodeData,
 } from '@/types/content';
+import { useGenerateThread, getErrorMessage } from '@/lib/api/services';
+import { 
+  convertAPIDataToGeneratedContent, 
+  convertTweetsToMarkdown,
+  convertMindmapToTweets 
+} from '@/lib/data/converters';
 
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
@@ -23,294 +29,19 @@ interface EnhancedContentGenerationProps {
   onBack: () => void;
 }
 
-// 基于思维导图节点生成Markdown内容
+// 基于思维导图节点生成Markdown内容 - 使用新的Twitter Thread格式
 const generateMarkdownFromNodes = (
   nodes: MindmapNodeData[],
+  edges: MindmapEdgeData[],
   topic: string,
 ): string => {
-  // 按层级分组节点
-  const nodesByLevel: { [level: number]: MindmapNodeData[] } = {};
-  nodes.forEach((node) => {
-    if (!nodesByLevel[node.level]) {
-      nodesByLevel[node.level] = [];
-    }
-    nodesByLevel[node.level].push(node);
-  });
-
-  let markdown = `# ${topic} 基于思维导图的内容分析 🧵\n\n`;
-
-  // 生成二级标题内容
-  const level2Nodes = nodesByLevel[2] || [];
-  level2Nodes.forEach((node, index) => {
-    markdown += `## ${node.label} 📊\n\n`;
-
-    // 查找该节点的子节点
-    const childNodes = (nodesByLevel[3] || []).filter((child) => {
-      // 这里简单地按索引关联，实际应该根据edges来确定关系
-      return true; // 暂时包含所有三级节点
-    });
-
-    if (childNodes.length > 0) {
-      markdown += `### 核心要点\n\n`;
-      childNodes.forEach((child) => {
-        markdown += `- **${child.label}**：这是关于${child.label}的详细说明，展示了在${node.label}方面的重要性和实际应用价值。\n`;
-      });
-      markdown += '\n';
-    }
-
-    // 添加段落内容
-    markdown += `在${node.label}方面，我们需要深入理解其核心价值和实践意义。通过系统性的分析和研究，可以发现这一领域的发展趋势和关键要素。\n\n`;
-
-    if (index < level2Nodes.length - 1) {
-      markdown += `---\n\n`;
-    }
-  });
-
-  // 添加总结
-  markdown += `## 总结与展望 🚀\n\n`;
-  markdown += `通过对${topic}的全面分析，我们可以看到这一领域的巨大潜力和发展空间。`;
-  markdown += `未来发展将更加注重创新与实践的结合，为用户创造更大价值。\n\n`;
-  markdown += `*本内容基于思维导图动态生成，体现了结构化思维的重要性。*\n\n`;
-  markdown += `#${topic.replace(/\s+/g, '')} #思维导图 #内容生成`;
-
-  return markdown;
+  // 使用转换器将思维导图数据转换回tweets和outline
+  const { tweets, outline } = convertMindmapToTweets(nodes, edges);
+  
+  // 使用标准的tweets转markdown函数
+  return convertTweetsToMarkdown(tweets, topic, outline);
 };
 
-// 生成更丰富的模拟内容数据
-const generateEnhancedMockContent = (topic: string): GeneratedContent => {
-  const nodes: MindmapNodeData[] = [
-    {
-      id: 'node-1',
-      label: topic,
-      level: 1,
-      type: 'topic',
-      position: { x: 50, y: 200 },
-    },
-    {
-      id: 'node-2',
-      label: '背景分析',
-      level: 2,
-      type: 'subtopic',
-      position: { x: 300, y: 80 },
-    },
-    {
-      id: 'node-3',
-      label: '核心观点',
-      level: 2,
-      type: 'subtopic',
-      position: { x: 300, y: 160 },
-    },
-    {
-      id: 'node-4',
-      label: '实践方法',
-      level: 2,
-      type: 'subtopic',
-      position: { x: 300, y: 240 },
-    },
-    {
-      id: 'node-5',
-      label: '未来趋势',
-      level: 2,
-      type: 'subtopic',
-      position: { x: 300, y: 320 },
-    },
-    {
-      id: 'node-6',
-      label: '市场现状',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 60 },
-    },
-    {
-      id: 'node-7',
-      label: '痛点问题',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 100 },
-    },
-    {
-      id: 'node-8',
-      label: '关键要素',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 140 },
-    },
-    {
-      id: 'node-9',
-      label: '价值主张',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 180 },
-    },
-    {
-      id: 'node-10',
-      label: '实施步骤',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 220 },
-    },
-    {
-      id: 'node-11',
-      label: '评估指标',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 260 },
-    },
-    {
-      id: 'node-12',
-      label: '技术发展',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 300 },
-    },
-    {
-      id: 'node-13',
-      label: '应用前景',
-      level: 3,
-      type: 'point',
-      position: { x: 550, y: 340 },
-    },
-  ];
-
-  const edges: MindmapEdgeData[] = [
-    { id: 'edge-1-2', source: 'node-1', target: 'node-2' },
-    { id: 'edge-1-3', source: 'node-1', target: 'node-3' },
-    { id: 'edge-1-4', source: 'node-1', target: 'node-4' },
-    { id: 'edge-1-5', source: 'node-1', target: 'node-5' },
-    { id: 'edge-2-6', source: 'node-2', target: 'node-6' },
-    { id: 'edge-2-7', source: 'node-2', target: 'node-7' },
-    { id: 'edge-3-8', source: 'node-3', target: 'node-8' },
-    { id: 'edge-3-9', source: 'node-3', target: 'node-9' },
-    { id: 'edge-4-10', source: 'node-4', target: 'node-10' },
-    { id: 'edge-4-11', source: 'node-4', target: 'node-11' },
-    { id: 'edge-5-12', source: 'node-5', target: 'node-12' },
-    { id: 'edge-5-13', source: 'node-5', target: 'node-13' },
-  ];
-
-  // 生成更详细的推文串格式内容
-  const markdown = `# ${topic} 完整分析与思考 🧵
-
-## 背景分析 📊
-
-### 市场现状
-
-当前${topic}领域正处于快速发展期，市场需求持续增长。根据最新数据显示，相关市场规模已达到新高度，预计未来几年将保持20%以上的年增长率。
-
-### 痛点问题
-
-尽管发展迅猛，但行业仍面临几个核心挑战：
-
-- **技术壁垒高**：入门门槛较高，需要专业知识背景
-- **成本控制难**：投资回报周期长，资金压力大  
-- **人才稀缺**：专业人才供不应求，薪资成本上升
-- **标准缺失**：行业标准不统一，质量参差不齐
-
-## 核心观点 💡
-
-### 关键要素
-
-要在${topic}领域获得成功，必须关注以下几个关键要素：
-
-1. **技术创新能力** - 持续的研发投入和技术迭代
-2. **用户体验设计** - 以用户为中心的产品设计理念
-3. **团队协作效率** - 高效的团队协作和项目管理
-4. **市场敏感度** - 快速响应市场变化和用户需求
-
-### 价值主张  
-
-${topic}的核心价值在于：
-
-- 提升效率：通过技术手段大幅提高工作效率
-- 降低成本：优化资源配置，减少不必要的开支
-- 增强体验：提供更好的用户体验和服务质量
-- 创造价值：为用户和企业创造实际的商业价值
-
-## 实践方法 🔧
-
-### 实施步骤
-
-基于深入研究和实践经验，推荐以下实施路径：
-
-**第一阶段：基础建设**
-- 团队组建和能力建设
-- 技术架构设计和选型  
-- 基础设施搭建和优化
-- 流程规范制定和完善
-
-**第二阶段：核心开发**
-- 核心功能模块开发
-- 用户界面设计和优化
-- 数据处理和分析系统
-- 安全和性能优化
-
-**第三阶段：测试验证**  
-- 功能测试和性能测试
-- 用户体验测试和反馈
-- 安全性测试和加固
-- 压力测试和容量规划
-
-### 评估指标
-
-建立科学的评估体系：
-
-- **技术指标**：性能、稳定性、安全性
-- **业务指标**：用户增长、收入增长、成本控制
-- **用户指标**：满意度、活跃度、留存率
-- **团队指标**：效率、质量、协作度
-
-## 未来趋势 🚀
-
-### 技术发展
-
-${topic}未来发展将呈现以下趋势：
-
-- **智能化程度提升**：AI和机器学习技术深度融合
-- **自动化水平增强**：更多流程实现自动化处理
-- **个性化服务升级**：基于用户数据提供定制化服务
-- **生态系统完善**：产业链上下游协同发展
-
-### 应用前景
-
-展望未来，${topic}将在以下领域发挥重要作用：
-
-1. **企业数字化转型** - 助力传统企业数字化升级
-2. **智慧城市建设** - 为城市治理提供技术支撑  
-3. **教育培训革新** - 改变传统教育模式和方法
-4. **生活服务升级** - 提升日常生活便利性和品质
-
----
-
-**总结**：${topic}作为一个快速发展的领域，既充满机遇也面临挑战。只有把握核心要素，制定合理策略，才能在竞争中脱颖而出。
-
-*通过系统性分析和实践验证，相信每个人都能在这个领域找到属于自己的发展路径。*
-
-#${topic.replace(/\s+/g, '')} #创新思维 #行业分析`;
-
-  return {
-    id: `enhanced-content-${Date.now()}`,
-    topic,
-    createdAt: new Date().toISOString(),
-    mindmap: { nodes, edges },
-    markdown,
-    image: {
-      url: `https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center`,
-      alt: `${topic}主题配图`,
-      caption: `关于${topic}的深度分析和思考`,
-      prompt: `Create a professional, modern illustration about ${topic}, focusing on innovation and technology`,
-    },
-    metadata: {
-      wordCount: markdown.length,
-      estimatedReadTime: Math.ceil(markdown.length / 200),
-      sources: [
-        '行业研究报告',
-        '专家访谈记录',
-        '市场数据分析',
-        '用户调研反馈',
-        'AI知识整合',
-      ],
-    },
-  };
-};
 
 export function EnhancedContentGeneration({
   topic,
@@ -327,6 +58,14 @@ export function EnhancedContentGeneration({
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
   const [currentEdges, setCurrentEdges] = useState<MindmapEdgeData[]>([]);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [hasStartedGeneration, setHasStartedGeneration] = useState(false); // 防止重复请求
+  
+  // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
+  const requestIdRef = useRef<string | null>(null);
+
+  // API调用hook
+  const { mutate: generateThread, isPending: isGeneratingAPI } = useGenerateThread();
 
   // 生成思维过程步骤
   const generationSteps = [
@@ -338,30 +77,76 @@ export function EnhancedContentGeneration({
     '✨ 完善细节和优化排版...',
   ];
 
-  // 模拟AI生成过程
+  // AI生成过程 - 使用真实API
   useEffect(() => {
-    if (!isGenerating) return;
+    // 防止重复请求：如果已经开始生成或者不在生成状态，直接返回
+    if (!isGenerating || hasStartedGeneration) return;
 
-    let currentStep = 0;
+    // 生成唯一的请求ID
+    const currentRequestId = `${topic}-${Date.now()}`;
+    
+    // 如果当前请求ID与ref中的相同，说明是重复执行，直接返回
+    if (requestIdRef.current === currentRequestId) return;
+    
+    console.log('开始API生成，topic:', topic, 'requestId:', currentRequestId);
+    requestIdRef.current = currentRequestId;
+    setHasStartedGeneration(true);
+    setApiError(null);
+    setGenerationStep(0);
+
+    // 启动UI进度动画
     const interval = setInterval(() => {
-      if (currentStep < generationSteps.length - 1) {
-        currentStep++;
-        setGenerationStep(currentStep);
-      } else {
-        clearInterval(interval);
-        // 生成完成
-        setTimeout(() => {
-          const content = generateEnhancedMockContent(topic);
-          setGeneratedContent(content);
-          setCurrentNodes(content.mindmap.nodes);
-          setCurrentEdges(content.mindmap.edges);
-          setIsGenerating(false);
-        }, 1000);
-      }
+      setGenerationStep(prev => {
+        if (prev < generationSteps.length - 1) {
+          return prev + 1;
+        }
+        return prev;
+      });
     }, 1500);
 
-    return () => clearInterval(interval);
-  }, [topic, isGenerating]);
+    // 调用API
+    generateThread({ topic: topic.trim() }, {
+      onSuccess: (response) => {
+        // 检查请求是否还是当前请求（避免竞态条件）
+        if (requestIdRef.current !== currentRequestId) {
+          console.log('忽略过期的API响应');
+          clearInterval(interval);
+          return;
+        }
+        
+        clearInterval(interval);
+        console.log('API生成成功:', response);
+        
+        // 转换API数据为组件所需格式
+        const content = convertAPIDataToGeneratedContent(response);
+        setGeneratedContent(content);
+        setCurrentNodes(content.mindmap.nodes);
+        setCurrentEdges(content.mindmap.edges);
+        setIsGenerating(false);
+        setGenerationStep(generationSteps.length - 1);
+      },
+      onError: (error) => {
+        // 检查请求是否还是当前请求
+        if (requestIdRef.current !== currentRequestId) {
+          console.log('忽略过期的API错误');
+          clearInterval(interval);
+          return;
+        }
+        
+        clearInterval(interval);
+        console.error('API生成失败:', error);
+        const errorMessage = getErrorMessage(error);
+        setApiError(errorMessage);
+        setIsGenerating(false);
+        setHasStartedGeneration(false); // 失败时重置，允许重试
+        requestIdRef.current = null; // 清除请求ID
+      },
+    });
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [topic, isGenerating, hasStartedGeneration]); // 添加 hasStartedGeneration 依赖
 
   const handleNodeSelect = useCallback(
     (nodeId: string | null) => {
@@ -443,9 +228,12 @@ export function EnhancedContentGeneration({
 
     setIsRegenerating(true);
 
-    // 模拟基于思维导图重新生成Markdown内容
+    // 基于当前思维导图重新生成内容
     setTimeout(() => {
-      const newMarkdown = generateMarkdownFromNodes(currentNodes, topic);
+      const newMarkdown = generateMarkdownFromNodes(currentNodes, currentEdges, topic);
+      
+      // 重新转换思维导图数据为tweets和outline
+      const { tweets, outline } = convertMindmapToTweets(currentNodes, currentEdges);
 
       setGeneratedContent({
         ...generatedContent,
@@ -453,11 +241,12 @@ export function EnhancedContentGeneration({
           nodes: currentNodes,
           edges: currentEdges,
         },
-        markdown: newMarkdown,
+        tweets,
+        outline,
         metadata: {
           ...generatedContent.metadata,
-          wordCount: newMarkdown.length,
-          estimatedReadTime: Math.ceil(newMarkdown.length / 200),
+          totalTweets: tweets.length,
+          estimatedReadTime: Math.ceil(tweets.reduce((acc, tweet) => acc + tweet.content.length, 0) / 200),
         },
       });
 
@@ -472,6 +261,8 @@ export function EnhancedContentGeneration({
     setGenerationStep(0);
     setSelectedNodeId(null);
     setHighlightedSection(null);
+    setHasStartedGeneration(false); // 重置请求状态，允许重新请求
+    requestIdRef.current = null; // 清除请求ID
 
     // 模拟重新生成过程
     setTimeout(() => {
@@ -484,8 +275,10 @@ export function EnhancedContentGeneration({
     console.log('编辑图片');
   }, []);
 
-  // 加载状态
-  if (isGenerating) {
+  // 加载状态和错误状态
+  if (isGenerating || (!generatedContent && apiError)) {
+    const hasError = !isGenerating && apiError;
+    
     return (
       <div className="flex h-screen flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
         {/* 顶部栏 */}
@@ -501,90 +294,144 @@ export function EnhancedContentGeneration({
                 <ArrowLeftIcon className="size-5" />
               </Button>
               <h1 className="text-xl font-semibold text-gray-900">
-                {isRegenerating ? '重新生成中...' : 'AI 正在思考和创作'}
+                {hasError ? '生成失败' : isRegenerating ? '重新生成中...' : 'AI 正在思考和创作'}
               </h1>
             </div>
           </div>
         </div>
 
-        {/* 生成进度 */}
+        {/* 生成进度或错误信息 */}
         <div className="flex flex-1 items-center justify-center p-6">
           <Card className="w-full max-w-2xl shadow-lg">
             <CardBody className="p-8">
               <div className="text-center">
-                <div className="mb-8">
-                  <Spinner size="lg" color="primary" className="mb-4" />
-                  <div className="relative mx-auto mb-4 size-16">
-                    <div className="absolute inset-0 animate-pulse rounded-full bg-blue-100"></div>
-                    <div className="absolute inset-2 animate-ping rounded-full bg-blue-200"></div>
-                  </div>
-                </div>
-
-                <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                  AI 正在为您创作内容
-                </h2>
-
-                <p className="mb-2 text-gray-600">
-                  主题:{' '}
-                  <span className="font-medium text-blue-600">{topic}</span>
-                </p>
-
-                <p className="mb-8 text-sm text-gray-500">
-                  正在运用先进的AI技术为您生成思维导图和深度内容
-                </p>
-
-                <div className="space-y-6">
-                  <Progress
-                    value={
-                      ((generationStep + 1) / generationSteps.length) * 100
-                    }
-                    color="primary"
-                    size="md"
-                    className="mb-6"
-                  />
-
-                  <div className="space-y-3">
-                    {generationSteps.map((step, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center space-x-3 rounded-lg p-3 transition-all duration-300 ${
-                          index <= generationStep
-                            ? 'border border-blue-200 bg-blue-50 text-blue-600'
-                            : 'bg-gray-50 text-gray-400'
-                        }`}
-                      >
-                        <div
-                          className={`flex size-6 shrink-0 items-center justify-center rounded-full ${
-                            index <= generationStep
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-300'
-                          }`}
-                        >
-                          {index < generationStep ? (
-                            <svg
-                              className="size-4"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          ) : index === generationStep ? (
-                            <div className="size-2 animate-pulse rounded-full bg-current" />
-                          ) : (
-                            <span className="text-xs font-medium">
-                              {index + 1}
-                            </span>
-                          )}
+                {hasError ? (
+                  /* 错误状态 */
+                  <>
+                    <div className="mb-8">
+                      <div className="relative mx-auto mb-4 size-16">
+                        <div className="absolute inset-0 rounded-full bg-red-100"></div>
+                        <div className="flex size-full items-center justify-center">
+                          <svg className="size-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
                         </div>
-                        <span className="text-sm font-medium">{step}</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+
+                    <h2 className="mb-2 text-2xl font-bold text-red-600">
+                      生成失败
+                    </h2>
+
+                    <p className="mb-2 text-gray-600">
+                      主题:{' '}
+                      <span className="font-medium text-blue-600">{topic}</span>
+                    </p>
+
+                    <p className="mb-8 text-sm text-red-500">
+                      {apiError}
+                    </p>
+
+                    <div className="flex justify-center gap-3">
+                      <Button
+                        color="primary"
+                        onPress={() => {
+                          setApiError(null);
+                          setHasStartedGeneration(false);
+                          requestIdRef.current = null;
+                          setIsGenerating(true);
+                        }}
+                        className="px-8"
+                      >
+                        重试
+                      </Button>
+                      <Button
+                        variant="light"
+                        onPress={onBack}
+                        className="px-8"
+                      >
+                        返回
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  /* 加载状态 */
+                  <>
+                    <div className="mb-8">
+                      <Spinner size="lg" color="primary" className="mb-4" />
+                      <div className="relative mx-auto mb-4 size-16">
+                        <div className="absolute inset-0 animate-pulse rounded-full bg-blue-100"></div>
+                        <div className="absolute inset-2 animate-ping rounded-full bg-blue-200"></div>
+                      </div>
+                    </div>
+
+                    <h2 className="mb-2 text-2xl font-bold text-gray-900">
+                      AI 正在为您创作内容
+                    </h2>
+
+                    <p className="mb-2 text-gray-600">
+                      主题:{' '}
+                      <span className="font-medium text-blue-600">{topic}</span>
+                    </p>
+
+                    <p className="mb-8 text-sm text-gray-500">
+                      正在运用先进的AI技术为您生成思维导图和深度内容
+                    </p>
+
+                    <div className="space-y-6">
+                      <Progress
+                        value={
+                          ((generationStep + 1) / generationSteps.length) * 100
+                        }
+                        color="primary"
+                        size="md"
+                        className="mb-6"
+                      />
+
+                      <div className="space-y-3">
+                        {generationSteps.map((step, index) => (
+                          <div
+                            key={index}
+                            className={`flex items-center space-x-3 rounded-lg p-3 transition-all duration-300 ${
+                              index <= generationStep
+                                ? 'border border-blue-200 bg-blue-50 text-blue-600'
+                                : 'bg-gray-50 text-gray-400'
+                            }`}
+                          >
+                            <div
+                              className={`flex size-6 shrink-0 items-center justify-center rounded-full ${
+                                index <= generationStep
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-300'
+                              }`}
+                            >
+                              {index < generationStep ? (
+                                <svg
+                                  className="size-4"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              ) : index === generationStep ? (
+                                <div className="size-2 animate-pulse rounded-full bg-current" />
+                              ) : (
+                                <span className="text-xs font-medium">
+                                  {index + 1}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-sm font-medium">{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </CardBody>
           </Card>
@@ -593,19 +440,6 @@ export function EnhancedContentGeneration({
     );
   }
 
-  if (!generatedContent) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="mb-2 text-xl font-semibold text-red-600">生成失败</h2>
-          <p className="mb-4 text-gray-600">内容生成过程中出现错误</p>
-          <Button color="primary" onPress={() => setIsGenerating(true)}>
-            重新生成
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen flex-col bg-gray-50">
@@ -623,11 +457,11 @@ export function EnhancedContentGeneration({
             </Button>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                {generatedContent.topic}
+                {generatedContent?.topic}
               </h1>
               <p className="text-sm text-gray-500">
-                约 {generatedContent.metadata.wordCount} 字 · 预计阅读{' '}
-                {generatedContent.metadata.estimatedReadTime} 分钟
+                共 {generatedContent?.metadata.totalTweets} 条推文 · 预计阅读{' '}
+                {generatedContent?.metadata.estimatedReadTime} 分钟
               </p>
             </div>
           </div>
@@ -663,6 +497,7 @@ export function EnhancedContentGeneration({
               onNodeSelect={handleNodeSelect}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
+              onRegenerate={regenerateFromMindmap}
               highlightedNodeId={selectedNodeId}
             />
           </ReactFlowProvider>
@@ -674,14 +509,14 @@ export function EnhancedContentGeneration({
           <div className="relative shrink-0">
             <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
               <img
-                src={generatedContent.image.url}
-                alt={generatedContent.image.alt}
+                src={generatedContent?.image.url}
+                alt={generatedContent?.image.alt}
                 className="size-full object-cover"
               />
               <div className="absolute inset-0 bg-black bg-opacity-20"></div>
               <div className="absolute inset-x-4 bottom-4">
                 <p className="text-sm font-medium text-white drop-shadow-lg">
-                  {generatedContent.image.caption}
+                  {generatedContent?.image.caption}
                 </p>
               </div>
               <div className="absolute right-4 top-4">
@@ -698,15 +533,17 @@ export function EnhancedContentGeneration({
             </div>
           </div>
 
-          {/* Markdown内容区域 */}
+          {/* Twitter Thread内容区域 */}
           <div className="flex-1 overflow-hidden">
-            <EnhancedMarkdownRenderer
-              content={generatedContent.markdown}
-              onSectionHover={handleSectionHover}
-              onSourceClick={handleSourceClick}
-              highlightedSection={highlightedSection}
-              sources={generatedContent.metadata.sources}
-            />
+            {generatedContent && (
+              <EnhancedMarkdownRenderer
+                content={convertTweetsToMarkdown(generatedContent.tweets, generatedContent.topic, generatedContent.outline)}
+                onSectionHover={handleSectionHover}
+                onSourceClick={handleSourceClick}
+                highlightedSection={highlightedSection}
+                sources={generatedContent.metadata.sources}
+              />
+            )}
           </div>
         </div>
       </div>

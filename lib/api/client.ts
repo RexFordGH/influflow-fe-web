@@ -36,11 +36,14 @@ export async function apiRequest<T>(
     
     if (!response.ok) {
       let errorData: ApiErrorResponse;
+      let responseText = '';
       try {
-        errorData = await response.json();
+        responseText = await response.text();
+        errorData = JSON.parse(responseText);
       } catch {
-        errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
+        errorData = { detail: responseText || `HTTP ${response.status}: ${response.statusText}` };
       }
+      
       
       throw new ApiError(
         `API Error: ${response.status}`,

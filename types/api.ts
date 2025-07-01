@@ -17,25 +17,28 @@ export interface GenerateThreadRequest {
   topic: string;
 }
 
-export interface Tweet {
-  id: number;
+export interface TweetContentItem {
+  tweet_number: number;
   content: string;
-  order: number;
+  title: string;
+}
+
+export interface Tweet {
+  title: string;
+  tweets: TweetContentItem[];
 }
 
 export interface Outline {
-  points: string[];
-  structure: string;
-}
-
-export interface GenerateThreadData {
+  nodes: Tweet[];
   topic: string;
-  outline: Outline;
-  tweets: Tweet[];
   total_tweets: number;
 }
 
-export type GenerateThreadResponse = BaseApiResponse<GenerateThreadData>;
+export interface GenerateThreadResponse {
+  error: null | string;
+  outline: Outline;
+  status: 'success' | 'error';
+}
 
 // Twitter Tweet 修改相关类型
 export interface OutlineInput {
@@ -73,10 +76,11 @@ export type ModifyOutlineResponse = BaseApiResponse<ModifyOutlineData>;
 
 // API 错误响应类型
 export interface ApiErrorResponse {
-  detail: string | Array<{
-    loc: string[];
-    msg: string;
-    type: string;
-  }>;
+  detail:
+    | string
+    | Array<{
+        loc: string[];
+        msg: string;
+        type: string;
+      }>;
 }
-

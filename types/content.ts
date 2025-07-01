@@ -4,14 +4,17 @@ export interface GeneratedContent {
   topic: string;
   createdAt: string;
 
-  // 思维导图数据
+  // 思维导图数据 - 基于Tweet数据生成
   mindmap: {
     nodes: MindmapNodeData[];
     edges: MindmapEdgeData[];
   };
 
-  // Markdown内容
-  markdown: string;
+  // Tweet线程数据
+  tweets: Tweet[];
+  
+  // 大纲数据
+  outline: Outline;
 
   // 图片信息
   image: {
@@ -23,18 +26,30 @@ export interface GeneratedContent {
 
   // 元数据
   metadata: {
-    wordCount: number;
+    totalTweets: number;
     estimatedReadTime: number;
     sources?: string[]; // 信息来源
   };
+}
+
+// 前端使用的Tweet类型（简化版）
+export interface Tweet {
+  id: number;
+  content: string;
+  order: number;
+}
+
+export interface Outline {
+  points: string[];
+  structure: string;
 }
 
 // 思维导图节点数据
 export interface MindmapNodeData {
   id: string;
   label: string;
-  level: number; // 1-6 对应 H1-H6
-  type: 'topic' | 'subtopic' | 'point';
+  level: number; // 1-6 对应 H1-H6，1为topic，2为outline points，3+为tweets
+  type: 'topic' | 'outline_point' | 'tweet';
   position?: {
     x: number;
     y: number;
@@ -42,6 +57,9 @@ export interface MindmapNodeData {
   data?: {
     content?: string;
     highlighted?: boolean;
+    // 关联到Tweet或outline数据
+    tweetId?: number; // 关联的Tweet ID
+    outlineIndex?: number; // 关联的大纲点索引
   };
 }
 
@@ -50,7 +68,7 @@ export interface MindmapEdgeData {
   id: string;
   source: string;
   target: string;
-  type?: 'default' | 'smoothstep' | 'simplebezier';
+  type?: 'default' | 'smoothstep' | 'simpleBezier';
 }
 
 // AI生成请求数据
