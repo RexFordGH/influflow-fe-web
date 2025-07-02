@@ -3,9 +3,11 @@
 // import { useAuthStore } from '@/stores/authStore';
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 import { EnhancedContentGeneration } from '@/components/content/EnhancedContentGeneration';
+import { TrendingTopics } from '@/components/content/TrendingTopics';
 import { ApiTest } from '@/components/test/ApiTest';
 
 interface Note {
@@ -13,6 +15,19 @@ interface Note {
   title: string;
   content: string;
   createdAt: Date;
+}
+
+interface TrendingTopic {
+  id: string;
+  title: string;
+  category: string;
+  timeAgo: string;
+  popularity: number;
+}
+
+interface SuggestedTopic {
+  id: string;
+  title: string;
 }
 
 export default function Home() {
@@ -24,6 +39,7 @@ export default function Home() {
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState('');
   const [topicInput, setTopicInput] = useState('');
+  const [showTrendingTopics, setShowTrendingTopics] = useState(false);
 
   useEffect(() => {
     console.log('Selected note changed:', selectedNote);
@@ -100,6 +116,23 @@ export default function Home() {
     setCurrentTopic('');
   };
 
+  const handleScrollToTrending = () => {
+    setShowTrendingTopics(true);
+  };
+
+  const handleBackFromTrending = () => {
+    setShowTrendingTopics(false);
+  };
+
+  const handleTrendingTopicSelect = (topic: TrendingTopic | SuggestedTopic) => {
+    // 先切回首页，然后填充输入框
+    setShowTrendingTopics(false);
+    // 延迟一点时间填充输入框，让动画更流畅
+    setTimeout(() => {
+      setTopicInput(topic.title);
+    }, 400);
+  };
+
   // 如果正在显示内容生成页面
   if (showContentGeneration && currentTopic) {
     return (
@@ -111,7 +144,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* TODO: 恢复登录按钮条件显示 */}
       {/* {!isAuthenticated && (
         <div className="fixed top-0 w-full h-[50px] z-50 flex justify-between items-center px-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
@@ -128,7 +161,7 @@ export default function Home() {
       )} */}
 
       {/* 左侧导航栏 */}
-      <div className="flex w-[320px] flex-col border-r border-gray-200 bg-white">
+      <div className="flex w-[320px] flex-col border-r border-gray-200 bg-white z-10">
         {/* 用户信息 */}
         <div className="border-b border-gray-200 p-4">
           <div className="flex items-center space-x-2">
@@ -197,94 +230,132 @@ export default function Home() {
       </div>
 
       {/* 右侧主内容区 */}
-      <div className="flex flex-1 flex-col">
-        {!selectedNote ? (
-          /* 欢迎界面 */
-          <div className="flex flex-1 items-center justify-center text-center">
-            <div className="flex flex-col gap-[24px] px-[24px]">
-              <h2 className="text-[24px] font-[600] text-black">
-                Hey Kelly, what would you like to write about today?
-                {/* TODO: 恢复用户名动态显示 */}
-                {/* Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today? */}
-              </h2>
+      <div className="flex flex-1 flex-col relative overflow-hidden">
+        <AnimatePresence mode="wait">
+          {!selectedNote ? (
+            <div className="relative w-full h-full">
+              {/* 欢迎界面 - 第一屏 */}
+              <motion.div
+                initial={{ y: 0 }}
+                animate={{ y: showTrendingTopics ? -window.innerHeight : 0 }}
+                transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
+                className="absolute inset-0 flex items-center justify-center bg-gray-50"
+              >
+                <div className="flex flex-col gap-[24px] px-[24px] text-center relative">
+                  <h2 className="text-[24px] font-[600] text-black">
+                    Hey Kelly, what would you like to write about today?
+                    {/* TODO: 恢复用户名动态显示 */}
+                    {/* Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today? */}
+                  </h2>
 
-              <div className="relative">
-                <textarea
-                  placeholder="You can start with a topic or an opinion."
-                  value={topicInput}
-                  onChange={(e) => setTopicInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleTopicSubmit();
-                    }
-                  }}
-                  className="h-[120px] w-full resize-none rounded-2xl border shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2"
-                  rows={4}
-                />
-                <Button
-                  isIconOnly
-                  color="primary"
-                  className="absolute bottom-[12px] right-[12px] w-[40px] h-[40px] min-w-auto rounded-full"
-                  onPress={handleTopicSubmit}
-                  disabled={!topicInput.trim()}
-                >
-                  <Image
-                    src="/icons/send.svg"
-                    alt="发送"
-                    width={40}
-                    height={40}
-                    className="pointer-events-none"
-                  />
-                </Button>
-              </div>
+                  <div className="relative">
+                    <textarea
+                      placeholder="You can start with a topic or an opinion."
+                      value={topicInput}
+                      onChange={(e) => setTopicInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleTopicSubmit();
+                        }
+                      }}
+                      className="h-[120px] w-full resize-none rounded-2xl border shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2"
+                      rows={4}
+                    />
+                    <Button
+                      isIconOnly
+                      color="primary"
+                      className="absolute bottom-[12px] right-[12px] w-[40px] h-[40px] min-w-auto rounded-full"
+                      onPress={handleTopicSubmit}
+                      disabled={!topicInput.trim()}
+                    >
+                      <Image
+                        src="/icons/send.svg"
+                        alt="发送"
+                        width={40}
+                        height={40}
+                        className="pointer-events-none"
+                      />
+                    </Button>
+                  </div>
 
-              <div className="text-center">
-                <Button
-                  variant="light"
-                  onPress={handleWriteByMyself}
-                  className="h-auto bg-transparent hover:bg-transparent p-0 text-base font-medium text-gray-700 underline hover:text-gray-900"
-                >
-                  Write by Myself
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* 笔记内容区 */
-          <div className="flex-1 bg-gray-50 p-6">
-            <div className="mx-auto max-w-4xl">
-              <div className="mb-6">
-                <h1 className="mb-2 text-3xl font-bold text-gray-900">
-                  {selectedNote.title}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  Created: {selectedNote.createdAt.toLocaleDateString()}
-                </p>
-              </div>
-
-              {/* TODO: 在这里添加思维导图和文章内容的双栏布局 */}
-              <div className="min-h-[500px] rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-                <div className="py-20 text-center">
-                  <h3 className="mb-2 text-xl font-semibold text-gray-900">
-                    Welcome to your note: "{selectedNote.title}"
-                  </h3>
-                  <p className="mb-6 text-gray-500">
-                    Content editing interface will be implemented here
-                  </p>
-                  <div className="text-sm text-gray-400">
-                    Note ID: {selectedNote.id}
+                  <div className="text-center">
+                    <Button
+                      variant="light"
+                      onPress={handleWriteByMyself}
+                      className="h-auto bg-transparent hover:bg-transparent p-0 text-base font-medium text-gray-700 underline hover:text-gray-900"
+                    >
+                      Write by Myself
+                    </Button>
                   </div>
                 </div>
+                <div className="absolute bottom-[55px] left-0 right-0  flex justify-center">
+                  <div
+                    className="flex flex-col items-center cursor-pointer hover:opacity-70 hover:scale-105 transition-all duration-300"
+                    onClick={handleScrollToTrending}
+                  >
+                    <Image
+                      src="/icons/scroll.svg"
+                      alt="scroll-down"
+                      width={24}
+                      height={24}
+                    />
+                    <span className="text-[18px] text-[#448AFF] font-[500]">
+                      Scroll down to explore trending topics
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
 
-                {/* 临时API测试区域 */}
-                <div className="mt-8">
-                  <ApiTest />
+              {/* Trending Topics组件 - 第二屏 */}
+              <TrendingTopics
+                isVisible={showTrendingTopics}
+                onBack={handleBackFromTrending}
+                onTopicSelect={handleTrendingTopicSelect}
+              />
+            </div>
+          ) : (
+            /* 笔记内容区 */
+            <motion.div
+              key="note-content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex-1 bg-gray-50 p-6"
+            >
+              <div className="mx-auto max-w-4xl">
+                <div className="mb-6">
+                  <h1 className="mb-2 text-3xl font-bold text-gray-900">
+                    {selectedNote.title}
+                  </h1>
+                  <p className="text-sm text-gray-500">
+                    Created: {selectedNote.createdAt.toLocaleDateString()}
+                  </p>
+                </div>
+
+                {/* TODO: 在这里添加思维导图和文章内容的双栏布局 */}
+                <div className="min-h-[500px] rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+                  <div className="py-20 text-center">
+                    <h3 className="mb-2 text-xl font-semibold text-gray-900">
+                      Welcome to your note: "{selectedNote.title}"
+                    </h3>
+                    <p className="mb-6 text-gray-500">
+                      Content editing interface will be implemented here
+                    </p>
+                    <div className="text-sm text-gray-400">
+                      Note ID: {selectedNote.id}
+                    </div>
+                  </div>
+
+                  {/* 临时API测试区域 */}
+                  <div className="mt-8">
+                    <ApiTest />
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
