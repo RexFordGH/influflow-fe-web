@@ -666,25 +666,54 @@ export function EditableContentMindmap({
         modification_prompt: aiEditInstruction
       });
 
-      // API返回全新的outline数据，需要完整更新
-      if (result.outline) {
+      // API只返回更新的tweet内容，需要局部更新
+      if (result.updated_tweet_content && result.tweet_number) {
         console.log('AI编辑成功，返回的数据:', result);
         
-        // 更新当前存储的outline数据
-        setCurrentOutline(result.outline);
+        // 1. 更新currentOutline中对应的tweet内容
+        const updatedOutline = JSON.parse(JSON.stringify(currentOutline)) as Outline;
+        let tweetFound = false;
         
-        // 使用正确的转换函数重新构建思维导图
-        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap({
-          outline: result.outline,
-          status: 'success',
-          error: null
+        for (const outlineNode of updatedOutline.nodes) {
+          const tweetToUpdate = outlineNode.tweets.find(tweet => tweet.tweet_number === result.tweet_number);
+          if (tweetToUpdate) {
+            tweetToUpdate.content = result.updated_tweet_content;
+            // 如果需要，也可以更新title（通常content更改时title也要对应更新）
+            tweetToUpdate.title = result.updated_tweet_content.split('\n')[0] || result.updated_tweet_content;
+            tweetFound = true;
+            break;
+          }
+        }
+        
+        if (!tweetFound) {
+          console.error('未找到对应的tweet_number:', result.tweet_number);
+          alert('更新失败：未找到对应的内容');
+          return;
+        }
+        
+        // 2. 更新currentOutline状态
+        setCurrentOutline(updatedOutline);
+        
+        // 3. 局部更新思维导图节点数据（不重新渲染整个图）
+        const updatedNodes = mindmapNodes.map(node => {
+          if (node.data?.tweetId === result.tweet_number) {
+            return {
+              ...node,
+              label: result.updated_tweet_content.split('\n')[0] || result.updated_tweet_content,
+              data: {
+                ...node.data,
+                content: result.updated_tweet_content,
+                title: result.updated_tweet_content.split('\n')[0] || result.updated_tweet_content
+              }
+            };
+          }
+          return node;
         });
-
-        onNodesChange?.(newNodes);
-        onEdgesChange?.(newEdges);
         
-        // 触发整体数据源更新，使用转换后的markdown
-        const newMarkdown = convertMindmapToMarkdown(newNodes, newEdges);
+        onNodesChange?.(updatedNodes);
+        
+        // 4. 重新生成markdown（使用更新后的数据）
+        const newMarkdown = convertMindmapToMarkdown(updatedNodes, mindmapEdges);
         onRegenerate?.(newMarkdown);
       }
 

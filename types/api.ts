@@ -22,7 +22,7 @@ export interface ModifyTweetRequest {
 }
 
 export interface ModifyTweetResponse {
-  outline: Outline;
+  updated_tweet_content: string;
   tweet_number: number;
   modification_prompt: string;
 }

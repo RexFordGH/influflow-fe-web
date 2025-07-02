@@ -89,31 +89,35 @@ export const localGenerateThreadResponse = {
 
 // 本地模拟 ModifyTweet 响应数据
 export const createLocalModifyTweetResponse = (originalOutline: Outline, tweetNumber: number, prompt: string): ModifyTweetResponse => {
-  // 模拟AI编辑后的内容，更新对应的tweet
-  const updatedNodes = originalOutline.nodes.map((node, index) => {
-    if (index === tweetNumber - 1) {
-      // 更新指定的tweet
-      const enhancedContent = `${node.title} - ${prompt.substring(0, 20)}...（AI增强版）`;
-      return {
-        title: enhancedContent,
-        tweets: [
-          {
-            tweet_number: 1,
-            content: `🎯 ${enhancedContent}\n\n根据用户指令"${prompt}"进行AI优化：\n• 内容更加吸引人\n• 增强可读性\n• 符合社交媒体最佳实践\n\n#AI优化 #内容创作`,
-            title: enhancedContent
-          }
-        ]
-      };
+  // 找到对应的tweet并生成AI增强的内容
+  let originalContent = '';
+  let tweetFound = false;
+  
+  for (const outlineNode of originalOutline.nodes) {
+    const targetTweet = outlineNode.tweets.find(tweet => tweet.tweet_number === tweetNumber);
+    if (targetTweet) {
+      originalContent = targetTweet.content;
+      tweetFound = true;
+      break;
     }
-    return node;
-  });
+  }
+  
+  if (!tweetFound) {
+    throw new Error(`Tweet with number ${tweetNumber} not found`);
+  }
+  
+  // 模拟AI编辑后的内容
+  const enhancedContent = `🎯 ${originalContent}
+
+根据用户指令"${prompt}"进行AI优化：
+• 内容更加吸引人
+• 增强可读性和参与度
+• 符合社交媒体最佳实践
+
+#AI优化 #内容创作`;
 
   return {
-    outline: {
-      nodes: updatedNodes,
-      topic: originalOutline.topic,
-      total_tweets: originalOutline.total_tweets
-    },
+    updated_tweet_content: enhancedContent,
     tweet_number: tweetNumber,
     modification_prompt: prompt
   };
