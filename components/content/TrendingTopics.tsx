@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Skeleton } from '@heroui/react';
+import { Button } from '@/components/base';
+import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -37,7 +38,7 @@ const useTrendingData = (isVisible: boolean) => {
         // TODO: 替换为实际的API请求
         await new Promise((resolve) => setTimeout(resolve, 1500)); // 模拟网络延迟
 
-        // 模拟数据
+        // 模拟数据 - 根据Figma设计
         const mockTrendingTopics: TrendingTopic[] = [
           {
             id: '1',
@@ -124,19 +125,18 @@ const useTrendingData = (isVisible: boolean) => {
 
 // 骨架屏组件
 const TrendingTopicSkeleton = () => (
-  <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+  <div className="flex items-center rounded-xl p-1 bg-gray-200">
     <div className="flex-1">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between px-6 py-1">
         <Skeleton className="h-5 w-32 rounded" />
         <Skeleton className="h-4 w-8 rounded" />
       </div>
-      <Skeleton className="h-2 w-full rounded-full" />
     </div>
   </div>
 );
 
 const SuggestedTopicSkeleton = () => (
-  <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+  <div className="p-3 border border-gray-300 rounded-xl">
     <Skeleton className="h-5 w-full rounded mb-2" />
     <Skeleton className="h-5 w-3/4 rounded" />
   </div>
@@ -151,8 +151,8 @@ export function TrendingTopics({
   const { loading, trendingTopics, suggestedTopics } =
     useTrendingData(isVisible);
 
-  // 分类列表
-  const categories = ['All', 'AI', 'Web3', 'Investment', 'Politics'];
+  // 分类列表 - 根据Figma设计更新
+  const categories = ['All', 'AI', 'Web3', 'Investment'];
 
   // 过滤话题
   const filteredTopics =
@@ -165,92 +165,73 @@ export function TrendingTopics({
       initial={{ y: window.innerHeight }}
       animate={{ y: isVisible ? 0 : window.innerHeight }}
       transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
-      className="absolute inset-0 bg-gray-50 overflow-y-auto"
+      className="absolute inset-0 bg-white overflow-y-auto"
     >
       <div className="min-h-full flex flex-col">
-        {/* 顶部导航 */}
-        <div className="sticky top-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-10">
-          <div className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📈</span>
-              <h2 className="text-2xl font-bold text-gray-900">
+        {/* 内容区域 */}
+        <div className="flex-1 px-30 py-14">
+          <div className="w-full max-w-4xl mx-auto">
+            {/* Trending Topics 部分 */}
+            <div className="mb-10">
+              {/* 标题 */}
+              <h2 className="text-lg font-medium text-black mb-4">
                 Trending Topics
               </h2>
-            </div>
-            <Button
-              variant="light"
-              onPress={onBack}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              Back to Home
-            </Button>
-          </div>
-        </div>
 
-        {/* 内容区域 */}
-        <div className="flex-1 p-6">
-          <div className="w-full max-w-4xl mx-auto">
-            {/* 分类筛选 */}
-            <div className="mb-6 flex gap-3">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  size="sm"
-                  variant={selectedCategory === category ? 'solid' : 'bordered'}
-                  color={selectedCategory === category ? 'primary' : 'default'}
-                  onPress={() => setSelectedCategory(category)}
-                  className="rounded-full"
-                  disabled={loading}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
+              {/* 分类筛选 */}
+              <div className="mb-4 flex gap-3">
+                {categories.map((category) => (
+                  <Button
+                    key={category}
+                    size="sm"
+                    variant="bordered"
+                    onPress={() => setSelectedCategory(category)}
+                    className={`rounded-xl px-3 py-1 border text-lg font-normal ${
+                      selectedCategory === category
+                        ? 'bg-gray-200 border-gray-200 text-black'
+                        : 'border-gray-200 text-black bg-white hover:bg-gray-50'
+                    }`}
+                    isDisabled={loading}
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
 
-            {/* 热门话题列表 */}
-            <div className="mb-8">
+              {/* 热门话题列表 */}
               <div className="space-y-3">
                 {loading
                   ? // 骨架屏
                     Array.from({ length: 5 }).map((_, index) => (
                       <TrendingTopicSkeleton key={index} />
                     ))
-                  : // 实际数据
+                  : // 实际数据 - 根据Figma设计样式
                     filteredTopics.map((topic, index) => (
-                      <motion.div
+                      <motion.button
                         key={topic.id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
-                        className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-100"
                         onClick={() => onTopicSelect(topic)}
+                        className="flex items-center justify-between px-6 py-1 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 hover:from-yellow-500 hover:to-yellow-300 transition-all duration-200"
+                        style={{
+                          width: `${Math.max(432, 880 - index * 110)}px`,
+                        }}
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-gray-900">
-                              {topic.title}
-                            </h3>
-                            <span className="text-sm text-gray-500">
-                              {topic.timeAgo}
-                            </span>
-                          </div>
-                          <div className="relative">
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
-                                style={{ width: `${topic.popularity}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
+                        <span className="text-lg font-medium text-black">
+                          {topic.title}
+                        </span>
+                        <span className="text-lg font-medium text-gray-600">
+                          {topic.timeAgo}
+                        </span>
+                      </motion.button>
                     ))}
               </div>
             </div>
 
-            {/* 推荐话题 */}
+            {/* Suggested Topics 部分 */}
             <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-black mb-4">
                 Suggested Topics
               </h3>
               <div className="space-y-3">
@@ -259,20 +240,24 @@ export function TrendingTopics({
                     Array.from({ length: 5 }).map((_, index) => (
                       <SuggestedTopicSkeleton key={index} />
                     ))
-                  : // 实际数据
+                  : // 实际数据 - 根据Figma设计样式
                     suggestedTopics.map((topic, index) => (
-                      <motion.div
+                      <motion.button
                         key={topic.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                        className="p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-100"
                         onClick={() => onTopicSelect(topic)}
+                        className={`w-full p-3 rounded-xl transition-all duration-200 text-left ${
+                          index === 0
+                            ? 'bg-blue-50 border border-blue-400 hover:bg-blue-100'
+                            : 'border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50'
+                        }`}
                       >
-                        <h4 className="font-medium text-gray-900 leading-relaxed">
+                        <span className="text-lg font-normal text-black leading-relaxed">
                           {topic.title}
-                        </h4>
-                      </motion.div>
+                        </span>
+                      </motion.button>
                     ))}
               </div>
             </div>
