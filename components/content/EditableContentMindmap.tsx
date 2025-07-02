@@ -297,7 +297,7 @@ export function EditableContentMindmap({
         },
         onDelete: (nodeId: string) => {
           console.log('删除节点:', nodeId);
-          
+
           // 删除节点及其所有子节点
           const getDescendants = (id: string): string[] => {
             const children = mindmapEdges
@@ -314,7 +314,7 @@ export function EditableContentMindmap({
 
           const toDelete = [nodeId, ...getDescendants(nodeId)];
           console.log('要删除的节点ID列表:', toDelete);
-          
+
           const filteredNodes = mindmapNodes.filter(
             (n) => !toDelete.includes(n.id),
           );
@@ -453,13 +453,13 @@ export function EditableContentMindmap({
         .layout(graph)
         .then((layoutedGraph) => {
           const layoutedNodes = layoutedGraph.children || [];
-          
+
           // 简化：直接使用ELK的布局结果，不做复杂处理
           const resultNodes = layoutedNodes.map((node: any) => ({
             ...node,
             position: { x: node.x || 0, y: node.y || 0 },
           }));
-          
+
           return {
             nodes: resultNodes,
             edges: layoutedGraph.edges || [],
@@ -542,7 +542,6 @@ export function EditableContentMindmap({
     [mindmapNodes, mindmapEdges, onNodesChange, onEdgesChange],
   );
 
-
   // // 添加初始化自动fitView
   // useEffect(() => {
   //   // 延迟800ms后自动调用fitView，确保初始渲染完成
@@ -563,7 +562,7 @@ export function EditableContentMindmap({
   // 简化版本：每次数据变化都重新布局
   useEffect(() => {
     const { flowNodes, flowEdges } = convertToFlowDataStable();
-    
+
     if (flowNodes.length === 0) return;
 
     console.log('节点数据变化，开始重新布局，节点数量:', flowNodes.length);
@@ -578,7 +577,7 @@ export function EditableContentMindmap({
         if (result) {
           const { nodes: layoutedNodes, edges: layoutedEdges } = result;
           console.log('ELK布局完成，设置节点数量:', layoutedNodes.length);
-          
+
           setNodes([...layoutedNodes]);
           setEdges([...layoutedEdges]);
 
@@ -606,7 +605,7 @@ export function EditableContentMindmap({
     mindmapNodes,
     mindmapEdges,
     // 移除 convertToFlowDataStable，直接在useEffect内部调用
-    // getLayoutedElements, 
+    // getLayoutedElements,
     // fitView,
     // setNodes,
     // setEdges,
@@ -631,7 +630,7 @@ export function EditableContentMindmap({
       if (event.key === 'Delete' || event.key === 'Backspace') {
         if (selectedNodeForAI) {
           // 使用我们自己的删除逻辑
-          const nodeData = nodes.find(n => n.id === selectedNodeForAI)?.data;
+          const nodeData = nodes.find((n) => n.id === selectedNodeForAI)?.data;
           if (nodeData && nodeData.onDelete) {
             nodeData.onDelete(selectedNodeForAI);
             setSelectedNodeForAI(null);
@@ -833,7 +832,7 @@ export function EditableContentMindmap({
         )}
 
         {/* Regenerate 按钮 - 底部中心 */}
-        <Panel position="bottom-center" className="mb-4">
+        <Panel position="bottom-center" className="mb-[24px]">
           <Button
             size="md"
             color="primary"
@@ -842,7 +841,7 @@ export function EditableContentMindmap({
               console.log('Regenerating markdown from mindmap');
               onRegenerate?.();
             }}
-            className="bg-[#4285F4] hover:bg-[#3367D6] text-white font-medium px-8 py-3 rounded-xl shadow-lg"
+            className="bg-[#4285F4] hover:bg-[#3367D6] text-white font-medium p-[16px] rounded-full shadow-[0px_0px_12px_0px_#448AFF80] hover:scale-110"
           >
             Regenerate
           </Button>
