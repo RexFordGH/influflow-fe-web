@@ -124,21 +124,21 @@ const useTrendingData = (isVisible: boolean) => {
 };
 
 // 骨架屏组件
-const TrendingTopicSkeleton = () => (
-  <div className="flex items-center rounded-xl p-1 bg-gray-200">
-    <div className="flex-1">
-      <div className="flex items-center justify-between px-6 py-1">
-        <Skeleton className="h-5 w-32 rounded" />
-        <Skeleton className="h-4 w-8 rounded" />
-      </div>
-    </div>
+const TrendingTopicSkeleton = ({ index }: { index: number }) => (
+  <div
+    className="flex items-center justify-between px-6 py-1 rounded-xl bg-gradient-to-r from-yellow-300 to-yellow-100"
+    style={{
+      width: `${Math.max(432, 880 - index * 110)}px`,
+    }}
+  >
+    <Skeleton className="h-[18px] w-20 rounded bg-yellow-200" />
+    <Skeleton className="h-[18px] w-8 rounded bg-yellow-200" />
   </div>
 );
 
 const SuggestedTopicSkeleton = () => (
-  <div className="p-3 border border-gray-300 rounded-xl">
-    <Skeleton className="h-5 w-full rounded mb-2" />
-    <Skeleton className="h-5 w-3/4 rounded" />
+  <div className="px-[24px] py-[10px] border border-gray-300 rounded-xl">
+    <Skeleton className="h-[18px] w-full rounded mb-2" />
   </div>
 );
 
@@ -203,7 +203,7 @@ export function TrendingTopics({
                 {loading
                   ? // 骨架屏
                     Array.from({ length: 5 }).map((_, index) => (
-                      <TrendingTopicSkeleton key={index} />
+                      <TrendingTopicSkeleton key={index} index={index} />
                     ))
                   : // 实际数据 - 根据Figma设计样式
                     filteredTopics.map((topic, index) => (
@@ -248,13 +248,13 @@ export function TrendingTopics({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
                         onClick={() => onTopicSelect(topic)}
-                        className={`w-full p-3 rounded-xl transition-all duration-200 text-left ${
+                        className={`w-full px-[24px] py-[10px] rounded-xl transition-all duration-200 text-left ${
                           index === 0
                             ? 'bg-blue-50 border border-blue-400 hover:bg-blue-100'
                             : 'border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50'
                         }`}
                       >
-                        <span className="text-lg font-normal text-black leading-relaxed">
+                        <span className="text-[18px] font-normal text-black leading-[27px]">
                           {topic.title}
                         </span>
                       </motion.button>
