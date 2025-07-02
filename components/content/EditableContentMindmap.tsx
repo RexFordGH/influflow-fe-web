@@ -296,6 +296,8 @@ export function EditableContentMindmap({
           onNodesChange?.(updatedNodes);
         },
         onDelete: (nodeId: string) => {
+          console.log('删除节点:', nodeId);
+          
           // 删除节点及其所有子节点
           const getDescendants = (id: string): string[] => {
             const children = mindmapEdges
@@ -311,12 +313,17 @@ export function EditableContentMindmap({
           };
 
           const toDelete = [nodeId, ...getDescendants(nodeId)];
+          console.log('要删除的节点ID列表:', toDelete);
+          
           const filteredNodes = mindmapNodes.filter(
             (n) => !toDelete.includes(n.id),
           );
           const filteredEdges = mindmapEdges.filter(
             (e) => !toDelete.includes(e.source) && !toDelete.includes(e.target),
           );
+
+          console.log('删除后剩余节点数:', filteredNodes.length);
+          console.log('删除后剩余边数:', filteredEdges.length);
 
           onNodesChange?.(filteredNodes);
           onEdgesChange?.(filteredEdges);
@@ -331,6 +338,7 @@ export function EditableContentMindmap({
         },
         onDirectSelect: setSelectedNodeForAI,
         onNodeHover: onNodeHover, // 传递hover回调
+        hoveredTweetId: hoveredTweetId, // 传递hover状态
         ...node.data,
       },
       style: {
@@ -445,63 +453,22 @@ export function EditableContentMindmap({
         .layout(graph)
         .then((layoutedGraph) => {
           const layoutedNodes = layoutedGraph.children || [];
-          if (!layoutedNodes.length || !isHorizontal) {
-            // If not horizontal or no nodes, return original layout
-            return {
-              nodes:
-                layoutedNodes.map((node: any) => ({
-                  ...node,
-                  position: { x: node.x, y: node.y },
-                })) || [],
-              edges: layoutedGraph.edges || [],
-            };
-          }
-
-          // Post-processing for vertical alignment in horizontal layout
-          const layers = new Map<number, any[]>();
-          layoutedNodes.forEach((node) => {
-            const x = Math.round(node.x!); // Round x to group nodes in the same layer
-            if (!layers.has(x)) {
-              layers.set(x, []);
-            }
-            layers.get(x)!.push(node);
-          });
-
-          let maxLayerHeight = 0;
-          const layerHeights = new Map<number, number>();
-
-          for (const [, layerNodes] of layers.entries()) {
-            if (layerNodes.length === 0) continue;
-            layerNodes.sort((a, b) => a.y! - b.y!);
-            const firstNode = layerNodes[0];
-            const lastNode = layerNodes[layerNodes.length - 1];
-            const height = lastNode.y! + lastNode.height! - firstNode.y!;
-            layerHeights.set(layerNodes[0].x!, height);
-            if (height > maxLayerHeight) {
-              maxLayerHeight = height;
-            }
-          }
-
-          const finalNodes: any[] = [];
-          for (const [, layerNodes] of layers.entries()) {
-            if (layerNodes.length === 0) continue;
-            const currentLayerHeight = layerHeights.get(layerNodes[0].x!)!;
-            const offsetY = (maxLayerHeight - currentLayerHeight) / 2;
-
-            for (const node of layerNodes) {
-              finalNodes.push({
-                ...node,
-                position: { x: node.x, y: node.y! + offsetY },
-              });
-            }
-          }
-
+          
+          // 简化：直接使用ELK的布局结果，不做复杂处理
+          const resultNodes = layoutedNodes.map((node: any) => ({
+            ...node,
+            position: { x: node.x || 0, y: node.y || 0 },
+          }));
+          
           return {
-            nodes: finalNodes,
+            nodes: resultNodes,
             edges: layoutedGraph.edges || [],
           };
         })
-        .catch(() => ({ nodes, edges }));
+        .catch((error) => {
+          console.error('ELK布局失败:', error);
+          return { nodes, edges };
+        });
     },
     [elk],
   );
@@ -544,7 +511,7 @@ export function EditableContentMindmap({
     fitView,
   ]);
 
-  // 添加子节点
+  // 添加子节点 - 简化版本，完全依赖ELK布局
   const addChildNode = useCallback(
     (parentId: string) => {
       const newNodeId = `node-${Date.now()}`;
@@ -552,65 +519,13 @@ export function EditableContentMindmap({
 
       if (!parentNode) return;
 
-      // 智能计算新节点位置，避免与现有子节点重叠
-      const parentPosition = parentNode.position || { x: 50, y: 100 };
-
-      // 找到当前父节点的所有子节点
-      const parentChildEdges = mindmapEdges.filter(
-        (edge) => edge.source === parentId,
-      );
-      const childNodeIds = parentChildEdges.map((edge) => edge.target);
-      const childNodes = mindmapNodes.filter((node) =>
-        childNodeIds.includes(node.id),
-      );
-
-      let newPosition;
-
-      if (childNodes.length === 0) {
-        // 如果没有子节点，放在父节点右侧
-        newPosition = {
-          x: parentPosition.x + 250,
-          y: parentPosition.y,
-        };
-      } else {
-        // 如果有子节点，找到合适的Y位置避免重叠
-        const childPositions = childNodes
-          .map((node) => node.position?.y || 0)
-          .sort((a, b) => a - b);
-
-        // 节点高度约为 60px，间距为 30px
-        const nodeHeight = 60;
-        const nodeSpacing = 30;
-
-        // 策略1：尝试在现有子节点下方放置新节点
-        const maxY = Math.max(...childPositions);
-        newPosition = {
-          x: parentPosition.x + 250,
-          y: maxY + nodeHeight + nodeSpacing,
-        };
-
-        // 策略2：如果子节点太分散，尝试找到空隙插入
-        if (childPositions.length > 1) {
-          for (let i = 0; i < childPositions.length - 1; i++) {
-            const gap = childPositions[i + 1] - childPositions[i];
-            if (gap > nodeHeight + nodeSpacing * 2) {
-              // 找到足够大的空隙，在其中放置新节点
-              newPosition = {
-                x: parentPosition.x + 250,
-                y: childPositions[i] + nodeHeight + nodeSpacing,
-              };
-              break;
-            }
-          }
-        }
-      }
-
+      // 新节点不设置具体位置，让ELK完全负责布局计算
       const newNode: MindmapNodeData = {
         id: newNodeId,
         label: '新节点',
         level: parentNode.level + 1,
         type: parentNode.level >= 2 ? 'tweet' : 'outline_point',
-        position: newPosition,
+        // 不设置position，让ELK自动计算
       };
 
       const newEdge: MindmapEdgeData = {
@@ -620,14 +535,13 @@ export function EditableContentMindmap({
         type: 'smoothstep',
       };
 
+      // 更新数据
       onNodesChange?.([...mindmapNodes, newNode]);
       onEdgesChange?.([...mindmapEdges, newEdge]);
     },
     [mindmapNodes, mindmapEdges, onNodesChange, onEdgesChange],
   );
 
-  // 添加一个ref来跟踪是否已经进行过布局
-  const hasLayoutedRef = useRef(false);
 
   // // 添加初始化自动fitView
   // useEffect(() => {
@@ -646,66 +560,59 @@ export function EditableContentMindmap({
   //   return () => clearTimeout(timer);
   // }, []);
 
-  // 更新节点和边（仅在核心数据变化时）
+  // 简化版本：每次数据变化都重新布局
   useEffect(() => {
     const { flowNodes, flowEdges } = convertToFlowDataStable();
+    
+    if (flowNodes.length === 0) return;
 
-    // 检查是否是首次加载且需要应用自动布局
-    const shouldApplyLayout = flowNodes.length > 0 && !hasLayoutedRef.current;
+    console.log('节点数据变化，开始重新布局，节点数量:', flowNodes.length);
 
-    if (shouldApplyLayout) {
-      console.log('首次加载，直接应用ELK布局，避免闪烁');
-      hasLayoutedRef.current = true;
+    // 每次都重新应用ELK布局
+    const applyLayout = async () => {
+      try {
+        const result = await getLayoutedElements(flowNodes, flowEdges, {
+          direction: 'RIGHT',
+        });
 
-      // 直接应用ELK布局，不先设置原始节点
-      const applyInitialLayout = async () => {
-        try {
-          const result = await getLayoutedElements(flowNodes, flowEdges, {
-            direction: 'RIGHT',
-          });
+        if (result) {
+          const { nodes: layoutedNodes, edges: layoutedEdges } = result;
+          console.log('ELK布局完成，设置节点数量:', layoutedNodes.length);
+          
+          setNodes([...layoutedNodes]);
+          setEdges([...layoutedEdges]);
 
-          if (result) {
-            const { nodes: layoutedNodes, edges: layoutedEdges } = result;
-            console.log('首次ELK布局完成，设置节点:', layoutedNodes.length);
-            
-            setNodes([...layoutedNodes]);
-            setEdges([...layoutedEdges]);
-
-            setTimeout(() => {
-              fitView({
-                duration: 600,
-                padding: 0.2,
-                includeHiddenNodes: true,
-                minZoom: 0.1,
-                maxZoom: 2,
-              });
-            }, 300);
-          }
-        } catch (error) {
-          console.error('首次ELK布局失败:', error);
-          // 失败时使用原始节点
-          setNodes(flowNodes);
-          setEdges(flowEdges);
+          // 布局完成后自动调整视图
+          setTimeout(() => {
+            fitView({
+              duration: 600,
+              padding: 0.2,
+              includeHiddenNodes: true,
+              minZoom: 0.1,
+              maxZoom: 2,
+            });
+          }, 300);
         }
-      };
+      } catch (error) {
+        console.error('ELK布局失败:', error);
+        // 失败时使用原始节点位置
+        setNodes(flowNodes);
+        setEdges(flowEdges);
+      }
+    };
 
-      applyInitialLayout();
-    } else {
-      // 非首次加载，正常设置节点
-      setNodes(flowNodes);
-      setEdges(flowEdges);
-    }
+    applyLayout();
   }, [
     mindmapNodes,
     mindmapEdges,
-    convertToFlowDataStable,
-    getLayoutedElements,
-    fitView,
-    setNodes,
-    setEdges,
+    // 移除 convertToFlowDataStable，直接在useEffect内部调用
+    // getLayoutedElements, 
+    // fitView,
+    // setNodes,
+    // setEdges,
   ]);
 
-  // 单独处理hover状态更新（不触发布局）
+  // 单独处理hover状态更新，不触发重新布局
   useEffect(() => {
     setNodes((currentNodes) =>
       currentNodes.map((node) => ({
@@ -716,7 +623,28 @@ export function EditableContentMindmap({
         },
       })),
     );
-  }, [hoveredTweetId]);
+  }, [hoveredTweetId, setNodes]);
+
+  // 处理键盘删除事件
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        if (selectedNodeForAI) {
+          // 使用我们自己的删除逻辑
+          const nodeData = nodes.find(n => n.id === selectedNodeForAI)?.data;
+          if (nodeData && nodeData.onDelete) {
+            nodeData.onDelete(selectedNodeForAI);
+            setSelectedNodeForAI(null);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedNodeForAI, nodes]);
 
   // 处理连接创建
   const onConnect = useCallback(
@@ -856,7 +784,7 @@ export function EditableContentMindmap({
         selectNodesOnDrag={false}
         multiSelectionKeyCode={null}
         panOnDrag={true}
-        deleteKeyCode={['Delete', 'Backspace']}
+        deleteKeyCode={null}
         defaultEdgeOptions={{
           type: 'default',
           style: { strokeWidth: 1, stroke: '#6B7280' },
