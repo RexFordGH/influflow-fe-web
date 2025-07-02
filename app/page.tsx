@@ -2,7 +2,7 @@
 
 // import { useAuthStore } from '@/stores/authStore';
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
-import { Button } from '@heroui/react';
+import { Button, Image } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
 import { EnhancedContentGeneration } from '@/components/content/EnhancedContentGeneration';
@@ -200,64 +200,53 @@ export default function Home() {
       <div className="flex flex-1 flex-col">
         {!selectedNote ? (
           /* 欢迎界面 */
-          <div className="flex flex-1 items-center justify-center">
-            <div className="max-w-md text-center">
-              <h2 className="mb-2 text-2xl font-semibold text-gray-900">
+          <div className="flex flex-1 items-center justify-center text-center">
+            <div className="flex flex-col gap-[24px] px-[24px]">
+              <h2 className="text-[24px] font-[600] text-black">
                 Hey Kelly, what would you like to write about today?
                 {/* TODO: 恢复用户名动态显示 */}
                 {/* Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today? */}
               </h2>
 
-              <div className="mt-8 space-y-6">
-                <div className="relative">
-                  <textarea
-                    placeholder="You can start with a topic or an opinion."
-                    value={topicInput}
-                    onChange={(e) => setTopicInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleTopicSubmit();
-                      }
-                    }}
-                    className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={4}
+              <div className="relative">
+                <textarea
+                  placeholder="You can start with a topic or an opinion."
+                  value={topicInput}
+                  onChange={(e) => setTopicInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleTopicSubmit();
+                    }
+                  }}
+                  className="h-[120px] w-full resize-none rounded-2xl border shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2"
+                  rows={4}
+                />
+                <Button
+                  isIconOnly
+                  color="primary"
+                  className="absolute bottom-[12px] right-[12px] w-[40px] h-[40px] min-w-auto rounded-full"
+                  onPress={handleTopicSubmit}
+                  disabled={!topicInput.trim()}
+                >
+                  <Image
+                    src="/icons/send.svg"
+                    alt="发送"
+                    width={40}
+                    height={40}
+                    className="pointer-events-none"
                   />
-                  <Button
-                    isIconOnly
-                    color="primary"
-                    className="absolute bottom-3 right-3 h-8 min-w-8 rounded-full"
-                    onPress={handleTopicSubmit}
-                    disabled={!topicInput.trim()}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M7 11L12 6L17 11M12 18V7"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        transform="rotate(90 12 12)"
-                      />
-                    </svg>
-                  </Button>
-                </div>
+                </Button>
+              </div>
 
-                <div className="text-center">
-                  <Button
-                    variant="light"
-                    onPress={handleWriteByMyself}
-                    className="h-auto bg-transparent p-0 text-base font-medium text-gray-700 underline hover:text-gray-900"
-                  >
-                    Write by Myself
-                  </Button>
-                </div>
+              <div className="text-center">
+                <Button
+                  variant="light"
+                  onPress={handleWriteByMyself}
+                  className="h-auto bg-transparent hover:bg-transparent p-0 text-base font-medium text-gray-700 underline hover:text-gray-900"
+                >
+                  Write by Myself
+                </Button>
               </div>
             </div>
           </div>

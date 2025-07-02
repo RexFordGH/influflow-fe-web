@@ -729,7 +729,7 @@ export function EditableContentMindmap({
         </Panel>
 
         {/* 调试面板 */}
-        <Panel
+        {/* <Panel
           position="bottom-right"
           className="max-w-[200px] space-y-1 rounded bg-white p-2 text-xs shadow"
         >
@@ -750,7 +750,7 @@ export function EditableContentMindmap({
           <Button size="sm" onPress={() => setSelectedNodeForAI(null)}>
             清除选择
           </Button>
-        </Panel>
+        </Panel> */}
 
         <Panel position="bottom-left" className="flex flex-col gap-2">
           <Button
