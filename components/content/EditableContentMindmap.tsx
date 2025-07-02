@@ -17,14 +17,17 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
-import { convertMindmapToMarkdown } from '@/lib/data/converters';
+import { convertMindmapToMarkdown, convertThreadDataToMindmap } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
+import { useModifyOutline, useModifyTweet, getErrorMessage } from '@/lib/api/services';
+import type { Outline } from '@/types/outline';
 
 import EditableMindmapNode from './EditableMindmapNode';
 
 interface EditableContentMindmapProps {
   nodes: MindmapNodeData[];
   edges: MindmapEdgeData[];
+  originalOutline?: Outline; // 添加原始outline数据用于API调用
   onNodeSelect?: (nodeId: string | null) => void;
   onNodeHover?: (nodeId: string | null) => void;
   onNodesChange?: (nodes: MindmapNodeData[]) => void;
@@ -37,6 +40,7 @@ interface EditableContentMindmapProps {
 export function EditableContentMindmap({
   nodes: mindmapNodes,
   edges: mindmapEdges,
+  originalOutline,
   onNodeSelect,
   onNodeHover,
   onNodesChange,
@@ -48,6 +52,20 @@ export function EditableContentMindmap({
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
   const { fitView } = useReactFlow();
+  
+  // API hooks
+  const modifyOutlineMutation = useModifyOutline();
+  const modifyTweetMutation = useModifyTweet();
+
+  // 存储当前的outline数据，用于API调用
+  const [currentOutline, setCurrentOutline] = useState<Outline | null>(originalOutline || null);
+
+  // 同步原始outline数据的变化
+  useEffect(() => {
+    if (originalOutline) {
+      setCurrentOutline(originalOutline);
+    }
+  }, [originalOutline]);
 
   // AI 编辑相关状态
   const [selectedNodeForAI, setSelectedNodeForAI] = useState<string | null>(
@@ -67,36 +85,7 @@ export function EditableContentMindmap({
         label: node.label,
         level: node.level,
         highlighted: highlightedNodeId === node.id,
-        onEdit: (nodeId: string, newLabel: string) => {
-          const updatedNodes = mindmapNodes.map((n) => {
-            if (n.id === nodeId) {
-              // 更新label
-              const updatedNode = {
-                ...n,
-                label: newLabel,
-              };
-
-              // 对于tweet节点，需要智能处理title和content
-              if (n.type === 'tweet' && n.data) {
-                const hasExistingContent =
-                  n.data.content &&
-                  n.data.content !== n.data.title &&
-                  n.data.content !== n.label;
-
-                updatedNode.data = {
-                  ...n.data,
-                  title: newLabel, // 总是更新title
-                  // 只有在没有独立content的情况下才更新content
-                  ...(!hasExistingContent && { content: newLabel }),
-                };
-              }
-
-              return updatedNode;
-            }
-            return n;
-          });
-          onNodesChange?.(updatedNodes);
-        },
+        onEdit: handleNodeEdit,
         onDelete: (nodeId: string) => {
           console.log('删除节点:', nodeId);
 
@@ -565,75 +554,150 @@ export function EditableContentMindmap({
     [],
   );
 
-  // 处理AI编辑指令提交
+  // 处理双击编辑 (使用useModifyOutline)
+  const handleNodeEdit = async (nodeId: string, newLabel: string) => {
+    try {
+      // 检查是否有当前outline数据
+      if (!currentOutline) {
+        console.error('缺少原始outline数据，无法进行编辑');
+        alert('缺少原始数据，无法进行编辑');
+        return;
+      }
+
+      // 找到要编辑的节点
+      const targetNode = mindmapNodes.find(node => node.id === nodeId);
+      if (!targetNode) {
+        console.error('未找到目标节点:', nodeId);
+        return;
+      }
+
+      // 深拷贝当前outline作为新的outline结构
+      const newOutlineStructure: Outline = JSON.parse(JSON.stringify(currentOutline));
+
+      // 根据节点类型和数据结构更新outline
+      if (targetNode.level === 1) {
+        // 主题节点
+        newOutlineStructure.topic = newLabel;
+      } else if (targetNode.type === 'outline_point' && targetNode.data?.outlineIndex !== undefined) {
+        // 大纲点节点
+        const outlineIndex = targetNode.data.outlineIndex;
+        if (newOutlineStructure.nodes[outlineIndex]) {
+          newOutlineStructure.nodes[outlineIndex].title = newLabel;
+        }
+      } else if (targetNode.type === 'tweet' && targetNode.data?.tweetId !== undefined) {
+        // Tweet节点
+        const tweetId = targetNode.data.tweetId;
+        // 找到包含该tweet的大纲点
+        for (const outlineNode of newOutlineStructure.nodes) {
+          const tweetToUpdate = outlineNode.tweets.find(tweet => tweet.tweet_number === tweetId);
+          if (tweetToUpdate) {
+            tweetToUpdate.title = newLabel;
+            tweetToUpdate.content = newLabel; // 同时更新内容
+            break;
+          }
+        }
+      }
+
+      // 调用 useModifyOutline API
+      const result = await modifyOutlineMutation.mutateAsync({
+        original_outline: currentOutline,
+        new_outline_structure: newOutlineStructure
+      });
+
+      // API返回全新的完整数据，需要完整更新
+      if (result.status === 'success' && result.updated_outline) {
+        console.log('双击编辑成功，返回的数据:', result);
+        
+        const newOutline = result.updated_outline;
+        
+        // 更新当前存储的outline数据
+        setCurrentOutline(newOutline);
+        
+        // 使用正确的转换函数重新构建思维导图
+        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap({
+          outline: newOutline,
+          status: result.status,
+          error: null
+        });
+
+        onNodesChange?.(newNodes);
+        onEdgesChange?.(newEdges);
+        
+        // 触发整体数据源更新，使用转换后的markdown
+        const newMarkdown = convertMindmapToMarkdown(newNodes, newEdges);
+        onRegenerate?.(newMarkdown);
+      }
+    } catch (error) {
+      console.error('节点编辑失败:', error);
+      alert(`编辑失败: ${getErrorMessage(error)}`);
+    }
+  };
+
+  // 处理AI编辑指令提交 (Edit with AI 按钮)
   const handleAIEditSubmit = async () => {
     if (!selectedNodeForAI || !aiEditInstruction.trim()) return;
 
     setIsAIProcessing(true);
 
-    // 模拟AI处理延迟
-    setTimeout(() => {
-      // 找到要编辑的节点
-      const targetNode = mindmapNodes.find((n) => n.id === selectedNodeForAI);
-      if (targetNode) {
-        // 模拟AI增强内容 - 根据用户指令生成新内容
-        const enhancedContent = generateAIEnhancedContent(
-          targetNode.label,
-          aiEditInstruction,
-        );
-
-        // 更新节点内容
-        const updatedNodes = mindmapNodes.map((node) =>
-          node.id === selectedNodeForAI
-            ? { ...node, label: enhancedContent }
-            : node,
-        );
-
-        onNodesChange?.(updatedNodes);
+    try {
+      // 检查是否有当前outline数据
+      if (!currentOutline) {
+        console.error('缺少原始outline数据，无法进行AI编辑');
+        alert('缺少原始数据，无法进行AI编辑');
+        setIsAIProcessing(false);
+        return;
       }
 
+      // 找到要编辑的节点，获取对应的tweet_number
+      const targetNode = mindmapNodes.find(node => node.id === selectedNodeForAI);
+      if (!targetNode || !targetNode.data?.tweetId) {
+        console.error('未找到目标节点或缺少tweetId:', selectedNodeForAI);
+        alert('无法确定要编辑的内容');
+        setIsAIProcessing(false);
+        return;
+      }
+
+      const tweetNumber = targetNode.data.tweetId;
+
+      // 调用 useModifyTweet API，使用真实的outline数据
+      const result = await modifyTweetMutation.mutateAsync({
+        outline: currentOutline,
+        tweet_number: tweetNumber,
+        modification_prompt: aiEditInstruction
+      });
+
+      // API返回全新的outline数据，需要完整更新
+      if (result.outline) {
+        console.log('AI编辑成功，返回的数据:', result);
+        
+        // 更新当前存储的outline数据
+        setCurrentOutline(result.outline);
+        
+        // 使用正确的转换函数重新构建思维导图
+        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap({
+          outline: result.outline,
+          status: 'success',
+          error: null
+        });
+
+        onNodesChange?.(newNodes);
+        onEdgesChange?.(newEdges);
+        
+        // 触发整体数据源更新，使用转换后的markdown
+        const newMarkdown = convertMindmapToMarkdown(newNodes, newEdges);
+        onRegenerate?.(newMarkdown);
+      }
+
+    } catch (error) {
+      console.error('AI编辑失败:', error);
+      alert(`编辑失败: ${getErrorMessage(error)}`);
+    } finally {
       setIsAIProcessing(false);
       setShowAIEditModal(false);
       setAiEditInstruction('');
-    }, 2000); // 2秒模拟处理时间
-  };
-
-  // 模拟AI内容增强功能
-  const generateAIEnhancedContent = (
-    originalContent: string,
-    instruction: string,
-  ): string => {
-    // 简单的模拟逻辑，根据指令关键词生成不同的增强内容
-    const lowerInstruction = instruction.toLowerCase();
-
-    if (
-      lowerInstruction.includes('详细') ||
-      lowerInstruction.includes('详') ||
-      lowerInstruction.includes('detail')
-    ) {
-      return `${originalContent}（已详细化）`;
-    } else if (
-      lowerInstruction.includes('简化') ||
-      lowerInstruction.includes('简') ||
-      lowerInstruction.includes('simple')
-    ) {
-      return `${originalContent}（已简化）`;
-    } else if (
-      lowerInstruction.includes('专业') ||
-      lowerInstruction.includes('专') ||
-      lowerInstruction.includes('professional')
-    ) {
-      return `${originalContent}（专业版）`;
-    } else if (
-      lowerInstruction.includes('通俗') ||
-      lowerInstruction.includes('易懂') ||
-      lowerInstruction.includes('easy')
-    ) {
-      return `${originalContent}（通俗版）`;
-    } else {
-      return `${originalContent}（AI增强版）`;
     }
   };
+
 
   return (
     <div className="relative size-full">

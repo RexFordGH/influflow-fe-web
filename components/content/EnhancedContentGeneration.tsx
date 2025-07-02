@@ -96,7 +96,7 @@ export function EnhancedContentGeneration({
 
     // 调用API
     generateThread(
-      { topic: topic.trim() },
+      { user_input: topic.trim() },
       {
         onSuccess: (response) => {
           // 检查请求是否还是当前请求（避免竞态条件）
@@ -314,6 +314,7 @@ export function EnhancedContentGeneration({
             <EditableContentMindmap
               nodes={currentNodes}
               edges={currentEdges}
+              originalOutline={rawAPIData?.outline} // 传入原始outline数据
               onNodeSelect={handleNodeSelect}
               onNodeHover={handleNodeHover}
               onNodesChange={handleNodesChange}

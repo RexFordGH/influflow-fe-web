@@ -1,7 +1,7 @@
 import { type GenerateThreadResponse } from '@/types/api';
 import {
   type Outline as ContentOutline,
-  type Tweet as ContentTweet,
+  type SimpleTweet as ContentTweet,
   type GeneratedContent,
   type MindmapEdgeData,
   type MindmapNodeData,
@@ -109,10 +109,7 @@ export function convertAPIDataToGeneratedContent(
     createdAt: new Date().toISOString(),
     mindmap,
     tweets: flatTweets,
-    outline: {
-      points: data.outline.nodes.map((node) => node.title),
-      structure: data.outline.nodes.map((node) => node.title).join(' → '),
-    } as ContentOutline,
+    outline: data.outline,
     image: {
       url: `https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center`,
       alt: `${data.outline.topic}主题配图`,
@@ -186,10 +183,10 @@ export function convertTweetsToMarkdown(
   let markdown = `# ${topic} Twitter线程 🧵\n\n`;
 
   // 添加大纲信息
-  if (outline?.points && outline.points.length > 0) {
+  if (outline?.nodes && outline.nodes.length > 0) {
     markdown += `## 内容大纲 📋\n\n`;
-    outline.points.forEach((point: string, index: number) => {
-      markdown += `${index + 1}. ${point}\n`;
+    outline.nodes.forEach((node: any, index: number) => {
+      markdown += `${index + 1}. ${node.title}\n`;
     });
     markdown += `\n`;
   }
@@ -235,10 +232,20 @@ export function convertMindmapToTweets(
     order: index + 1,
   }));
 
-  // 重构outline
+  // 重构outline，生成简单的假数据结构
+  const outlineData = outlineNodes.map((node, index) => ({
+    title: node.label,
+    tweets: [{
+      tweet_number: index + 1,
+      content: node.label,
+      title: node.label
+    }]
+  }));
+
   const outline: ContentOutline = {
-    points: outlineNodes.map((node) => node.label),
-    structure: outlineNodes.map((node) => node.label).join(' → '),
+    nodes: outlineData,
+    topic: outlineNodes[0]?.label || 'Topic',
+    total_tweets: tweetNodes.length
   };
 
   return { tweets, outline };

@@ -5,7 +5,8 @@ import { forwardRef } from 'react';
 
 // 扩展HeroUI Button的props
 interface CustomButtonProps extends ButtonProps {
-  // 可以在这里添加自定义props
+  // 添加自定义props以避免空接口警告
+  customVariant?: string;
 }
 
 // 基础Button组件，包装HeroUI Button并添加默认样式

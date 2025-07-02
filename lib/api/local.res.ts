@@ -1,3 +1,6 @@
+import { ModifyTweetResponse, ModifyOutlineResponse } from '@/types/api';
+import type { Outline } from '@/types/outline';
+
 export const localGenerateThreadResponse = {
   status: 'success',
   outline: {
@@ -82,4 +85,61 @@ export const localGenerateThreadResponse = {
     total_tweets: 10,
   },
   error: null,
+};
+
+// 本地模拟 ModifyTweet 响应数据
+export const createLocalModifyTweetResponse = (originalOutline: Outline, tweetNumber: number, prompt: string): ModifyTweetResponse => {
+  // 模拟AI编辑后的内容，更新对应的tweet
+  const updatedNodes = originalOutline.nodes.map((node, index) => {
+    if (index === tweetNumber - 1) {
+      // 更新指定的tweet
+      const enhancedContent = `${node.title} - ${prompt.substring(0, 20)}...（AI增强版）`;
+      return {
+        title: enhancedContent,
+        tweets: [
+          {
+            tweet_number: 1,
+            content: `🎯 ${enhancedContent}\n\n根据用户指令"${prompt}"进行AI优化：\n• 内容更加吸引人\n• 增强可读性\n• 符合社交媒体最佳实践\n\n#AI优化 #内容创作`,
+            title: enhancedContent
+          }
+        ]
+      };
+    }
+    return node;
+  });
+
+  return {
+    outline: {
+      nodes: updatedNodes,
+      topic: originalOutline.topic,
+      total_tweets: originalOutline.total_tweets
+    },
+    tweet_number: tweetNumber,
+    modification_prompt: prompt
+  };
+};
+
+// 本地模拟 ModifyOutline 响应数据
+export const createLocalModifyOutlineResponse = (originalOutline: Outline, newOutlineStructure: Outline): ModifyOutlineResponse => {
+  // 模拟API对大纲进行智能优化
+  const enhancedNodes = newOutlineStructure.nodes.map((node, index) => ({
+    title: `${node.title}（已优化）`,
+    tweets: [
+      {
+        tweet_number: index + 1,
+        content: `📝 ${node.title}（已优化）\n\n经过AI智能分析和优化：\n• 结构更清晰\n• 逻辑更连贯\n• 表达更准确\n\n#内容优化 #AI助手`,
+        title: `${node.title}（已优化）`
+      }
+    ]
+  }));
+
+  return {
+    status: 'success',
+    updated_outline: {
+      nodes: enhancedNodes,
+      topic: `${newOutlineStructure.topic}（AI优化版）`,
+      total_tweets: enhancedNodes.length
+    },
+    error: ''
+  };
 };

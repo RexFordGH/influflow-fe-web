@@ -1,3 +1,9 @@
+// 导入API中统一的类型定义
+import type { Tweet, Outline } from '@/types/outline';
+
+// 重新导出类型供其他模块使用
+export type { Tweet, Outline };
+
 // 后端返回的内容生成数据格式
 export interface GeneratedContent {
   id: string;
@@ -11,7 +17,7 @@ export interface GeneratedContent {
   };
 
   // Tweet线程数据
-  tweets: Tweet[];
+  tweets: SimpleTweet[];
 
   // 大纲数据
   outline: Outline;
@@ -33,15 +39,10 @@ export interface GeneratedContent {
 }
 
 // 前端使用的Tweet类型（简化版）
-export interface Tweet {
+export interface SimpleTweet {
   id: number;
   content: string;
   order: number;
-}
-
-export interface Outline {
-  points: string[];
-  structure: string;
 }
 
 // 思维导图节点数据

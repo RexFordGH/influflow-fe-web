@@ -11,7 +11,11 @@ import {
 } from '@/types/api';
 
 import { apiGet, apiPost } from './client';
-import { localGenerateThreadResponse } from './local.res';
+import {
+  createLocalModifyOutlineResponse,
+  createLocalModifyTweetResponse,
+  localGenerateThreadResponse,
+} from './local.res';
 
 export const QUERY_KEYS = {
   HEALTH: ['health'] as const,
@@ -42,8 +46,8 @@ export function useGenerateThread() {
     mutationFn: async (
       data: GenerateThreadRequest,
     ): Promise<GenerateThreadResponse> => {
-      // 本地开发使用固定数据
-      if (process.env.NODE_ENV === 'development') {
+      // 检查是否使用本地数据
+      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
         // 模拟网络延迟
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return localGenerateThreadResponse as GenerateThreadResponse;
@@ -70,8 +74,26 @@ export function useModifyTweet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ModifyTweetRequest) =>
-      apiPost<ModifyTweetResponse>('/api/twitter/modify-tweet', data),
+    mutationFn: async (
+      data: ModifyTweetRequest,
+    ): Promise<ModifyTweetResponse> => {
+      // 检查是否使用本地数据
+      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
+        // 模拟网络延迟
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        return createLocalModifyTweetResponse(
+          data.outline,
+          data.tweet_number,
+          data.modification_prompt,
+        );
+      }
+      // 生产环境调用真实接口
+      return apiPost<ModifyTweetResponse>(
+        '/api/twitter/modify-tweet',
+        data,
+        30000,
+      );
+    },
     onSuccess: (data) => {
       console.log('Tweet modified successfully:', data);
       // 可以在这里更新相关的查询缓存
@@ -87,8 +109,25 @@ export function useModifyOutline() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ModifyOutlineRequest) =>
-      apiPost<ModifyOutlineResponse>('/api/twitter/modify-outline', data),
+    mutationFn: async (
+      data: ModifyOutlineRequest,
+    ): Promise<ModifyOutlineResponse> => {
+      // 检查是否使用本地数据
+      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
+        // 模拟网络延迟
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return createLocalModifyOutlineResponse(
+          data.original_outline,
+          data.new_outline_structure,
+        );
+      }
+      // 生产环境调用真实接口
+      return apiPost<ModifyOutlineResponse>(
+        '/api/twitter/modify-outline',
+        data,
+        30000,
+      );
+    },
     onSuccess: (data) => {
       console.log('Outline modified successfully:', data);
       // 可以在这里更新相关的查询缓存
