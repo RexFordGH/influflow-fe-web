@@ -19,8 +19,8 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
-import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
+import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 
 import 'reactflow/dist/style.css';
 
@@ -42,7 +42,7 @@ const EditableMindmapNode = ({
   // 根据层级确定样式
   const getNodeStyle = () => {
     const baseStyle =
-      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group text-[12px] font-[500]';
+      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[12px] font-[500]';
 
     const levelColors = {
       1: 'bg-[#000000] text-white text-center min-w-[180px] hover:bg-[rgba(0,0,0,0.6)]',
@@ -55,30 +55,31 @@ const EditableMindmapNode = ({
 
     const levelStyle =
       levelColors[level as keyof typeof levelColors] || levelColors[6];
-    const selectedStyle = selected
-      ? 'ring-2 ring-yellow-400 ring-offset-2'
-      : '';
+    const selectedStyle = selected ? '' : '';
 
     // 检查是否应该高亮（基于hoveredTweetId） - 增强匹配逻辑
     const isTweetHovered =
       hoveredTweetId &&
       data.tweetId !== undefined &&
-      (data.tweetId.toString() === hoveredTweetId.toString() || 
-       data.tweetId === Number(hoveredTweetId) ||
-       data.tweetId.toString() === hoveredTweetId);
-    
+      (data.tweetId.toString() === hoveredTweetId.toString() ||
+        data.tweetId === Number(hoveredTweetId) ||
+        data.tweetId.toString() === hoveredTweetId);
+
     const isGroupHovered =
       hoveredTweetId &&
       hoveredTweetId.startsWith('group-') &&
       data.outlineIndex !== undefined &&
-      (data.outlineIndex.toString() === hoveredTweetId.replace('group-', '') || 
-       data.outlineIndex === Number(hoveredTweetId.replace('group-', '')));
-    
+      (data.outlineIndex.toString() === hoveredTweetId.replace('group-', '') ||
+        data.outlineIndex === Number(hoveredTweetId.replace('group-', '')));
+
     const isDirectHovered = hoveredTweetId === id; // 直接ID匹配
     const isHovered = isTweetHovered || isGroupHovered || isDirectHovered;
-    
+
     // Debug信息 - 帮助排查对应关系
-    if (hoveredTweetId && (data.tweetId !== undefined || data.outlineIndex !== undefined)) {
+    if (
+      hoveredTweetId &&
+      (data.tweetId !== undefined || data.outlineIndex !== undefined)
+    ) {
       console.log(`Node ${id} matching:`, {
         hoveredTweetId,
         nodeTweetId: data.tweetId,
@@ -86,12 +87,10 @@ const EditableMindmapNode = ({
         isTweetHovered,
         isGroupHovered,
         isDirectHovered,
-        finalIsHovered: isHovered
+        finalIsHovered: isHovered,
       });
     }
-    const hoverStyle = isHovered
-      ? 'ring-2 ring-blue-400 ring-offset-1 bg-blue-100'
-      : '';
+    const hoverStyle = isHovered ? 'bg-[#DDE9FF]' : '';
 
     return `${baseStyle} ${levelStyle} ${selectedStyle} ${hoverStyle}`;
   };
@@ -163,14 +162,29 @@ const EditableMindmapNode = ({
     if (onNodeHover) {
       if (data.tweetId !== undefined) {
         // 三级节点：传递tweetId
-        console.log('EditableMindmapNode hover tweet:', data.tweetId, 'node data:', data);
+        console.log(
+          'EditableMindmapNode hover tweet:',
+          data.tweetId,
+          'node data:',
+          data,
+        );
         onNodeHover(data.tweetId.toString());
       } else if (data.outlineIndex !== undefined) {
         // 二级节点：传递groupIndex
-        console.log('EditableMindmapNode hover group:', data.outlineIndex, 'node data:', data);
+        console.log(
+          'EditableMindmapNode hover group:',
+          data.outlineIndex,
+          'node data:',
+          data,
+        );
         onNodeHover(`group-${data.outlineIndex}`);
       } else {
-        console.log('EditableMindmapNode hover - no valid hover data, node id:', id, 'data:', data);
+        console.log(
+          'EditableMindmapNode hover - no valid hover data, node id:',
+          id,
+          'data:',
+          data,
+        );
         // 如果没有特定的ID，使用节点ID作为fallback
         onNodeHover(id);
       }
@@ -208,8 +222,6 @@ const EditableMindmapNode = ({
       <div
         className={getNodeStyle()}
         style={{
-          // 添加调试边框以便看到点击区域
-          border: selected ? '2px solid blue' : '1px solid rgba(0,0,0,0.1)',
           pointerEvents: 'auto', // 确保可点击
         }}
       >
@@ -225,7 +237,7 @@ const EditableMindmapNode = ({
             autoFocus
             size="sm"
             variant="flat"
-            className="min-w-[100px]"
+            className="min-w-[100px] border-none outline-none"
             classNames={{
               input: 'text-center bg-white/20 text-current',
               inputWrapper: 'bg-white/20',
@@ -317,23 +329,26 @@ export function EditableContentMindmap({
           const updatedNodes = mindmapNodes.map((n) => {
             if (n.id === nodeId) {
               // 更新label
-              const updatedNode = { 
-                ...n, 
+              const updatedNode = {
+                ...n,
                 label: newLabel,
               };
-              
+
               // 对于tweet节点，需要智能处理title和content
               if (n.type === 'tweet' && n.data) {
-                const hasExistingContent = n.data.content && n.data.content !== n.data.title && n.data.content !== n.label;
-                
+                const hasExistingContent =
+                  n.data.content &&
+                  n.data.content !== n.data.title &&
+                  n.data.content !== n.label;
+
                 updatedNode.data = {
                   ...n.data,
                   title: newLabel, // 总是更新title
                   // 只有在没有独立content的情况下才更新content
-                  ...((!hasExistingContent) && { content: newLabel }),
+                  ...(!hasExistingContent && { content: newLabel }),
                 };
               }
-              
+
               return updatedNode;
             }
             return n;
@@ -565,33 +580,46 @@ export function EditableContentMindmap({
       const newLevel = parentNode.level + 1;
       // 第2层是outline_point，第3层及以上都是tweet类型
       const newType = newLevel === 2 ? 'outline_point' : 'tweet';
-      
+
       let newNodeId: string;
       let newNodeData: any = {};
 
       if (newType === 'outline_point') {
         // 为outline_point分配groupIndex
-        const existingOutlineNodes = mindmapNodes.filter(n => n.type === 'outline_point');
-        const maxOutlineIndex = Math.max(-1, ...existingOutlineNodes.map(n => n.data?.outlineIndex || -1));
+        const existingOutlineNodes = mindmapNodes.filter(
+          (n) => n.type === 'outline_point',
+        );
+        const maxOutlineIndex = Math.max(
+          -1,
+          ...existingOutlineNodes.map((n) => n.data?.outlineIndex || -1),
+        );
         const newOutlineIndex = maxOutlineIndex + 1;
-        
+
         newNodeId = `group-${newOutlineIndex}`;
         newNodeData = {
           outlineIndex: newOutlineIndex,
         };
       } else {
         // 为tweet分配tweetId
-        const existingTweetNodes = mindmapNodes.filter(n => n.type === 'tweet');
-        const maxTweetId = Math.max(0, ...existingTweetNodes.map(n => n.data?.tweetId || 0));
+        const existingTweetNodes = mindmapNodes.filter(
+          (n) => n.type === 'tweet',
+        );
+        const maxTweetId = Math.max(
+          0,
+          ...existingTweetNodes.map((n) => n.data?.tweetId || 0),
+        );
         const newTweetId = maxTweetId + 1;
-        
+
         // 获取根outline节点的outlineIndex（追溯到level 2的祖先节点）
         let rootOutlineIndex = 0;
         let currentNode: MindmapNodeData | null = parentNode;
         while (currentNode && currentNode.level > 2) {
-          const parentEdge = mindmapEdges.find(edge => edge.target === currentNode!.id);
+          const parentEdge = mindmapEdges.find(
+            (edge) => edge.target === currentNode!.id,
+          );
           if (parentEdge) {
-            currentNode = mindmapNodes.find(n => n.id === parentEdge.source) || null;
+            currentNode =
+              mindmapNodes.find((n) => n.id === parentEdge.source) || null;
           } else {
             break;
           }
@@ -599,16 +627,16 @@ export function EditableContentMindmap({
         if (currentNode && currentNode.level === 2) {
           rootOutlineIndex = currentNode.data?.outlineIndex ?? 0;
         }
-        
+
         // 计算在该父节点下的索引
         const siblingTweets = mindmapEdges
-          .filter(edge => edge.source === parentId)
-          .map(edge => edge.target)
-          .map(id => mindmapNodes.find(n => n.id === id))
-          .filter(n => n?.type === 'tweet');
-        
+          .filter((edge) => edge.source === parentId)
+          .map((edge) => edge.target)
+          .map((id) => mindmapNodes.find((n) => n.id === id))
+          .filter((n) => n?.type === 'tweet');
+
         const newTweetIndex = siblingTweets.length;
-        
+
         // 生成唯一的节点ID，支持多层级
         newNodeId = `tweet-${rootOutlineIndex}-${newTweetId}-L${newLevel}`;
         newNodeData = {
@@ -643,23 +671,6 @@ export function EditableContentMindmap({
     },
     [mindmapNodes, mindmapEdges, onNodesChange, onEdgesChange],
   );
-
-  // // 添加初始化自动fitView
-  // useEffect(() => {
-  //   // 延迟800ms后自动调用fitView，确保初始渲染完成
-  //   const timer = setTimeout(() => {
-  //     console.log('初始化自动调用fitView');
-  //     fitView({
-  //       duration: 800,
-  //       padding: 0.2,
-  //       includeHiddenNodes: true,
-  //       minZoom: 0.1,
-  //       maxZoom: 2,
-  //     });
-  //   }, 1500);
-
-  //   return () => clearTimeout(timer);
-  // }, []);
 
   // 简化版本：每次数据变化都重新布局
   useEffect(() => {
@@ -732,11 +743,11 @@ export function EditableContentMindmap({
       if (event.key === 'Delete' || event.key === 'Backspace') {
         // 检查当前是否有输入框获得焦点
         const activeElement = document.activeElement;
-        const isInputFocused = activeElement && (
-          activeElement.tagName === 'INPUT' ||
-          activeElement.tagName === 'TEXTAREA' ||
-          (activeElement as HTMLElement).contentEditable === 'true'
-        );
+        const isInputFocused =
+          activeElement &&
+          (activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            (activeElement as HTMLElement).contentEditable === 'true');
 
         // 如果有输入框获得焦点，不处理删除节点
         if (isInputFocused) {
@@ -955,11 +966,14 @@ export function EditableContentMindmap({
             variant="solid"
             onPress={() => {
               console.log('Regenerating markdown from mindmap');
-              
+
               // 从当前思维导图数据生成新的markdown
-              const newMarkdown = convertMindmapToMarkdown(mindmapNodes, mindmapEdges);
+              const newMarkdown = convertMindmapToMarkdown(
+                mindmapNodes,
+                mindmapEdges,
+              );
               console.log('Generated markdown:', newMarkdown);
-              
+
               // 调用父组件的回调，传递新生成的markdown
               onRegenerate?.(newMarkdown);
             }}
@@ -970,7 +984,7 @@ export function EditableContentMindmap({
         </Panel>
 
         {/* 调试面板 */}
-        <Panel
+        {/* <Panel
           position="bottom-right"
           className="text-xs bg-white p-2 rounded shadow space-y-1"
         >
@@ -987,39 +1001,19 @@ export function EditableContentMindmap({
           >
             测试选择
           </Button>
-        </Panel>
+        </Panel> */}
 
-        <Panel position="top-right" className="flex flex-col gap-2">
-          <Button size="sm" color="primary" variant="flat" onPress={autoLayout}>
-            ELK自动布局
-          </Button>
-
+        <Panel position="bottom-left" className="flex flex-col gap-2">
           <Button
             size="sm"
-            color="success"
+            color="secondary"
             variant="flat"
-            startContent={<PlusIcon className="h-4 w-4" />}
-            onPress={() => {
-              // 添加到根节点的子节点
-              const rootNode = mindmapNodes.find((n) => n.level === 1);
-              if (rootNode) {
-                addChildNode(rootNode.id);
-              }
-            }}
+            onPress={autoLayout}
+            className=" text-white font-medium p-[16px] rounded-full hover:scale-110"
           >
-            添加节点
+            Auto Layout
           </Button>
         </Panel>
-
-        {/* <Panel position="bottom-left" className="text-sm text-gray-500">
-          <div className="bg-white p-2 rounded border border-gray-200">
-            节点: {nodes.length} | 连接: {edges.length}
-            <br />
-            <span className="text-xs">
-              双击节点编辑 | 拖拽调整位置 | Delete删除
-            </span>
-          </div>
-        </Panel> */}
       </ReactFlow>
 
       {/* AI编辑对话框 - 固定在底部 */}
