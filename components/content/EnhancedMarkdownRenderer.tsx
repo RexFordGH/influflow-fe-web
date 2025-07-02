@@ -230,13 +230,33 @@ export function EnhancedMarkdownRenderer({
         }
       }
 
-      // 如果在div内，累积内容
+      // 如果在div内，累积内容，特别处理标题
       if (inTweetDiv && currentSection) {
         if (trimmedLine && !trimmedLine.startsWith('---')) {
-          if (currentSection.content) {
-            currentSection.content += '\n\n' + trimmedLine; // 使用\n\n保持段落分隔
+          // 检查是否是标题行
+          if (trimmedLine.startsWith('#')) {
+            const level = trimmedLine.match(/^#+/)?.[0].length || 1;
+            const text = trimmedLine
+              .replace(/^#+\s*/, '')
+              .replace(/[🧵📊💡🔧🚀✨]/gu, '')
+              .trim();
+            
+            // 如果还没有内容，将标题作为主要内容
+            if (!currentSection.content) {
+              currentSection.content = text;
+              currentSection.type = 'tweet'; // 确保类型正确
+              currentSection.level = level;
+            } else {
+              // 如果已有内容，添加到现有内容
+              currentSection.content += '\n\n' + text;
+            }
           } else {
-            currentSection.content = trimmedLine;
+            // 普通内容行
+            if (currentSection.content) {
+              currentSection.content += '\n\n' + trimmedLine;
+            } else {
+              currentSection.content = trimmedLine;
+            }
           }
           currentSection.rawContent += '\n' + line;
         }
@@ -245,10 +265,30 @@ export function EnhancedMarkdownRenderer({
 
       if (inGroupDiv && currentSection) {
         if (trimmedLine && !trimmedLine.startsWith('---')) {
-          if (currentSection.content) {
-            currentSection.content += '\n\n' + trimmedLine;
+          // 检查是否是标题行
+          if (trimmedLine.startsWith('#')) {
+            const level = trimmedLine.match(/^#+/)?.[0].length || 1;
+            const text = trimmedLine
+              .replace(/^#+\s*/, '')
+              .replace(/[🧵📊💡🔧🚀✨]/gu, '')
+              .trim();
+            
+            // 如果还没有内容，将标题作为主要内容
+            if (!currentSection.content) {
+              currentSection.content = text;
+              currentSection.type = 'group'; // 确保类型正确
+              currentSection.level = level;
+            } else {
+              // 如果已有内容，添加到现有内容
+              currentSection.content += '\n\n' + text;
+            }
           } else {
-            currentSection.content = trimmedLine;
+            // 普通内容行
+            if (currentSection.content) {
+              currentSection.content += '\n\n' + trimmedLine;
+            } else {
+              currentSection.content = trimmedLine;
+            }
           }
           currentSection.rawContent += '\n' + line;
         }
@@ -330,25 +370,45 @@ export function EnhancedMarkdownRenderer({
 
   // 渲染单个段落
   const renderSection = (section: MarkdownSection, index: number) => {
-    // 检查是否应该高亮：传统高亮逻辑或基于tweetId/groupId的高亮
+    // 检查是否应该高亮：增强匹配逻辑
     const isHighlighted =
       highlightedSection === section.mappingId ||
       highlightedSection === section.id ||
-      (hoveredTweetId && section.tweetId === hoveredTweetId) ||
+      // Tweet节点的多种匹配方式 - 增强类型兼容性
+      (hoveredTweetId && section.tweetId && (
+        section.tweetId === hoveredTweetId ||
+        section.tweetId.toString() === hoveredTweetId.toString() ||
+        Number(section.tweetId) === Number(hoveredTweetId)
+      )) ||
+      // Group节点的多种匹配方式 - 增强类型兼容性
       (hoveredTweetId &&
         hoveredTweetId.startsWith('group-') &&
-        section.groupId === hoveredTweetId.replace('group-', ''));
+        section.groupId && (
+          section.groupId === hoveredTweetId.replace('group-', '') ||
+          section.groupId.toString() === hoveredTweetId.replace('group-', '') ||
+          Number(section.groupId) === Number(hoveredTweetId.replace('group-', ''))
+        )) ||
+      // Fallback：直接ID匹配
+      (hoveredTweetId === section.id);
 
-    // Debug信息
-    if (section.type === 'tweet') {
-      console.log(
-        `Tweet ${section.tweetId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`,
-      );
-    }
-    if (section.type === 'group') {
-      console.log(
-        `Group ${section.groupId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`,
-      );
+    // Debug信息 - 增强版本，帮助排查"漏一个"问题
+    if (hoveredTweetId && (section.type === 'tweet' || section.type === 'group')) {
+      console.log(`Markdown section matching debug:`, {
+        sectionType: section.type,
+        sectionId: section.id,
+        sectionTweetId: section.tweetId,
+        sectionGroupId: section.groupId,
+        hoveredTweetId,
+        isHighlighted,
+        matchDetails: {
+          tweetIdMatch: section.tweetId === hoveredTweetId,
+          tweetIdStringMatch: section.tweetId?.toString() === hoveredTweetId?.toString(),
+          tweetIdNumberMatch: Number(section.tweetId) === Number(hoveredTweetId),
+          groupIdMatch: section.groupId === hoveredTweetId?.replace('group-', ''),
+          groupIdStringMatch: section.groupId?.toString() === hoveredTweetId?.replace('group-', ''),
+          groupIdNumberMatch: Number(section.groupId) === Number(hoveredTweetId?.replace('group-', '')),
+        }
+      });
     }
 
     const baseClasses =
@@ -544,14 +604,25 @@ export function EnhancedMarkdownRenderer({
         );
 
       case 'tweet':
-        // 分离title和content - 支持H3标题格式
+        // 改进的标题和内容分离逻辑，支持div内的标题
         const lines = section.content.split('\n\n');
-        const titleLine = lines.find((line) => line.startsWith('### '));
-        const contentLines = lines.filter(
-          (line) => line !== titleLine && line.trim() !== '',
-        );
+        let title = '';
+        let contentLines = [];
 
-        const title = titleLine ? titleLine.replace(/^### /, '') : '';
+        // 查找标题（可能是第一行或包含#的行）
+        const titleLine = lines.find((line) => line.startsWith('#'));
+        if (titleLine) {
+          // 移除标题前缀获取纯标题文本
+          title = titleLine.replace(/^#+\s*/, '').trim();
+          contentLines = lines.filter(
+            (line) => !line.startsWith('#') && line.trim() !== '',
+          );
+        } else {
+          // 如果没有标题标记，使用第一行作为标题
+          title = lines[0] || section.content;
+          contentLines = lines.slice(1).filter(line => line.trim() !== '');
+        }
+
         const content = contentLines.join('\n\n');
 
         // 处理内容，保留换行和格式
@@ -567,6 +638,31 @@ export function EnhancedMarkdownRenderer({
             '<span class="text-blue-600 font-medium">#$1</span>',
           );
 
+        // 根据原始level或者推断的level设置标题样式
+        const titleLevel = section.level || 3;
+        const getTitleComponent = () => {
+          const titleClasses = {
+            1: 'text-2xl font-bold text-gray-900 mb-3',
+            2: 'text-xl font-bold text-gray-800 mb-3',
+            3: 'text-lg font-semibold text-gray-800 mb-2',
+            4: 'text-base font-semibold text-gray-700 mb-2',
+            5: 'text-sm font-semibold text-gray-700 mb-1',
+            6: 'text-sm font-medium text-gray-600 mb-1',
+          };
+          
+          const titleClass = titleClasses[titleLevel as keyof typeof titleClasses] || titleClasses[3];
+          
+          switch (titleLevel) {
+            case 1: return <h1 className={titleClass}>{title}</h1>;
+            case 2: return <h2 className={titleClass}>{title}</h2>;
+            case 3: return <h3 className={titleClass}>{title}</h3>;
+            case 4: return <h4 className={titleClass}>{title}</h4>;
+            case 5: return <h5 className={titleClass}>{title}</h5>;
+            case 6: return <h6 className={titleClass}>{title}</h6>;
+            default: return <h3 className={titleClass}>{title}</h3>;
+          }
+        };
+
         return (
           <div
             key={section.id}
@@ -574,20 +670,20 @@ export function EnhancedMarkdownRenderer({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            {/* Tweet Title */}
+            {/* Tweet Title with proper heading styling */}
             {title && (
               <div className="mb-4 pb-3 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 leading-tight">
-                  {title}
-                </h3>
+                {getTitleComponent()}
               </div>
             )}
 
             {/* Tweet Content */}
-            <div
-              className="text-sm leading-relaxed text-gray-700"
-              dangerouslySetInnerHTML={{ __html: processedTweetContent }}
-            />
+            {content && (
+              <div
+                className="text-sm leading-relaxed text-gray-700"
+                dangerouslySetInnerHTML={{ __html: processedTweetContent }}
+              />
+            )}
 
             <SourceButton
               sectionId={section.id}
@@ -598,8 +694,49 @@ export function EnhancedMarkdownRenderer({
         );
 
       case 'group':
-        // 处理分组标题 (H2)
-        const groupTitle = section.content.replace(/^## /, '');
+        // 改进的分组标题处理，支持div内的标题
+        const groupLines = section.content.split('\n\n');
+        let groupTitle = '';
+        let groupContent = '';
+
+        // 查找标题行
+        const groupTitleLine = groupLines.find((line) => line.startsWith('#'));
+        if (groupTitleLine) {
+          // 移除标题前缀获取纯标题文本
+          groupTitle = groupTitleLine.replace(/^#+\s*/, '').trim();
+          const groupContentLines = groupLines.filter(
+            (line) => !line.startsWith('#') && line.trim() !== '',
+          );
+          groupContent = groupContentLines.join('\n\n');
+        } else {
+          // 如果没有标题标记，使用全部内容作为标题
+          groupTitle = section.content;
+        }
+
+        // 根据原始level设置标题样式
+        const groupTitleLevel = section.level || 2;
+        const getGroupTitleComponent = () => {
+          const titleClasses = {
+            1: 'text-2xl font-bold text-gray-900 mb-3',
+            2: 'text-xl font-bold text-gray-800 mb-3',
+            3: 'text-lg font-semibold text-gray-800 mb-2',
+            4: 'text-base font-semibold text-gray-700 mb-2',
+            5: 'text-sm font-semibold text-gray-700 mb-1',
+            6: 'text-sm font-medium text-gray-600 mb-1',
+          };
+          
+          const titleClass = titleClasses[groupTitleLevel as keyof typeof titleClasses] || titleClasses[2];
+          
+          switch (groupTitleLevel) {
+            case 1: return <h1 className={titleClass}>{groupTitle}</h1>;
+            case 2: return <h2 className={titleClass}>{groupTitle}</h2>;
+            case 3: return <h3 className={titleClass}>{groupTitle}</h3>;
+            case 4: return <h4 className={titleClass}>{groupTitle}</h4>;
+            case 5: return <h5 className={titleClass}>{groupTitle}</h5>;
+            case 6: return <h6 className={titleClass}>{groupTitle}</h6>;
+            default: return <h2 className={titleClass}>{groupTitle}</h2>;
+          }
+        };
 
         return (
           <div
@@ -608,9 +745,12 @@ export function EnhancedMarkdownRenderer({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {groupTitle}
-            </h2>
+            {getGroupTitleComponent()}
+            {groupContent && (
+              <div className="text-sm leading-relaxed text-gray-700 mt-2">
+                {groupContent}
+              </div>
+            )}
             <SourceButton
               sectionId={section.id}
               mappingId={section.groupId}

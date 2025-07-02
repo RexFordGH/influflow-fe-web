@@ -250,3 +250,108 @@ export function convertMindmapToTweets(
   
   return { tweets, outline };
 }
+
+/**
+ * 从思维导图数据直接生成markdown（用于Regenerate功能）- 支持多层级
+ */
+export function convertMindmapToMarkdown(
+  nodes: MindmapNodeData[],
+  edges: MindmapEdgeData[]
+): string {
+  let markdown = '';
+  
+  // 1. 获取主题节点（level 1）
+  const topicNode = nodes.find(node => node.type === 'topic' && node.level === 1);
+  if (!topicNode) {
+    console.warn('未找到主题节点');
+    return '';
+  }
+  
+  // 添加主标题
+  markdown += `# ${topicNode.label}\n\n`;
+  
+  // 添加当前时间
+  const currentTime = new Date().toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    weekday: 'long'
+  });
+  markdown += `*更新时间：${currentTime}*\n\n`;
+  
+  // 添加图片占位标记
+  markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
+  
+  // 递归函数：处理任意层级的节点
+  const renderNodeAndChildren = (nodeId: string, currentLevel: number): void => {
+    // 获取当前节点的所有子节点
+    const childIds = edges
+      .filter(edge => edge.source === nodeId)
+      .map(edge => edge.target);
+    
+    if (childIds.length === 0) return;
+    
+    // 获取子节点并排序
+    const childNodes = nodes
+      .filter(node => childIds.includes(node.id))
+      .sort((a, b) => {
+        // 优先按outlineIndex排序，其次按tweetId排序，最后按创建时间排序
+        if (a.data?.outlineIndex !== undefined && b.data?.outlineIndex !== undefined) {
+          return a.data.outlineIndex - b.data.outlineIndex;
+        }
+        if (a.data?.tweetId !== undefined && b.data?.tweetId !== undefined) {
+          return a.data.tweetId - b.data.tweetId;
+        }
+        return a.id.localeCompare(b.id);
+      });
+    
+    // 渲染每个子节点
+    childNodes.forEach((childNode, index) => {
+      const markdownLevel = Math.min(currentLevel + 1, 6); // markdown最多支持H6
+      const headingPrefix = '#'.repeat(markdownLevel);
+      
+      // 生成合适的HTML标识符
+      let divAttributes = '';
+      if (childNode.type === 'outline_point' && childNode.data?.outlineIndex !== undefined) {
+        divAttributes = `data-group-id="${childNode.data.outlineIndex}"`;
+      } else if (childNode.type === 'tweet' && childNode.data?.tweetId !== undefined) {
+        const groupIndex = childNode.data?.groupIndex ?? 0;
+        const tweetIndex = childNode.data?.tweetIndex ?? index;
+        divAttributes = `data-tweet-id="${childNode.data.tweetId}" data-group-index="${groupIndex}" data-tweet-index="${tweetIndex}"`;
+      }
+      
+      // 添加标题
+      const title = childNode.data?.title || childNode.label;
+      const content = childNode.data?.content;
+      
+      // 将标题和内容都包裹在同一个div中，确保hover状态正确关联
+      if (divAttributes) {
+        markdown += `<div ${divAttributes}>\n\n`;
+        markdown += `${headingPrefix} ${title}\n\n`;
+        
+        // 添加内容（如果内容与标题不同且存在）
+        if (content && content !== title && content !== childNode.label) {
+          markdown += `${content}\n\n`;
+        }
+        
+        markdown += `</div>\n\n`;
+      } else {
+        // 没有特殊属性时，直接添加标题和内容
+        markdown += `${headingPrefix} ${title}\n\n`;
+        if (content && content !== title && content !== childNode.label) {
+          markdown += `${content}\n\n`;
+        }
+      }
+      
+      // 递归处理子节点
+      renderNodeAndChildren(childNode.id, markdownLevel);
+    });
+  };
+  
+  // 从主题节点开始递归渲染
+  renderNodeAndChildren(topicNode.id, 1);
+  
+  return markdown;
+}

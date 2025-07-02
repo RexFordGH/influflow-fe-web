@@ -18,7 +18,8 @@ import {
   convertAPIDataToGeneratedContent, 
   convertAPIDataToMarkdown,
   convertTweetsToMarkdown,
-  convertMindmapToTweets 
+  convertMindmapToTweets,
+  convertMindmapToMarkdown
 } from '@/lib/data/converters';
 
 import EditableContentMindmap from './EditableContentMindmap';
@@ -29,18 +30,6 @@ interface EnhancedContentGenerationProps {
   onBack: () => void;
 }
 
-// 基于思维导图节点生成Markdown内容 - 使用新的Twitter Thread格式
-const generateMarkdownFromNodes = (
-  nodes: MindmapNodeData[],
-  edges: MindmapEdgeData[],
-  topic: string,
-): string => {
-  // 使用转换器将思维导图数据转换回tweets和outline
-  const { tweets, outline } = convertMindmapToTweets(nodes, edges);
-  
-  // 使用标准的tweets转markdown函数
-  return convertTweetsToMarkdown(tweets, topic, outline);
-};
 
 
 export function EnhancedContentGeneration({
@@ -62,6 +51,7 @@ export function EnhancedContentGeneration({
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false); // 防止重复请求
   const [rawAPIData, setRawAPIData] = useState<any>(null); // 存储原始API数据
   const [hoveredTweetId, setHoveredTweetId] = useState<string | null>(null); // hover状态
+  const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(null); // 重新生成的markdown
   
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
@@ -202,14 +192,17 @@ export function EnhancedContentGeneration({
   }, []);
 
   // 基于思维导图重新生成内容
-  const regenerateFromMindmap = useCallback(async () => {
+  const regenerateFromMindmap = useCallback(async (newMarkdown?: string) => {
     if (!generatedContent) return;
 
     setIsRegenerating(true);
 
+    console.log('Regenerating from mindmap with markdown:', newMarkdown ? 'provided' : 'generated');
+
     // 基于当前思维导图重新生成内容
     setTimeout(() => {
-      const newMarkdown = generateMarkdownFromNodes(currentNodes, currentEdges, topic);
+      // 使用传入的markdown或重新生成
+      const finalMarkdown = newMarkdown || convertMindmapToMarkdown(currentNodes, currentEdges);
       
       // 重新转换思维导图数据为tweets和outline
       const { tweets, outline } = convertMindmapToTweets(currentNodes, currentEdges);
@@ -229,9 +222,15 @@ export function EnhancedContentGeneration({
         },
       });
 
+      // 更新rawAPIData以显示新的markdown
+      if (rawAPIData) {
+        // 保存新的markdown供EnhancedMarkdownRenderer使用
+        setRegeneratedMarkdown(finalMarkdown);
+      }
+
       setIsRegenerating(false);
-    }, 2000);
-  }, [currentNodes, currentEdges, generatedContent, topic]);
+    }, 1000); // 减少延迟
+  }, [currentNodes, currentEdges, generatedContent, rawAPIData]);
 
   const handleRegenerate = useCallback(async () => {
     setIsRegenerating(true);
@@ -485,7 +484,7 @@ export function EnhancedContentGeneration({
           <div className="flex-1 overflow-hidden">
             {rawAPIData && (
               <EnhancedMarkdownRenderer
-                content={convertAPIDataToMarkdown(rawAPIData)}
+                content={regeneratedMarkdown || convertAPIDataToMarkdown(rawAPIData)}
                 onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}
                 highlightedSection={hoveredTweetId}
