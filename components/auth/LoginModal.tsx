@@ -10,7 +10,9 @@ interface LoginModalProps {
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const handleGoogleLogin = () => {
     // 后端处理OAuth，前端只负责跳转
-    window.location.href = '/api/auth/google';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/api/auth/google';
+    }
   };
 
   return (

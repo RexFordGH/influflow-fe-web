@@ -237,7 +237,7 @@ export default function Home() {
               {/* 欢迎界面 - 第一屏 */}
               <motion.div
                 initial={{ y: 0 }}
-                animate={{ y: showTrendingTopics ? -window.innerHeight : 0 }}
+                animate={{ y: showTrendingTopics ? (typeof window !== 'undefined' ? -window.innerHeight : -800) : 0 }}
                 transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
                 className="absolute inset-0 flex items-center justify-center bg-gray-50"
               >

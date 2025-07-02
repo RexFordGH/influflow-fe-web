@@ -163,8 +163,8 @@ export function TrendingTopics({
 
   return (
     <motion.div
-      initial={{ y: window.innerHeight }}
-      animate={{ y: isVisible ? 0 : window.innerHeight }}
+      initial={{ y: typeof window !== 'undefined' ? window.innerHeight : 800 }}
+      animate={{ y: isVisible ? 0 : (typeof window !== 'undefined' ? window.innerHeight : 800) }}
       transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
       className="absolute inset-0 overflow-y-auto bg-white"
     >
