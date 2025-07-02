@@ -1,5 +1,7 @@
 'use client';
 
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Button } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
@@ -16,8 +18,6 @@ import {
   MindmapNodeData,
 } from '@/types/content';
 
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { Button } from '@heroui/react';
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
@@ -142,7 +142,13 @@ export function EnhancedContentGeneration({
     return () => {
       clearInterval(interval);
     };
-  }, [topic, isGenerating, hasStartedGeneration]); // 添加 hasStartedGeneration 依赖
+  }, [
+    topic,
+    isGenerating,
+    hasStartedGeneration,
+    generateThread,
+    generationSteps.length,
+  ]);
 
   const handleNodeSelect = useCallback(
     (nodeId: string | null) => {

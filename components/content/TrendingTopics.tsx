@@ -1,9 +1,10 @@
 'use client';
 
-import { Button } from '@/components/base';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/base';
 
 interface TrendingTopic {
   id: string;
@@ -126,7 +127,7 @@ const useTrendingData = (isVisible: boolean) => {
 // 骨架屏组件
 const TrendingTopicSkeleton = ({ index }: { index: number }) => (
   <div
-    className="flex items-center justify-between px-6 py-1 rounded-xl bg-gradient-to-r from-yellow-300 to-yellow-100"
+    className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-300 to-yellow-100 px-6 py-1"
     style={{
       width: `${Math.max(432, 880 - index * 110)}px`,
     }}
@@ -137,8 +138,8 @@ const TrendingTopicSkeleton = ({ index }: { index: number }) => (
 );
 
 const SuggestedTopicSkeleton = () => (
-  <div className="px-[24px] py-[10px] border border-gray-300 rounded-xl">
-    <Skeleton className="h-[18px] w-full rounded mb-2" />
+  <div className="rounded-xl border border-gray-300 px-[24px] py-[10px]">
+    <Skeleton className="mb-2 h-[18px] w-full rounded" />
   </div>
 );
 
@@ -165,16 +166,16 @@ export function TrendingTopics({
       initial={{ y: window.innerHeight }}
       animate={{ y: isVisible ? 0 : window.innerHeight }}
       transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
-      className="absolute inset-0 bg-white overflow-y-auto"
+      className="absolute inset-0 overflow-y-auto bg-white"
     >
-      <div className="min-h-full flex flex-col">
+      <div className="flex min-h-full flex-col">
         {/* 内容区域 */}
-        <div className="flex-1 px-30 py-14">
-          <div className="w-full max-w-4xl mx-auto">
+        <div className="flex-1 px-[30px] py-14">
+          <div className="mx-auto w-full max-w-4xl">
             {/* Trending Topics 部分 */}
             <div className="mb-10">
               {/* 标题 */}
-              <h2 className="text-lg font-medium text-black mb-4">
+              <h2 className="mb-4 text-lg font-medium text-black">
                 Trending Topics
               </h2>
 
@@ -186,10 +187,10 @@ export function TrendingTopics({
                     size="sm"
                     variant="bordered"
                     onPress={() => setSelectedCategory(category)}
-                    className={`rounded-xl px-3 py-1 border text-lg font-normal ${
+                    className={`rounded-xl border px-3 py-1 text-lg font-normal ${
                       selectedCategory === category
-                        ? 'bg-gray-200 border-gray-200 text-black'
-                        : 'border-gray-200 text-black bg-white hover:bg-gray-50'
+                        ? 'border-gray-200 bg-gray-200 text-black'
+                        : 'border-gray-200 bg-white text-black hover:bg-gray-50'
                     }`}
                     isDisabled={loading}
                   >
@@ -213,7 +214,7 @@ export function TrendingTopics({
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                         onClick={() => onTopicSelect(topic)}
-                        className="flex items-center justify-between px-6 py-1 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 hover:from-yellow-500 hover:to-yellow-300 transition-all duration-200"
+                        className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-all duration-200 hover:from-yellow-500 hover:to-yellow-300"
                         style={{
                           width: `${Math.max(432, 880 - index * 110)}px`,
                         }}
@@ -231,7 +232,7 @@ export function TrendingTopics({
 
             {/* Suggested Topics 部分 */}
             <div className="mb-8">
-              <h3 className="text-lg font-medium text-black mb-4">
+              <h3 className="mb-4 text-lg font-medium text-black">
                 Suggested Topics
               </h3>
               <div className="space-y-3">
@@ -248,13 +249,13 @@ export function TrendingTopics({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
                         onClick={() => onTopicSelect(topic)}
-                        className={`w-full px-[24px] py-[10px] rounded-xl transition-all duration-200 text-left ${
+                        className={`w-full rounded-xl px-[24px] py-[10px] text-left transition-all duration-200 ${
                           index === 0
-                            ? 'bg-blue-50 border border-blue-400 hover:bg-blue-100'
-                            : 'border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50'
+                            ? 'border border-blue-400 bg-blue-50 hover:bg-blue-100'
+                            : 'border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
                         }`}
                       >
-                        <span className="text-[18px] font-normal text-black leading-[27px]">
+                        <span className="text-[18px] font-normal leading-[27px] text-black">
                           {topic.title}
                         </span>
                       </motion.button>

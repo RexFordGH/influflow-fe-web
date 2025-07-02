@@ -235,17 +235,19 @@ export function convertMindmapToTweets(
   // 重构outline，生成简单的假数据结构
   const outlineData = outlineNodes.map((node, index) => ({
     title: node.label,
-    tweets: [{
-      tweet_number: index + 1,
-      content: node.label,
-      title: node.label
-    }]
+    tweets: [
+      {
+        tweet_number: index + 1,
+        content: node.label,
+        title: node.label,
+      },
+    ],
   }));
 
   const outline: ContentOutline = {
     nodes: outlineData,
     topic: outlineNodes[0]?.label || 'Topic',
-    total_tweets: tweetNodes.length
+    total_tweets: tweetNodes.length,
   };
 
   return { tweets, outline };

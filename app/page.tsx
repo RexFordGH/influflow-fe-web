@@ -144,7 +144,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* TODO: 恢复登录按钮条件显示 */}
       {/* {!isAuthenticated && (
         <div className="fixed top-0 w-full h-[50px] z-50 flex justify-between items-center px-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
@@ -161,7 +161,7 @@ export default function Home() {
       )} */}
 
       {/* 左侧导航栏 */}
-      <div className="flex w-[320px] flex-col border-r border-gray-200 bg-white z-10">
+      <div className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-white">
         {/* 用户信息 */}
         <div className="border-b border-gray-200 p-4">
           <div className="flex items-center space-x-2">
@@ -230,10 +230,10 @@ export default function Home() {
       </div>
 
       {/* 右侧主内容区 */}
-      <div className="flex flex-1 flex-col relative overflow-hidden">
+      <div className="relative flex flex-1 flex-col overflow-hidden">
         <AnimatePresence mode="wait">
           {!selectedNote ? (
-            <div className="relative w-full h-full">
+            <div className="relative size-full">
               {/* 欢迎界面 - 第一屏 */}
               <motion.div
                 initial={{ y: 0 }}
@@ -241,7 +241,7 @@ export default function Home() {
                 transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
                 className="absolute inset-0 flex items-center justify-center bg-gray-50"
               >
-                <div className="flex flex-col gap-[24px] px-[24px] text-center relative">
+                <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
                   <h2 className="text-[24px] font-[600] text-black">
                     Hey Kelly, what would you like to write about today?
                     {/* TODO: 恢复用户名动态显示 */}
@@ -259,13 +259,13 @@ export default function Home() {
                           handleTopicSubmit();
                         }
                       }}
-                      className="h-[120px] w-full resize-none rounded-2xl border shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                      className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                       rows={4}
                     />
                     <Button
                       isIconOnly
                       color="primary"
-                      className="absolute bottom-[12px] right-[12px] w-[40px] h-[40px] min-w-auto rounded-full"
+                      className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
                       onPress={handleTopicSubmit}
                       disabled={!topicInput.trim()}
                     >
@@ -283,15 +283,15 @@ export default function Home() {
                     <Button
                       variant="light"
                       onPress={handleWriteByMyself}
-                      className="h-auto bg-transparent hover:bg-transparent p-0 text-base font-medium text-gray-700 underline hover:text-gray-900"
+                      className="h-auto bg-transparent p-0 text-base font-medium text-gray-700 underline hover:bg-transparent hover:text-gray-900"
                     >
                       Write by Myself
                     </Button>
                   </div>
                 </div>
-                <div className="absolute bottom-[55px] left-0 right-0  flex justify-center">
+                <div className="absolute inset-x-0 bottom-[55px] flex  justify-center">
                   <div
-                    className="flex flex-col items-center cursor-pointer hover:opacity-70 hover:scale-105 transition-all duration-300"
+                    className="flex cursor-pointer flex-col items-center transition-all duration-300 hover:scale-105 hover:opacity-70"
                     onClick={handleScrollToTrending}
                   >
                     <Image
@@ -300,7 +300,7 @@ export default function Home() {
                       width={24}
                       height={24}
                     />
-                    <span className="text-[18px] text-[#448AFF] font-[500]">
+                    <span className="text-[18px] font-[500] text-[#448AFF]">
                       Scroll down to explore trending topics
                     </span>
                   </div>

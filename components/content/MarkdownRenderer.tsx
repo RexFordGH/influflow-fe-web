@@ -219,7 +219,7 @@ export function MarkdownRenderer({
                 className="h-auto w-full object-cover"
               />
               {image.caption && (
-                <div className="absolute inset-x-0 bottom-0 bg-black bg-opacity-50 p-3 text-white">
+                <div className="absolute inset-x-0 bottom-0 bg-black/50 p-3 text-white">
                   <p className="text-sm">{image.caption}</p>
                 </div>
               )}

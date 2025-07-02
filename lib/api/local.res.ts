@@ -1,4 +1,4 @@
-import { ModifyTweetResponse, ModifyOutlineResponse } from '@/types/api';
+import { ModifyOutlineResponse, ModifyTweetResponse } from '@/types/api';
 import type { Outline } from '@/types/outline';
 
 export const localGenerateThreadResponse = {
@@ -88,24 +88,30 @@ export const localGenerateThreadResponse = {
 };
 
 // 本地模拟 ModifyTweet 响应数据
-export const createLocalModifyTweetResponse = (originalOutline: Outline, tweetNumber: number, prompt: string): ModifyTweetResponse => {
+export const createLocalModifyTweetResponse = (
+  originalOutline: Outline,
+  tweetNumber: number,
+  prompt: string,
+): ModifyTweetResponse => {
   // 找到对应的tweet并生成AI增强的内容
   let originalContent = '';
   let tweetFound = false;
-  
+
   for (const outlineNode of originalOutline.nodes) {
-    const targetTweet = outlineNode.tweets.find(tweet => tweet.tweet_number === tweetNumber);
+    const targetTweet = outlineNode.tweets.find(
+      (tweet) => tweet.tweet_number === tweetNumber,
+    );
     if (targetTweet) {
       originalContent = targetTweet.content;
       tweetFound = true;
       break;
     }
   }
-  
+
   if (!tweetFound) {
     throw new Error(`Tweet with number ${tweetNumber} not found`);
   }
-  
+
   // 模拟AI编辑后的内容
   const enhancedContent = `🎯 ${originalContent}
 
@@ -119,12 +125,15 @@ export const createLocalModifyTweetResponse = (originalOutline: Outline, tweetNu
   return {
     updated_tweet_content: enhancedContent,
     tweet_number: tweetNumber,
-    modification_prompt: prompt
+    modification_prompt: prompt,
   };
 };
 
 // 本地模拟 ModifyOutline 响应数据
-export const createLocalModifyOutlineResponse = (originalOutline: Outline, newOutlineStructure: Outline): ModifyOutlineResponse => {
+export const createLocalModifyOutlineResponse = (
+  originalOutline: Outline,
+  newOutlineStructure: Outline,
+): ModifyOutlineResponse => {
   // 模拟API对大纲进行智能优化
   const enhancedNodes = newOutlineStructure.nodes.map((node, index) => ({
     title: `${node.title}（已优化）`,
@@ -132,9 +141,9 @@ export const createLocalModifyOutlineResponse = (originalOutline: Outline, newOu
       {
         tweet_number: index + 1,
         content: `📝 ${node.title}（已优化）\n\n经过AI智能分析和优化：\n• 结构更清晰\n• 逻辑更连贯\n• 表达更准确\n\n#内容优化 #AI助手`,
-        title: `${node.title}（已优化）`
-      }
-    ]
+        title: `${node.title}（已优化）`,
+      },
+    ],
   }));
 
   return {
@@ -142,8 +151,8 @@ export const createLocalModifyOutlineResponse = (originalOutline: Outline, newOu
     updated_outline: {
       nodes: enhancedNodes,
       topic: `${newOutlineStructure.topic}（AI优化版）`,
-      total_tweets: enhancedNodes.length
+      total_tweets: enhancedNodes.length,
     },
-    error: ''
+    error: '',
   };
 };

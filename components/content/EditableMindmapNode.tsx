@@ -253,7 +253,7 @@ const EditableMindmapNode = ({
             e.stopPropagation();
             addChildNode(id);
           }}
-          className="absolute -right-[20px] top-1/2 flex size-[20px] -translate-y-1/2 items-center justify-center rounded-full bg-[#7EABFF] text-white shadow-md transition-all duration-200 hover:opacity-80 hover:shadow-lg"
+          className="absolute right-[-20px] top-1/2 flex size-[20px] -translate-y-1/2 items-center justify-center rounded-full bg-[#7EABFF] text-white shadow-md transition-all duration-200 hover:opacity-80 hover:shadow-lg"
           title="添加子节点"
         >
           <PlusIcon className="size-3" />

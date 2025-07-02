@@ -1,8 +1,8 @@
 // 导入API中统一的类型定义
-import type { Tweet, Outline } from '@/types/outline';
+import type { Outline, Tweet } from '@/types/outline';
 
 // 重新导出类型供其他模块使用
-export type { Tweet, Outline };
+export type { Outline, Tweet };
 
 // 后端返回的内容生成数据格式
 export interface GeneratedContent {

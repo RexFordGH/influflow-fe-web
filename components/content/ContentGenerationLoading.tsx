@@ -56,9 +56,9 @@ export function ContentGenerationLoading({
   onRetry,
 }: ContentGenerationLoadingProps) {
   return (
-    <div className="flex h-screen flex-col bg-[#FAFAFA)]">
+    <div className="flex h-screen flex-col bg-[#FAFAFA]">
       <div className="flex flex-1 items-center justify-center p-6">
-        <div className="text-center flex flex-col items-center gap-[24px]">
+        <div className="flex flex-col items-center gap-[24px] text-center">
           {isError ? (
             /* 错误状态 */
             <>
@@ -133,7 +133,7 @@ export function ContentGenerationLoading({
                       key={`${step}-${index}`}
                       variants={stepItemVariants}
                     >
-                      <p className="text-[16px] text-[#757575] leading-[24px]">
+                      <p className="text-[16px] leading-[24px] text-[#757575]">
                         {step}
                       </p>
                     </motion.div>

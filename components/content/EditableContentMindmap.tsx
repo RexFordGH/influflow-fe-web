@@ -17,9 +17,16 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
-import { convertMindmapToMarkdown, convertThreadDataToMindmap } from '@/lib/data/converters';
+import {
+  getErrorMessage,
+  useModifyOutline,
+  useModifyTweet,
+} from '@/lib/api/services';
+import {
+  convertMindmapToMarkdown,
+  convertThreadDataToMindmap,
+} from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
-import { useModifyOutline, useModifyTweet, getErrorMessage } from '@/lib/api/services';
 import type { Outline } from '@/types/outline';
 
 import EditableMindmapNode from './EditableMindmapNode';
@@ -52,13 +59,15 @@ export function EditableContentMindmap({
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
   const { fitView } = useReactFlow();
-  
+
   // API hooks
   const modifyOutlineMutation = useModifyOutline();
   const modifyTweetMutation = useModifyTweet();
 
   // 存储当前的outline数据，用于API调用
-  const [currentOutline, setCurrentOutline] = useState<Outline | null>(originalOutline || null);
+  const [currentOutline, setCurrentOutline] = useState<Outline | null>(
+    originalOutline || null,
+  );
 
   // 同步原始outline数据的变化
   useEffect(() => {
@@ -565,31 +574,41 @@ export function EditableContentMindmap({
       }
 
       // 找到要编辑的节点
-      const targetNode = mindmapNodes.find(node => node.id === nodeId);
+      const targetNode = mindmapNodes.find((node) => node.id === nodeId);
       if (!targetNode) {
         console.error('未找到目标节点:', nodeId);
         return;
       }
 
       // 深拷贝当前outline作为新的outline结构
-      const newOutlineStructure: Outline = JSON.parse(JSON.stringify(currentOutline));
+      const newOutlineStructure: Outline = JSON.parse(
+        JSON.stringify(currentOutline),
+      );
 
       // 根据节点类型和数据结构更新outline
       if (targetNode.level === 1) {
         // 主题节点
         newOutlineStructure.topic = newLabel;
-      } else if (targetNode.type === 'outline_point' && targetNode.data?.outlineIndex !== undefined) {
+      } else if (
+        targetNode.type === 'outline_point' &&
+        targetNode.data?.outlineIndex !== undefined
+      ) {
         // 大纲点节点
         const outlineIndex = targetNode.data.outlineIndex;
         if (newOutlineStructure.nodes[outlineIndex]) {
           newOutlineStructure.nodes[outlineIndex].title = newLabel;
         }
-      } else if (targetNode.type === 'tweet' && targetNode.data?.tweetId !== undefined) {
+      } else if (
+        targetNode.type === 'tweet' &&
+        targetNode.data?.tweetId !== undefined
+      ) {
         // Tweet节点
         const tweetId = targetNode.data.tweetId;
         // 找到包含该tweet的大纲点
         for (const outlineNode of newOutlineStructure.nodes) {
-          const tweetToUpdate = outlineNode.tweets.find(tweet => tweet.tweet_number === tweetId);
+          const tweetToUpdate = outlineNode.tweets.find(
+            (tweet) => tweet.tweet_number === tweetId,
+          );
           if (tweetToUpdate) {
             tweetToUpdate.title = newLabel;
             tweetToUpdate.content = newLabel; // 同时更新内容
@@ -601,28 +620,30 @@ export function EditableContentMindmap({
       // 调用 useModifyOutline API
       const result = await modifyOutlineMutation.mutateAsync({
         original_outline: currentOutline,
-        new_outline_structure: newOutlineStructure
+        new_outline_structure: newOutlineStructure,
       });
 
       // API返回全新的完整数据，需要完整更新
       if (result.status === 'success' && result.updated_outline) {
         console.log('双击编辑成功，返回的数据:', result);
-        
+
         const newOutline = result.updated_outline;
-        
+
         // 更新当前存储的outline数据
         setCurrentOutline(newOutline);
-        
+
         // 使用正确的转换函数重新构建思维导图
-        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap({
-          outline: newOutline,
-          status: result.status,
-          error: null
-        });
+        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap(
+          {
+            outline: newOutline,
+            status: result.status,
+            error: null,
+          },
+        );
 
         onNodesChange?.(newNodes);
         onEdgesChange?.(newEdges);
-        
+
         // 触发整体数据源更新，使用转换后的markdown
         const newMarkdown = convertMindmapToMarkdown(newNodes, newEdges);
         onRegenerate?.(newMarkdown);
@@ -649,7 +670,9 @@ export function EditableContentMindmap({
       }
 
       // 找到要编辑的节点，获取对应的tweet_number
-      const targetNode = mindmapNodes.find(node => node.id === selectedNodeForAI);
+      const targetNode = mindmapNodes.find(
+        (node) => node.id === selectedNodeForAI,
+      );
       if (!targetNode || !targetNode.data?.tweetId) {
         console.error('未找到目标节点或缺少tweetId:', selectedNodeForAI);
         alert('无法确定要编辑的内容');
@@ -663,60 +686,72 @@ export function EditableContentMindmap({
       const result = await modifyTweetMutation.mutateAsync({
         outline: currentOutline,
         tweet_number: tweetNumber,
-        modification_prompt: aiEditInstruction
+        modification_prompt: aiEditInstruction,
       });
 
       // API只返回更新的tweet内容，需要局部更新
       if (result.updated_tweet_content && result.tweet_number) {
         console.log('AI编辑成功，返回的数据:', result);
-        
+
         // 1. 更新currentOutline中对应的tweet内容
-        const updatedOutline = JSON.parse(JSON.stringify(currentOutline)) as Outline;
+        const updatedOutline = JSON.parse(
+          JSON.stringify(currentOutline),
+        ) as Outline;
         let tweetFound = false;
-        
+
         for (const outlineNode of updatedOutline.nodes) {
-          const tweetToUpdate = outlineNode.tweets.find(tweet => tweet.tweet_number === result.tweet_number);
+          const tweetToUpdate = outlineNode.tweets.find(
+            (tweet) => tweet.tweet_number === result.tweet_number,
+          );
           if (tweetToUpdate) {
             tweetToUpdate.content = result.updated_tweet_content;
             // 如果需要，也可以更新title（通常content更改时title也要对应更新）
-            tweetToUpdate.title = result.updated_tweet_content.split('\n')[0] || result.updated_tweet_content;
+            tweetToUpdate.title =
+              result.updated_tweet_content.split('\n')[0] ||
+              result.updated_tweet_content;
             tweetFound = true;
             break;
           }
         }
-        
+
         if (!tweetFound) {
           console.error('未找到对应的tweet_number:', result.tweet_number);
           alert('更新失败：未找到对应的内容');
           return;
         }
-        
+
         // 2. 更新currentOutline状态
         setCurrentOutline(updatedOutline);
-        
+
         // 3. 局部更新思维导图节点数据（不重新渲染整个图）
-        const updatedNodes = mindmapNodes.map(node => {
+        const updatedNodes = mindmapNodes.map((node) => {
           if (node.data?.tweetId === result.tweet_number) {
             return {
               ...node,
-              label: result.updated_tweet_content.split('\n')[0] || result.updated_tweet_content,
+              label:
+                result.updated_tweet_content.split('\n')[0] ||
+                result.updated_tweet_content,
               data: {
                 ...node.data,
                 content: result.updated_tweet_content,
-                title: result.updated_tweet_content.split('\n')[0] || result.updated_tweet_content
-              }
+                title:
+                  result.updated_tweet_content.split('\n')[0] ||
+                  result.updated_tweet_content,
+              },
             };
           }
           return node;
         });
-        
+
         onNodesChange?.(updatedNodes);
-        
+
         // 4. 重新生成markdown（使用更新后的数据）
-        const newMarkdown = convertMindmapToMarkdown(updatedNodes, mindmapEdges);
+        const newMarkdown = convertMindmapToMarkdown(
+          updatedNodes,
+          mindmapEdges,
+        );
         onRegenerate?.(newMarkdown);
       }
-
     } catch (error) {
       console.error('AI编辑失败:', error);
       alert(`编辑失败: ${getErrorMessage(error)}`);
@@ -726,7 +761,6 @@ export function EditableContentMindmap({
       setAiEditInstruction('');
     }
   };
-
 
   return (
     <div className="relative size-full">
@@ -873,7 +907,7 @@ export function EditableContentMindmap({
                 onChange={(e) => setAiEditInstruction(e.target.value)}
                 placeholder="Please limit to 300 words."
                 maxLength={300}
-                className="h-[120px] w-full resize-none rounded-2xl border shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 rows={4}
               />
 
@@ -893,7 +927,7 @@ export function EditableContentMindmap({
                   onPress={handleAIEditSubmit}
                   isLoading={isAIProcessing}
                   disabled={!aiEditInstruction.trim()}
-                  className="bg-[#4285F4] text-white px-6 hover:bg-[#3367D6]"
+                  className="bg-[#4285F4] px-6 text-white hover:bg-[#3367D6]"
                 >
                   {isAIProcessing ? 'Generating...' : 'Submit'}
                 </Button>
