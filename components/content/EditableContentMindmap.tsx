@@ -1,7 +1,7 @@
 'use client';
 
 import { PencilIcon } from '@heroicons/react/24/outline';
-import { Button, Textarea } from '@heroui/react';
+import { Button } from '@heroui/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
@@ -767,30 +767,24 @@ export function EditableContentMindmap({
 
       {/* AI编辑对话框 - 固定在底部 */}
       {showAIEditModal && (
-        <div className="absolute inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white shadow-lg">
-          <div className="mx-auto max-w-4xl p-6">
-            <div className="mb-4 text-center">
+        <div className="absolute inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-[#F5F6F7] shadow-lg">
+          <div className="mx-auto max-w-4xl px-[48px] py-[32px]">
+            <div className="mb-[24px] text-center">
               <h3 className="text-xl font-semibold">
                 How would you like to enhance this part?
               </h3>
             </div>
-            <div className="space-y-4">
-              <Textarea
+            <div>
+              <textarea
                 value={aiEditInstruction}
                 onChange={(e) => setAiEditInstruction(e.target.value)}
                 placeholder="Please limit to 300 words."
                 maxLength={300}
-                minRows={4}
-                maxRows={8}
-                variant="bordered"
-                className="w-full"
-                classNames={{
-                  input: 'text-sm',
-                  inputWrapper: 'border-gray-200 focus:border-blue-500',
-                }}
+                className="h-[120px] w-full resize-none rounded-2xl border shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] border-gray-200 p-4 pr-12 text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                rows={4}
               />
 
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="mt-[24px] flex justify-end gap-3">
                 <Button
                   variant="flat"
                   onPress={() => {
@@ -799,16 +793,16 @@ export function EditableContentMindmap({
                   }}
                   className="px-6"
                 >
-                  取消
+                  cancel
                 </Button>
                 <Button
                   color="primary"
                   onPress={handleAIEditSubmit}
                   isLoading={isAIProcessing}
                   disabled={!aiEditInstruction.trim()}
-                  className="bg-[#4285F4] px-6 hover:bg-[#3367D6]"
+                  className="bg-[#4285F4] text-white px-6 hover:bg-[#3367D6]"
                 >
-                  {isAIProcessing ? '生成中...' : '提交'}
+                  {isAIProcessing ? 'Generating...' : 'Submit'}
                 </Button>
               </div>
             </div>
