@@ -443,17 +443,64 @@ export function EditableContentMindmap({
 
       return elk
         .layout(graph)
-        .then((layoutedGraph) => ({
-          nodes:
-            layoutedGraph.children?.map((node: any) => ({
-              ...node,
-              // React Flow expects a position property on the node instead of `x`
-              // and `y` fields.
-              position: { x: node.x, y: node.y },
-            })) || [],
+        .then((layoutedGraph) => {
+          const layoutedNodes = layoutedGraph.children || [];
+          if (!layoutedNodes.length || !isHorizontal) {
+            // If not horizontal or no nodes, return original layout
+            return {
+              nodes:
+                layoutedNodes.map((node: any) => ({
+                  ...node,
+                  position: { x: node.x, y: node.y },
+                })) || [],
+              edges: layoutedGraph.edges || [],
+            };
+          }
 
-          edges: layoutedGraph.edges || [],
-        }))
+          // Post-processing for vertical alignment in horizontal layout
+          const layers = new Map<number, any[]>();
+          layoutedNodes.forEach((node) => {
+            const x = Math.round(node.x!); // Round x to group nodes in the same layer
+            if (!layers.has(x)) {
+              layers.set(x, []);
+            }
+            layers.get(x)!.push(node);
+          });
+
+          let maxLayerHeight = 0;
+          const layerHeights = new Map<number, number>();
+
+          for (const [, layerNodes] of layers.entries()) {
+            if (layerNodes.length === 0) continue;
+            layerNodes.sort((a, b) => a.y! - b.y!);
+            const firstNode = layerNodes[0];
+            const lastNode = layerNodes[layerNodes.length - 1];
+            const height = lastNode.y! + lastNode.height! - firstNode.y!;
+            layerHeights.set(layerNodes[0].x!, height);
+            if (height > maxLayerHeight) {
+              maxLayerHeight = height;
+            }
+          }
+
+          const finalNodes: any[] = [];
+          for (const [, layerNodes] of layers.entries()) {
+            if (layerNodes.length === 0) continue;
+            const currentLayerHeight = layerHeights.get(layerNodes[0].x!)!;
+            const offsetY = (maxLayerHeight - currentLayerHeight) / 2;
+
+            for (const node of layerNodes) {
+              finalNodes.push({
+                ...node,
+                position: { x: node.x, y: node.y! + offsetY },
+              });
+            }
+          }
+
+          return {
+            nodes: finalNodes,
+            edges: layoutedGraph.edges || [],
+          };
+        })
         .catch(() => ({ nodes, edges }));
     },
     [elk],
