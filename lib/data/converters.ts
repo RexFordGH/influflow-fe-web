@@ -1,22 +1,19 @@
-import { 
-  type GenerateThreadResponse,
-  type Tweet as ApiTweet,
-  type Outline as ApiOutline
-} from '@/types/api';
-import { 
-  type MindmapNodeData, 
-  type MindmapEdgeData, 
-  type GeneratedContent,
+import { type GenerateThreadResponse } from '@/types/api';
+import {
+  type Outline as ContentOutline,
   type Tweet as ContentTweet,
-  type Outline as ContentOutline
+  type GeneratedContent,
+  type MindmapEdgeData,
+  type MindmapNodeData,
 } from '@/types/content';
 
 /**
  * 将API返回的GenerateThreadResponse转换为思维导图数据结构
  */
-export function convertThreadDataToMindmap(
-  data: GenerateThreadResponse
-): { nodes: MindmapNodeData[]; edges: MindmapEdgeData[] } {
+export function convertThreadDataToMindmap(data: GenerateThreadResponse): {
+  nodes: MindmapNodeData[];
+  edges: MindmapEdgeData[];
+} {
   const nodes: MindmapNodeData[] = [];
   const edges: MindmapEdgeData[] = [];
 
@@ -90,10 +87,10 @@ export function convertThreadDataToMindmap(
  * 将API数据转换为完整的GeneratedContent
  */
 export function convertAPIDataToGeneratedContent(
-  data: GenerateThreadResponse
+  data: GenerateThreadResponse,
 ): GeneratedContent {
   const mindmap = convertThreadDataToMindmap(data);
-  
+
   // 将嵌套的tweets结构展平为简单数组
   const flatTweets: ContentTweet[] = [];
   data.outline.nodes.forEach((tweetGroup) => {
@@ -105,7 +102,7 @@ export function convertAPIDataToGeneratedContent(
       });
     });
   });
-  
+
   return {
     id: `generated-${Date.now()}`,
     topic: data.outline.topic,
@@ -113,8 +110,8 @@ export function convertAPIDataToGeneratedContent(
     mindmap,
     tweets: flatTweets,
     outline: {
-      points: data.outline.nodes.map(node => node.title),
-      structure: data.outline.nodes.map(node => node.title).join(' → '),
+      points: data.outline.nodes.map((node) => node.title),
+      structure: data.outline.nodes.map((node) => node.title).join(' → '),
     } as ContentOutline,
     image: {
       url: `https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center`,
@@ -124,12 +121,10 @@ export function convertAPIDataToGeneratedContent(
     },
     metadata: {
       totalTweets: data.outline.total_tweets,
-      estimatedReadTime: Math.ceil(flatTweets.reduce((acc, tweet) => acc + tweet.content.length, 0) / 200),
-      sources: [
-        'AI分析生成',
-        '专业知识整合',
-        '热点话题研究',
-      ],
+      estimatedReadTime: Math.ceil(
+        flatTweets.reduce((acc, tweet) => acc + tweet.content.length, 0) / 200,
+      ),
+      sources: ['AI分析生成', '专业知识整合', '热点话题研究'],
     },
   };
 }
@@ -137,14 +132,12 @@ export function convertAPIDataToGeneratedContent(
 /**
  * 将API数据直接转换为markdown格式（支持hover高亮）
  */
-export function convertAPIDataToMarkdown(
-  data: GenerateThreadResponse
-): string {
+export function convertAPIDataToMarkdown(data: GenerateThreadResponse): string {
   let markdown = '';
-  
+
   // 添加一级标题
   markdown += `# ${data.outline.topic}\n\n`;
-  
+
   // 添加当前时间
   const currentTime = new Date().toLocaleString('zh-CN', {
     year: 'numeric',
@@ -152,20 +145,20 @@ export function convertAPIDataToMarkdown(
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    weekday: 'long'
+    weekday: 'long',
   });
   markdown += `*生成时间：${currentTime}*\n\n`;
-  
+
   // 添加图片占位标记
   markdown += `![${data.outline.topic}主题配图](PLACEHOLDER_IMAGE)\n\n`;
-  
+
   // 按接口数据数组排列，包含分组标题
   data.outline.nodes.forEach((tweetGroup, groupIndex) => {
     // 添加分组标题 (H2) 包含group标识符
     markdown += `<div data-group-id="${groupIndex}">\n\n`;
     markdown += `## ${tweetGroup.title}\n\n`;
     markdown += `</div>\n\n`;
-    
+
     // 添加该分组下的tweets
     tweetGroup.tweets.forEach((tweetItem, tweetIndex) => {
       // 添加可用于高亮的标识符
@@ -175,7 +168,7 @@ export function convertAPIDataToMarkdown(
       markdown += `</div>\n\n`;
     });
   });
-  
+
   return markdown;
 }
 
@@ -185,13 +178,13 @@ export function convertAPIDataToMarkdown(
 export function convertTweetsToMarkdown(
   tweets: ContentTweet[],
   topic: string,
-  outline: ContentOutline
+  outline: ContentOutline,
 ): string {
   // 按order排序
   const sortedTweets = [...tweets].sort((a, b) => a.order - b.order);
-  
+
   let markdown = `# ${topic} Twitter线程 🧵\n\n`;
-  
+
   // 添加大纲信息
   if (outline?.points && outline.points.length > 0) {
     markdown += `## 内容大纲 📋\n\n`;
@@ -200,7 +193,7 @@ export function convertTweetsToMarkdown(
     });
     markdown += `\n`;
   }
-  
+
   // 添加推文内容
   markdown += `## 完整线程内容 💬\n\n`;
   sortedTweets.forEach((tweet, index) => {
@@ -208,13 +201,13 @@ export function convertTweetsToMarkdown(
     markdown += `${tweet.content}\n\n`;
     markdown += `---\n\n`;
   });
-  
+
   // 添加总结
   markdown += `## 总结 📝\n\n`;
   markdown += `本线程共 ${tweets.length} 条推文，围绕"${topic}"主题展开深入探讨。`;
   markdown += `通过结构化的内容组织，为读者提供了全面而有价值的信息。\n\n`;
   markdown += `#${topic.replace(/\s+/g, '')} #TwitterThread #内容创作`;
-  
+
   return markdown;
 }
 
@@ -223,31 +216,31 @@ export function convertTweetsToMarkdown(
  */
 export function convertMindmapToTweets(
   nodes: MindmapNodeData[],
-  _edges: MindmapEdgeData[]
+  _edges: MindmapEdgeData[],
 ): { tweets: ContentTweet[]; outline: ContentOutline } {
   // 获取大纲点节点
   const outlineNodes = nodes
-    .filter(node => node.type === 'outline_point')
+    .filter((node) => node.type === 'outline_point')
     .sort((a, b) => (a.data?.outlineIndex || 0) - (b.data?.outlineIndex || 0));
-  
+
   // 获取tweet节点
   const tweetNodes = nodes
-    .filter(node => node.type === 'tweet')
+    .filter((node) => node.type === 'tweet')
     .sort((a, b) => (a.data?.tweetId || 0) - (b.data?.tweetId || 0));
-  
+
   // 重构tweets
   const tweets: ContentTweet[] = tweetNodes.map((node, index) => ({
     id: node.data?.tweetId || index + 1,
     content: node.label,
     order: index + 1,
   }));
-  
+
   // 重构outline
   const outline: ContentOutline = {
-    points: outlineNodes.map(node => node.label),
-    structure: outlineNodes.map(node => node.label).join(' → '),
+    points: outlineNodes.map((node) => node.label),
+    structure: outlineNodes.map((node) => node.label).join(' → '),
   };
-  
+
   return { tweets, outline };
 }
 
@@ -256,20 +249,22 @@ export function convertMindmapToTweets(
  */
 export function convertMindmapToMarkdown(
   nodes: MindmapNodeData[],
-  edges: MindmapEdgeData[]
+  edges: MindmapEdgeData[],
 ): string {
   let markdown = '';
-  
+
   // 1. 获取主题节点（level 1）
-  const topicNode = nodes.find(node => node.type === 'topic' && node.level === 1);
+  const topicNode = nodes.find(
+    (node) => node.type === 'topic' && node.level === 1,
+  );
   if (!topicNode) {
     console.warn('未找到主题节点');
     return '';
   }
-  
+
   // 添加主标题
   markdown += `# ${topicNode.label}\n\n`;
-  
+
   // 添加当前时间
   const currentTime = new Date().toLocaleString('zh-CN', {
     year: 'numeric',
@@ -277,28 +272,34 @@ export function convertMindmapToMarkdown(
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    weekday: 'long'
+    weekday: 'long',
   });
   markdown += `*更新时间：${currentTime}*\n\n`;
-  
+
   // 添加图片占位标记
   markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
-  
+
   // 递归函数：处理任意层级的节点
-  const renderNodeAndChildren = (nodeId: string, currentLevel: number): void => {
+  const renderNodeAndChildren = (
+    nodeId: string,
+    currentLevel: number,
+  ): void => {
     // 获取当前节点的所有子节点
     const childIds = edges
-      .filter(edge => edge.source === nodeId)
-      .map(edge => edge.target);
-    
+      .filter((edge) => edge.source === nodeId)
+      .map((edge) => edge.target);
+
     if (childIds.length === 0) return;
-    
+
     // 获取子节点并排序
     const childNodes = nodes
-      .filter(node => childIds.includes(node.id))
+      .filter((node) => childIds.includes(node.id))
       .sort((a, b) => {
         // 优先按outlineIndex排序，其次按tweetId排序，最后按创建时间排序
-        if (a.data?.outlineIndex !== undefined && b.data?.outlineIndex !== undefined) {
+        if (
+          a.data?.outlineIndex !== undefined &&
+          b.data?.outlineIndex !== undefined
+        ) {
           return a.data.outlineIndex - b.data.outlineIndex;
         }
         if (a.data?.tweetId !== undefined && b.data?.tweetId !== undefined) {
@@ -306,36 +307,42 @@ export function convertMindmapToMarkdown(
         }
         return a.id.localeCompare(b.id);
       });
-    
+
     // 渲染每个子节点
     childNodes.forEach((childNode, index) => {
       const markdownLevel = Math.min(currentLevel + 1, 6); // markdown最多支持H6
       const headingPrefix = '#'.repeat(markdownLevel);
-      
+
       // 生成合适的HTML标识符
       let divAttributes = '';
-      if (childNode.type === 'outline_point' && childNode.data?.outlineIndex !== undefined) {
+      if (
+        childNode.type === 'outline_point' &&
+        childNode.data?.outlineIndex !== undefined
+      ) {
         divAttributes = `data-group-id="${childNode.data.outlineIndex}"`;
-      } else if (childNode.type === 'tweet' && childNode.data?.tweetId !== undefined) {
+      } else if (
+        childNode.type === 'tweet' &&
+        childNode.data?.tweetId !== undefined
+      ) {
         const groupIndex = childNode.data?.groupIndex ?? 0;
         const tweetIndex = childNode.data?.tweetIndex ?? index;
         divAttributes = `data-tweet-id="${childNode.data.tweetId}" data-group-index="${groupIndex}" data-tweet-index="${tweetIndex}"`;
       }
-      
+
       // 添加标题
       const title = childNode.data?.title || childNode.label;
       const content = childNode.data?.content;
-      
+
       // 将标题和内容都包裹在同一个div中，确保hover状态正确关联
       if (divAttributes) {
         markdown += `<div ${divAttributes}>\n\n`;
         markdown += `${headingPrefix} ${title}\n\n`;
-        
+
         // 添加内容（如果内容与标题不同且存在）
         if (content && content !== title && content !== childNode.label) {
           markdown += `${content}\n\n`;
         }
-        
+
         markdown += `</div>\n\n`;
       } else {
         // 没有特殊属性时，直接添加标题和内容
@@ -344,14 +351,14 @@ export function convertMindmapToMarkdown(
           markdown += `${content}\n\n`;
         }
       }
-      
+
       // 递归处理子节点
       renderNodeAndChildren(childNode.id, markdownLevel);
     });
   };
-  
+
   // 从主题节点开始递归渲染
   renderNodeAndChildren(topicNode.id, 1);
-  
+
   return markdown;
 }

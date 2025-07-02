@@ -12,7 +12,7 @@ export interface GeneratedContent {
 
   // Tweet线程数据
   tweets: Tweet[];
-  
+
   // 大纲数据
   outline: Outline;
 

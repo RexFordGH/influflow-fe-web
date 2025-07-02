@@ -240,7 +240,7 @@ export function EnhancedMarkdownRenderer({
               .replace(/^#+\s*/, '')
               .replace(/[🧵📊💡🔧🚀✨]/gu, '')
               .trim();
-            
+
             // 如果还没有内容，将标题作为主要内容
             if (!currentSection.content) {
               currentSection.content = text;
@@ -272,7 +272,7 @@ export function EnhancedMarkdownRenderer({
               .replace(/^#+\s*/, '')
               .replace(/[🧵📊💡🔧🚀✨]/gu, '')
               .trim();
-            
+
             // 如果还没有内容，将标题作为主要内容
             if (!currentSection.content) {
               currentSection.content = text;
@@ -375,24 +375,27 @@ export function EnhancedMarkdownRenderer({
       highlightedSection === section.mappingId ||
       highlightedSection === section.id ||
       // Tweet节点的多种匹配方式 - 增强类型兼容性
-      (hoveredTweetId && section.tweetId && (
-        section.tweetId === hoveredTweetId ||
-        section.tweetId.toString() === hoveredTweetId.toString() ||
-        Number(section.tweetId) === Number(hoveredTweetId)
-      )) ||
+      (hoveredTweetId &&
+        section.tweetId &&
+        (section.tweetId === hoveredTweetId ||
+          section.tweetId.toString() === hoveredTweetId.toString() ||
+          Number(section.tweetId) === Number(hoveredTweetId))) ||
       // Group节点的多种匹配方式 - 增强类型兼容性
       (hoveredTweetId &&
         hoveredTweetId.startsWith('group-') &&
-        section.groupId && (
-          section.groupId === hoveredTweetId.replace('group-', '') ||
+        section.groupId &&
+        (section.groupId === hoveredTweetId.replace('group-', '') ||
           section.groupId.toString() === hoveredTweetId.replace('group-', '') ||
-          Number(section.groupId) === Number(hoveredTweetId.replace('group-', ''))
-        )) ||
+          Number(section.groupId) ===
+            Number(hoveredTweetId.replace('group-', '')))) ||
       // Fallback：直接ID匹配
-      (hoveredTweetId === section.id);
+      hoveredTweetId === section.id;
 
     // Debug信息 - 增强版本，帮助排查"漏一个"问题
-    if (hoveredTweetId && (section.type === 'tweet' || section.type === 'group')) {
+    if (
+      hoveredTweetId &&
+      (section.type === 'tweet' || section.type === 'group')
+    ) {
       console.log(`Markdown section matching debug:`, {
         sectionType: section.type,
         sectionId: section.id,
@@ -402,12 +405,19 @@ export function EnhancedMarkdownRenderer({
         isHighlighted,
         matchDetails: {
           tweetIdMatch: section.tweetId === hoveredTweetId,
-          tweetIdStringMatch: section.tweetId?.toString() === hoveredTweetId?.toString(),
-          tweetIdNumberMatch: Number(section.tweetId) === Number(hoveredTweetId),
-          groupIdMatch: section.groupId === hoveredTweetId?.replace('group-', ''),
-          groupIdStringMatch: section.groupId?.toString() === hoveredTweetId?.replace('group-', ''),
-          groupIdNumberMatch: Number(section.groupId) === Number(hoveredTweetId?.replace('group-', '')),
-        }
+          tweetIdStringMatch:
+            section.tweetId?.toString() === hoveredTweetId?.toString(),
+          tweetIdNumberMatch:
+            Number(section.tweetId) === Number(hoveredTweetId),
+          groupIdMatch:
+            section.groupId === hoveredTweetId?.replace('group-', ''),
+          groupIdStringMatch:
+            section.groupId?.toString() ===
+            hoveredTweetId?.replace('group-', ''),
+          groupIdNumberMatch:
+            Number(section.groupId) ===
+            Number(hoveredTweetId?.replace('group-', '')),
+        },
       });
     }
 
@@ -497,10 +507,10 @@ export function EnhancedMarkdownRenderer({
                 <img
                   src={imageSrc}
                   alt={altText}
-                  className="w-full h-48 object-cover rounded-lg shadow-md"
+                  className="h-48 w-full rounded-lg object-cover shadow-md"
                 />
                 {imageData?.caption && (
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg p-4">
+                  <div className="absolute inset-x-0 bottom-0 rounded-b-lg bg-gradient-to-t from-black/60 to-transparent p-4">
                     <p className="text-sm font-medium text-white drop-shadow-lg">
                       {imageData.caption}
                     </p>
@@ -620,7 +630,7 @@ export function EnhancedMarkdownRenderer({
         } else {
           // 如果没有标题标记，使用第一行作为标题
           title = lines[0] || section.content;
-          contentLines = lines.slice(1).filter(line => line.trim() !== '');
+          contentLines = lines.slice(1).filter((line) => line.trim() !== '');
         }
 
         const content = contentLines.join('\n\n');
@@ -649,17 +659,26 @@ export function EnhancedMarkdownRenderer({
             5: 'text-sm font-semibold text-gray-700 mb-1',
             6: 'text-sm font-medium text-gray-600 mb-1',
           };
-          
-          const titleClass = titleClasses[titleLevel as keyof typeof titleClasses] || titleClasses[3];
-          
+
+          const titleClass =
+            titleClasses[titleLevel as keyof typeof titleClasses] ||
+            titleClasses[3];
+
           switch (titleLevel) {
-            case 1: return <h1 className={titleClass}>{title}</h1>;
-            case 2: return <h2 className={titleClass}>{title}</h2>;
-            case 3: return <h3 className={titleClass}>{title}</h3>;
-            case 4: return <h4 className={titleClass}>{title}</h4>;
-            case 5: return <h5 className={titleClass}>{title}</h5>;
-            case 6: return <h6 className={titleClass}>{title}</h6>;
-            default: return <h3 className={titleClass}>{title}</h3>;
+            case 1:
+              return <h1 className={titleClass}>{title}</h1>;
+            case 2:
+              return <h2 className={titleClass}>{title}</h2>;
+            case 3:
+              return <h3 className={titleClass}>{title}</h3>;
+            case 4:
+              return <h4 className={titleClass}>{title}</h4>;
+            case 5:
+              return <h5 className={titleClass}>{title}</h5>;
+            case 6:
+              return <h6 className={titleClass}>{title}</h6>;
+            default:
+              return <h3 className={titleClass}>{title}</h3>;
           }
         };
 
@@ -672,7 +691,7 @@ export function EnhancedMarkdownRenderer({
           >
             {/* Tweet Title with proper heading styling */}
             {title && (
-              <div className="mb-4 pb-3 border-b border-gray-200">
+              <div className="mb-4 border-b border-gray-200 pb-3">
                 {getTitleComponent()}
               </div>
             )}
@@ -724,17 +743,26 @@ export function EnhancedMarkdownRenderer({
             5: 'text-sm font-semibold text-gray-700 mb-1',
             6: 'text-sm font-medium text-gray-600 mb-1',
           };
-          
-          const titleClass = titleClasses[groupTitleLevel as keyof typeof titleClasses] || titleClasses[2];
-          
+
+          const titleClass =
+            titleClasses[groupTitleLevel as keyof typeof titleClasses] ||
+            titleClasses[2];
+
           switch (groupTitleLevel) {
-            case 1: return <h1 className={titleClass}>{groupTitle}</h1>;
-            case 2: return <h2 className={titleClass}>{groupTitle}</h2>;
-            case 3: return <h3 className={titleClass}>{groupTitle}</h3>;
-            case 4: return <h4 className={titleClass}>{groupTitle}</h4>;
-            case 5: return <h5 className={titleClass}>{groupTitle}</h5>;
-            case 6: return <h6 className={titleClass}>{groupTitle}</h6>;
-            default: return <h2 className={titleClass}>{groupTitle}</h2>;
+            case 1:
+              return <h1 className={titleClass}>{groupTitle}</h1>;
+            case 2:
+              return <h2 className={titleClass}>{groupTitle}</h2>;
+            case 3:
+              return <h3 className={titleClass}>{groupTitle}</h3>;
+            case 4:
+              return <h4 className={titleClass}>{groupTitle}</h4>;
+            case 5:
+              return <h5 className={titleClass}>{groupTitle}</h5>;
+            case 6:
+              return <h6 className={titleClass}>{groupTitle}</h6>;
+            default:
+              return <h2 className={titleClass}>{groupTitle}</h2>;
           }
         };
 
@@ -747,7 +775,7 @@ export function EnhancedMarkdownRenderer({
           >
             {getGroupTitleComponent()}
             {groupContent && (
-              <div className="text-sm leading-relaxed text-gray-700 mt-2">
+              <div className="mt-2 text-sm leading-relaxed text-gray-700">
                 {groupContent}
               </div>
             )}

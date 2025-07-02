@@ -1,13 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import {
-  type HealthResponse,
   type GenerateThreadRequest,
   type GenerateThreadResponse,
-  type ModifyTweetRequest,
-  type ModifyTweetResponse,
+  type HealthResponse,
   type ModifyOutlineRequest,
   type ModifyOutlineResponse,
+  type ModifyTweetRequest,
+  type ModifyTweetResponse,
 } from '@/types/api';
+
 import { apiGet, apiPost } from './client';
 import { localGenerateThreadResponse } from './local.res';
 
@@ -35,17 +37,23 @@ export function useHealth() {
 // 生成 Twitter Thread
 export function useGenerateThread() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (data: GenerateThreadRequest): Promise<GenerateThreadResponse> => {
+    mutationFn: async (
+      data: GenerateThreadRequest,
+    ): Promise<GenerateThreadResponse> => {
       // 本地开发使用固定数据
       if (process.env.NODE_ENV === 'development') {
         // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         return localGenerateThreadResponse as GenerateThreadResponse;
       }
       // 生产环境调用真实接口
-      return apiPost<GenerateThreadResponse>('/api/twitter/generate', data, 60000);
+      return apiPost<GenerateThreadResponse>(
+        '/api/twitter/generate',
+        data,
+        60000,
+      );
     },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
@@ -60,7 +68,7 @@ export function useGenerateThread() {
 // 修改单个 Tweet
 export function useModifyTweet() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: ModifyTweetRequest) =>
       apiPost<ModifyTweetResponse>('/api/twitter/modify-tweet', data),
@@ -77,7 +85,7 @@ export function useModifyTweet() {
 // 修改大纲
 export function useModifyOutline() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: ModifyOutlineRequest) =>
       apiPost<ModifyOutlineResponse>('/api/twitter/modify-outline', data),
@@ -110,10 +118,10 @@ export function getErrorMessage(error: unknown): string {
       }
     }
   }
-  
+
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   return 'An unknown error occurred';
 }

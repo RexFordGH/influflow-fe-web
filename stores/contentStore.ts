@@ -184,10 +184,16 @@ export const useContentStore = create<ContentState>((set, get) => ({
    * 添加子节点
    */
   addChildNode: (parentNodeId: string) => {
-    const { flowNodes, flowEdges, setFlowNodes, setFlowEdges, syncFlowToMarkdown } = get();
+    const {
+      flowNodes,
+      flowEdges,
+      setFlowNodes,
+      setFlowEdges,
+      syncFlowToMarkdown,
+    } = get();
 
     // 找到父节点
-    const parentNode = flowNodes.find(node => node.id === parentNodeId);
+    const parentNode = flowNodes.find((node) => node.id === parentNodeId);
     if (!parentNode) return;
 
     // 生成新节点ID
@@ -198,14 +204,18 @@ export const useContentStore = create<ContentState>((set, get) => ({
 
     // 智能计算新节点位置，避免与现有子节点重叠
     const parentPosition = parentNode.position;
-    
+
     // 找到当前父节点的所有子节点
-    const parentChildEdges = flowEdges.filter(edge => edge.source === parentNodeId);
-    const childNodeIds = parentChildEdges.map(edge => edge.target);
-    const childNodes = flowNodes.filter(node => childNodeIds.includes(node.id));
-    
+    const parentChildEdges = flowEdges.filter(
+      (edge) => edge.source === parentNodeId,
+    );
+    const childNodeIds = parentChildEdges.map((edge) => edge.target);
+    const childNodes = flowNodes.filter((node) =>
+      childNodeIds.includes(node.id),
+    );
+
     let newPosition;
-    
+
     if (childNodes.length === 0) {
       // 如果没有子节点，放在父节点右侧
       newPosition = {
@@ -215,20 +225,20 @@ export const useContentStore = create<ContentState>((set, get) => ({
     } else {
       // 如果有子节点，找到合适的Y位置避免重叠
       const childPositions = childNodes
-        .map(node => node.position?.y || 0)
+        .map((node) => node.position?.y || 0)
         .sort((a, b) => a - b);
-        
+
       // 节点高度约为 60px，间距为 30px
       const nodeHeight = 60;
       const nodeSpacing = 30;
-      
+
       // 策略1：尝试在现有子节点下方放置新节点
       const maxY = Math.max(...childPositions);
       newPosition = {
         x: parentPosition.x + 250,
         y: maxY + nodeHeight + nodeSpacing,
       };
-      
+
       // 策略2：如果子节点太分散，尝试找到空隙插入
       if (childPositions.length > 1) {
         for (let i = 0; i < childPositions.length - 1; i++) {
@@ -277,7 +287,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
     // 更新状态
     setFlowNodes([...flowNodes, newNode]);
     setFlowEdges([...flowEdges, newEdge]);
-    
+
     // 不立即同步到 Markdown，等用户编辑完成后再同步
   },
 }));

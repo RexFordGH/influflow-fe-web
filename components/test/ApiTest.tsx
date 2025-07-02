@@ -2,44 +2,58 @@
 
 import { Button } from '@heroui/react';
 import { useState } from 'react';
-import { useHealth, useGenerateThread, getErrorMessage } from '@/lib/api/services';
+
+import {
+  getErrorMessage,
+  useGenerateThread,
+  useHealth,
+} from '@/lib/api/services';
 
 export function ApiTest() {
   const [topic, setTopic] = useState('人工智能的发展前景');
-  
+
   // 健康检查
-  const { data: healthData, isLoading: healthLoading, error: healthError } = useHealth();
-  
+  const {
+    data: healthData,
+    isLoading: healthLoading,
+    error: healthError,
+  } = useHealth();
+
   // 生成Thread
-  const { mutate: generateThread, isPending: isGenerating, error: generateError } = useGenerateThread();
+  const {
+    mutate: generateThread,
+    isPending: isGenerating,
+    error: generateError,
+  } = useGenerateThread();
 
   const handleGenerateThread = () => {
     if (!topic.trim()) return;
-    
-    generateThread({ topic: topic.trim() }, {
-      onSuccess: (data) => {
-        console.log('生成成功:', data);
-        alert(`生成成功！共生成${data.data.total_tweets}条推文`);
+
+    generateThread(
+      { topic: topic.trim() },
+      {
+        onSuccess: (data) => {
+          console.log('生成成功:', data);
+          alert(`生成成功！共生成${data.data.total_tweets}条推文`);
+        },
+        onError: (error) => {
+          console.error('生成失败:', error);
+          alert(`生成失败: ${getErrorMessage(error)}`);
+        },
       },
-      onError: (error) => {
-        console.error('生成失败:', error);
-        alert(`生成失败: ${getErrorMessage(error)}`);
-      },
-    });
+    );
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg space-y-4">
-      <h2 className="text-xl font-bold text-center">API 测试</h2>
-      
+    <div className="mx-auto max-w-md space-y-4 rounded-lg bg-white p-6 shadow-lg">
+      <h2 className="text-center text-xl font-bold">API 测试</h2>
+
       {/* 健康检查状态 */}
-      <div className="p-4 border rounded">
-        <h3 className="font-semibold mb-2">API 健康状态</h3>
+      <div className="rounded border p-4">
+        <h3 className="mb-2 font-semibold">API 健康状态</h3>
         {healthLoading && <p className="text-blue-500">检查中...</p>}
         {healthError && (
-          <p className="text-red-500">
-            错误: {getErrorMessage(healthError)}
-          </p>
+          <p className="text-red-500">错误: {getErrorMessage(healthError)}</p>
         )}
         {healthData && (
           <div className="text-green-500">
@@ -50,15 +64,15 @@ export function ApiTest() {
       </div>
 
       {/* 生成 Thread 测试 */}
-      <div className="p-4 border rounded">
-        <h3 className="font-semibold mb-2">生成 Twitter Thread</h3>
+      <div className="rounded border p-4">
+        <h3 className="mb-2 font-semibold">生成 Twitter Thread</h3>
         <div className="space-y-2">
           <input
             type="text"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="输入话题"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <Button
             onPress={handleGenerateThread}
@@ -70,7 +84,7 @@ export function ApiTest() {
             {isGenerating ? '生成中...' : '生成 Thread'}
           </Button>
           {generateError && (
-            <p className="text-red-500 text-sm">
+            <p className="text-sm text-red-500">
               错误: {getErrorMessage(generateError)}
             </p>
           )}

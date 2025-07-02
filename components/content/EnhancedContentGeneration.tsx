@@ -1,26 +1,22 @@
 'use client';
 
-import {
-  ArrowLeftIcon,
-  ArrowPathIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Button, Card, CardBody, Progress, Spinner } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
+import { getErrorMessage, useGenerateThread } from '@/lib/api/services';
+import {
+  convertAPIDataToGeneratedContent,
+  convertAPIDataToMarkdown,
+  convertMindmapToMarkdown,
+  convertMindmapToTweets,
+} from '@/lib/data/converters';
 import {
   GeneratedContent,
   MindmapEdgeData,
   MindmapNodeData,
 } from '@/types/content';
-import { useGenerateThread, getErrorMessage } from '@/lib/api/services';
-import { 
-  convertAPIDataToGeneratedContent, 
-  convertAPIDataToMarkdown,
-  convertTweetsToMarkdown,
-  convertMindmapToTweets,
-  convertMindmapToMarkdown
-} from '@/lib/data/converters';
 
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
@@ -29,8 +25,6 @@ interface EnhancedContentGenerationProps {
   topic: string;
   onBack: () => void;
 }
-
-
 
 export function EnhancedContentGeneration({
   topic,
@@ -51,13 +45,16 @@ export function EnhancedContentGeneration({
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false); // 防止重复请求
   const [rawAPIData, setRawAPIData] = useState<any>(null); // 存储原始API数据
   const [hoveredTweetId, setHoveredTweetId] = useState<string | null>(null); // hover状态
-  const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(null); // 重新生成的markdown
-  
+  const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
+    null,
+  ); // 重新生成的markdown
+
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
 
   // API调用hook
-  const { mutate: generateThread, isPending: isGeneratingAPI } = useGenerateThread();
+  const { mutate: generateThread, isPending: isGeneratingAPI } =
+    useGenerateThread();
 
   // 生成思维过程步骤
   const generationSteps = [
@@ -76,10 +73,10 @@ export function EnhancedContentGeneration({
 
     // 生成唯一的请求ID
     const currentRequestId = `${topic}-${Date.now()}`;
-    
+
     // 如果当前请求ID与ref中的相同，说明是重复执行，直接返回
     if (requestIdRef.current === currentRequestId) return;
-    
+
     console.log('开始API生成，topic:', topic, 'requestId:', currentRequestId);
     requestIdRef.current = currentRequestId;
     setHasStartedGeneration(true);
@@ -88,7 +85,7 @@ export function EnhancedContentGeneration({
 
     // 启动UI进度动画
     const interval = setInterval(() => {
-      setGenerationStep(prev => {
+      setGenerationStep((prev) => {
         if (prev < generationSteps.length - 1) {
           return prev + 1;
         }
@@ -97,46 +94,49 @@ export function EnhancedContentGeneration({
     }, 1500);
 
     // 调用API
-    generateThread({ topic: topic.trim() }, {
-      onSuccess: (response) => {
-        // 检查请求是否还是当前请求（避免竞态条件）
-        if (requestIdRef.current !== currentRequestId) {
-          console.log('忽略过期的API响应');
+    generateThread(
+      { topic: topic.trim() },
+      {
+        onSuccess: (response) => {
+          // 检查请求是否还是当前请求（避免竞态条件）
+          if (requestIdRef.current !== currentRequestId) {
+            console.log('忽略过期的API响应');
+            clearInterval(interval);
+            return;
+          }
+
           clearInterval(interval);
-          return;
-        }
-        
-        clearInterval(interval);
-        console.log('API生成成功:', response);
-        
-        // 存储原始API数据
-        setRawAPIData(response);
-        
-        // 转换API数据为组件所需格式
-        const content = convertAPIDataToGeneratedContent(response);
-        setGeneratedContent(content);
-        setCurrentNodes(content.mindmap.nodes);
-        setCurrentEdges(content.mindmap.edges);
-        setIsGenerating(false);
-        setGenerationStep(generationSteps.length - 1);
-      },
-      onError: (error) => {
-        // 检查请求是否还是当前请求
-        if (requestIdRef.current !== currentRequestId) {
-          console.log('忽略过期的API错误');
+          console.log('API生成成功:', response);
+
+          // 存储原始API数据
+          setRawAPIData(response);
+
+          // 转换API数据为组件所需格式
+          const content = convertAPIDataToGeneratedContent(response);
+          setGeneratedContent(content);
+          setCurrentNodes(content.mindmap.nodes);
+          setCurrentEdges(content.mindmap.edges);
+          setIsGenerating(false);
+          setGenerationStep(generationSteps.length - 1);
+        },
+        onError: (error) => {
+          // 检查请求是否还是当前请求
+          if (requestIdRef.current !== currentRequestId) {
+            console.log('忽略过期的API错误');
+            clearInterval(interval);
+            return;
+          }
+
           clearInterval(interval);
-          return;
-        }
-        
-        clearInterval(interval);
-        console.error('API生成失败:', error);
-        const errorMessage = getErrorMessage(error);
-        setApiError(errorMessage);
-        setIsGenerating(false);
-        setHasStartedGeneration(false); // 失败时重置，允许重试
-        requestIdRef.current = null; // 清除请求ID
+          console.error('API生成失败:', error);
+          const errorMessage = getErrorMessage(error);
+          setApiError(errorMessage);
+          setIsGenerating(false);
+          setHasStartedGeneration(false); // 失败时重置，允许重试
+          requestIdRef.current = null; // 清除请求ID
+        },
       },
-    });
+    );
 
     return () => {
       clearInterval(interval);
@@ -163,13 +163,13 @@ export function EnhancedContentGeneration({
   );
 
   // 处理思维导图节点的 hover 事件
-  const handleNodeHover = useCallback(
-    (tweetId: string | null) => {
-      console.log('EnhancedContentGeneration handleNodeHover called with:', tweetId);
-      setHoveredTweetId(tweetId);
-    },
-    [],
-  );
+  const handleNodeHover = useCallback((tweetId: string | null) => {
+    console.log(
+      'EnhancedContentGeneration handleNodeHover called with:',
+      tweetId,
+    );
+    setHoveredTweetId(tweetId);
+  }, []);
 
   // 处理 markdown 区域的 hover 事件（从 markdown 到思维导图的反向联动）
   const handleMarkdownHover = useCallback((tweetId: string | null) => {
@@ -192,45 +192,58 @@ export function EnhancedContentGeneration({
   }, []);
 
   // 基于思维导图重新生成内容
-  const regenerateFromMindmap = useCallback(async (newMarkdown?: string) => {
-    if (!generatedContent) return;
+  const regenerateFromMindmap = useCallback(
+    async (newMarkdown?: string) => {
+      if (!generatedContent) return;
 
-    setIsRegenerating(true);
+      setIsRegenerating(true);
 
-    console.log('Regenerating from mindmap with markdown:', newMarkdown ? 'provided' : 'generated');
+      console.log(
+        'Regenerating from mindmap with markdown:',
+        newMarkdown ? 'provided' : 'generated',
+      );
 
-    // 基于当前思维导图重新生成内容
-    setTimeout(() => {
-      // 使用传入的markdown或重新生成
-      const finalMarkdown = newMarkdown || convertMindmapToMarkdown(currentNodes, currentEdges);
-      
-      // 重新转换思维导图数据为tweets和outline
-      const { tweets, outline } = convertMindmapToTweets(currentNodes, currentEdges);
+      // 基于当前思维导图重新生成内容
+      setTimeout(() => {
+        // 使用传入的markdown或重新生成
+        const finalMarkdown =
+          newMarkdown || convertMindmapToMarkdown(currentNodes, currentEdges);
 
-      setGeneratedContent({
-        ...generatedContent,
-        mindmap: {
-          nodes: currentNodes,
-          edges: currentEdges,
-        },
-        tweets,
-        outline,
-        metadata: {
-          ...generatedContent.metadata,
-          totalTweets: tweets.length,
-          estimatedReadTime: Math.ceil(tweets.reduce((acc, tweet) => acc + tweet.content.length, 0) / 200),
-        },
-      });
+        // 重新转换思维导图数据为tweets和outline
+        const { tweets, outline } = convertMindmapToTweets(
+          currentNodes,
+          currentEdges,
+        );
 
-      // 更新rawAPIData以显示新的markdown
-      if (rawAPIData) {
-        // 保存新的markdown供EnhancedMarkdownRenderer使用
-        setRegeneratedMarkdown(finalMarkdown);
-      }
+        setGeneratedContent({
+          ...generatedContent,
+          mindmap: {
+            nodes: currentNodes,
+            edges: currentEdges,
+          },
+          tweets,
+          outline,
+          metadata: {
+            ...generatedContent.metadata,
+            totalTweets: tweets.length,
+            estimatedReadTime: Math.ceil(
+              tweets.reduce((acc, tweet) => acc + tweet.content.length, 0) /
+                200,
+            ),
+          },
+        });
 
-      setIsRegenerating(false);
-    }, 1000); // 减少延迟
-  }, [currentNodes, currentEdges, generatedContent, rawAPIData]);
+        // 更新rawAPIData以显示新的markdown
+        if (rawAPIData) {
+          // 保存新的markdown供EnhancedMarkdownRenderer使用
+          setRegeneratedMarkdown(finalMarkdown);
+        }
+
+        setIsRegenerating(false);
+      }, 1000); // 减少延迟
+    },
+    [currentNodes, currentEdges, generatedContent, rawAPIData],
+  );
 
   const handleRegenerate = useCallback(async () => {
     setIsRegenerating(true);
@@ -251,7 +264,7 @@ export function EnhancedContentGeneration({
   // 加载状态和错误状态
   if (isGenerating || (!generatedContent && apiError)) {
     const hasError = !isGenerating && apiError;
-    
+
     return (
       <div className="flex h-screen flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
         {/* 顶部栏 */}
@@ -267,7 +280,11 @@ export function EnhancedContentGeneration({
                 <ArrowLeftIcon className="size-5" />
               </Button>
               <h1 className="text-xl font-semibold text-gray-900">
-                {hasError ? '生成失败' : isRegenerating ? '重新生成中...' : 'AI 正在思考和创作'}
+                {hasError
+                  ? '生成失败'
+                  : isRegenerating
+                    ? '重新生成中...'
+                    : 'AI 正在思考和创作'}
               </h1>
             </div>
           </div>
@@ -285,8 +302,18 @@ export function EnhancedContentGeneration({
                       <div className="relative mx-auto mb-4 size-16">
                         <div className="absolute inset-0 rounded-full bg-red-100"></div>
                         <div className="flex size-full items-center justify-center">
-                          <svg className="size-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          <svg
+                            className="size-8 text-red-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
                           </svg>
                         </div>
                       </div>
@@ -301,9 +328,7 @@ export function EnhancedContentGeneration({
                       <span className="font-medium text-blue-600">{topic}</span>
                     </p>
 
-                    <p className="mb-8 text-sm text-red-500">
-                      {apiError}
-                    </p>
+                    <p className="mb-8 text-sm text-red-500">{apiError}</p>
 
                     <div className="flex justify-center gap-3">
                       <Button
@@ -318,11 +343,7 @@ export function EnhancedContentGeneration({
                       >
                         重试
                       </Button>
-                      <Button
-                        variant="light"
-                        onPress={onBack}
-                        className="px-8"
-                      >
+                      <Button variant="light" onPress={onBack} className="px-8">
                         返回
                       </Button>
                     </div>
@@ -413,7 +434,6 @@ export function EnhancedContentGeneration({
     );
   }
 
-
   return (
     <div className="flex h-screen flex-col bg-gray-50">
       {/* 顶部工具栏 */}
@@ -484,7 +504,9 @@ export function EnhancedContentGeneration({
           <div className="flex-1 overflow-hidden">
             {rawAPIData && (
               <EnhancedMarkdownRenderer
-                content={regeneratedMarkdown || convertAPIDataToMarkdown(rawAPIData)}
+                content={
+                  regeneratedMarkdown || convertAPIDataToMarkdown(rawAPIData)
+                }
                 onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}
                 highlightedSection={hoveredTweetId}
