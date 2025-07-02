@@ -2,6 +2,7 @@
 
 import { PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { Button, Input, Textarea } from '@heroui/react';
+import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
@@ -31,7 +32,8 @@ const EditableMindmapNode = ({
   id: string;
   selected: boolean;
 }) => {
-  const { label, level, onEdit, addChildNode, onNodeHover, hoveredTweetId } = data;
+  const { label, level, onEdit, addChildNode, onNodeHover, hoveredTweetId } =
+    data;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,12 +59,19 @@ const EditableMindmapNode = ({
       : '';
 
     // 检查是否应该高亮（基于hoveredTweetId）
-    const isTweetHovered = hoveredTweetId && data.tweetId && data.tweetId.toString() === hoveredTweetId;
-    const isGroupHovered = hoveredTweetId && hoveredTweetId.startsWith('group-') && 
-                          data.outlineIndex !== undefined && 
-                          data.outlineIndex.toString() === hoveredTweetId.replace('group-', '');
+    const isTweetHovered =
+      hoveredTweetId &&
+      data.tweetId &&
+      data.tweetId.toString() === hoveredTweetId;
+    const isGroupHovered =
+      hoveredTweetId &&
+      hoveredTweetId.startsWith('group-') &&
+      data.outlineIndex !== undefined &&
+      data.outlineIndex.toString() === hoveredTweetId.replace('group-', '');
     const isHovered = isTweetHovered || isGroupHovered;
-    const hoverStyle = isHovered ? 'ring-2 ring-blue-400 ring-offset-1 bg-blue-100' : '';
+    const hoverStyle = isHovered
+      ? 'ring-2 ring-blue-400 ring-offset-1 bg-blue-100'
+      : '';
 
     return `${baseStyle} ${levelStyle} ${selectedStyle} ${hoverStyle}`;
   };
@@ -219,7 +228,6 @@ const EditableMindmapNode = ({
         </button>
       )}
 
-
       <Handle
         type="source"
         position={Position.Right}
@@ -271,8 +279,8 @@ export function EditableContentMindmap({
   const [aiEditInstruction, setAiEditInstruction] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
 
-  // 转换数据格式为 React Flow 格式
-  const convertToFlowData = useCallback(() => {
+  // 转换数据格式为 React Flow 格式（稳定版本，不包含hover状态）
+  const convertToFlowDataStable = useCallback(() => {
     const flowNodes: Node[] = mindmapNodes.map((node) => ({
       id: node.id,
       type: 'editableMindmapNode',
@@ -323,7 +331,6 @@ export function EditableContentMindmap({
         },
         onDirectSelect: setSelectedNodeForAI,
         onNodeHover: onNodeHover, // 传递hover回调
-        hoveredTweetId: hoveredTweetId, // 传递hover状态
         ...node.data,
       },
       style: {
@@ -349,99 +356,146 @@ export function EditableContentMindmap({
     }));
 
     return { flowNodes, flowEdges };
-  }, [mindmapNodes, mindmapEdges, highlightedNodeId, onNodesChange, onEdgesChange, onNodeHover, hoveredTweetId]);
+  }, [
+    mindmapNodes,
+    mindmapEdges,
+    highlightedNodeId,
+    onNodesChange,
+    onEdgesChange,
+    onNodeHover,
+  ]);
 
-  // 自动布局算法
-  const autoLayout = useCallback(() => {
+  // 参考官方ELK.js示例的布局函数
+  const elk = useMemo(() => new ELK(), []);
+
+  const getLayoutedElements = useCallback(
+    async (nodes: any, edges: any, options: any = {}) => {
+      const isHorizontal = options.direction === 'RIGHT';
+
+      const graph = {
+        id: 'root',
+        layoutOptions: {
+          'elk.algorithm': 'layered',
+          'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
+          'elk.spacing.nodeNode': '30',
+          'elk.layered.spacing.nodeNodeBetweenLayers': '60',
+          'elk.spacing.edgeNode': '20',
+          'elk.spacing.edgeEdge': '10',
+          'elk.padding': '[left=50,top=50,right=50,bottom=50]',
+          'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
+          'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+        },
+        children: nodes
+          .sort((a: any, b: any) => {
+            // 按level排序，再按数据顺序排序
+            if (a.data?.level !== b.data?.level) {
+              return (a.data?.level || 0) - (b.data?.level || 0);
+            }
+            // 同level内按原始顺序
+            if (
+              a.data?.outlineIndex !== undefined &&
+              b.data?.outlineIndex !== undefined
+            ) {
+              return a.data.outlineIndex - b.data.outlineIndex;
+            }
+            if (
+              a.data?.tweetId !== undefined &&
+              b.data?.tweetId !== undefined
+            ) {
+              return a.data.tweetId - b.data.tweetId;
+            }
+            return 0;
+          })
+          .map((node: any, index: number) => {
+            // 根据节点级别调整大小
+            const level = node.data?.level || 1;
+            let nodeWidth = 150;
+            let nodeHeight = 50;
+
+            if (level === 1) {
+              nodeWidth = 180;
+              nodeHeight = 60;
+            } else if (level === 2) {
+              nodeWidth = 160;
+              nodeHeight = 55;
+            }
+
+            return {
+              ...node,
+              // Adjust the target and source handle positions based on the layout
+              // direction.
+              targetPosition: isHorizontal ? 'left' : 'top',
+              sourcePosition: isHorizontal ? 'right' : 'bottom',
+
+              // Hardcode a width and height for elk to use when layouting.
+              width: nodeWidth,
+              height: nodeHeight,
+
+              // 添加ELK排序属性
+              layoutOptions: {
+                'elk.priority': level === 1 ? 100 : level === 2 ? 50 : 10,
+                'elk.layered.priority': index,
+              },
+            };
+          }),
+        edges: edges,
+      };
+
+      return elk
+        .layout(graph)
+        .then((layoutedGraph) => ({
+          nodes:
+            layoutedGraph.children?.map((node: any) => ({
+              ...node,
+              // React Flow expects a position property on the node instead of `x`
+              // and `y` fields.
+              position: { x: node.x, y: node.y },
+            })) || [],
+
+          edges: layoutedGraph.edges || [],
+        }))
+        .catch(() => ({ nodes, edges }));
+    },
+    [elk],
+  );
+
+  // 使用ELK.js自动布局算法 - 参考官方示例
+  const autoLayout = useCallback(async () => {
     if (mindmapNodes.length === 0) return;
 
-    const { flowNodes } = convertToFlowData();
+    console.log('开始执行ELK布局，节点数量:', mindmapNodes.length);
+    const { flowNodes, flowEdges } = convertToFlowDataStable();
 
-    // 构建父子关系
-    const parentChildMap = new Map<string, string[]>();
-    const childParentMap = new Map<string, string>();
-
-    mindmapEdges.forEach((edge) => {
-      const parentId = edge.source;
-      const childId = edge.target;
-
-      if (!parentChildMap.has(parentId)) {
-        parentChildMap.set(parentId, []);
-      }
-      parentChildMap.get(parentId)!.push(childId);
-      childParentMap.set(childId, parentId);
+    const result = await getLayoutedElements(flowNodes, flowEdges, {
+      direction: 'RIGHT',
     });
 
-    // 找到根节点
-    const rootNodes = flowNodes.filter((node) => !childParentMap.has(node.id));
+    if (!result) return;
 
-    // 计算子树高度
-    const calculateSubtreeHeight = (nodeId: string): number => {
-      const childIds = parentChildMap.get(nodeId) || [];
+    const { nodes: layoutedNodes, edges: layoutedEdges } = result;
 
-      if (childIds.length === 0) {
-        return 80; // 叶子节点高度
-      }
+    setNodes([...layoutedNodes]);
+    setEdges([...layoutedEdges]);
 
-      const childrenTotalHeight = childIds.reduce((total, childId) => {
-        return total + calculateSubtreeHeight(childId);
-      }, 0);
-
-      return Math.max(80, childrenTotalHeight + (childIds.length - 1) * 20);
-    };
-
-    // 递归布局
-    const layoutNodeTree = (nodeId: string, x: number, y: number): number => {
-      const node = flowNodes.find((n) => n.id === nodeId);
-      if (!node) return y + 80;
-
-      const childIds = parentChildMap.get(nodeId) || [];
-
-      if (childIds.length === 0) {
-        node.position = { x, y };
-        return 80;
-      }
-
-      const childX = x + 250;
-      const childSubtreeHeights = childIds.map((childId) =>
-        calculateSubtreeHeight(childId),
-      );
-      const totalChildrenHeight = childSubtreeHeights.reduce(
-        (sum, h) => sum + h,
-        0,
-      );
-      const totalSpacing = (childIds.length - 1) * 20;
-      const totalRequiredHeight = totalChildrenHeight + totalSpacing;
-
-      const startY = y - totalRequiredHeight / 2;
-      let currentChildY = startY;
-
-      childIds.forEach((childId, index) => {
-        const childSubtreeHeight = childSubtreeHeights[index];
-        const childCenterY = currentChildY + childSubtreeHeight / 2;
-
-        layoutNodeTree(childId, childX, childCenterY);
-        currentChildY += childSubtreeHeight + 20;
-      });
-
-      node.position = { x, y };
-      return totalRequiredHeight;
-    };
-
-    // 布局所有根节点
-    let currentRootY = 100;
-    rootNodes.forEach((rootNode) => {
-      const subtreeHeight = calculateSubtreeHeight(rootNode.id);
-      layoutNodeTree(rootNode.id, 50, currentRootY);
-      currentRootY += subtreeHeight + 100;
-    });
-
-    setNodes(flowNodes);
-
+    // 手动调用fitView确保视图适配和居中
     setTimeout(() => {
-      fitView({ duration: 500 });
-    }, 100);
-  }, [mindmapNodes, mindmapEdges, convertToFlowData, fitView, setNodes]);
+      fitView({
+        duration: 600,
+        padding: 0.2, // 增加边距确保完全可见
+        includeHiddenNodes: true,
+        minZoom: 0.1,
+        maxZoom: 2,
+      });
+    }, 500); // 增加延迟确保布局完成
+  }, [
+    mindmapNodes,
+    mindmapEdges,
+    convertToFlowDataStable,
+    getLayoutedElements,
+    setNodes,
+    setEdges,
+    fitView,
+  ]);
 
   // 添加子节点
   const addChildNode = useCallback(
@@ -525,24 +579,97 @@ export function EditableContentMindmap({
     [mindmapNodes, mindmapEdges, onNodesChange, onEdgesChange],
   );
 
-  // 更新节点和边
+  // 添加一个ref来跟踪是否已经进行过布局
+  const hasLayoutedRef = useRef(false);
+
+  // // 添加初始化自动fitView
+  // useEffect(() => {
+  //   // 延迟800ms后自动调用fitView，确保初始渲染完成
+  //   const timer = setTimeout(() => {
+  //     console.log('初始化自动调用fitView');
+  //     fitView({
+  //       duration: 800,
+  //       padding: 0.2,
+  //       includeHiddenNodes: true,
+  //       minZoom: 0.1,
+  //       maxZoom: 2,
+  //     });
+  //   }, 1500);
+
+  //   return () => clearTimeout(timer);
+  // }, []);
+
+  // 更新节点和边（仅在核心数据变化时）
   useEffect(() => {
-    const { flowNodes, flowEdges } = convertToFlowData();
-    // 更新节点和边数据
-    setNodes(flowNodes);
-    setEdges(flowEdges);
+    const { flowNodes, flowEdges } = convertToFlowDataStable();
 
-    // 如果有节点但没有运行过布局，自动运行布局
-    const hasNodesAtOrigin = flowNodes.some(
-      (node) => node.position.x === 0 && node.position.y === 0,
-    );
+    // 检查是否是首次加载且需要应用自动布局
+    const shouldApplyLayout = flowNodes.length > 0 && !hasLayoutedRef.current;
 
-    if (flowNodes.length > 0 && hasNodesAtOrigin) {
-      setTimeout(() => {
-        autoLayout();
-      }, 100);
+    if (shouldApplyLayout) {
+      console.log('首次加载，直接应用ELK布局，避免闪烁');
+      hasLayoutedRef.current = true;
+
+      // 直接应用ELK布局，不先设置原始节点
+      const applyInitialLayout = async () => {
+        try {
+          const result = await getLayoutedElements(flowNodes, flowEdges, {
+            direction: 'RIGHT',
+          });
+
+          if (result) {
+            const { nodes: layoutedNodes, edges: layoutedEdges } = result;
+            console.log('首次ELK布局完成，设置节点:', layoutedNodes.length);
+            
+            setNodes([...layoutedNodes]);
+            setEdges([...layoutedEdges]);
+
+            setTimeout(() => {
+              fitView({
+                duration: 600,
+                padding: 0.2,
+                includeHiddenNodes: true,
+                minZoom: 0.1,
+                maxZoom: 2,
+              });
+            }, 300);
+          }
+        } catch (error) {
+          console.error('首次ELK布局失败:', error);
+          // 失败时使用原始节点
+          setNodes(flowNodes);
+          setEdges(flowEdges);
+        }
+      };
+
+      applyInitialLayout();
+    } else {
+      // 非首次加载，正常设置节点
+      setNodes(flowNodes);
+      setEdges(flowEdges);
     }
-  }, [convertToFlowData, setNodes, setEdges, autoLayout]);
+  }, [
+    mindmapNodes,
+    mindmapEdges,
+    convertToFlowDataStable,
+    getLayoutedElements,
+    fitView,
+    setNodes,
+    setEdges,
+  ]);
+
+  // 单独处理hover状态更新（不触发布局）
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          hoveredTweetId: hoveredTweetId,
+        },
+      })),
+    );
+  }, [hoveredTweetId]);
 
   // 处理连接创建
   const onConnect = useCallback(
@@ -752,8 +879,8 @@ export function EditableContentMindmap({
           className="text-xs bg-white p-2 rounded shadow space-y-1"
         >
           <div>选中节点: {selectedNodeForAI || '无'}</div>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onPress={() => {
               const firstNode = nodes[0];
               if (firstNode) {
@@ -766,16 +893,11 @@ export function EditableContentMindmap({
           </Button>
         </Panel>
 
-        {/* <Panel position="top-right" className="flex flex-col gap-2">
-          <Button
-            size="sm"
-            color="primary"
-            variant="flat"
-            onPress={autoLayout}
-          >
-            自动布局
+        <Panel position="top-right" className="flex flex-col gap-2">
+          <Button size="sm" color="primary" variant="flat" onPress={autoLayout}>
+            ELK自动布局
           </Button>
-          
+
           <Button
             size="sm"
             color="success"
@@ -783,7 +905,7 @@ export function EditableContentMindmap({
             startContent={<PlusIcon className="h-4 w-4" />}
             onPress={() => {
               // 添加到根节点的子节点
-              const rootNode = mindmapNodes.find(n => n.level === 1);
+              const rootNode = mindmapNodes.find((n) => n.level === 1);
               if (rootNode) {
                 addChildNode(rootNode.id);
               }
@@ -791,7 +913,7 @@ export function EditableContentMindmap({
           >
             添加节点
           </Button>
-        </Panel> */}
+        </Panel>
 
         {/* <Panel position="bottom-left" className="text-sm text-gray-500">
           <div className="bg-white p-2 rounded border border-gray-200">

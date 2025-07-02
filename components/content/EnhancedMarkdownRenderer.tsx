@@ -171,7 +171,7 @@ export function EnhancedMarkdownRenderer({
         }
         inGroupDiv = true;
         currentGroupId = groupDivMatch[1];
-        
+
         currentSection = {
           id: `group-section-${currentGroupId}`,
           type: 'group',
@@ -183,7 +183,9 @@ export function EnhancedMarkdownRenderer({
       }
 
       // 检查是否是tweet div开始标签
-      const tweetDivMatch = trimmedLine.match(/<div\s+data-tweet-id="(\d+)"\s+data-group-index="(\d+)"\s+data-tweet-index="(\d+)">/);
+      const tweetDivMatch = trimmedLine.match(
+        /<div\s+data-tweet-id="(\d+)"\s+data-group-index="(\d+)"\s+data-tweet-index="(\d+)">/,
+      );
       if (tweetDivMatch) {
         if (currentSection) {
           sections.push(currentSection);
@@ -192,7 +194,7 @@ export function EnhancedMarkdownRenderer({
         currentTweetId = tweetDivMatch[1];
         currentGroupIndex = parseInt(tweetDivMatch[2]);
         currentTweetIndex = parseInt(tweetDivMatch[3]);
-        
+
         currentSection = {
           id: `tweet-section-${currentTweetId}`,
           type: 'tweet',
@@ -333,16 +335,22 @@ export function EnhancedMarkdownRenderer({
       highlightedSection === section.mappingId ||
       highlightedSection === section.id ||
       (hoveredTweetId && section.tweetId === hoveredTweetId) ||
-      (hoveredTweetId && hoveredTweetId.startsWith('group-') && section.groupId === hoveredTweetId.replace('group-', ''));
-    
+      (hoveredTweetId &&
+        hoveredTweetId.startsWith('group-') &&
+        section.groupId === hoveredTweetId.replace('group-', ''));
+
     // Debug信息
     if (section.type === 'tweet') {
-      console.log(`Tweet ${section.tweetId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`);
+      console.log(
+        `Tweet ${section.tweetId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`,
+      );
     }
     if (section.type === 'group') {
-      console.log(`Group ${section.groupId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`);
+      console.log(
+        `Group ${section.groupId}: hoveredTweetId=${hoveredTweetId}, isHighlighted=${isHighlighted}`,
+      );
     }
-    
+
     const baseClasses =
       'transition-all duration-300 p-4 rounded-lg relative group cursor-pointer';
     const highlightClasses = isHighlighted
@@ -538,12 +546,14 @@ export function EnhancedMarkdownRenderer({
       case 'tweet':
         // 分离title和content - 支持H3标题格式
         const lines = section.content.split('\n\n');
-        const titleLine = lines.find(line => line.startsWith('### '));
-        const contentLines = lines.filter(line => line !== titleLine && line.trim() !== '');
-        
+        const titleLine = lines.find((line) => line.startsWith('### '));
+        const contentLines = lines.filter(
+          (line) => line !== titleLine && line.trim() !== '',
+        );
+
         const title = titleLine ? titleLine.replace(/^### /, '') : '';
         const content = contentLines.join('\n\n');
-        
+
         // 处理内容，保留换行和格式
         const processedTweetContent = content
           .replace(/\n/g, '<br>') // 转换换行为HTML
@@ -572,13 +582,13 @@ export function EnhancedMarkdownRenderer({
                 </h3>
               </div>
             )}
-            
+
             {/* Tweet Content */}
             <div
               className="text-sm leading-relaxed text-gray-700"
               dangerouslySetInnerHTML={{ __html: processedTweetContent }}
             />
-            
+
             <SourceButton
               sectionId={section.id}
               mappingId={section.tweetId}
@@ -590,7 +600,7 @@ export function EnhancedMarkdownRenderer({
       case 'group':
         // 处理分组标题 (H2)
         const groupTitle = section.content.replace(/^## /, '');
-        
+
         return (
           <div
             key={section.id}
@@ -673,25 +683,6 @@ export function EnhancedMarkdownRenderer({
         <div className="max-w-none p-6">
           <div className="space-y-2">
             {sections.map((section, index) => renderSection(section, index))}
-          </div>
-
-          {/* 内容底部信息 */}
-          <div className="mt-8 border-t border-gray-200 pt-6">
-            <div className="mb-4 flex flex-wrap gap-2">
-              <Chip size="sm" variant="flat" color="primary">
-                AI生成内容
-              </Chip>
-              <Chip size="sm" variant="flat" color="success">
-                多来源验证
-              </Chip>
-              <Chip size="sm" variant="flat" color="warning">
-                持续更新
-              </Chip>
-            </div>
-            <p className="text-xs text-gray-500">
-              本内容由AI根据多个可靠来源综合生成，包含了行业报告、专家访谈、市场数据等信息。
-              点击各段落旁的信息图标可查看具体来源。
-            </p>
           </div>
         </div>
       </div>

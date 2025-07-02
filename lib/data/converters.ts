@@ -26,7 +26,7 @@ export function convertThreadDataToMindmap(
     label: data.outline.topic,
     level: 1,
     type: 'topic',
-    position: { x: 50, y: 200 },
+    position: { x: 0, y: 0 }, // 初始位置设为0,0让dagre布局算法处理
   };
   nodes.push(topicNode);
 
@@ -39,7 +39,7 @@ export function convertThreadDataToMindmap(
       label: tweetGroup.title,
       level: 2,
       type: 'outline_point',
-      position: { x: 300, y: 80 + groupIndex * 120 },
+      position: { x: 0, y: 0 }, // 初始位置设为0,0让dagre布局算法处理
       data: {
         outlineIndex: groupIndex,
       },
@@ -62,10 +62,7 @@ export function convertThreadDataToMindmap(
         label: tweetItem.title, // 只显示 title
         level: 3,
         type: 'tweet',
-        position: { 
-          x: 550, 
-          y: 60 + groupIndex * 120 + tweetIndex * 40 
-        },
+        position: { x: 0, y: 0 }, // 初始位置设为0,0让dagre布局算法处理
         data: {
           tweetId: tweetItem.tweet_number,
           content: tweetItem.content,
@@ -226,7 +223,7 @@ export function convertTweetsToMarkdown(
  */
 export function convertMindmapToTweets(
   nodes: MindmapNodeData[],
-  edges: MindmapEdgeData[]
+  _edges: MindmapEdgeData[]
 ): { tweets: ContentTweet[]; outline: ContentOutline } {
   // 获取大纲点节点
   const outlineNodes = nodes
