@@ -6,10 +6,45 @@ import { Button, Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
-import { EnhancedContentGeneration } from '@/components/content/EnhancedContentGeneration';
-import { TrendingTopics } from '@/components/content/TrendingTopics';
-import { WriteByMyselfPage } from '@/components/content/WriteByMyselfPage';
+import dynamic from 'next/dynamic';
+
 import { ApiTest } from '@/components/test/ApiTest';
+
+const EnhancedContentGeneration = dynamic(
+  () => import('@/components/content/EnhancedContentGeneration').then(mod => ({ default: mod.EnhancedContentGeneration })),
+  {
+    loading: () => (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-gray-500">加载中...</div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const TrendingTopics = dynamic(
+  () => import('@/components/content/TrendingTopics').then(mod => ({ default: mod.TrendingTopics })),
+  {
+    loading: () => (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-gray-500">加载中...</div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const WriteByMyselfPage = dynamic(
+  () => import('@/components/content/WriteByMyselfPage').then(mod => ({ default: mod.WriteByMyselfPage })),
+  {
+    loading: () => (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-gray-500">加载中...</div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface Note {
   id: string;
