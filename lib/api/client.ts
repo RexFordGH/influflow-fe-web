@@ -70,8 +70,7 @@ export async function apiRequest<T>(
     ) {
       const baseResponse = parsed as BaseResponse<unknown>;
 
-      // 检查业务逻辑错误
-      if (baseResponse.code !== 0) {
+      if (baseResponse?.status !== 'success') {
         throw new ApiError(
           baseResponse.message || `API Error: ${baseResponse.code}`,
           baseResponse.code,

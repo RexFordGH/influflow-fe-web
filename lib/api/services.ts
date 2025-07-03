@@ -51,7 +51,7 @@ export function useGenerateThread() {
         return localGenerateThreadResponse;
       }
       // 生产环境调用真实接口
-      return apiPost<Outline>('/api/twitter/generate', data, 60000);
+      return apiPost<Outline>('/api/twitter/generate', data, 100000);
     },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
@@ -80,7 +80,11 @@ export function useModifyTweet() {
         );
       }
       // 生产环境调用真实接口
-      return apiPost<ModifyTweetData>('/api/twitter/modify-tweet', data, 30000);
+      return apiPost<ModifyTweetData>(
+        '/api/twitter/modify-tweet',
+        data,
+        100000,
+      );
     },
     onSuccess: (data) => {
       console.log('Tweet modified successfully:', data);
@@ -113,7 +117,7 @@ export function useModifyOutline() {
       return apiPost<ModifyOutlineData>(
         '/api/twitter/modify-outline',
         data,
-        30000,
+        100000,
       );
     },
     onSuccess: (data) => {
