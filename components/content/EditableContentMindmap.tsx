@@ -42,6 +42,7 @@ interface EditableContentMindmapProps {
   onRegenerate?: (markdown?: string) => void;
   highlightedNodeId?: string | null;
   hoveredTweetId?: string | null;
+  onLoadingStateChange?: (tweetId: string | null) => void; // 新增loading状态回调
 }
 
 export function EditableContentMindmap({
@@ -55,6 +56,7 @@ export function EditableContentMindmap({
   onRegenerate,
   highlightedNodeId,
   hoveredTweetId,
+  onLoadingStateChange,
 }: EditableContentMindmapProps) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
@@ -83,6 +85,9 @@ export function EditableContentMindmap({
   const [showAIEditModal, setShowAIEditModal] = useState(false);
   const [aiEditInstruction, setAiEditInstruction] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+
+  // Loading 状态管理 - 用于 modify-outline 接口
+  const [loadingNodeId, setLoadingNodeId] = useState<string | null>(null);
 
   // 转换数据格式为 React Flow 格式（稳定版本，不包含hover状态）
   const convertToFlowDataStable = useCallback(() => {
@@ -140,6 +145,7 @@ export function EditableContentMindmap({
         onNodeHover: onNodeHover, // 传递hover回调
         hoveredTweetId: hoveredTweetId, // 传递hover状态
         selectedNodeForAI: selectedNodeForAI, // 传递选中状态
+        isLoading: loadingNodeId === node.id, // 传递loading状态
         ...node.data,
       },
       style: {
@@ -170,6 +176,7 @@ export function EditableContentMindmap({
     mindmapEdges,
     highlightedNodeId,
     selectedNodeForAI, // 添加这个依赖
+    loadingNodeId, // 添加loading状态依赖
     onNodesChange,
     onEdgesChange,
     onNodeHover,
@@ -566,17 +573,35 @@ export function EditableContentMindmap({
   // 处理双击编辑 (使用useModifyOutline)
   const handleNodeEdit = async (nodeId: string, newLabel: string) => {
     try {
+      // 设置 loading 状态
+      setLoadingNodeId(nodeId);
+
+      // 获取节点对应的 tweetId 用于 markdown loading
+      const targetNode = mindmapNodes.find((node) => node.id === nodeId);
+      let markdownLoadingId = null;
+      if (targetNode?.data?.tweetId !== undefined) {
+        markdownLoadingId = targetNode.data.tweetId.toString();
+      } else if (targetNode?.data?.outlineIndex !== undefined) {
+        markdownLoadingId = `group-${targetNode.data.outlineIndex}`;
+      }
+      
+      // 设置 markdown loading 状态
+      if (markdownLoadingId) {
+        onLoadingStateChange?.(markdownLoadingId);
+      }
+
       // 检查是否有当前outline数据
       if (!currentOutline) {
         console.error('缺少原始outline数据，无法进行编辑');
         alert('缺少原始数据，无法进行编辑');
+        setLoadingNodeId(null); // 清除 loading 状态
         return;
       }
 
-      // 找到要编辑的节点
-      const targetNode = mindmapNodes.find((node) => node.id === nodeId);
       if (!targetNode) {
         console.error('未找到目标节点:', nodeId);
+        setLoadingNodeId(null);
+        onLoadingStateChange?.(null);
         return;
       }
 
@@ -646,6 +671,10 @@ export function EditableContentMindmap({
     } catch (error) {
       console.error('节点编辑失败:', error);
       // alert(`编辑失败: ${getErrorMessage(error)}`);
+    } finally {
+      // 清除 loading 状态
+      setLoadingNodeId(null);
+      onLoadingStateChange?.(null);
     }
   };
 

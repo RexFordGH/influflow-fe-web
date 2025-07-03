@@ -25,6 +25,7 @@ interface EnhancedMarkdownRendererProps {
   highlightedSection?: string | null;
   sources?: string[];
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
+  loadingTweetId?: string | null; // 新增：loading状态的tweetId
   imageData?: {
     url: string;
     alt: string;
@@ -132,6 +133,7 @@ export function EnhancedMarkdownRenderer({
   highlightedSection,
   sources = [],
   hoveredTweetId, // 新增参数
+  loadingTweetId, // 新增loading参数
   imageData, // 图片数据
 }: EnhancedMarkdownRendererProps) {
   const [selectedSourceSection, setSelectedSourceSection] = useState<
@@ -421,11 +423,31 @@ export function EnhancedMarkdownRenderer({
       });
     }
 
+    // 检查是否正在loading - 增强匹配逻辑
+    const isLoading =
+      loadingTweetId &&
+      (// Tweet节点的多种匹配方式
+        (section.tweetId &&
+          (section.tweetId === loadingTweetId ||
+            section.tweetId.toString() === loadingTweetId.toString() ||
+            Number(section.tweetId) === Number(loadingTweetId))) ||
+        // Group节点的多种匹配方式
+        (loadingTweetId.startsWith('group-') &&
+          section.groupId &&
+          (section.groupId === loadingTweetId.replace('group-', '') ||
+            section.groupId.toString() === loadingTweetId.replace('group-', '') ||
+            Number(section.groupId) === Number(loadingTweetId.replace('group-', '')))) ||
+        // Fallback：直接ID匹配
+        loadingTweetId === section.id);
+
     const baseClasses =
       'transition-all duration-300 p-4 rounded-lg relative group cursor-pointer';
     const highlightClasses = isHighlighted
       ? 'bg-blue-50 border-2 border-blue-400 shadow-lg transform scale-[1.02]'
       : 'hover:bg-gray-50 hover:shadow-md hover:border-gray-200';
+    const loadingClasses = isLoading
+      ? 'opacity-60 cursor-wait'
+      : '';
 
     const handleMouseEnter = () => {
       // 根据section类型传递不同的hover标识
@@ -472,10 +494,15 @@ export function EnhancedMarkdownRenderer({
         return (
           <div
             key={section.id}
-            className={`${baseClasses} ${highlightClasses}`}
+            className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
+            {isLoading && (
+              <div className="absolute left-2 top-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              </div>
+            )}
             <HeadingTag
               className={
                 headingClasses[section.level as keyof typeof headingClasses] ||
@@ -499,10 +526,15 @@ export function EnhancedMarkdownRenderer({
           return (
             <div
               key={section.id}
-              className={`${baseClasses} ${highlightClasses} mb-6`}
+              className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
+              {isLoading && (
+                <div className="absolute left-2 top-2 z-10">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                </div>
+              )}
               <div className="relative">
                 <img
                   src={imageSrc}
@@ -536,10 +568,15 @@ export function EnhancedMarkdownRenderer({
         return (
           <div
             key={section.id}
-            className={`${baseClasses} ${highlightClasses}`}
+            className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
+            {isLoading && (
+              <div className="absolute left-2 top-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              </div>
+            )}
             <p
               className="mb-3 text-sm leading-relaxed text-gray-700"
               dangerouslySetInnerHTML={{ __html: processedParagraphContent }}
@@ -561,10 +598,15 @@ export function EnhancedMarkdownRenderer({
         return (
           <div
             key={section.id}
-            className={`${baseClasses} ${highlightClasses}`}
+            className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
+            {isLoading && (
+              <div className="absolute left-2 top-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              </div>
+            )}
             {isNumberedList ? (
               <ol className="mb-3 ml-4 space-y-2">
                 {listItems.map((item, idx) => (
@@ -685,10 +727,15 @@ export function EnhancedMarkdownRenderer({
         return (
           <div
             key={section.id}
-            className={`${baseClasses} ${highlightClasses} mb-6 border border-gray-100`}
+            className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6 border border-gray-100`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
+            {isLoading && (
+              <div className="absolute left-2 top-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              </div>
+            )}
             {/* Tweet Title with proper heading styling */}
             {title && (
               <div className="mb-4 border-b border-gray-200 pb-3">
@@ -769,10 +816,15 @@ export function EnhancedMarkdownRenderer({
         return (
           <div
             key={section.id}
-            className={`${baseClasses} ${highlightClasses} mb-6`}
+            className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
+            {isLoading && (
+              <div className="absolute left-2 top-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              </div>
+            )}
             {getGroupTitleComponent()}
             {groupContent && (
               <div className="mt-2 text-sm leading-relaxed text-gray-700">

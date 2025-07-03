@@ -16,10 +16,11 @@ const EditableMindmapNode = ({
   id: string;
   selected: boolean;
 }) => {
-  const { label, level, onEdit, addChildNode, onNodeHover, hoveredTweetId } =
+  const { label, level, onEdit, addChildNode, onNodeHover, hoveredTweetId, isLoading } =
     data;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
+  const [pendingValue, setPendingValue] = useState<string | null>(null); // 保存编辑后的临时文案
   const inputRef = useRef<HTMLInputElement>(null);
 
   // 根据层级确定样式
@@ -85,8 +86,11 @@ const EditableMindmapNode = ({
       });
     }
     const hoverStyle = isHovered ? 'bg-[#DDE9FF]' : '';
+    
+    // Loading 样式
+    const loadingStyle = isLoading ? 'opacity-60 cursor-wait animate-pulse' : '';
 
-    return `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
+    return `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle} ${loadingStyle}`;
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
@@ -110,6 +114,8 @@ const EditableMindmapNode = ({
 
   const handleSave = useCallback(() => {
     if (editValue.trim()) {
+      // 设置 pending 状态，显示用户刚编辑的内容
+      setPendingValue(editValue.trim());
       onEdit?.(id, editValue.trim());
     }
     setIsEditing(false);
@@ -119,7 +125,9 @@ const EditableMindmapNode = ({
     if (e.key === 'Enter') {
       handleSave();
     } else if (e.key === 'Escape') {
+      // 取消编辑，恢复原状态
       setEditValue(label);
+      setPendingValue(null); // 清除 pending 状态
       setIsEditing(false);
     }
   };
@@ -150,6 +158,21 @@ const EditableMindmapNode = ({
       inputRef.current.focus();
     }
   }, [isEditing]);
+
+  // 监听 loading 状态变化，当 loading 结束时清除 pending 状态
+  useEffect(() => {
+    if (!isLoading && pendingValue) {
+      // loading 结束时清除 pending 状态，此时 label 已经是服务器返回的最新数据
+      setPendingValue(null);
+    }
+  }, [isLoading, pendingValue]);
+
+  // 同步 editValue 和 label
+  useEffect(() => {
+    if (!isEditing && !pendingValue) {
+      setEditValue(label);
+    }
+  }, [label, isEditing, pendingValue]);
 
   // Hover 状态管理
   const [isHovered, setIsHovered] = useState(false);
@@ -240,8 +263,13 @@ const EditableMindmapNode = ({
             }}
           />
         ) : (
-          <div onDoubleClick={handleDoubleClick} title="双击编辑">
-            {label}
+          <div onDoubleClick={handleDoubleClick} title="双击编辑" className="relative flex items-center">
+            {isLoading && (
+              <div className="absolute left-[-6px] top-1/2 -translate-y-1/2">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+              </div>
+            )}
+            <span className={isLoading ? 'ml-4' : ''}>{pendingValue || label}</span>
           </div>
         )}
       </div>

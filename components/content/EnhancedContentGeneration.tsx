@@ -50,6 +50,7 @@ export function EnhancedContentGeneration({
   const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
     null,
   ); // 重新生成的markdown
+  const [loadingTweetId, setLoadingTweetId] = useState<string | null>(null); // markdown loading状态
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
@@ -182,6 +183,11 @@ export function EnhancedContentGeneration({
   // 处理 markdown 区域的 hover 事件（从 markdown 到思维导图的反向联动）
   const handleMarkdownHover = useCallback((tweetId: string | null) => {
     setHoveredTweetId(tweetId);
+  }, []);
+
+  // 处理 loading 状态变化
+  const handleLoadingStateChange = useCallback((tweetId: string | null) => {
+    setLoadingTweetId(tweetId);
   }, []);
 
   const handleSourceClick = useCallback((sectionId: string) => {
@@ -329,6 +335,7 @@ export function EnhancedContentGeneration({
               onRegenerate={regenerateFromMindmap}
               highlightedNodeId={selectedNodeId}
               hoveredTweetId={hoveredTweetId}
+              onLoadingStateChange={handleLoadingStateChange}
             />
           </ReactFlowProvider>
         </div>
@@ -348,6 +355,7 @@ export function EnhancedContentGeneration({
                 sources={generatedContent?.metadata.sources}
                 hoveredTweetId={hoveredTweetId}
                 imageData={generatedContent?.image}
+                loadingTweetId={loadingTweetId}
               />
             )}
           </div>
