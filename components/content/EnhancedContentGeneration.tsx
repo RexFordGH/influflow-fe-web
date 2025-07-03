@@ -17,6 +17,7 @@ import {
   MindmapEdgeData,
   MindmapNodeData,
 } from '@/types/content';
+import { Outline } from '@/types/outline';
 
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
@@ -44,7 +45,7 @@ export function EnhancedContentGeneration({
   const [currentEdges, setCurrentEdges] = useState<MindmapEdgeData[]>([]);
   const [apiError, setApiError] = useState<string | null>(null);
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false); // 防止重复请求
-  const [rawAPIData, setRawAPIData] = useState<any>(null); // 存储原始API数据
+  const [rawAPIData, setRawAPIData] = useState<Outline | null>(null); // 存储原始API数据
   const [hoveredTweetId, setHoveredTweetId] = useState<string | null>(null); // hover状态
   const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
     null,
@@ -320,7 +321,7 @@ export function EnhancedContentGeneration({
             <EditableContentMindmap
               nodes={currentNodes}
               edges={currentEdges}
-              originalOutline={rawAPIData?.outline} // 传入原始outline数据
+              originalOutline={rawAPIData || undefined} // 传入原始outline数据
               onNodeSelect={handleNodeSelect}
               onNodeHover={handleNodeHover}
               onNodesChange={handleNodesChange}

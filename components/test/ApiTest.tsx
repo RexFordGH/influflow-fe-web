@@ -34,7 +34,7 @@ export function ApiTest() {
       {
         onSuccess: (data) => {
           console.log('生成成功:', data);
-          alert(`生成成功！共生成${data.outline.total_tweets}条推文`);
+          alert(`生成成功！共生成${data.total_tweets}条推文`);
         },
         onError: (error) => {
           console.error('生成失败:', error);
@@ -57,7 +57,7 @@ export function ApiTest() {
         )}
         {healthData && (
           <div className="text-green-500">
-            <p>状态: {healthData.status}</p>
+            <p>状态: 正常</p>
             <p>时间: {healthData.timestamp}</p>
           </div>
         )}

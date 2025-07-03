@@ -624,7 +624,7 @@ export function EditableContentMindmap({
       });
 
       // API返回全新的完整数据，需要完整更新
-      if (result.status === 'success' && result.updated_outline) {
+      if (result.updated_outline) {
         console.log('双击编辑成功，返回的数据:', result);
 
         const newOutline = result.updated_outline;
@@ -633,13 +633,8 @@ export function EditableContentMindmap({
         setCurrentOutline(newOutline);
 
         // 使用正确的转换函数重新构建思维导图
-        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap(
-          {
-            outline: newOutline,
-            status: result.status,
-            error: null,
-          },
-        );
+        const { nodes: newNodes, edges: newEdges } =
+          convertThreadDataToMindmap(newOutline);
 
         onNodesChange?.(newNodes);
         onEdgesChange?.(newEdges);
@@ -690,7 +685,7 @@ export function EditableContentMindmap({
       });
 
       // API只返回更新的tweet内容，需要局部更新
-      if (result.updated_tweet_content && result.tweet_number) {
+      if (result.updated_tweet_content) {
         console.log('AI编辑成功，返回的数据:', result);
 
         // 1. 更新currentOutline中对应的tweet内容
@@ -701,7 +696,7 @@ export function EditableContentMindmap({
 
         for (const outlineNode of updatedOutline.nodes) {
           const tweetToUpdate = outlineNode.tweets.find(
-            (tweet) => tweet.tweet_number === result.tweet_number,
+            (tweet) => tweet.tweet_number === tweetNumber,
           );
           if (tweetToUpdate) {
             tweetToUpdate.content = result.updated_tweet_content;
@@ -715,7 +710,7 @@ export function EditableContentMindmap({
         }
 
         if (!tweetFound) {
-          console.error('未找到对应的tweet_number:', result.tweet_number);
+          console.error('未找到对应的tweet_number:', tweetNumber);
           alert('更新失败：未找到对应的内容');
           return;
         }
@@ -725,7 +720,7 @@ export function EditableContentMindmap({
 
         // 3. 局部更新思维导图节点数据（不重新渲染整个图）
         const updatedNodes = mindmapNodes.map((node) => {
-          if (node.data?.tweetId === result.tweet_number) {
+          if (node.data?.tweetId === tweetNumber) {
             return {
               ...node,
               label:

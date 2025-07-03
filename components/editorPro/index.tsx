@@ -1,4 +1,3 @@
-import { Button } from '@/components/base';
 import {
   cn,
   Input,
@@ -21,6 +20,9 @@ import Link from '@tiptap/extension-link';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import React, { useEffect, useRef, useState } from 'react';
+
+import { Button } from '@/components/base';
+
 import { MarkdownLinkPlugin } from './mdLinkPlugin';
 import { MarkdownPastePlugin } from './mdPasteHandler';
 
@@ -470,7 +472,7 @@ const EditorPro: React.FC<EditorProProps> = ({
   ]);
 
   return (
-    <div className="w-full h-full">
+    <div className="size-full">
       <div
         className={cn(
           'rounded-lg bg-white/[0.02]',

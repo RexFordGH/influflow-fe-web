@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '@/constants/env';
-import { type ApiErrorResponse } from '@/types/api';
+import { type ApiErrorResponse, type BaseResponse } from '@/types/api';
 
 export class ApiError extends Error {
   constructor(
@@ -59,7 +59,30 @@ export async function apiRequest<T>(
       return {} as T;
     }
 
-    return JSON.parse(text) as T;
+    const parsed = JSON.parse(text);
+
+    // 如果响应包含 BaseResponse 结构，检查并提取 data 字段
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'data' in parsed &&
+      'code' in parsed
+    ) {
+      const baseResponse = parsed as BaseResponse<unknown>;
+
+      // 检查业务逻辑错误
+      if (baseResponse.code !== 0) {
+        throw new ApiError(
+          baseResponse.message || `API Error: ${baseResponse.code}`,
+          baseResponse.code,
+          { detail: baseResponse.error || baseResponse.message },
+        );
+      }
+
+      return baseResponse.data as T;
+    }
+
+    return parsed as T;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -98,4 +121,20 @@ export async function apiPost<T>(
     },
     timeoutMs,
   );
+}
+
+// 专门处理 BaseResponse 包装的 API 调用
+export async function apiGetData<T>(
+  endpoint: string,
+  timeoutMs?: number,
+): Promise<T> {
+  return apiGet<T>(endpoint, timeoutMs);
+}
+
+export async function apiPostData<T>(
+  endpoint: string,
+  data?: unknown,
+  timeoutMs?: number,
+): Promise<T> {
+  return apiPost<T>(endpoint, data, timeoutMs);
 }

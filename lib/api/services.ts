@@ -2,13 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   type GenerateThreadRequest,
-  type GenerateThreadResponse,
-  type HealthResponse,
+  type HealthData,
+  type ModifyOutlineData,
   type ModifyOutlineRequest,
-  type ModifyOutlineResponse,
+  type ModifyTweetData,
   type ModifyTweetRequest,
-  type ModifyTweetResponse,
 } from '@/types/api';
+import { Outline } from '@/types/outline';
 
 import { apiGet, apiPost } from './client';
 import {
@@ -27,7 +27,7 @@ export const QUERY_KEYS = {
 export function useHealth() {
   return useQuery({
     queryKey: QUERY_KEYS.HEALTH,
-    queryFn: () => apiGet<HealthResponse>('/health'),
+    queryFn: () => apiGet<HealthData>('/health'),
     refetchInterval: 30000, // 30秒刷新一次
     refetchOnWindowFocus: false,
     retry: 3,
@@ -43,21 +43,15 @@ export function useGenerateThread() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (
-      data: GenerateThreadRequest,
-    ): Promise<GenerateThreadResponse> => {
+    mutationFn: async (data: GenerateThreadRequest): Promise<Outline> => {
       // 检查是否使用本地数据
       if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
         // 模拟网络延迟
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        return localGenerateThreadResponse as GenerateThreadResponse;
+        return localGenerateThreadResponse;
       }
       // 生产环境调用真实接口
-      return apiPost<GenerateThreadResponse>(
-        '/api/twitter/generate',
-        data,
-        60000,
-      );
+      return apiPost<Outline>('/api/twitter/generate', data, 60000);
     },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
@@ -74,9 +68,7 @@ export function useModifyTweet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (
-      data: ModifyTweetRequest,
-    ): Promise<ModifyTweetResponse> => {
+    mutationFn: async (data: ModifyTweetRequest): Promise<ModifyTweetData> => {
       // 检查是否使用本地数据
       if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
         // 模拟网络延迟
@@ -88,11 +80,7 @@ export function useModifyTweet() {
         );
       }
       // 生产环境调用真实接口
-      return apiPost<ModifyTweetResponse>(
-        '/api/twitter/modify-tweet',
-        data,
-        30000,
-      );
+      return apiPost<ModifyTweetData>('/api/twitter/modify-tweet', data, 30000);
     },
     onSuccess: (data) => {
       console.log('Tweet modified successfully:', data);
@@ -111,7 +99,7 @@ export function useModifyOutline() {
   return useMutation({
     mutationFn: async (
       data: ModifyOutlineRequest,
-    ): Promise<ModifyOutlineResponse> => {
+    ): Promise<ModifyOutlineData> => {
       // 检查是否使用本地数据
       if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
         // 模拟网络延迟
@@ -122,7 +110,7 @@ export function useModifyOutline() {
         );
       }
       // 生产环境调用真实接口
-      return apiPost<ModifyOutlineResponse>(
+      return apiPost<ModifyOutlineData>(
         '/api/twitter/modify-outline',
         data,
         30000,

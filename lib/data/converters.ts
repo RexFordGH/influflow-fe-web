@@ -1,4 +1,3 @@
-import { type GenerateThreadResponse } from '@/types/api';
 import {
   type Outline as ContentOutline,
   type SimpleTweet as ContentTweet,
@@ -6,11 +5,12 @@ import {
   type MindmapEdgeData,
   type MindmapNodeData,
 } from '@/types/content';
+import { Outline } from '@/types/outline';
 
 /**
- * 将API返回的GenerateThreadResponse转换为思维导图数据结构
+ * 将API返回的Outline转换为思维导图数据结构
  */
-export function convertThreadDataToMindmap(data: GenerateThreadResponse): {
+export function convertThreadDataToMindmap(data: Outline): {
   nodes: MindmapNodeData[];
   edges: MindmapEdgeData[];
 } {
@@ -20,16 +20,16 @@ export function convertThreadDataToMindmap(data: GenerateThreadResponse): {
   // 1. 创建主题节点（Level 1）
   const topicNode: MindmapNodeData = {
     id: 'topic',
-    label: data.outline.topic,
+    label: data.topic,
     level: 1,
     type: 'topic',
     position: { x: 0, y: 0 }, // 初始位置设为0,0让dagre布局算法处理
   };
   nodes.push(topicNode);
 
-  // 2. 创建分类节点（Level 2）- 基于 outline.nodes (Tweet[])
-  const outlineNodes = data.outline.nodes || [];
-  outlineNodes.forEach((tweetGroup, groupIndex) => {
+  // 2. 创建分类节点（Level 2）- 基于 nodes (Tweet[])
+  const outlineNodes = data.nodes || [];
+  outlineNodes.forEach((tweetGroup: any, groupIndex: number) => {
     const groupNodeId = `group-${groupIndex}`;
     const groupNode: MindmapNodeData = {
       id: groupNodeId,
@@ -52,7 +52,7 @@ export function convertThreadDataToMindmap(data: GenerateThreadResponse): {
     });
 
     // 3. 创建Tweet内容节点（Level 3）- 只显示 title
-    tweetGroup.tweets.forEach((tweetItem, tweetIndex) => {
+    tweetGroup.tweets.forEach((tweetItem: any, tweetIndex: number) => {
       const tweetNodeId = `tweet-${groupIndex}-${tweetItem.tweet_number}`;
       const tweetNode: MindmapNodeData = {
         id: tweetNodeId,
@@ -87,14 +87,14 @@ export function convertThreadDataToMindmap(data: GenerateThreadResponse): {
  * 将API数据转换为完整的GeneratedContent
  */
 export function convertAPIDataToGeneratedContent(
-  data: GenerateThreadResponse,
+  data: Outline,
 ): GeneratedContent {
   const mindmap = convertThreadDataToMindmap(data);
 
   // 将嵌套的tweets结构展平为简单数组
   const flatTweets: ContentTweet[] = [];
-  data.outline.nodes.forEach((tweetGroup) => {
-    tweetGroup.tweets.forEach((tweetItem) => {
+  data.nodes.forEach((tweetGroup: any) => {
+    tweetGroup.tweets.forEach((tweetItem: any) => {
       flatTweets.push({
         id: tweetItem.tweet_number,
         content: tweetItem.content,
@@ -105,19 +105,19 @@ export function convertAPIDataToGeneratedContent(
 
   return {
     id: `generated-${Date.now()}`,
-    topic: data.outline.topic,
+    topic: data.topic,
     createdAt: new Date().toISOString(),
     mindmap,
     tweets: flatTweets,
-    outline: data.outline,
+    outline: data,
     image: {
       url: `https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center`,
-      alt: `${data.outline.topic}主题配图`,
-      caption: `关于${data.outline.topic}的深度分析和思考`,
-      prompt: `Create a professional illustration about ${data.outline.topic}`,
+      alt: `${data.topic}主题配图`,
+      caption: `关于${data.topic}的深度分析和思考`,
+      prompt: `Create a professional illustration about ${data.topic}`,
     },
     metadata: {
-      totalTweets: data.outline.total_tweets,
+      totalTweets: data.total_tweets,
       estimatedReadTime: Math.ceil(
         flatTweets.reduce((acc, tweet) => acc + tweet.content.length, 0) / 200,
       ),
@@ -129,11 +129,11 @@ export function convertAPIDataToGeneratedContent(
 /**
  * 将API数据直接转换为markdown格式（支持hover高亮）
  */
-export function convertAPIDataToMarkdown(data: GenerateThreadResponse): string {
+export function convertAPIDataToMarkdown(data: Outline): string {
   let markdown = '';
 
   // 添加一级标题
-  markdown += `# ${data.outline.topic}\n\n`;
+  markdown += `# ${data.topic}\n\n`;
 
   // 添加当前时间
   const currentTime = new Date().toLocaleString('zh-CN', {
@@ -147,17 +147,17 @@ export function convertAPIDataToMarkdown(data: GenerateThreadResponse): string {
   markdown += `*生成时间：${currentTime}*\n\n`;
 
   // 添加图片占位标记
-  markdown += `![${data.outline.topic}主题配图](PLACEHOLDER_IMAGE)\n\n`;
+  markdown += `![${data.topic}主题配图](PLACEHOLDER_IMAGE)\n\n`;
 
   // 按接口数据数组排列，包含分组标题
-  data.outline.nodes.forEach((tweetGroup, groupIndex) => {
+  data.nodes.forEach((tweetGroup: any, groupIndex: number) => {
     // 添加分组标题 (H2) 包含group标识符
     markdown += `<div data-group-id="${groupIndex}">\n\n`;
     markdown += `## ${tweetGroup.title}\n\n`;
     markdown += `</div>\n\n`;
 
     // 添加该分组下的tweets
-    tweetGroup.tweets.forEach((tweetItem, tweetIndex) => {
+    tweetGroup.tweets.forEach((tweetItem: any, tweetIndex: number) => {
       // 添加可用于高亮的标识符
       markdown += `<div data-tweet-id="${tweetItem.tweet_number}" data-group-index="${groupIndex}" data-tweet-index="${tweetIndex}">\n\n`;
       markdown += `### ${tweetItem.title}\n\n`;

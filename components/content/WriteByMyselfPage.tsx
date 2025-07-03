@@ -48,8 +48,8 @@ export const WriteByMyselfPage = ({ onBack }: WriteByMyselfPageProps) => {
               value={value}
               onChange={handleContentChange}
               className={{
-                base: 'h-full flex flex-col',
-                editorWrapper: 'flex-1 min-h-0',
+                base: 'flex h-full flex-col',
+                editorWrapper: 'min-h-0 flex-1',
                 editor: 'h-full',
               }}
               placeholder="start writing..."

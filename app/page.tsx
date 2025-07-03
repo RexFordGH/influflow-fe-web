@@ -4,14 +4,16 @@
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
-
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 
 import { ApiTest } from '@/components/test/ApiTest';
 
 const EnhancedContentGeneration = dynamic(
-  () => import('@/components/content/EnhancedContentGeneration').then(mod => ({ default: mod.EnhancedContentGeneration })),
+  () =>
+    import('@/components/content/EnhancedContentGeneration').then((mod) => ({
+      default: mod.EnhancedContentGeneration,
+    })),
   {
     loading: () => (
       <div className="flex h-screen items-center justify-center">
@@ -19,11 +21,14 @@ const EnhancedContentGeneration = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 );
 
 const TrendingTopics = dynamic(
-  () => import('@/components/content/TrendingTopics').then(mod => ({ default: mod.TrendingTopics })),
+  () =>
+    import('@/components/content/TrendingTopics').then((mod) => ({
+      default: mod.TrendingTopics,
+    })),
   {
     loading: () => (
       <div className="flex h-screen items-center justify-center">
@@ -31,11 +36,14 @@ const TrendingTopics = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 );
 
 const WriteByMyselfPage = dynamic(
-  () => import('@/components/content/WriteByMyselfPage').then(mod => ({ default: mod.WriteByMyselfPage })),
+  () =>
+    import('@/components/content/WriteByMyselfPage').then((mod) => ({
+      default: mod.WriteByMyselfPage,
+    })),
   {
     loading: () => (
       <div className="flex h-screen items-center justify-center">
@@ -43,7 +51,7 @@ const WriteByMyselfPage = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 );
 
 interface Note {
@@ -185,9 +193,7 @@ export default function Home() {
 
   // 如果正在显示写作页面
   if (showWriteByMyself) {
-    return (
-      <WriteByMyselfPage onBack={handleBackFromWriteByMyself} />
-    );
+    return <WriteByMyselfPage onBack={handleBackFromWriteByMyself} />;
   }
 
   return (
@@ -284,7 +290,13 @@ export default function Home() {
               {/* 欢迎界面 - 第一屏 */}
               <motion.div
                 initial={{ y: 0 }}
-                animate={{ y: showTrendingTopics ? (typeof window !== 'undefined' ? -window.innerHeight : -800) : 0 }}
+                animate={{
+                  y: showTrendingTopics
+                    ? typeof window !== 'undefined'
+                      ? -window.innerHeight
+                      : -800
+                    : 0,
+                }}
                 transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
                 className="absolute inset-0 flex items-center justify-center bg-gray-50"
               >
