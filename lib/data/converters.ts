@@ -347,17 +347,30 @@ export function convertMindmapToMarkdown(
         markdown += `<div ${divAttributes}>\n\n`;
         markdown += `${headingPrefix} ${title}\n\n`;
 
-        // 添加内容（如果内容与标题不同且存在）
-        if (content && content !== title && content !== childNode.label) {
-          markdown += `${content}\n\n`;
+        // 对于 tweet 节点，总是添加 content（即使与 title 相同）
+        // 对于其他节点，只有当内容与标题不同时才添加
+        if (content) {
+          if (childNode.type === 'tweet') {
+            // tweet 节点总是显示 content
+            markdown += `${content}\n\n`;
+          } else if (content !== title && content !== childNode.label) {
+            // 其他节点只有内容不同时才显示
+            markdown += `${content}\n\n`;
+          }
         }
 
         markdown += `</div>\n\n`;
       } else {
         // 没有特殊属性时，直接添加标题和内容
         markdown += `${headingPrefix} ${title}\n\n`;
-        if (content && content !== title && content !== childNode.label) {
-          markdown += `${content}\n\n`;
+        if (content) {
+          if (childNode.type === 'tweet') {
+            // tweet 节点总是显示 content
+            markdown += `${content}\n\n`;
+          } else if (content !== title && content !== childNode.label) {
+            // 其他节点只有内容不同时才显示
+            markdown += `${content}\n\n`;
+          }
         }
       }
 

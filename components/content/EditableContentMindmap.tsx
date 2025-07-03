@@ -18,13 +18,10 @@ import ReactFlow, {
 } from 'reactflow';
 
 import {
-  getErrorMessage,
-  useModifyOutline,
   useModifyTweet,
 } from '@/lib/api/services';
 import {
   convertMindmapToMarkdown,
-  convertThreadDataToMindmap,
 } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import type { Outline } from '@/types/outline';
@@ -40,9 +37,9 @@ interface EditableContentMindmapProps {
   onNodesChange?: (nodes: MindmapNodeData[]) => void;
   onEdgesChange?: (edges: MindmapEdgeData[]) => void;
   onRegenerate?: (markdown?: string) => void;
+  onRegenerateClick?: () => Promise<void>; // 新增：调用API的重生成回调
   highlightedNodeId?: string | null;
   hoveredTweetId?: string | null;
-  onLoadingStateChange?: (tweetId: string | null) => void; // 新增loading状态回调
 }
 
 export function EditableContentMindmap({
@@ -54,16 +51,15 @@ export function EditableContentMindmap({
   onNodesChange,
   onEdgesChange,
   onRegenerate,
+  onRegenerateClick,
   highlightedNodeId,
   hoveredTweetId,
-  onLoadingStateChange,
 }: EditableContentMindmapProps) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
   const { fitView } = useReactFlow();
 
-  // API hooks
-  const modifyOutlineMutation = useModifyOutline();
+  // API hooks - 只保留 useModifyTweet 用于 AI 编辑
   const modifyTweetMutation = useModifyTweet();
 
   // 存储当前的outline数据，用于API调用
@@ -86,8 +82,7 @@ export function EditableContentMindmap({
   const [aiEditInstruction, setAiEditInstruction] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
 
-  // Loading 状态管理 - 用于 modify-outline 接口
-  const [loadingNodeId, setLoadingNodeId] = useState<string | null>(null);
+  // 移除了 loading 状态管理，因为现在双击编辑是本地操作
 
   // 转换数据格式为 React Flow 格式（稳定版本，不包含hover状态）
   const convertToFlowDataStable = useCallback(() => {
@@ -145,7 +140,6 @@ export function EditableContentMindmap({
         onNodeHover: onNodeHover, // 传递hover回调
         hoveredTweetId: hoveredTweetId, // 传递hover状态
         selectedNodeForAI: selectedNodeForAI, // 传递选中状态
-        isLoading: loadingNodeId === node.id, // 传递loading状态
         ...node.data,
       },
       style: {
@@ -176,7 +170,6 @@ export function EditableContentMindmap({
     mindmapEdges,
     highlightedNodeId,
     selectedNodeForAI, // 添加这个依赖
-    loadingNodeId, // 添加loading状态依赖
     onNodesChange,
     onEdgesChange,
     onNodeHover,
@@ -570,58 +563,46 @@ export function EditableContentMindmap({
     [],
   );
 
-  // 处理双击编辑 (使用useModifyOutline)
-  const handleNodeEdit = async (nodeId: string, newLabel: string) => {
-    try {
-      // 设置 loading 状态
-      setLoadingNodeId(nodeId);
+  // 处理双击编辑 (本地实时编辑，不发送请求)
+  const handleNodeEdit = (nodeId: string, newLabel: string) => {
+    // 找到要编辑的节点
+    const targetNode = mindmapNodes.find((node) => node.id === nodeId);
+    if (!targetNode) {
+      console.error('未找到目标节点:', nodeId);
+      return;
+    }
 
-      // 获取节点对应的 tweetId 用于 markdown loading
-      const targetNode = mindmapNodes.find((node) => node.id === nodeId);
-      let markdownLoadingId = null;
-      if (targetNode?.data?.tweetId !== undefined) {
-        markdownLoadingId = targetNode.data.tweetId.toString();
-      } else if (targetNode?.data?.outlineIndex !== undefined) {
-        markdownLoadingId = `group-${targetNode.data.outlineIndex}`;
+    // 本地更新思维导图节点数据
+    const updatedNodes = mindmapNodes.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          label: newLabel, // 更新节点显示的标题
+          data: {
+            ...node.data,
+            title: newLabel, // 同步更新 data.title
+          },
+        };
       }
-      
-      // 设置 markdown loading 状态
-      if (markdownLoadingId) {
-        onLoadingStateChange?.(markdownLoadingId);
-      }
+      return node;
+    });
 
-      // 检查是否有当前outline数据
-      if (!currentOutline) {
-        console.error('缺少原始outline数据，无法进行编辑');
-        alert('缺少原始数据，无法进行编辑');
-        setLoadingNodeId(null); // 清除 loading 状态
-        return;
-      }
+    // 本地更新 outline 数据
+    if (currentOutline) {
+      const updatedOutline = JSON.parse(JSON.stringify(currentOutline));
 
-      if (!targetNode) {
-        console.error('未找到目标节点:', nodeId);
-        setLoadingNodeId(null);
-        onLoadingStateChange?.(null);
-        return;
-      }
-
-      // 深拷贝当前outline作为新的outline结构
-      const newOutlineStructure: Outline = JSON.parse(
-        JSON.stringify(currentOutline),
-      );
-
-      // 根据节点类型和数据结构更新outline
+      // 根据节点类型更新对应的数据
       if (targetNode.level === 1) {
         // 主题节点
-        newOutlineStructure.topic = newLabel;
+        updatedOutline.topic = newLabel;
       } else if (
         targetNode.type === 'outline_point' &&
         targetNode.data?.outlineIndex !== undefined
       ) {
         // 大纲点节点
         const outlineIndex = targetNode.data.outlineIndex;
-        if (newOutlineStructure.nodes[outlineIndex]) {
-          newOutlineStructure.nodes[outlineIndex].title = newLabel;
+        if (updatedOutline.nodes[outlineIndex]) {
+          updatedOutline.nodes[outlineIndex].title = newLabel;
         }
       } else if (
         targetNode.type === 'tweet' &&
@@ -629,53 +610,26 @@ export function EditableContentMindmap({
       ) {
         // Tweet节点
         const tweetId = targetNode.data.tweetId;
-        // 找到包含该tweet的大纲点
-        for (const outlineNode of newOutlineStructure.nodes) {
+        for (const outlineNode of updatedOutline.nodes) {
           const tweetToUpdate = outlineNode.tweets.find(
             (tweet) => tweet.tweet_number === tweetId,
           );
           if (tweetToUpdate) {
             tweetToUpdate.title = newLabel;
-            // 只修改 title，不修改 content
             break;
           }
         }
       }
 
-      // 调用 useModifyOutline API
-      const result = await modifyOutlineMutation.mutateAsync({
-        original_outline: currentOutline,
-        new_outline_structure: newOutlineStructure,
-      });
-
-      // API返回全新的完整数据，需要完整更新
-      if (result.updated_outline) {
-        console.log('双击编辑成功，返回的数据:', result);
-
-        const newOutline = result.updated_outline;
-
-        // 更新当前存储的outline数据
-        setCurrentOutline(newOutline);
-
-        // 使用正确的转换函数重新构建思维导图
-        const { nodes: newNodes, edges: newEdges } =
-          convertThreadDataToMindmap(newOutline);
-
-        onNodesChange?.(newNodes);
-        onEdgesChange?.(newEdges);
-
-        // 触发整体数据源更新，使用转换后的markdown
-        const newMarkdown = convertMindmapToMarkdown(newNodes, newEdges);
-        onRegenerate?.(newMarkdown);
-      }
-    } catch (error) {
-      console.error('节点编辑失败:', error);
-      // alert(`编辑失败: ${getErrorMessage(error)}`);
-    } finally {
-      // 清除 loading 状态
-      setLoadingNodeId(null);
-      onLoadingStateChange?.(null);
+      // 更新本地 outline 状态
+      setCurrentOutline(updatedOutline);
     }
+
+    // 更新思维导图显示
+    onNodesChange?.(updatedNodes);
+
+    // 本地编辑不再更新 markdown，实现单向数据流
+    // 只有点击 Regenerate 按钮时才会更新 markdown
   };
 
   // 处理AI编辑指令提交 (Edit with AI 按钮)
@@ -729,10 +683,7 @@ export function EditableContentMindmap({
           );
           if (tweetToUpdate) {
             tweetToUpdate.content = result.updated_tweet_content;
-            // 如果需要，也可以更新title（通常content更改时title也要对应更新）
-            tweetToUpdate.title =
-              result.updated_tweet_content.split('\n')[0] ||
-              result.updated_tweet_content;
+            // useModifyTweet 只更新 content，不修改 title
             tweetFound = true;
             break;
           }
@@ -748,19 +699,16 @@ export function EditableContentMindmap({
         setCurrentOutline(updatedOutline);
 
         // 3. 局部更新思维导图节点数据（不重新渲染整个图）
+        // useModifyTweet 只更新 content，思维导图节点的 label 和 title 保持不变
         const updatedNodes = mindmapNodes.map((node) => {
           if (node.data?.tweetId === tweetNumber) {
             return {
               ...node,
-              label:
-                result.updated_tweet_content.split('\n')[0] ||
-                result.updated_tweet_content,
+              // label 保持不变
               data: {
                 ...node.data,
                 content: result.updated_tweet_content,
-                title:
-                  result.updated_tweet_content.split('\n')[0] ||
-                  result.updated_tweet_content,
+                // title 保持不变
               },
             };
           }
@@ -860,18 +808,15 @@ export function EditableContentMindmap({
             size="md"
             color="primary"
             variant="solid"
-            onPress={() => {
-              console.log('Regenerating markdown from mindmap');
-
-              // 从当前思维导图数据生成新的markdown
-              const newMarkdown = convertMindmapToMarkdown(
-                mindmapNodes,
-                mindmapEdges,
-              );
-              console.log('Generated markdown:', newMarkdown);
-
-              // 调用父组件的回调，传递新生成的markdown
-              onRegenerate?.(newMarkdown);
+            onPress={async () => {
+              console.log('🔄 Regenerate 按钮被点击 - 调用 API');
+              
+              // 调用父组件的 API 重生成回调
+              if (onRegenerateClick) {
+                await onRegenerateClick();
+              } else {
+                console.warn('没有提供 onRegenerateClick 回调');
+              }
             }}
             className="rounded-full bg-[#4285F4] p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] hover:scale-110 hover:bg-[#3367D6]"
           >

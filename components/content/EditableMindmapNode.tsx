@@ -16,7 +16,7 @@ const EditableMindmapNode = ({
   id: string;
   selected: boolean;
 }) => {
-  const { label, level, onEdit, addChildNode, onNodeHover, hoveredTweetId, isLoading } =
+  const { label, level, onEdit, addChildNode, onNodeHover, hoveredTweetId } =
     data;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
@@ -86,11 +86,8 @@ const EditableMindmapNode = ({
       });
     }
     const hoverStyle = isHovered ? 'bg-[#DDE9FF]' : '';
-    
-    // Loading 样式
-    const loadingStyle = isLoading ? 'opacity-60 cursor-wait animate-pulse' : '';
 
-    return `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle} ${loadingStyle}`;
+    return `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
@@ -159,13 +156,13 @@ const EditableMindmapNode = ({
     }
   }, [isEditing]);
 
-  // 监听 loading 状态变化，当 loading 结束时清除 pending 状态
+  // 当 label 更新时清除 pending 状态（本地编辑完成后）
   useEffect(() => {
-    if (!isLoading && pendingValue) {
-      // loading 结束时清除 pending 状态，此时 label 已经是服务器返回的最新数据
+    if (pendingValue && label === pendingValue) {
+      // 当 label 更新为 pending 值时，清除 pending 状态
       setPendingValue(null);
     }
-  }, [isLoading, pendingValue]);
+  }, [label, pendingValue]);
 
   // 同步 editValue 和 label
   useEffect(() => {
@@ -263,13 +260,8 @@ const EditableMindmapNode = ({
             }}
           />
         ) : (
-          <div onDoubleClick={handleDoubleClick} title="双击编辑" className="relative flex items-center">
-            {isLoading && (
-              <div className="absolute left-[-6px] top-1/2 -translate-y-1/2">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-              </div>
-            )}
-            <span className={isLoading ? 'ml-4' : ''}>{pendingValue || label}</span>
+          <div onDoubleClick={handleDoubleClick} title="双击编辑">
+            {pendingValue || label}
           </div>
         )}
       </div>

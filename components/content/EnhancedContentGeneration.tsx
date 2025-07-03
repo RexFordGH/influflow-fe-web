@@ -5,12 +5,13 @@ import { Button } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
-import { getErrorMessage, useGenerateThread } from '@/lib/api/services';
+import { getErrorMessage, useGenerateThread, useModifyOutline } from '@/lib/api/services';
 import {
   convertAPIDataToGeneratedContent,
   convertAPIDataToMarkdown,
   convertMindmapToMarkdown,
   convertMindmapToTweets,
+  convertThreadDataToMindmap,
 } from '@/lib/data/converters';
 import {
   GeneratedContent,
@@ -58,6 +59,7 @@ export function EnhancedContentGeneration({
   // API调用hook
   const { mutate: generateThread, isPending: isGeneratingAPI } =
     useGenerateThread();
+  const modifyOutlineMutation = useModifyOutline();
 
   // 生成思维过程步骤
   const generationSteps = [
@@ -190,6 +192,115 @@ export function EnhancedContentGeneration({
     setLoadingTweetId(tweetId);
   }, []);
 
+  // 处理 Regenerate 按钮点击 - 调用 modify-outline API
+  const handleRegenerateClick = useCallback(async () => {
+    console.log('🔄 Regenerate 按钮被点击了！');
+    console.log('rawAPIData:', rawAPIData);
+    console.log('currentNodes:', currentNodes);
+    
+    if (!rawAPIData) {
+      console.error('缺少原始数据，无法重新生成');
+      alert('缺少原始数据，无法重新生成');
+      return;
+    }
+
+    console.log('开始设置 loading 状态...');
+    setIsRegenerating(true);
+
+    try {
+      // 从当前思维导图状态构建新的 outline 结构
+      const currentOutlineFromMindmap = {
+        topic: rawAPIData.topic,
+        nodes: rawAPIData.nodes, // 使用原始结构，但会被思维导图的更改覆盖
+        total_tweets: rawAPIData.total_tweets,
+      };
+
+      // 构建包含用户编辑的新 outline 结构
+      // 这里需要从当前的思维导图节点中提取修改后的数据
+      const newOutlineStructure = { ...currentOutlineFromMindmap };
+      
+      // 更新主题（如果主题节点被编辑了）
+      const topicNode = currentNodes.find(n => n.type === 'topic');
+      if (topicNode) {
+        newOutlineStructure.topic = topicNode.label;
+      }
+
+      // 更新大纲点和tweets
+      const outlineNodes = currentNodes.filter(n => n.type === 'outline_point');
+      const tweetNodes = currentNodes.filter(n => n.type === 'tweet');
+
+      // 重新构建 nodes 数组
+      newOutlineStructure.nodes = outlineNodes.map((outlineNode) => {
+        const outlineIndex = outlineNode.data?.outlineIndex;
+        const originalNode = rawAPIData.nodes[outlineIndex] || { tweets: [] };
+        
+        // 找到属于这个 outline 的所有 tweets
+        const relatedTweets = tweetNodes
+          .filter(t => t.data?.groupIndex === outlineIndex)
+          .map(tweetNode => {
+            const originalTweet = originalNode.tweets.find(
+              t => t.tweet_number === tweetNode.data?.tweetId
+            ) || {};
+            
+            return {
+              ...originalTweet,
+              title: tweetNode.label, // 使用编辑后的标题
+              tweet_number: tweetNode.data?.tweetId || 0,
+            };
+          });
+
+        return {
+          ...originalNode,
+          title: outlineNode.label, // 使用编辑后的标题
+          tweets: relatedTweets,
+        };
+      });
+
+      console.log('调用 modify-outline API with:', {
+        original_outline: rawAPIData,
+        new_outline_structure: newOutlineStructure,
+      });
+
+      // 调用 modify-outline API
+      const result = await modifyOutlineMutation.mutateAsync({
+        original_outline: rawAPIData,
+        new_outline_structure: newOutlineStructure,
+      });
+
+      if (result.updated_outline) {
+        console.log('Regenerate 成功，返回的数据:', result);
+
+        const newOutline = result.updated_outline;
+
+        // 更新所有状态
+        setRawAPIData(newOutline);
+
+        // 重新构建思维导图
+        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap(newOutline);
+        setCurrentNodes(newNodes);
+        setCurrentEdges(newEdges);
+
+        // 重新生成 markdown
+        const newMarkdown = convertAPIDataToMarkdown(newOutline);
+        setRegeneratedMarkdown(newMarkdown);
+
+        // 更新生成的内容
+        if (generatedContent) {
+          const updatedContent = convertAPIDataToGeneratedContent(newOutline);
+          setGeneratedContent({
+            ...generatedContent,
+            ...updatedContent,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Regenerate 失败:', error);
+      alert(`重新生成失败: ${getErrorMessage(error)}`);
+    } finally {
+      setIsRegenerating(false);
+    }
+  }, [rawAPIData, currentNodes, currentEdges, modifyOutlineMutation, generatedContent]);
+
   const handleSourceClick = useCallback((sectionId: string) => {
     // 显示信息来源弹窗或侧边栏
     console.log('显示信息来源:', sectionId);
@@ -205,58 +316,22 @@ export function EnhancedContentGeneration({
     setCurrentEdges(newEdges);
   }, []);
 
-  // 基于思维导图重新生成内容
+  // 基于思维导图本地更新内容（不调用API）
   const regenerateFromMindmap = useCallback(
-    async (newMarkdown?: string) => {
-      if (!generatedContent) return;
-
-      setIsRegenerating(true);
-
+    (newMarkdown?: string) => {
       console.log(
-        'Regenerating from mindmap with markdown:',
+        'Local regenerating from mindmap with markdown:',
         newMarkdown ? 'provided' : 'generated',
       );
 
-      // 基于当前思维导图重新生成内容
-      setTimeout(() => {
-        // 使用传入的markdown或重新生成
-        const finalMarkdown =
-          newMarkdown || convertMindmapToMarkdown(currentNodes, currentEdges);
+      // 本地更新markdown显示
+      const finalMarkdown =
+        newMarkdown || convertMindmapToMarkdown(currentNodes, currentEdges);
 
-        // 重新转换思维导图数据为tweets和outline
-        const { tweets, outline } = convertMindmapToTweets(
-          currentNodes,
-          currentEdges,
-        );
-
-        setGeneratedContent({
-          ...generatedContent,
-          mindmap: {
-            nodes: currentNodes,
-            edges: currentEdges,
-          },
-          tweets,
-          outline,
-          metadata: {
-            ...generatedContent.metadata,
-            totalTweets: tweets.length,
-            estimatedReadTime: Math.ceil(
-              tweets.reduce((acc, tweet) => acc + tweet.content.length, 0) /
-                200,
-            ),
-          },
-        });
-
-        // 更新rawAPIData以显示新的markdown
-        if (rawAPIData) {
-          // 保存新的markdown供EnhancedMarkdownRenderer使用
-          setRegeneratedMarkdown(finalMarkdown);
-        }
-
-        setIsRegenerating(false);
-      }, 1000); // 减少延迟
+      // 保存新的markdown供EnhancedMarkdownRenderer使用
+      setRegeneratedMarkdown(finalMarkdown);
     },
-    [currentNodes, currentEdges, generatedContent, rawAPIData],
+    [currentNodes, currentEdges],
   );
 
   const handleRegenerate = useCallback(async () => {
@@ -275,7 +350,15 @@ export function EnhancedContentGeneration({
     }, 2000);
   }, []);
 
-  if (isGenerating || (!generatedContent && apiError)) {
+  // 调试状态
+  console.log('Render 条件检查:', {
+    isGenerating,
+    generatedContent: !!generatedContent,
+    apiError,
+    shouldShowLoading: isGenerating || (!generatedContent && apiError)
+  });
+
+  if (isGenerating || (!generatedContent && !rawAPIData)) {
     const hasError = !isGenerating && !!apiError;
 
     return (
@@ -333,9 +416,9 @@ export function EnhancedContentGeneration({
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
               onRegenerate={regenerateFromMindmap}
+              onRegenerateClick={handleRegenerateClick} // 传入 API 重生成回调
               highlightedNodeId={selectedNodeId}
               hoveredTweetId={hoveredTweetId}
-              onLoadingStateChange={handleLoadingStateChange}
             />
           </ReactFlowProvider>
         </div>
