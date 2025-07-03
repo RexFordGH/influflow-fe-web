@@ -611,7 +611,7 @@ export function EditableContentMindmap({
           );
           if (tweetToUpdate) {
             tweetToUpdate.title = newLabel;
-            tweetToUpdate.content = newLabel; // 同时更新内容
+            // 只修改 title，不修改 content
             break;
           }
         }
@@ -645,7 +645,7 @@ export function EditableContentMindmap({
       }
     } catch (error) {
       console.error('节点编辑失败:', error);
-      alert(`编辑失败: ${getErrorMessage(error)}`);
+      // alert(`编辑失败: ${getErrorMessage(error)}`);
     }
   };
 
@@ -749,7 +749,7 @@ export function EditableContentMindmap({
       }
     } catch (error) {
       console.error('AI编辑失败:', error);
-      alert(`编辑失败: ${getErrorMessage(error)}`);
+      // alert(`编辑失败: ${getErrorMessage(error)}`);
     } finally {
       setIsAIProcessing(false);
       setShowAIEditModal(false);
