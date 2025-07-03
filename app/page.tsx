@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 import { EnhancedContentGeneration } from '@/components/content/EnhancedContentGeneration';
 import { TrendingTopics } from '@/components/content/TrendingTopics';
+import { WriteByMyselfPage } from '@/components/content/WriteByMyselfPage';
 import { ApiTest } from '@/components/test/ApiTest';
 
 interface Note {
@@ -33,6 +34,7 @@ interface SuggestedTopic {
 export default function Home() {
   // const { openLoginModal } = useAuthStore();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
+  const [showWriteByMyself, setShowWriteByMyself] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -107,13 +109,16 @@ export default function Home() {
     //   return;
     // }
 
-    // TODO: 进入手动编辑模式
-    console.log('Entering manual edit mode');
+    setShowWriteByMyself(true);
   };
 
   const handleBackToHome = () => {
     setShowContentGeneration(false);
     setCurrentTopic('');
+  };
+
+  const handleBackFromWriteByMyself = () => {
+    setShowWriteByMyself(false);
   };
 
   const handleScrollToTrending = () => {
@@ -140,6 +145,13 @@ export default function Home() {
         topic={currentTopic}
         onBack={handleBackToHome}
       />
+    );
+  }
+
+  // 如果正在显示写作页面
+  if (showWriteByMyself) {
+    return (
+      <WriteByMyselfPage onBack={handleBackFromWriteByMyself} />
     );
   }
 
