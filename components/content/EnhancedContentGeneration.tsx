@@ -85,7 +85,7 @@ export function EnhancedContentGeneration({
       setGenerationStep(0);
       setIsRegenerating(false);
       requestIdRef.current = null;
-      
+
       // 启动生成过程
       setIsGenerating(true);
     }
@@ -111,15 +111,15 @@ export function EnhancedContentGeneration({
     // 启动智能UI进度动画
     const stepTimeouts: NodeJS.Timeout[] = [];
     let isAPICompleted = false;
-    
+
     // 步骤时间配置：前4个步骤按固定时间推进，最后2个步骤等待API
     const stepTimings = [
-      { step: 1, delay: 2000 },   // 2秒后推进到第2个步骤
-      { step: 2, delay: 4000 },   // 4秒后推进到第3个步骤
-      { step: 3, delay: 6500 },   // 6.5秒后推进到第4个步骤
+      { step: 1, delay: 2000 }, // 2秒后推进到第2个步骤
+      { step: 2, delay: 4000 }, // 4秒后推进到第3个步骤
+      { step: 3, delay: 6500 }, // 6.5秒后推进到第4个步骤
       // 后面的步骤会等待API返回
     ];
-    
+
     // 安排前几个步骤的推进
     stepTimings.forEach(({ step, delay }) => {
       const timeout = setTimeout(() => {
@@ -129,12 +129,12 @@ export function EnhancedContentGeneration({
       }, delay);
       stepTimeouts.push(timeout);
     });
-    
+
     // 8秒后开始最后两个步骤的等待状态
     const waitingStepTimeout = setTimeout(() => {
       if (!isAPICompleted) {
         setGenerationStep(4); // 开始第5个步骤
-        
+
         // 12秒后进入最后一个步骤
         const finalStepTimeout = setTimeout(() => {
           if (!isAPICompleted) {
@@ -145,10 +145,10 @@ export function EnhancedContentGeneration({
       }
     }, 8000);
     stepTimeouts.push(waitingStepTimeout);
-    
+
     // 清理函数
     const cleanup = () => {
-      stepTimeouts.forEach(timeout => clearTimeout(timeout));
+      stepTimeouts.forEach((timeout) => clearTimeout(timeout));
     };
 
     // 调用API
@@ -172,9 +172,9 @@ export function EnhancedContentGeneration({
             // 快速推进到最后几个步骤
             for (let i = 4; i < generationSteps.length; i++) {
               setGenerationStep(i);
-              await new Promise(resolve => setTimeout(resolve, 150)); // 快速推进
+              await new Promise((resolve) => setTimeout(resolve, 150)); // 快速推进
             }
-            
+
             // 存储原始API数据
             setRawAPIData(response);
 
@@ -186,7 +186,7 @@ export function EnhancedContentGeneration({
             setIsGenerating(false);
             setGenerationStep(generationSteps.length - 1);
           };
-          
+
           completeSteps();
         },
         onError: (error) => {
