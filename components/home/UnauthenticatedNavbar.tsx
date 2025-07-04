@@ -1,14 +1,13 @@
-
 'use client';
 
 import { Button } from '@heroui/react';
 
 export const UnauthenticatedNavbar = ({ onLogin }: { onLogin: () => void }) => {
   return (
-    <div className="fixed top-0 w-full h-[50px] z-50 flex justify-between items-center px-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-      <p className="text-[20px] font-bold leading-[1]">InfluFlow</p>
+    <div className="fixed top-0 z-50 flex h-[50px] w-full items-center justify-between border-b border-gray-100 bg-white/95 px-4 backdrop-blur-sm">
+      <p className="text-[20px] font-bold leading-none">InfluFlow</p>
       <Button
-        className="px-[24px] py-[6px] bg-[#448AFF] text-white rounded-[24px]"
+        className="rounded-[24px] bg-[#448AFF] px-[24px] py-[6px] text-white"
         color="primary"
         variant="flat"
         onPress={onLogin}

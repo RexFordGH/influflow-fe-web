@@ -5,16 +5,14 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 
 import { Button } from '@/components/base';
-import { useTrendingTopics, useTopicTypes } from '@/lib/api/services';
-import { type TrendingTopic, type SuggestedTopic } from '@/types/api';
-
+import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
+import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 
 interface TrendingTopicsProps {
   isVisible: boolean;
   onBack: () => void;
   onTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
 }
-
 
 // 骨架屏组件
 const TrendingTopicSkeleton = ({ index }: { index: number }) => (
@@ -41,24 +39,22 @@ export function TrendingTopics({
   onTopicSelect,
 }: TrendingTopicsProps) {
   const [selectedCategory, setSelectedCategory] = useState('ai');
-  
+
   // 获取可用的话题类型
   const { data: topicTypes = ['ai'] } = useTopicTypes();
-  
+
   // 根据选中的分类获取trending topics数据
-  const { 
-    data, 
-    isLoading, 
-    error 
-  } = useTrendingTopics(isVisible ? selectedCategory : '');
+  const { data, isLoading, error } = useTrendingTopics(
+    isVisible ? selectedCategory : '',
+  );
 
   const trendingTopics = data?.trending_topics || [];
   const suggestedTopics = data?.suggested_topics || [];
 
   // 分类列表：显示可用的话题类型
-  const categories = topicTypes.map(type => ({ 
-    id: type, 
-    label: type.charAt(0).toUpperCase() + type.slice(1) 
+  const categories = topicTypes.map((type) => ({
+    id: type,
+    label: type.charAt(0).toUpperCase() + type.slice(1),
   }));
 
   return (
@@ -107,38 +103,44 @@ export function TrendingTopics({
 
               {/* 热门话题列表 */}
               <div className="space-y-3">
-                {isLoading
-                  ? // 骨架屏
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <TrendingTopicSkeleton key={index} index={index} />
-                    ))
-                  : error
-                  ? // 错误状态
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 mb-2">Unable to load trending topics at the moment</p>
-                      <p className="text-gray-400 text-sm">Please try again later</p>
-                    </div>
-                  : // 实际数据 - 根据Figma设计样式
-                    trendingTopics.map((topic, index) => (
-                      <motion.button
-                        key={`${topic.title}-${index}`}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                        onClick={() => onTopicSelect(topic)}
-                        className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-all duration-200 hover:from-yellow-500 hover:to-yellow-300"
-                        style={{
-                          width: `${Math.max(432, 880 - index * 110)}px`,
-                        }}
-                      >
-                        <span className="text-lg font-medium text-black">
-                          {topic.title}
-                        </span>
-                        <span className="text-lg font-medium text-gray-600">
-                          {topic.value}
-                        </span>
-                      </motion.button>
-                    ))}
+                {isLoading ? (
+                  // 骨架屏
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <TrendingTopicSkeleton key={index} index={index} />
+                  ))
+                ) : error ? (
+                  // 错误状态
+                  <div className="py-8 text-center">
+                    <p className="mb-2 text-gray-500">
+                      Unable to load trending topics at the moment
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Please try again later
+                    </p>
+                  </div>
+                ) : (
+                  // 实际数据 - 根据Figma设计样式
+                  trendingTopics.map((topic, index) => (
+                    <motion.button
+                      key={`${topic.title}-${index}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      onClick={() => onTopicSelect(topic)}
+                      className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-all duration-200 hover:from-yellow-500 hover:to-yellow-300"
+                      style={{
+                        width: `${Math.max(432, 880 - index * 110)}px`,
+                      }}
+                    >
+                      <span className="text-lg font-medium text-black">
+                        {topic.title}
+                      </span>
+                      <span className="text-lg font-medium text-gray-600">
+                        {topic.value}
+                      </span>
+                    </motion.button>
+                  ))
+                )}
               </div>
             </div>
 
@@ -148,48 +150,55 @@ export function TrendingTopics({
                 Suggested Topics
               </h3>
               <div className="space-y-3">
-                {isLoading
-                  ? // 骨架屏
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <SuggestedTopicSkeleton key={index} />
-                    ))
-                  : error
-                  ? // 错误状态
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 mb-2">Unable to load suggested topics at the moment</p>
-                      <p className="text-gray-400 text-sm">Please try again later</p>
-                    </div>
-                  : // 实际数据 - 根据Figma设计样式
-                    suggestedTopics.map((topic, index) => (
-                      <motion.button
-                        key={`${topic.title}-${index}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                        onClick={() => onTopicSelect(topic)}
-                        className={`w-full rounded-xl px-[24px] py-[10px] text-left transition-all duration-200 ${
-                          index === 0
-                            ? 'border border-blue-400 bg-blue-50 hover:bg-blue-100'
-                            : 'border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="mb-2">
-                          <span className="text-[18px] font-normal leading-[27px] text-black">
-                            {topic.title}
-                          </span>
+                {isLoading ? (
+                  // 骨架屏
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <SuggestedTopicSkeleton key={index} />
+                  ))
+                ) : error ? (
+                  // 错误状态
+                  <div className="py-8 text-center">
+                    <p className="mb-2 text-gray-500">
+                      Unable to load suggested topics at the moment
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Please try again later
+                    </p>
+                  </div>
+                ) : (
+                  // 实际数据 - 根据Figma设计样式
+                  suggestedTopics.map((topic, index) => (
+                    <motion.button
+                      key={`${topic.title}-${index}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                      onClick={() => onTopicSelect(topic)}
+                      className={`w-full rounded-xl px-[24px] py-[10px] text-left transition-all duration-200 ${
+                        index === 0
+                          ? 'border border-blue-400 bg-blue-50 hover:bg-blue-100'
+                          : 'border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="mb-2">
+                        <span className="text-[18px] font-normal leading-[27px] text-black">
+                          {topic.title}
+                        </span>
+                      </div>
+                      {topic.description && (
+                        <div className="line-clamp-2 text-sm text-gray-600">
+                          {topic.description}
                         </div>
-                        {topic.description && (
-                          <div className="text-sm text-gray-600 line-clamp-2">
-                            {topic.description}
-                          </div>
-                        )}
-                        {topic.source && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {topic.source.name} • {new Date(topic.publishedAt).toLocaleDateString()}
-                          </div>
-                        )}
-                      </motion.button>
-                    ))}
+                      )}
+                      {topic.source && (
+                        <div className="mt-1 text-xs text-gray-500">
+                          {topic.source.name} •{' '}
+                          {new Date(topic.publishedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                    </motion.button>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -200,10 +209,10 @@ export function TrendingTopics({
           size="sm"
           variant="solid"
           onPress={_onBack}
-          className="fixed bottom-6 right-6 z-10 h-12 w-12 rounded-full bg-black text-white shadow-lg hover:bg-gray-800 transition-all duration-200"
+          className="fixed bottom-6 right-6 z-10 size-12 rounded-full bg-black text-white shadow-lg transition-all duration-200 hover:bg-gray-800"
         >
           <svg
-            className="h-6 w-6"
+            className="size-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

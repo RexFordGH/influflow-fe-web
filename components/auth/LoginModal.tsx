@@ -1,7 +1,8 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
 import { Button, Modal, ModalBody, ModalContent } from '@heroui/react';
+
+import { createClient } from '@/lib/supabase/client';
 
 interface LoginModalProps {
   isOpen: boolean;

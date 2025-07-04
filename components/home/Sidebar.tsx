@@ -1,12 +1,13 @@
-
 'use client';
 
+import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { UserIcon, PlusIcon } from '@heroicons/react/24/outline';
+
 import { useAuthStore } from '@/stores/authStore';
+import { Category } from '@/types/content';
+
 import { ArticleItem } from './ArticleItem';
-import { Category, Article } from '@/types/content';
 
 export const Sidebar = ({
   collapsed,
@@ -60,14 +61,14 @@ export const Sidebar = ({
         duration: 0.3,
         ease: 'easeInOut',
       }}
-      className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] fixed left-0 top-0 h-screen"
+      className="fixed left-0 top-0 z-10 flex h-screen w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA]"
     >
       <Button
         isIconOnly
         size="sm"
         variant="light"
         onPress={onToggle}
-        className="absolute top-4 right-3 z-20 text-gray-600 hover:text-gray-900"
+        className="absolute right-3 top-4 z-20 text-gray-600 hover:text-gray-900"
       >
         <Image
           src={'/icons/doubleArrowRounded.svg'}
@@ -102,11 +103,11 @@ export const Sidebar = ({
         <div className="p-4">
           {categories.map((category) => (
             <div key={category.id} className="">
-              <div className="group flex items-center justify-between min-h-[37px] hover:bg-[#E8E8E8] rounded-[8px]">
+              <div className="group flex min-h-[37px] items-center justify-between rounded-[8px] hover:bg-[#E8E8E8]">
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => onToggleCategoryExpanded(category.id)}
-                    className="p-1 hover:bg-gray-200 rounded"
+                    className="rounded p-1 hover:bg-gray-200"
                   >
                     <Image
                       src={'/icons/arrowLeft.svg'}
@@ -125,11 +126,10 @@ export const Sidebar = ({
                       onChange={(e) => onTempTitleChange(e.target.value)}
                       onBlur={() => onSaveCategoryTitle(category.id)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter')
-                          onSaveCategoryTitle(category.id);
+                        if (e.key === 'Enter') onSaveCategoryTitle(category.id);
                         if (e.key === 'Escape') onCancelEdit();
                       }}
-                      className="text-sm font-medium bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                      className="rounded border-none bg-transparent px-1 text-sm font-medium outline-none focus:ring-1 focus:ring-blue-500"
                       autoFocus
                     />
                   ) : (
@@ -182,7 +182,7 @@ export const Sidebar = ({
           ))}
 
           <div
-            className="flex items-center space-x-2 px-2 py-2 text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
+            className="flex cursor-pointer items-center space-x-2 p-2 text-sm text-gray-400 hover:text-gray-600"
             onClick={onCreateNewCategory}
           >
             <PlusIcon className="size-4" />

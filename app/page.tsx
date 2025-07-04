@@ -1,6 +1,5 @@
 'use client';
 
-import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@heroui/react';
 import { AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
@@ -11,6 +10,7 @@ import { MainContent } from '@/components/home/MainContent';
 import { Sidebar } from '@/components/home/Sidebar';
 import { UnauthenticatedNavbar } from '@/components/home/UnauthenticatedNavbar';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
+import { useAuthStore } from '@/stores/authStore';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 
 const EnhancedContentGeneration = dynamic(

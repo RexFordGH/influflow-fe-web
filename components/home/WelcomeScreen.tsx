@@ -1,10 +1,11 @@
 'use client';
 
-import { useAuthStore } from '@/stores/authStore';
-import { SuggestedTopic, TrendingTopic } from '@/types/api';
 import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { lazy } from 'react';
+
+import { useAuthStore } from '@/stores/authStore';
+import { SuggestedTopic, TrendingTopic } from '@/types/api';
 
 // 动态导入TrendingTopics组件
 const TrendingTopics = lazy(() =>
@@ -15,22 +16,22 @@ const TrendingTopics = lazy(() =>
 
 // TrendingTopics加载时的骨架屏组件
 const TrendingTopicsLoadingFallback = () => (
-  <div className="absolute inset-0 bg-white flex items-center justify-center">
-    <div className="animate-pulse space-y-4 w-full max-w-4xl px-8">
-      <div className="h-6 bg-gray-200 rounded w-48"></div>
+  <div className="absolute inset-0 flex items-center justify-center bg-white">
+    <div className="w-full max-w-4xl animate-pulse space-y-4 px-8">
+      <div className="h-6 w-48 rounded bg-gray-200"></div>
       <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="h-12 bg-gradient-to-r from-yellow-200 to-yellow-100 rounded-xl"
+            className="h-12 rounded-xl bg-gradient-to-r from-yellow-200 to-yellow-100"
             style={{ width: `${Math.max(432, 880 - i * 110)}px` }}
           ></div>
         ))}
       </div>
-      <div className="h-6 bg-gray-200 rounded w-56 mt-8"></div>
+      <div className="mt-8 h-6 w-56 rounded bg-gray-200"></div>
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-16 bg-gray-100 rounded-xl border"></div>
+          <div key={i} className="h-16 rounded-xl border bg-gray-100"></div>
         ))}
       </div>
     </div>
@@ -114,7 +115,7 @@ export const WelcomeScreen = ({
           <div className="text-center">
             <div
               onClick={onWriteByMyself}
-              className="text-[16px] font-[500] text-black underline cursor-pointer hover:text-[#448AFF]"
+              className="cursor-pointer text-[16px] font-[500] text-black underline hover:text-[#448AFF]"
             >
               Write by Myself
             </div>

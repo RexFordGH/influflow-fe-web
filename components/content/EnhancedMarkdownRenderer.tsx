@@ -435,7 +435,7 @@ export function EnhancedMarkdownRenderer({
   const createMouseHandlers = useCallback(
     (section: MarkdownSection) => {
       const shouldInteract = shouldEnableInteraction(section);
-      
+
       const handleEnter = () => {
         if (!shouldInteract) return;
 
@@ -540,7 +540,8 @@ export function EnhancedMarkdownRenderer({
     const loadingClasses = isLoading ? markdownStyles.states.loading : '';
 
     // 创建当前 section 的鼠标事件处理器
-    const { handleEnter: sectionMouseEnter, handleLeave: sectionMouseLeave } = createMouseHandlers(section);
+    const { handleEnter: sectionMouseEnter, handleLeave: sectionMouseLeave } =
+      createMouseHandlers(section);
 
     switch (section.type) {
       case 'heading':

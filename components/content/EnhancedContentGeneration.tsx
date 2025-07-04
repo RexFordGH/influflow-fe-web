@@ -441,8 +441,6 @@ export function EnhancedContentGeneration({
         onBack={onBack}
         isError={hasError}
         errorMessage={apiError || undefined}
-        isRegenerating={isRegenerating}
-        generationStep={generationStep}
         generationSteps={generationSteps}
         onRetry={
           hasError

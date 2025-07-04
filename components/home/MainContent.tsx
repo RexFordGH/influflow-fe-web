@@ -1,12 +1,13 @@
-
 'use client';
+
+import { Button, Image } from '@heroui/react';
+import { motion } from 'framer-motion';
+import { Suspense, lazy } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
 import { SuggestedTopic, TrendingTopic } from '@/types/api';
 import { Article, Category } from '@/types/content';
-import { Button, Image } from '@heroui/react';
-import { motion } from 'framer-motion';
-import { Suspense, lazy } from 'react';
+
 import { WelcomeScreen } from './WelcomeScreen';
 
 const WriteByMyselfPage = lazy(() =>
@@ -67,14 +68,14 @@ export const MainContent = ({
           size="sm"
           variant="light"
           onPress={onToggleSidebar}
-          className="absolute top-4 left-4 z-50 text-gray-600 hover:text-gray-900 bg-white shadow-md"
+          className="absolute left-4 top-4 z-50 bg-white text-gray-600 shadow-md hover:text-gray-900"
         >
           <Image
             src={'/icons/doubleArrowRounded.svg'}
             alt="arrow-right"
             width={24}
             height={24}
-            className="pointer-events-none transform scale-x-[-1]"
+            className="pointer-events-none -scale-x-100"
           />
         </Button>
       )}
@@ -93,7 +94,13 @@ export const MainContent = ({
       </div>
 
       <div className="size-full" hidden={!showMarkdownEditor}>
-        <Suspense fallback={<div className="flex h-screen items-center justify-center text-gray-500">Loading Editor...</div>}>
+        <Suspense
+          fallback={
+            <div className="flex h-screen items-center justify-center text-gray-500">
+              Loading Editor...
+            </div>
+          }
+        >
           <WriteByMyselfPage
             onBack={onBackFromEditor}
             initialContent={currentArticle?.content || ''}

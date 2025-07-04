@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { Article, Category } from '@/types/content';
+import { useCallback, useEffect, useState } from 'react';
 
 const saveCategoriesToStorage = (cats: Category[]) => {
   if (typeof window !== 'undefined') {
@@ -16,8 +16,8 @@ const loadCategoriesFromStorage = (): Category[] => {
       try {
         // Properly parse dates, which are stored as strings
         const parsed = JSON.parse(stored);
-        const restoreDates = (articles: Article[]): Article[] => 
-          articles.map(article => ({
+        const restoreDates = (articles: Article[]): Article[] =>
+          articles.map((article) => ({
             ...article,
             createdAt: new Date(article.createdAt),
             children: restoreDates(article.children),
@@ -28,7 +28,7 @@ const loadCategoriesFromStorage = (): Category[] => {
           articles: restoreDates(category.articles),
         }));
       } catch (e) {
-        console.error("Failed to parse categories from localStorage", e);
+        console.error('Failed to parse categories from localStorage', e);
         return [];
       }
     }
@@ -40,7 +40,9 @@ export const useArticleManagement = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
   const [showMarkdownEditor, setShowMarkdownEditor] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
+    null,
+  );
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState('');
 
@@ -56,7 +58,8 @@ export const useArticleManagement = () => {
             {
               id: 'how-to-use',
               title: 'How to Use InfluNotes',
-              content: '# How to Use InfluNotes\n\n欢迎使用 InfluNotes！这是一个强大的文章编辑和管理工具。',
+              content:
+                '# How to Use InfluNotes\n\n欢迎使用 InfluNotes！这是一个强大的文章编辑和管理工具。',
               children: [],
               expanded: false,
               createdAt: new Date(),
@@ -64,7 +67,8 @@ export const useArticleManagement = () => {
             {
               id: 'why-built',
               title: 'Why we Built this app',
-              content: '# Why we Built this app\n\n我们构建这个应用是为了帮助用户更好地管理和编辑他们的文章内容。',
+              content:
+                '# Why we Built this app\n\n我们构建这个应用是为了帮助用户更好地管理和编辑他们的文章内容。',
               children: [],
               expanded: false,
               createdAt: new Date(),
@@ -92,7 +96,7 @@ export const useArticleManagement = () => {
 
   const toggleCategoryExpanded = (categoryId: string) => {
     const updatedCategories = categories.map((cat) =>
-      cat.id === categoryId ? { ...cat, expanded: !cat.expanded } : cat
+      cat.id === categoryId ? { ...cat, expanded: !cat.expanded } : cat,
     );
     updateCategories(updatedCategories);
   };
@@ -104,7 +108,7 @@ export const useArticleManagement = () => {
           articles.map((article) =>
             article.id === articleId
               ? { ...article, expanded: !article.expanded }
-              : { ...article, children: updateArticle(article.children) }
+              : { ...article, children: updateArticle(article.children) },
           );
         return { ...cat, articles: updateArticle(cat.articles) };
       }
@@ -119,7 +123,7 @@ export const useArticleManagement = () => {
     const newArticle: Article = {
       id: Date.now().toString(),
       title: 'Untitled',
-      content: '# Untitled\n\n开始写你的文章...', 
+      content: '# Untitled\n\n开始写你的文章...',
       children: [],
       expanded: false,
       createdAt: new Date(),
@@ -131,8 +135,12 @@ export const useArticleManagement = () => {
           const addToParent = (articles: Article[]): Article[] =>
             articles.map((article) =>
               article.id === parentId
-                ? { ...article, children: [...article.children, newArticle], expanded: true }
-                : { ...article, children: addToParent(article.children) }
+                ? {
+                    ...article,
+                    children: [...article.children, newArticle],
+                    expanded: true,
+                  }
+                : { ...article, children: addToParent(article.children) },
             );
           return { ...cat, articles: addToParent(cat.articles) };
         } else {
@@ -205,7 +213,7 @@ export const useArticleManagement = () => {
         articles.map((article) =>
           article.id === articleId
             ? { ...article, content }
-            : { ...article, children: updateArticle(article.children) }
+            : { ...article, children: updateArticle(article.children) },
         );
       return { ...cat, articles: updateArticle(cat.articles) };
     });
@@ -248,7 +256,7 @@ export const useArticleManagement = () => {
 
   const saveCategoryTitle = (categoryId: string) => {
     const updatedCategories = categories.map((cat) =>
-      cat.id === categoryId ? { ...cat, title: tempTitle } : cat
+      cat.id === categoryId ? { ...cat, title: tempTitle } : cat,
     );
     updateCategories(updatedCategories);
     setEditingCategoryId(null);
@@ -262,7 +270,7 @@ export const useArticleManagement = () => {
           articles.map((article) =>
             article.id === articleId
               ? { ...article, title: tempTitle }
-              : { ...article, children: updateArticle(article.children) }
+              : { ...article, children: updateArticle(article.children) },
           );
         return { ...cat, articles: updateArticle(cat.articles) };
       }
@@ -273,7 +281,9 @@ export const useArticleManagement = () => {
     setTempTitle('');
 
     if (currentArticle?.id === articleId) {
-      setCurrentArticle((prev) => (prev ? { ...prev, title: tempTitle } : null));
+      setCurrentArticle((prev) =>
+        prev ? { ...prev, title: tempTitle } : null,
+      );
     }
   };
 
@@ -288,7 +298,7 @@ export const useArticleManagement = () => {
     const newArticle: Article = {
       id: articleId,
       title: 'Untitled',
-      content: '# Untitled\n\n开始写你的文章...', 
+      content: '# Untitled\n\n开始写你的文章...',
       children: [],
       expanded: false,
       createdAt: new Date(),
@@ -297,14 +307,14 @@ export const useArticleManagement = () => {
     const timestamp = new Date();
     const categoryTitle = `My Article ${timestamp.getHours()}:${timestamp.getMinutes()}`;
     const categoryId = `category-${Date.now()}`;
-    
+
     const newCategory: Category = {
       id: categoryId,
       title: categoryTitle,
       articles: [newArticle],
       expanded: true,
     };
-    
+
     const updatedCategories = [...categories, newCategory];
     updateCategories(updatedCategories);
 

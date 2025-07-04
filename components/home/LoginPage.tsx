@@ -1,7 +1,7 @@
-
 'use client';
 
 import { Button } from '@heroui/react';
+
 import { createClient } from '@/lib/supabase/client';
 
 export const LoginPage = ({ onBack }: { onBack: () => void }) => {

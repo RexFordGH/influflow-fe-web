@@ -1,6 +1,6 @@
+import { createClient } from '@/lib/supabase/client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { createClient } from '@/lib/supabase/client';
 
 interface User {
   id: string;
@@ -58,8 +58,11 @@ export const useAuthStore = create<AuthState>()(
       checkAuthStatus: async () => {
         try {
           const supabase = createClient();
-          const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
-          
+          const {
+            data: { user: supabaseUser },
+            error,
+          } = await supabase.auth.getUser();
+
           if (error || !supabaseUser) {
             set({ user: null, isAuthenticated: false });
             return;
@@ -67,9 +70,14 @@ export const useAuthStore = create<AuthState>()(
 
           const user: User = {
             id: supabaseUser.id,
-            name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || 'User',
+            name:
+              supabaseUser.user_metadata?.full_name ||
+              supabaseUser.user_metadata?.name ||
+              'User',
             email: supabaseUser.email || '',
-            avatar: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture,
+            avatar:
+              supabaseUser.user_metadata?.avatar_url ||
+              supabaseUser.user_metadata?.picture,
           };
 
           set({ user, isAuthenticated: true });

@@ -1,8 +1,8 @@
-
 'use client';
 
 import { DocumentTextIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { Image } from '@heroui/react';
+
 import { Article } from '@/types/content';
 
 // 递归文章项组件
@@ -38,12 +38,12 @@ export const ArticleItem = ({
 
   return (
     <div className={`${indentClass}`}>
-      <div className="min-h-[37px] group flex items-center justify-between px-2 py-1 hover:bg-[#E8E8E8] rounded-[8px]">
-        <div className="flex items-center space-x-2 flex-1">
+      <div className="group flex min-h-[37px] items-center justify-between rounded-[8px] px-2 py-1 hover:bg-[#E8E8E8]">
+        <div className="flex flex-1 items-center space-x-2">
           {hasChildren && (
             <button
               onClick={() => onToggleExpanded(categoryId, article.id)}
-              className="p-1 hover:bg-gray-200 rounded"
+              className="rounded p-1 hover:bg-gray-200"
             >
               <Image
                 src={'/icons/arrowLeft.svg'}
@@ -66,14 +66,14 @@ export const ArticleItem = ({
                 if (e.key === 'Enter') onSaveTitle(categoryId, article.id);
                 if (e.key === 'Escape') onCancelEdit();
               }}
-              className="flex-1 text-sm bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+              className="flex-1 rounded border-none bg-transparent px-1 text-sm outline-none focus:ring-1 focus:ring-blue-500"
               autoFocus
             />
           ) : (
             <button
               onClick={() => onOpenEditor(categoryId, article.id)}
               onDoubleClick={() => onStartEditTitle(categoryId, article.id)}
-              className={`text-sm text-gray-700 hover:text-gray-900 truncate flex-1 text-left ${
+              className={`flex-1 truncate text-left text-sm text-gray-700 hover:text-gray-900 ${
                 categoryId === 'welcome' ? 'cursor-default' : ''
               }`}
             >
@@ -84,7 +84,7 @@ export const ArticleItem = ({
         {categoryId !== 'welcome' && (
           <button
             onClick={() => onAddChild(categoryId, article.id)}
-            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity"
+            className="rounded p-1 opacity-0 transition-opacity hover:bg-gray-200 group-hover:opacity-100"
           >
             <PlusIcon className="size-3 text-gray-600" />
           </button>

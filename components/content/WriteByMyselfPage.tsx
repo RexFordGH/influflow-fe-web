@@ -42,7 +42,7 @@ export const WriteByMyselfPage = ({
         className="flex h-screen flex-col bg-white"
       >
         {/* 顶部工具栏 */}
-        <div className="shrink-0 flex items-center gap-4 border-b border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex shrink-0 items-center gap-4 border-b border-gray-200 bg-white p-4 shadow-sm">
           <Button
             isIconOnly
             variant="flat"
@@ -53,11 +53,11 @@ export const WriteByMyselfPage = ({
           </Button>
           {title && (
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-medium text-gray-900 truncate">
+              <h1 className="truncate text-lg font-medium text-gray-900">
                 {title}
               </h1>
               {readonly && (
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
                   只读
                 </span>
               )}
@@ -66,7 +66,7 @@ export const WriteByMyselfPage = ({
         </div>
 
         {/* 编辑器区域 */}
-        <div className="flex-1 p-4 overflow-y-scroll">
+        <div className="flex-1 overflow-y-scroll p-4">
           <div className="">
             <EditorPro
               value={value}

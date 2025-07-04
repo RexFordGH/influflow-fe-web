@@ -20,7 +20,7 @@ import ReactFlow, {
 import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
-import type { Outline, Tweet, TweetContentItem } from '@/types/outline';
+import type { Outline } from '@/types/outline';
 
 import EditableMindmapNode from './EditableMindmapNode';
 
@@ -607,7 +607,9 @@ export function EditableContentMindmap({
 
     // 本地更新 outline 数据
     if (currentOutline) {
-      const updatedOutline = JSON.parse(JSON.stringify(currentOutline)) as Outline;
+      const updatedOutline = JSON.parse(
+        JSON.stringify(currentOutline),
+      ) as Outline;
 
       // 根据节点类型更新对应的数据
       if (targetNode.level === 1) {
@@ -852,8 +854,8 @@ export function EditableContentMindmap({
               }
             }}
             className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
-              isRegenerating 
-                ? 'bg-gray-400 cursor-not-allowed' 
+              isRegenerating
+                ? 'cursor-not-allowed bg-gray-400'
                 : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
             }`}
           >
