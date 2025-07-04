@@ -820,24 +820,20 @@ export function EditableContentMindmap({
 
         <Background gap={20} size={1} className="opacity-30" />
 
-        {/* Edit with AI 按钮 - 选中节点时显示 */}
-        {selectedNodeForAI && (
-          <Panel position="top-center" className="flex gap-2">
-            <Button
-              size="sm"
-              color="primary"
-              variant="solid"
-              startContent={<PencilIcon className="size-4" />}
-              onPress={() => setShowAIEditModal(true)}
-              className="rounded-full bg-[#4285F4] px-6 py-2 font-medium text-white shadow-lg hover:bg-[#3367D6]"
-            >
-              Edit with AI
-            </Button>
-          </Panel>
-        )}
-
-        {/* Regenerate 按钮 - 底部中心 */}
-        <Panel position="bottom-center" className="mb-[24px]">
+        <Panel
+          position="bottom-center"
+          className="mb-[24px] flex flex-col gap-[10px]"
+        >
+          <Button
+            size="md"
+            color="primary"
+            variant="solid"
+            startContent={<PencilIcon className="size-4" />}
+            onPress={() => setShowAIEditModal(true)}
+            className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6] `}
+          >
+            Edit with AI
+          </Button>
           <Button
             size="md"
             color="primary"
