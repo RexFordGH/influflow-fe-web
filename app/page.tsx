@@ -1,6 +1,6 @@
 'use client';
 
-// import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/authStore';
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
 import { ApiTest } from '@/components/test/ApiTest';
+import { LoginModal } from '@/components/auth/LoginModal';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -75,7 +76,7 @@ interface SuggestedTopic {
 }
 
 export default function Home() {
-  // const { openLoginModal } = useAuthStore();
+  const { user, isAuthenticated, isLoginModalOpen, openLoginModal, closeLoginModal, checkAuthStatus, logout } = useAuthStore();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [showWriteByMyself, setShowWriteByMyself] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
@@ -91,12 +92,16 @@ export default function Home() {
     console.log('Notes array:', notes);
   }, [selectedNote, notes]);
 
+  // 检查用户登录状态
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
   const createNewNote = () => {
-    // TODO: 恢复登录校验
-    // if (!isAuthenticated) {
-    //   openLoginModal();
-    //   return;
-    // }
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
 
     const newNote: Note = {
       id: Date.now().toString(),
@@ -132,11 +137,10 @@ export default function Home() {
   };
 
   const handleTopicSubmit = () => {
-    // TODO: 恢复登录校验
-    // if (!isAuthenticated) {
-    //   openLoginModal();
-    //   return;
-    // }
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
 
     if (topicInput.trim()) {
       setCurrentTopic(topicInput);
@@ -146,11 +150,10 @@ export default function Home() {
   };
 
   const handleWriteByMyself = () => {
-    // TODO: 恢复登录校验
-    // if (!isAuthenticated) {
-    //   openLoginModal();
-    //   return;
-    // }
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
 
     setShowWriteByMyself(true);
   };
@@ -198,8 +201,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* TODO: 恢复登录按钮条件显示 */}
-      {/* {!isAuthenticated && (
+      {!isAuthenticated && (
         <div className="fixed top-0 w-full h-[50px] z-50 flex justify-between items-center px-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
           <p className="text-[20px] font-bold leading-[1]">InfluFlow</p>
           <Button
@@ -211,19 +213,39 @@ export default function Home() {
             Login
           </Button>
         </div>
-      )} */}
+      )}
 
       {/* 左侧导航栏 */}
       <div className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-white">
         {/* 用户信息 */}
         <div className="border-b border-gray-200 p-4">
-          <div className="flex items-center space-x-2">
-            <UserIcon className="size-6 text-gray-600" />
-            <span className="font-medium text-gray-900">
-              Kelly
-              {/* TODO: 恢复用户状态显示 */}
-              {/* {isAuthenticated ? user?.name || 'User' : 'Guest'} */}
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {isAuthenticated && user?.avatar ? (
+                <Image
+                  src={user.avatar}
+                  alt="User Avatar"
+                  width={24}
+                  height={24}
+                  className="rounded-full"
+                />
+              ) : (
+                <UserIcon className="size-6 text-gray-600" />
+              )}
+              <span className="font-medium text-gray-900">
+                {isAuthenticated ? user?.name || 'User' : 'Guest'}
+              </span>
+            </div>
+            {isAuthenticated && (
+              <Button
+                size="sm"
+                variant="light"
+                onPress={() => logout()}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Logout
+              </Button>
+            )}
           </div>
         </div>
 
@@ -302,9 +324,7 @@ export default function Home() {
               >
                 <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
                   <h2 className="text-[24px] font-[600] text-black">
-                    Hey Kelly, what would you like to write about today?
-                    {/* TODO: 恢复用户名动态显示 */}
-                    {/* Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today? */}
+                    Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today?
                   </h2>
 
                   <div className="relative">
@@ -416,6 +436,12 @@ export default function Home() {
           )}
         </AnimatePresence>
       </div>
+      
+      {/* 登录模态框 */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={closeLoginModal}
+      />
     </div>
   );
 }

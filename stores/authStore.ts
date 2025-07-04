@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { createClient } from '@/lib/supabase/client';
 
 interface User {
   id: string;
@@ -15,7 +16,7 @@ interface AuthState {
 
   // Actions
   setUser: (user: User | null) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   checkAuthStatus: () => Promise<void>;
@@ -23,7 +24,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isAuthenticated: false,
       isLoginModalOpen: false,
@@ -34,11 +35,15 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: !!user,
         }),
 
-      logout: () =>
-        set({
-          user: null,
-          isAuthenticated: false,
-        }),
+      logout: async () => {
+        try {
+          const supabase = createClient();
+          await supabase.auth.signOut();
+          set({ user: null, isAuthenticated: false });
+        } catch (error) {
+          console.error('Logout error:', error);
+        }
+      },
 
       openLoginModal: () =>
         set({
@@ -52,20 +57,22 @@ export const useAuthStore = create<AuthState>()(
 
       checkAuthStatus: async () => {
         try {
-          // TODO: 调用后端API检查用户登录状态
-          // const response = await fetch('/api/auth/me');
-          // if (response.ok) {
-          //   const user = await response.json();
-          //   set({ user, isAuthenticated: true });
-          // } else {
-          //   set({ user: null, isAuthenticated: false });
-          // }
-
-          // 临时模拟：检查localStorage中是否有用户信息
-          const { user } = get();
-          if (user) {
-            set({ isAuthenticated: true });
+          const supabase = createClient();
+          const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
+          
+          if (error || !supabaseUser) {
+            set({ user: null, isAuthenticated: false });
+            return;
           }
+
+          const user: User = {
+            id: supabaseUser.id,
+            name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || 'User',
+            email: supabaseUser.email || '',
+            avatar: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture,
+          };
+
+          set({ user, isAuthenticated: true });
         } catch (error) {
           console.error('Failed to check auth status:', error);
           set({ user: null, isAuthenticated: false });
