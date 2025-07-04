@@ -11,11 +11,12 @@ interface User {
 
 interface AuthState {
   user: User | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isLoginModalOpen: boolean;
 
   // Actions
-  setUser: (user: User | null) => void;
+  setSession: (user: User | null, accessToken: string | null) => void;
   logout: () => Promise<void>;
   openLoginModal: () => void;
   closeLoginModal: () => void;
@@ -26,20 +27,22 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
+      accessToken: null,
       isAuthenticated: false,
       isLoginModalOpen: false,
 
-      setUser: (user) =>
+      setSession: (user, accessToken) =>
         set({
           user,
-          isAuthenticated: !!user,
+          accessToken,
+          isAuthenticated: !!user && !!accessToken,
         }),
 
       logout: async () => {
         try {
           const supabase = createClient();
           await supabase.auth.signOut();
-          set({ user: null, isAuthenticated: false });
+          set({ user: null, accessToken: null, isAuthenticated: false });
         } catch (error) {
           console.error('Logout error:', error);
         }
@@ -59,15 +62,16 @@ export const useAuthStore = create<AuthState>()(
         try {
           const supabase = createClient();
           const {
-            data: { user: supabaseUser },
+            data: { session },
             error,
-          } = await supabase.auth.getUser();
+          } = await supabase.auth.getSession();
 
-          if (error || !supabaseUser) {
-            set({ user: null, isAuthenticated: false });
+          if (error || !session) {
+            set({ user: null, accessToken: null, isAuthenticated: false });
             return;
           }
 
+          const supabaseUser = session.user;
           const user: User = {
             id: supabaseUser.id,
             name:
@@ -80,10 +84,14 @@ export const useAuthStore = create<AuthState>()(
               supabaseUser.user_metadata?.picture,
           };
 
-          set({ user, isAuthenticated: true });
+          set({
+            user,
+            accessToken: session.access_token,
+            isAuthenticated: true,
+          });
         } catch (error) {
           console.error('Failed to check auth status:', error);
-          set({ user: null, isAuthenticated: false });
+          set({ user: null, accessToken: null, isAuthenticated: false });
         }
       },
     }),
@@ -92,6 +100,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        accessToken: state.accessToken,
       }),
     },
   ),

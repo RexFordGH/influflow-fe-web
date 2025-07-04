@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '@/constants/env';
+import { useAuthStore } from '@/stores/authStore';
 import { type ApiErrorResponse, type BaseResponse } from '@/types/api';
 
 export class ApiError extends Error {
@@ -22,11 +23,16 @@ export async function apiRequest<T>(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+  const accessToken = useAuthStore.getState().accessToken;
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  };
+
   const config: RequestInit = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
     signal: controller.signal,
     ...options,
   };
