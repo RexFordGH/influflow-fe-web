@@ -133,18 +133,15 @@ export function convertAPIDataToMarkdown(data: Outline): string {
   let markdown = '';
 
   // 添加一级标题
-  markdown += `# ${data.topic}\n\n`;
+  markdown += `# ${data.topic}\n`;
 
-  // 添加当前时间
-  const currentTime = new Date().toLocaleString('zh-CN', {
+  // 添加当前时间 - 英文格式，紧跟标题
+  const currentTime = new Date().toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    weekday: 'long',
   });
-  markdown += `*生成时间：${currentTime}*\n\n`;
+  markdown += `<div class="text-gray-500 text-sm mb-4">Edited on ${currentTime}</div>\n\n`;
 
   // 添加图片占位标记
   markdown += `![${data.topic}主题配图](PLACEHOLDER_IMAGE)\n\n`;
@@ -272,18 +269,15 @@ export function convertMindmapToMarkdown(
   }
 
   // 添加主标题
-  markdown += `# ${topicNode.label}\n\n`;
+  markdown += `# ${topicNode.label}\n`;
 
-  // 添加当前时间
-  const currentTime = new Date().toLocaleString('zh-CN', {
+  // 添加当前时间 - 英文格式，紧跟标题
+  const currentTime = new Date().toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    weekday: 'long',
   });
-  markdown += `*更新时间：${currentTime}*\n\n`;
+  markdown += `<div class="text-gray-500 text-sm mb-4">Edited on ${currentTime}</div>\n\n`;
 
   // 添加图片占位标记
   markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;

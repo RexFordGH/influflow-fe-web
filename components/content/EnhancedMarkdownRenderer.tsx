@@ -162,8 +162,34 @@ export function EnhancedMarkdownRenderer({
     let currentTweetIndex: number | null = null;
     let currentGroupId: string | null = null;
 
+    // 调试信息：输出原始markdown内容
+    console.log('=== DEBUG: 原始markdown内容 ===');
+    console.log(processedContent);
+    console.log('=== DEBUG: 分割后的行 ===');
+    lines.forEach((line, index) => {
+      console.log(`行 ${index}: "${line}"`);
+    });
+    console.log('=== DEBUG: 开始解析 ===');
+
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
+
+      // 检查是否是时间标签 div
+      const timeDivMatch = trimmedLine.match(/<div\s+class="[^"]*">Edited on [^<]+<\/div>/);
+      if (timeDivMatch) {
+        if (currentSection) {
+          sections.push(currentSection);
+        }
+        currentSection = {
+          id: `time-section-${sectionIndex++}`,
+          type: 'paragraph',
+          content: trimmedLine, // 保存完整的 HTML
+          rawContent: line,
+        };
+        sections.push(currentSection);
+        currentSection = null;
+        return;
+      }
 
       // 检查是否是group div开始标签
       const groupDivMatch = trimmedLine.match(/<div\s+data-group-id="(\d+)">/);
@@ -339,8 +365,10 @@ export function EnhancedMarkdownRenderer({
         }
       } else if (trimmedLine && !trimmedLine.startsWith('---')) {
         // 段落（排除分隔线）
+        console.log(`DEBUG: 处理段落行: "${trimmedLine}"`);
         if (!currentSection || currentSection.type !== 'paragraph') {
           if (currentSection) {
+            console.log(`DEBUG: 推送之前的section: ${currentSection.type} - "${currentSection.content}"`);
             sections.push(currentSection);
           }
           currentSection = {
@@ -349,16 +377,24 @@ export function EnhancedMarkdownRenderer({
             content: trimmedLine,
             rawContent: line,
           };
+          console.log(`DEBUG: 创建新的段落section: "${trimmedLine}"`);
         } else {
           currentSection.content += ' ' + trimmedLine;
           currentSection.rawContent += '\n' + line;
+          console.log(`DEBUG: 追加到现有段落section: "${currentSection.content}"`);
         }
       }
     });
 
     if (currentSection) {
+      console.log(`DEBUG: 推送最后的section: ${currentSection.type} - "${currentSection.content}"`);
       sections.push(currentSection);
     }
+
+    console.log('=== DEBUG: 最终解析结果 ===');
+    sections.forEach((section, index) => {
+      console.log(`Section ${index}: ${section.type} - "${section.content}"`);
+    });
 
     return sections;
   }, [processedContent]);

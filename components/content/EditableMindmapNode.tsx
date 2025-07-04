@@ -41,53 +41,61 @@ const EditableMindmapNode = ({
       levelColors[level as keyof typeof levelColors] || levelColors[6];
 
     // 使用 React Flow 原生的选中状态 - 优先级高于 hover
-    const selectedStyle = selected ? '!bg-[#DDE9FF]' : '';
+    const selectedStyle = selected
+      ? 'ring-1 ring-blue-400 ring-offset-1 !bg-[#DDE9FF]'
+      : '';
 
-    // Debug: 输出选中状态
-    if (selected) {
-      console.log(`✅ Node ${id} is SELECTED via React Flow:`, {
-        selected,
-        selectedStyle,
-      });
-    }
+    // Debug: 输出选中状态 - 临时注释
+    // if (selected) {
+    //   console.log(`✅ Node ${id} is SELECTED via React Flow:`, {
+    //     selected,
+    //     selectedStyle,
+    //   });
+    // }
 
-    // 检查是否应该高亮（基于hoveredTweetId） - 增强匹配逻辑
+    // 检查是否应该高亮（基于hoveredTweetId） - 修复数据类型匹配
     const isTweetHovered =
       hoveredTweetId &&
       data.tweetId !== undefined &&
-      (data.tweetId.toString() === hoveredTweetId.toString() ||
-        data.tweetId === Number(hoveredTweetId) ||
-        data.tweetId.toString() === hoveredTweetId);
+      (String(data.tweetId) === String(hoveredTweetId) ||
+        Number(data.tweetId) === Number(hoveredTweetId));
 
     const isGroupHovered =
       hoveredTweetId &&
-      hoveredTweetId.startsWith('group-') &&
+      String(hoveredTweetId).startsWith('group-') &&
       data.outlineIndex !== undefined &&
-      (data.outlineIndex.toString() === hoveredTweetId.replace('group-', '') ||
-        data.outlineIndex === Number(hoveredTweetId.replace('group-', '')));
+      (String(data.outlineIndex) ===
+        String(hoveredTweetId).replace('group-', '') ||
+        Number(data.outlineIndex) ===
+          Number(String(hoveredTweetId).replace('group-', '')));
 
-    const isDirectHovered = hoveredTweetId === id; // 直接ID匹配
+    const isDirectHovered = String(hoveredTweetId) === String(id); // 直接ID匹配
     const isHovered = isTweetHovered || isGroupHovered || isDirectHovered;
 
-    // Debug信息 - 帮助排查对应关系
-    if (
-      hoveredTweetId &&
-      (data.tweetId !== undefined || data.outlineIndex !== undefined)
-    ) {
-      console.log(`Node ${id} matching:`, {
-        hoveredTweetId,
-        nodeTweetId: data.tweetId,
-        nodeOutlineIndex: data.outlineIndex,
-        isTweetHovered,
-        isGroupHovered,
-        isDirectHovered,
-        finalIsHovered: isHovered,
+    // Debug信息 - 临时注释掉减少输出
+    // if (hoveredTweetId && isHovered) {
+    //   console.log(`✅ Node ${id} HOVER MATCH:`, {
+    //     hoveredTweetId,
+    //     matchType: isTweetHovered ? 'tweet' : isGroupHovered ? 'group' : 'direct',
+    //     nodeTweetId: data.tweetId,
+    //     nodeOutlineIndex: data.outlineIndex,
+    //   });
+    // }
+    // 应用 hover 样式（未选中时）或强化选中样式
+    const hoverStyle = isHovered && !selected ? '!bg-[#DDE9FF]' : '';
+
+    // 添加调试样式检查
+    const finalStyle = `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
+    if (isHovered) {
+      console.log(`🎨 Node ${id} applying hover style:`, {
+        isHovered,
+        selected,
+        hoverStyle,
+        finalStyle,
       });
     }
-    // 只有未选中时才应用 hover 样式
-    const hoverStyle = isHovered ? 'bg-[#DDE9FF]' : '';
 
-    return `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
+    return finalStyle;
   }, [level, selected, hoveredTweetId, data.tweetId, data.outlineIndex, id]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {

@@ -474,6 +474,8 @@ export function EditableContentMindmap({
 
   // 单独处理hover状态更新，不触发重新布局
   useEffect(() => {
+    // 临时简化调试输出
+    console.log('🎯 hoveredTweetId:', hoveredTweetId);
     setNodes((currentNodes) =>
       currentNodes.map((node) => ({
         ...node,
