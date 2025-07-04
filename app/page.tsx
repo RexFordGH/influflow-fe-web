@@ -1,7 +1,14 @@
 'use client';
 
 import { useAuthStore } from '@/stores/authStore';
-import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
+import {
+  AcademicCapIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DocumentTextIcon,
+  PlusIcon,
+  UserIcon,
+} from '@heroicons/react/24/outline';
 import { Button, cn, Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
@@ -9,7 +16,7 @@ import { useEffect, useState } from 'react';
 
 import { ApiTest } from '@/components/test/ApiTest';
 import { createClient } from '@/lib/supabase/client';
-import { type TrendingTopic, type SuggestedTopic } from '@/types/api';
+import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -63,9 +70,8 @@ interface Note {
   createdAt: Date;
 }
 
-
 export default function Home() {
-  const { user, isAuthenticated, checkAuthStatus, logout } = useAuthStore();
+  const { user, isAuthenticated, checkAuthStatus } = useAuthStore();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [showWriteByMyself, setShowWriteByMyself] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
@@ -76,6 +82,7 @@ export default function Home() {
   const [topicInput, setTopicInput] = useState('');
   const [showTrendingTopics, setShowTrendingTopics] = useState(false);
   const [showLoginPage, setShowLoginPage] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     console.log('Selected note changed:', selectedNote);
@@ -271,8 +278,33 @@ export default function Home() {
       )}
 
       {/* 左侧导航栏 */}
-      {isAuthenticated && (
-        <div className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-white">
+      <AnimatePresence>
+        {isAuthenticated && !sidebarCollapsed && (
+          <motion.div
+            initial={{ x: -320 }}
+            animate={{ x: 0 }}
+            exit={{ x: -320 }}
+            transition={{
+              duration: 0.3,
+              ease: 'easeInOut',
+            }}
+            className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-white fixed left-0 top-0 h-screen"
+          >
+          {/* 收起按钮 */}
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            onPress={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="absolute top-4 right-3 z-20 text-gray-600 hover:text-gray-900"
+          >
+            {sidebarCollapsed ? (
+              <ChevronRightIcon className="size-4" />
+            ) : (
+              <ChevronLeftIcon className="size-4" />
+            )}
+          </Button>
+
           {/* 用户信息 */}
           <div className="border-b border-gray-200 p-4">
             <div className="flex items-center justify-between">
@@ -289,10 +321,10 @@ export default function Home() {
                   <UserIcon className="size-6 text-gray-600" />
                 )}
                 <span className="font-medium text-gray-900">
-                  {isAuthenticated ? user?.name || 'User' : 'Guest'}
+                  {isAuthenticated ? user?.name || 'Kelly' : 'Guest'}
                 </span>
               </div>
-              {isAuthenticated && (
+              {/* {!sidebarCollapsed && isAuthenticated && (
                 <Button
                   size="sm"
                   variant="light"
@@ -301,68 +333,127 @@ export default function Home() {
                 >
                   Logout
                 </Button>
-              )}
+              )} */}
             </div>
           </div>
 
-          {/* 笔记列表 */}
+          {/* 导航内容 */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-4">
-              <div className="group mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-900">Welcome</h3>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  onPress={createNewNote}
-                  className="opacity-0 transition-opacity group-hover:opacity-100"
-                >
-                  <PlusIcon className="size-4 text-gray-600" />
-                </Button>
+              {/* Welcome 部分 */}
+              <div className="mb-6">
+                <div className="group mb-2 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <ChevronRightIcon className="size-4 text-gray-400" />
+                    <h3 className="text-sm font-medium text-gray-900">
+                      Welcome
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="ml-6 space-y-1">
+                  <div className="flex items-center space-x-2 px-2 py-1 text-sm text-gray-600 hover:bg-gray-50 rounded cursor-pointer">
+                    <DocumentTextIcon className="size-4" />
+                    <span>How to Use InfluNotes</span>
+                  </div>
+                  <div className="flex items-center space-x-2 px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded cursor-pointer border-b border-blue-600">
+                    <AcademicCapIcon className="size-4" />
+                    <span>Why we Built this app</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                {notes.map((note) => (
-                  <div
-                    key={note.id}
-                    className={`cursor-pointer rounded p-2 transition-colors ${
-                      selectedNote?.id === note.id
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'hover:bg-gray-100'
-                    }`}
-                    onClick={() => setSelectedNote(note)}
-                  >
-                    {editingTitle === note.id ? (
-                      <input
-                        type="text"
-                        value={tempTitle}
-                        onChange={(e) => setTempTitle(e.target.value)}
-                        onBlur={() => saveTitle(note.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveTitle(note.id);
-                          if (e.key === 'Escape') cancelEdit();
-                        }}
-                        className="w-full border-none bg-transparent text-sm outline-none"
-                        autoFocus
-                      />
-                    ) : (
-                      <div
-                        className="truncate text-sm"
-                        onDoubleClick={() => startEditTitle(note)}
-                      >
-                        {note.title}
-                      </div>
-                    )}
+              {/* Campaigns 部分 */}
+              <div className="mb-6">
+                <div className="group mb-2 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <ChevronRightIcon className="size-4 text-gray-400" />
+                    <h3 className="text-sm font-medium text-gray-900">
+                      Campaigns
+                    </h3>
                   </div>
-                ))}
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    onPress={createNewNote}
+                    className="opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <PlusIcon className="size-4 text-gray-600" />
+                  </Button>
+                </div>
+
+                <div className="ml-6 space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      key={note.id}
+                      className={`cursor-pointer rounded p-2 transition-colors ${
+                        selectedNote?.id === note.id
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'hover:bg-gray-100'
+                      }`}
+                      onClick={() => setSelectedNote(note)}
+                    >
+                      {editingTitle === note.id ? (
+                        <input
+                          type="text"
+                          value={tempTitle}
+                          onChange={(e) => setTempTitle(e.target.value)}
+                          onBlur={() => saveTitle(note.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveTitle(note.id);
+                            if (e.key === 'Escape') cancelEdit();
+                          }}
+                          className="w-full border-none bg-transparent text-sm outline-none"
+                          autoFocus
+                        />
+                      ) : (
+                        <div
+                          className="truncate text-sm"
+                          onDoubleClick={() => startEditTitle(note)}
+                        >
+                          {note.title}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Add New 按钮 */}
+              <div className="flex items-center space-x-2 px-2 py-2 text-sm text-gray-400 hover:text-gray-600 cursor-pointer">
+                <PlusIcon className="size-4" />
+                <span>Add New</span>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 右侧主内容区 */}
-      <div className="relative flex flex-1 flex-col overflow-hidden">
+      <motion.div 
+        className="relative flex flex-1 flex-col overflow-hidden"
+        animate={{
+          marginLeft: isAuthenticated && !sidebarCollapsed ? 320 : 0
+        }}
+        transition={{
+          duration: 0.3,
+          ease: 'easeInOut',
+        }}
+      >
+        {/* 左上角展开按钮 */}
+        {isAuthenticated && sidebarCollapsed && (
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            onPress={() => setSidebarCollapsed(false)}
+            className="absolute top-4 left-4 z-50 text-gray-600 hover:text-gray-900 bg-white shadow-md"
+          >
+            <ChevronRightIcon className="size-4" />
+          </Button>
+        )}
         <AnimatePresence mode="wait">
           {!selectedNote ? (
             <div className="relative size-full">
@@ -495,7 +586,7 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </div>
   );
 }
