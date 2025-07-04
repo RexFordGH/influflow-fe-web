@@ -500,7 +500,7 @@ export function EnhancedMarkdownRenderer({
           >
             {isLoading && (
               <div className="absolute left-2 top-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
               </div>
             )}
             <HeadingTag
@@ -532,7 +532,7 @@ export function EnhancedMarkdownRenderer({
             >
               {isLoading && (
                 <div className="absolute left-2 top-2 z-10">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                  <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
                 </div>
               )}
               <div className="relative">
@@ -574,7 +574,7 @@ export function EnhancedMarkdownRenderer({
           >
             {isLoading && (
               <div className="absolute left-2 top-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
               </div>
             )}
             <p
@@ -604,7 +604,7 @@ export function EnhancedMarkdownRenderer({
           >
             {isLoading && (
               <div className="absolute left-2 top-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
               </div>
             )}
             {isNumberedList ? (
@@ -733,7 +733,7 @@ export function EnhancedMarkdownRenderer({
           >
             {isLoading && (
               <div className="absolute left-2 top-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
               </div>
             )}
             {/* Tweet Title with proper heading styling */}
@@ -822,7 +822,7 @@ export function EnhancedMarkdownRenderer({
           >
             {isLoading && (
               <div className="absolute left-2 top-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
               </div>
             )}
             {getGroupTitleComponent()}

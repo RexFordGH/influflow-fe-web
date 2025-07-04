@@ -2,7 +2,7 @@
 
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Input } from '@heroui/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 
 import 'reactflow/dist/style.css';
@@ -23,8 +23,8 @@ const EditableMindmapNode = ({
   const [pendingValue, setPendingValue] = useState<string | null>(null); // 保存编辑后的临时文案
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 根据层级确定样式
-  const getNodeStyle = () => {
+  // 根据层级确定样式 - 使用 useMemo 优化
+  const getNodeStyle = useMemo(() => {
     const baseStyle =
       'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[12px] font-[500]';
 
@@ -39,17 +39,16 @@ const EditableMindmapNode = ({
 
     const levelStyle =
       levelColors[level as keyof typeof levelColors] || levelColors[6];
-    // 使用我们自定义的选中状态，而不是React Flow的原生selected状态
-    const isCustomSelected = data.selectedNodeForAI === id;
-    const selectedStyle = isCustomSelected
-      ? 'ring-2 ring-blue-400 ring-offset-1 bg-[#DDE9FF]'
-      : '';
+
+    // 使用 React Flow 原生的选中状态 - 优先级高于 hover
+    const selectedStyle = selected ? '!bg-[#DDE9FF]' : '';
 
     // Debug: 输出选中状态
-    if (isCustomSelected) {
-      console.log(
-        `✅ Node ${id} is CUSTOM SELECTED, selectedNodeForAI=${data.selectedNodeForAI}`,
-      );
+    if (selected) {
+      console.log(`✅ Node ${id} is SELECTED via React Flow:`, {
+        selected,
+        selectedStyle,
+      });
     }
 
     // 检查是否应该高亮（基于hoveredTweetId） - 增强匹配逻辑
@@ -85,29 +84,34 @@ const EditableMindmapNode = ({
         finalIsHovered: isHovered,
       });
     }
+    // 只有未选中时才应用 hover 样式
     const hoverStyle = isHovered ? 'bg-[#DDE9FF]' : '';
 
     return `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
-  };
+  }, [level, selected, hoveredTweetId, data.tweetId, data.outlineIndex, id]);
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsEditing(true);
-  };
+  }, []);
 
-  const handleNodeClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 防止触发空白区域的点击事件
-    console.log(
-      'Node click handler triggered for:',
-      id,
-      'current selectedNodeForAI:',
-      data.selectedNodeForAI,
-    );
-    // 直接设置状态，不依赖复杂的回调
-    if (data.onDirectSelect) {
-      data.onDirectSelect(id);
-    }
-  };
+  const handleNodeClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation(); // 防止触发空白区域的点击事件
+      console.log(
+        'Node click handler triggered for:',
+        id,
+        'selected:',
+        selected,
+      );
+
+      // 手动触发选中状态（因为 React Flow 自动选中可能被阻止）
+      if (data.onNodeClick) {
+        data.onNodeClick(id);
+      }
+    },
+    [id, selected, data.onNodeClick],
+  );
 
   const handleSave = useCallback(() => {
     if (editValue.trim()) {
@@ -118,16 +122,19 @@ const EditableMindmapNode = ({
     setIsEditing(false);
   }, [editValue, onEdit, id]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      // 取消编辑，恢复原状态
-      setEditValue(label);
-      setPendingValue(null); // 清除 pending 状态
-      setIsEditing(false);
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSave();
+      } else if (e.key === 'Escape') {
+        // 取消编辑，恢复原状态
+        setEditValue(label);
+        setPendingValue(null); // 清除 pending 状态
+        setIsEditing(false);
+      }
+    },
+    [handleSave, label],
+  );
 
   // 处理点击外部区域自动保存
   useEffect(() => {
@@ -174,7 +181,7 @@ const EditableMindmapNode = ({
   // Hover 状态管理
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
     // 触发上级hover回调
     if (onNodeHover) {
@@ -207,15 +214,15 @@ const EditableMindmapNode = ({
         onNodeHover(id);
       }
     }
-  };
+  }, [onNodeHover, data.tweetId, data.outlineIndex, id, data]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
     // 清除hover状态
     if (onNodeHover) {
       onNodeHover(null);
     }
-  };
+  }, [onNodeHover]);
 
   return (
     <div
@@ -238,7 +245,7 @@ const EditableMindmapNode = ({
       />
 
       <div
-        className={getNodeStyle()}
+        className={getNodeStyle}
         style={{
           pointerEvents: 'auto', // 确保可点击
         }}
@@ -260,7 +267,11 @@ const EditableMindmapNode = ({
             }}
           />
         ) : (
-          <div onDoubleClick={handleDoubleClick} title="双击编辑">
+          <div
+            onClick={handleNodeClick}
+            onDoubleClick={handleDoubleClick}
+            title="双击编辑"
+          >
             {pendingValue || label}
           </div>
         )}

@@ -131,15 +131,22 @@ export function EditableContentMindmap({
         addChildNode: (parentId: string) => {
           addChildNode(parentId);
         },
-        onSelect: (nodeId: string) => {
-          console.log('Manual node selection triggered:', nodeId);
+        onNodeClick: (nodeId: string) => {
+          console.log('Node clicked:', nodeId);
+          // 手动更新选中状态
           setSelectedNodeForAI(nodeId);
           onNodeSelect?.(nodeId);
+          
+          // 手动设置 React Flow 的选中状态
+          setNodes((currentNodes) => 
+            currentNodes.map((node) => ({
+              ...node,
+              selected: node.id === nodeId,
+            }))
+          );
         },
-        onDirectSelect: setSelectedNodeForAI,
         onNodeHover: onNodeHover, // 传递hover回调
         hoveredTweetId: hoveredTweetId, // 传递hover状态
-        selectedNodeForAI: selectedNodeForAI, // 传递选中状态
         ...node.data,
       },
       style: {
@@ -169,7 +176,6 @@ export function EditableContentMindmap({
     mindmapNodes,
     mindmapEdges,
     highlightedNodeId,
-    selectedNodeForAI, // 添加这个依赖
     onNodesChange,
     onEdgesChange,
     onNodeHover,
@@ -554,13 +560,25 @@ export function EditableContentMindmap({
     [],
   );
 
-  // 处理节点选择 - 暂时禁用
+  // 处理节点选择 - 作为备选方案
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Node[] }) => {
-      console.log('Selection changed (disabled):', selectedNodes);
-      // 不要清除我们手动设置的状态
+      console.log('React Flow selection changed:', selectedNodes);
+      
+      // 如果 React Flow 的原生选中仍然有效，使用它
+      if (selectedNodes.length > 0) {
+        const selectedNodeId = selectedNodes[0].id;
+        setSelectedNodeForAI(selectedNodeId);
+        onNodeSelect?.(selectedNodeId);
+      } else {
+        // 只有当没有手动选中时才清空
+        if (selectedNodes.length === 0) {
+          setSelectedNodeForAI(null);
+          onNodeSelect?.(null);
+        }
+      }
     },
-    [],
+    [onNodeSelect],
   );
 
   // 处理双击编辑 (本地实时编辑，不发送请求)
@@ -750,11 +768,24 @@ export function EditableContentMindmap({
         nodesDraggable={true}
         nodesConnectable={true}
         elementsSelectable={true}
-        selectNodesOnDrag={false}
+        selectNodesOnDrag={true}
         multiSelectionKeyCode={null}
+        selectionOnDrag={true}
         panOnDrag={true}
         deleteKeyCode={null}
-        onPaneClick={() => setSelectedNodeForAI(null)} // 点击空白区域取消选择
+        onPaneClick={() => {
+          console.log('Pane clicked - clearing selection');
+          setSelectedNodeForAI(null);
+          onNodeSelect?.(null);
+          
+          // 手动清除所有节点的选中状态
+          setNodes((currentNodes) => 
+            currentNodes.map((node) => ({
+              ...node,
+              selected: false,
+            }))
+          );
+        }} // 点击空白区域取消选择
         defaultEdgeOptions={{
           type: 'default',
           style: { strokeWidth: 1, stroke: '#6B7280' },
