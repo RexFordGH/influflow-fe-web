@@ -134,7 +134,11 @@ export function ContentGenerationLoading({
                       variants={stepItemVariants}
                     >
                       <p className="text-[16px] leading-[24px] text-[#757575]">
-                        {step}
+                        {index < generationStep 
+                          ? step 
+                          : index === generationStep 
+                            ? `${step}...` 
+                            : step}
                       </p>
                     </motion.div>
                   ))}

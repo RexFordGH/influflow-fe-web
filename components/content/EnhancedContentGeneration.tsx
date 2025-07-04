@@ -36,7 +36,7 @@ export function EnhancedContentGeneration({
   topic,
   onBack,
 }: EnhancedContentGenerationProps) {
-  const [isGenerating, setIsGenerating] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] =
     useState<GeneratedContent | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -74,6 +74,23 @@ export function EnhancedContentGeneration({
     'Refining details and optimizing layout',
   ];
 
+  // 当topic变化时重置状态并启动生成
+  useEffect(() => {
+    if (topic) {
+      // 重置所有状态
+      setGeneratedContent(null);
+      setRawAPIData(null);
+      setApiError(null);
+      setHasStartedGeneration(false);
+      setGenerationStep(0);
+      setIsRegenerating(false);
+      requestIdRef.current = null;
+      
+      // 启动生成过程
+      setIsGenerating(true);
+    }
+  }, [topic]);
+
   // AI生成过程 - 使用真实API
   useEffect(() => {
     // 防止重复请求：如果已经开始生成或者不在生成状态，直接返回
@@ -91,15 +108,48 @@ export function EnhancedContentGeneration({
     setApiError(null);
     setGenerationStep(0);
 
-    // 启动UI进度动画
-    const interval = setInterval(() => {
-      setGenerationStep((prev) => {
-        if (prev < generationSteps.length - 1) {
-          return prev + 1;
+    // 启动智能UI进度动画
+    const stepTimeouts: NodeJS.Timeout[] = [];
+    let isAPICompleted = false;
+    
+    // 步骤时间配置：前4个步骤按固定时间推进，最后2个步骤等待API
+    const stepTimings = [
+      { step: 1, delay: 2000 },   // 2秒后推进到第2个步骤
+      { step: 2, delay: 4000 },   // 4秒后推进到第3个步骤
+      { step: 3, delay: 6500 },   // 6.5秒后推进到第4个步骤
+      // 后面的步骤会等待API返回
+    ];
+    
+    // 安排前几个步骤的推进
+    stepTimings.forEach(({ step, delay }) => {
+      const timeout = setTimeout(() => {
+        if (!isAPICompleted) {
+          setGenerationStep(step);
         }
-        return prev;
-      });
-    }, 1500);
+      }, delay);
+      stepTimeouts.push(timeout);
+    });
+    
+    // 8秒后开始最后两个步骤的等待状态
+    const waitingStepTimeout = setTimeout(() => {
+      if (!isAPICompleted) {
+        setGenerationStep(4); // 开始第5个步骤
+        
+        // 12秒后进入最后一个步骤
+        const finalStepTimeout = setTimeout(() => {
+          if (!isAPICompleted) {
+            setGenerationStep(5); // 最后一个步骤，等待API返回
+          }
+        }, 4000);
+        stepTimeouts.push(finalStepTimeout);
+      }
+    }, 8000);
+    stepTimeouts.push(waitingStepTimeout);
+    
+    // 清理函数
+    const cleanup = () => {
+      stepTimeouts.forEach(timeout => clearTimeout(timeout));
+    };
 
     // 调用API
     generateThread(
@@ -109,33 +159,46 @@ export function EnhancedContentGeneration({
           // 检查请求是否还是当前请求（避免竞态条件）
           if (requestIdRef.current !== currentRequestId) {
             console.log('忽略过期的API响应');
-            clearInterval(interval);
+            cleanup();
             return;
           }
 
-          clearInterval(interval);
+          isAPICompleted = true;
+          cleanup();
           console.log('API生成成功:', response);
 
-          // 存储原始API数据
-          setRawAPIData(response);
+          // 快速完成所有步骤
+          const completeSteps = async () => {
+            // 快速推进到最后几个步骤
+            for (let i = 4; i < generationSteps.length; i++) {
+              setGenerationStep(i);
+              await new Promise(resolve => setTimeout(resolve, 150)); // 快速推进
+            }
+            
+            // 存储原始API数据
+            setRawAPIData(response);
 
-          // 转换API数据为组件所需格式
-          const content = convertAPIDataToGeneratedContent(response);
-          setGeneratedContent(content);
-          setCurrentNodes(content.mindmap.nodes);
-          setCurrentEdges(content.mindmap.edges);
-          setIsGenerating(false);
-          setGenerationStep(generationSteps.length - 1);
+            // 转换API数据为组件所需格式
+            const content = convertAPIDataToGeneratedContent(response);
+            setGeneratedContent(content);
+            setCurrentNodes(content.mindmap.nodes);
+            setCurrentEdges(content.mindmap.edges);
+            setIsGenerating(false);
+            setGenerationStep(generationSteps.length - 1);
+          };
+          
+          completeSteps();
         },
         onError: (error) => {
           // 检查请求是否还是当前请求
           if (requestIdRef.current !== currentRequestId) {
             console.log('忽略过期的API错误');
-            clearInterval(interval);
+            cleanup();
             return;
           }
 
-          clearInterval(interval);
+          isAPICompleted = true;
+          cleanup();
           console.error('API生成失败:', error);
           const errorMessage = getErrorMessage(error);
           setApiError(errorMessage);
@@ -146,9 +209,7 @@ export function EnhancedContentGeneration({
       },
     );
 
-    return () => {
-      clearInterval(interval);
-    };
+    return cleanup;
   }, [
     topic,
     isGenerating,
