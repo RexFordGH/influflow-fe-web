@@ -115,8 +115,8 @@ export function TrendingTopics({
                   : error
                   ? // 错误状态
                     <div className="text-center py-8">
-                      <p className="text-red-500 mb-2">Failed to load trending topics</p>
-                      <p className="text-gray-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                      <p className="text-gray-500 mb-2">Unable to load trending topics at the moment</p>
+                      <p className="text-gray-400 text-sm">Please try again later</p>
                     </div>
                   : // 实际数据 - 根据Figma设计样式
                     trendingTopics.map((topic, index) => (
@@ -156,8 +156,8 @@ export function TrendingTopics({
                   : error
                   ? // 错误状态
                     <div className="text-center py-8">
-                      <p className="text-red-500 mb-2">Failed to load suggested topics</p>
-                      <p className="text-gray-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                      <p className="text-gray-500 mb-2">Unable to load suggested topics at the moment</p>
+                      <p className="text-gray-400 text-sm">Please try again later</p>
                     </div>
                   : // 实际数据 - 根据Figma设计样式
                     suggestedTopics.map((topic, index) => (
@@ -194,6 +194,29 @@ export function TrendingTopics({
             </div>
           </div>
         </div>
+
+        {/* 返回首屏悬浮按钮 */}
+        <Button
+          size="sm"
+          variant="solid"
+          onPress={_onBack}
+          className="fixed bottom-6 right-6 z-10 h-12 w-12 rounded-full bg-black text-white shadow-lg hover:bg-gray-800 transition-all duration-200"
+        >
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
+          </svg>
+        </Button>
       </div>
     </motion.div>
   );

@@ -12,7 +12,7 @@ import {
 import { Outline } from '@/types/outline';
 
 
-import { apiGet, apiPost } from './client';
+import { apiGet, apiPost, apiDirectGet } from './client';
 import {
   createLocalModifyOutlineResponse,
   createLocalModifyTweetResponse,
@@ -142,7 +142,7 @@ export function useTrendingTopics(topicType: string = 'ai') {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_TOPICS, topicType],
     queryFn: (): Promise<TrendingTopicsResponse> => {
-      return apiGet<TrendingTopicsResponse>(`/trends/?topic_type=${topicType}`);
+      return apiDirectGet<TrendingTopicsResponse>(`https://influflowai-production.up.railway.app/trends/?topic_type=${topicType}`);
     },
     staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
     gcTime: 10 * 60 * 1000, // 10分钟缓存

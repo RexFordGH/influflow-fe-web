@@ -137,3 +137,97 @@ export async function apiPostData<T>(
 ): Promise<T> {
   return apiPost<T>(endpoint, data, timeoutMs);
 }
+
+// 用于直接请求外部API，绕过代理
+export async function apiDirectRequest<T>(
+  fullUrl: string,
+  options: RequestInit = {},
+  timeoutMs: number = 10000,
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  const config: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    signal: controller.signal,
+    ...options,
+  };
+
+  try {
+    const response = await fetch(fullUrl, config);
+
+    if (!response.ok) {
+      let errorData: ApiErrorResponse;
+      let responseText = '';
+      try {
+        responseText = await response.text();
+        errorData = JSON.parse(responseText);
+      } catch {
+        errorData = {
+          detail:
+            responseText || `HTTP ${response.status}: ${response.statusText}`,
+        };
+      }
+
+      throw new ApiError(
+        `API Error: ${response.status}`,
+        response.status,
+        errorData,
+      );
+    }
+
+    const text = await response.text();
+    if (!text) {
+      return {} as T;
+    }
+
+    const parsed = JSON.parse(text);
+
+    // 如果响应包含 BaseResponse 结构，检查并提取 data 字段
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'data' in parsed &&
+      'code' in parsed
+    ) {
+      const baseResponse = parsed as BaseResponse<unknown>;
+
+      if (baseResponse?.status !== 'success') {
+        throw new ApiError(
+          baseResponse.message || `API Error: ${baseResponse.code}`,
+          baseResponse.code,
+          { detail: baseResponse.error || baseResponse.message },
+        );
+      }
+
+      return baseResponse.data as T;
+    }
+
+    return parsed as T;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new ApiError(`Request timeout after ${timeoutMs}ms`, 0);
+    }
+
+    throw new ApiError(
+      `Network Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      0,
+    );
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export async function apiDirectGet<T>(
+  fullUrl: string,
+  timeoutMs?: number,
+): Promise<T> {
+  return apiDirectRequest<T>(fullUrl, { method: 'GET' }, timeoutMs);
+}
