@@ -15,7 +15,13 @@ interface WriteByMyselfPageProps {
   readonly?: boolean;
 }
 
-export const WriteByMyselfPage = ({ onBack, initialContent = '', onSave, title, readonly = false }: WriteByMyselfPageProps) => {
+export const WriteByMyselfPage = ({
+  onBack,
+  initialContent = '',
+  onSave,
+  title,
+  readonly = false,
+}: WriteByMyselfPageProps) => {
   const [value, setValue] = useState(initialContent);
 
   const handleContentChange = (content: string) => {
@@ -33,10 +39,10 @@ export const WriteByMyselfPage = ({ onBack, initialContent = '', onSave, title, 
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="flex h-screen flex-col bg-gray-50"
+        className="flex h-screen flex-col bg-white"
       >
         {/* 顶部工具栏 */}
-        <div className="flex items-center gap-4 border-b border-gray-200 bg-white p-4 shadow-sm">
+        <div className="shrink-0 flex items-center gap-4 border-b border-gray-200 bg-white p-4 shadow-sm">
           <Button
             isIconOnly
             variant="flat"
@@ -60,18 +66,19 @@ export const WriteByMyselfPage = ({ onBack, initialContent = '', onSave, title, 
         </div>
 
         {/* 编辑器区域 */}
-        <div className="flex-1 overflow-hidden p-4">
-          <div className="h-full">
+        <div className="flex-1 p-4 overflow-y-scroll">
+          <div className="">
             <EditorPro
               value={value}
               onChange={readonly ? undefined : handleContentChange}
               className={{
-                base: 'flex h-full flex-col',
-                editorWrapper: 'min-h-0 flex-1',
-                editor: 'h-full',
+                base: 'flex flex-col ',
+                menuBar: 'shrink-0',
+                editorWrapper: 'flex-1 overflow-y-scroll',
+                editor: ' ',
               }}
-              placeholder={readonly ? "此文档为只读模式" : "start writing..."}
-              readOnly={readonly}
+              placeholder={readonly ? '此文档为只读模式' : 'start writing...'}
+              isEdit={!readonly}
             />
           </div>
         </div>
