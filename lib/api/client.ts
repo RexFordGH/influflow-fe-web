@@ -237,3 +237,20 @@ export async function apiDirectGet<T>(
 ): Promise<T> {
   return apiDirectRequest<T>(fullUrl, { method: 'GET' }, timeoutMs);
 }
+
+// 图片生成 API
+export async function generateImage(
+  targetTweet: string,
+  tweetThread: string,
+  timeoutMs: number = 30000, // 图片生成可能需要更长时间
+): Promise<string> {
+  const response = await apiPost<{ image_url: string }>(
+    '/api/twitter/generate-image',
+    {
+      target_tweet: targetTweet,
+      tweet_thread: tweetThread,
+    },
+    timeoutMs,
+  );
+  return response.image_url;
+}

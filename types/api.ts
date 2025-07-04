@@ -70,6 +70,18 @@ export interface TrendingTopicsResponse {
   suggested_topics: SuggestedTopic[];
 }
 
+// 图片生成相关类型
+export interface GenerateImageRequest {
+  target_tweet: string;
+  tweet_thread: string;
+}
+
+export interface GenerateImageData {
+  image_url: string;
+}
+
+export type GenerateImageResponse = BaseResponse<GenerateImageData>;
+
 // API 错误响应类型
 export interface ApiErrorResponse {
   detail:

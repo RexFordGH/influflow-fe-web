@@ -26,6 +26,7 @@ import { Outline, TweetContentItem } from '@/types/outline';
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
+import { ImageEditModal } from './ImageEditModal';
 
 interface EnhancedContentGenerationProps {
   topic: string;
@@ -51,6 +52,13 @@ export function EnhancedContentGeneration({
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false); // 防止重复请求
   const [rawAPIData, setRawAPIData] = useState<Outline | null>(null); // 存储原始API数据
   const [hoveredTweetId, setHoveredTweetId] = useState<string | null>(null); // hover状态
+  const [isImageEditModalOpen, setIsImageEditModalOpen] = useState(false);
+  const [editingImage, setEditingImage] = useState<{
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt?: string;
+  } | null>(null);
   const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
     null,
   ); // 重新生成的markdown
@@ -255,6 +263,51 @@ export function EnhancedContentGeneration({
   const handleLoadingStateChange = useCallback((tweetId: string | null) => {
     setLoadingTweetId(tweetId);
   }, []);
+
+  // 处理图片点击事件
+  const handleImageClick = useCallback((image: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt?: string;
+  }) => {
+    setEditingImage(image);
+    setIsImageEditModalOpen(true);
+  }, []);
+
+  // 处理图片更新
+  const handleImageUpdate = useCallback((newImage: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt: string;
+  }) => {
+    // 更新 generatedContent 中的图片信息
+    if (generatedContent) {
+      const updatedContent = {
+        ...generatedContent,
+        image: {
+          url: newImage.url,
+          alt: newImage.alt,
+          caption: newImage.caption,
+          prompt: newImage.prompt,
+        },
+      };
+      setGeneratedContent(updatedContent);
+    }
+
+    // 如果有 regeneratedMarkdown，则更新其中的图片 URL
+    if (regeneratedMarkdown) {
+      const updatedMarkdown = regeneratedMarkdown.replace(
+        /!\[([^\]]*)\]\([^)]+\)/g,
+        `![${newImage.alt}](${newImage.url})`
+      );
+      setRegeneratedMarkdown(updatedMarkdown);
+    }
+
+    setIsImageEditModalOpen(false);
+    setEditingImage(null);
+  }, [generatedContent, regeneratedMarkdown]);
 
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
   const handleRegenerateClick = useCallback(async () => {
@@ -507,6 +560,7 @@ export function EnhancedContentGeneration({
                 }
                 onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}
+                onImageClick={handleImageClick}
                 highlightedSection={hoveredTweetId}
                 hoveredTweetId={hoveredTweetId}
                 imageData={generatedContent?.image}
@@ -516,6 +570,20 @@ export function EnhancedContentGeneration({
           </div>
         </div>
       </div>
+
+      {/* 图片编辑模态框 */}
+      {isImageEditModalOpen && editingImage && rawAPIData && (
+        <ImageEditModal
+          image={editingImage}
+          targetTweet={rawAPIData.nodes[0]?.tweets[0]?.content || ''}
+          tweetThread={convertAPIDataToMarkdown(rawAPIData)}
+          onImageUpdate={handleImageUpdate}
+          onClose={() => {
+            setIsImageEditModalOpen(false);
+            setEditingImage(null);
+          }}
+        />
+      )}
     </div>
   );
 }

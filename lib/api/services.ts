@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  type GenerateImageRequest,
   type GenerateThreadRequest,
   type HealthData,
   type ModifyOutlineData,
@@ -11,7 +12,7 @@ import {
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 
-import { apiDirectGet, apiGet, apiPost } from './client';
+import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
 import {
   createLocalModifyOutlineResponse,
   createLocalModifyTweetResponse,
@@ -23,6 +24,7 @@ export const QUERY_KEYS = {
   TWITTER_GENERATE: ['twitter', 'generate'] as const,
   TWITTER_MODIFY_TWEET: ['twitter', 'modify-tweet'] as const,
   TWITTER_MODIFY_OUTLINE: ['twitter', 'modify-outline'] as const,
+  TWITTER_GENERATE_IMAGE: ['twitter', 'generate-image'] as const,
   TRENDING_TOPICS: ['trending', 'topics'] as const,
 } as const;
 
@@ -128,6 +130,29 @@ export function useModifyOutline() {
     },
     onError: (error) => {
       console.error('Failed to modify outline:', error);
+    },
+  });
+}
+
+// 生成图片
+export function useGenerateImage() {
+  return useMutation({
+    mutationFn: async (data: GenerateImageRequest): Promise<string> => {
+      // 检查是否使用本地数据
+      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
+        // 模拟网络延迟
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        // 返回一个模拟的图片URL
+        return 'https://picsum.photos/800/600?random=' + Date.now();
+      }
+      // 生产环境调用真实接口
+      return generateImage(data.target_tweet, data.tweet_thread, 60000);
+    },
+    onSuccess: (imageUrl) => {
+      console.log('Image generated successfully:', imageUrl);
+    },
+    onError: (error) => {
+      console.error('Failed to generate image:', error);
     },
   });
 }

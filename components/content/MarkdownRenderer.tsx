@@ -10,9 +10,11 @@ interface MarkdownRendererProps {
     url: string;
     alt: string;
     caption?: string;
+    prompt?: string;
   };
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
+  onImageClick?: (image: { url: string; alt: string; caption?: string; prompt?: string }) => void;
   highlightedSection?: string | null;
 }
 
@@ -29,6 +31,7 @@ export function MarkdownRenderer({
   image,
   onSectionHover,
   onSourceClick,
+  onImageClick,
   highlightedSection,
 }: MarkdownRendererProps) {
   // 解析Markdown为结构化数据
@@ -212,17 +215,22 @@ export function MarkdownRenderer({
         {/* 图片显示 */}
         {image && (
           <div className="mb-8">
-            <div className="relative overflow-hidden rounded-lg shadow-md">
+            <div className="relative overflow-hidden rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
               <img
                 src={image.url}
                 alt={image.alt}
                 className="h-auto w-full object-cover"
+                onClick={() => onImageClick?.(image)}
               />
               {image.caption && (
                 <div className="absolute inset-x-0 bottom-0 bg-black/50 p-3 text-white">
                   <p className="text-sm">{image.caption}</p>
                 </div>
               )}
+              {/* 编辑提示 */}
+              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity hover:opacity-100">
+                点击编辑图片
+              </div>
             </div>
           </div>
         )}

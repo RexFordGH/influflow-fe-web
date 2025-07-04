@@ -102,3 +102,55 @@ export interface GenerateContentRequest {
     length?: 'short' | 'medium' | 'long';
   };
 }
+
+// 图片编辑相关类型
+export interface ImageEditState {
+  isEditing: boolean;
+  originalImage: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt?: string;
+  };
+  editingPrompt: string;
+  isGenerating: boolean;
+  generatedImage?: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt: string;
+  };
+}
+
+// 图片生成对话项
+export interface ImageConversationItem {
+  id: string;
+  prompt: string;
+  imageUrl: string;
+  timestamp: number;
+  isApplied?: boolean;
+}
+
+export interface ImageEditProps {
+  image: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt?: string;
+  };
+  targetTweet: string;
+  tweetThread: string;
+  onImageUpdate: (newImage: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt: string;
+  }) => void;
+  onClose: () => void;
+}
+
+export interface ImageGenerationStatus {
+  status: 'idle' | 'generating' | 'success' | 'error';
+  message?: string;
+  progress?: number;
+}
