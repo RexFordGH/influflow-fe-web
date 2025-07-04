@@ -1,42 +1,18 @@
+
 'use client';
 
-import { WriteByMyselfPage } from '@/components/content/WriteByMyselfPage';
 import { useAuthStore } from '@/stores/authStore';
 import { SuggestedTopic, TrendingTopic } from '@/types/api';
 import { Article, Category } from '@/types/content';
 import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { Suspense, lazy } from 'react';
+import { WelcomeScreen } from './WelcomeScreen';
 
-// 动态导入TrendingTopics组件
-const TrendingTopics = lazy(() =>
-  import('@/components/content/TrendingTopics').then((module) => ({
-    default: module.TrendingTopics,
+const WriteByMyselfPage = lazy(() =>
+  import('@/components/content/WriteByMyselfPage').then((module) => ({
+    default: module.WriteByMyselfPage,
   })),
-);
-
-// TrendingTopics加载时的骨架屏组件
-const TrendingTopicsLoadingFallback = () => (
-  <div className="absolute inset-0 bg-white flex items-center justify-center">
-    <div className="animate-pulse space-y-4 w-full max-w-4xl px-8">
-      <div className="h-6 bg-gray-200 rounded w-48"></div>
-      <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-12 bg-gradient-to-r from-yellow-200 to-yellow-100 rounded-xl"
-            style={{ width: `${Math.max(432, 880 - i * 110)}px` }}
-          ></div>
-        ))}
-      </div>
-      <div className="h-6 bg-gray-200 rounded w-56 mt-8"></div>
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-16 bg-gray-100 rounded-xl border"></div>
-        ))}
-      </div>
-    </div>
-  </div>
 );
 
 export const MainContent = ({
@@ -103,120 +79,52 @@ export const MainContent = ({
         </Button>
       )}
 
-      {showMarkdownEditor && currentArticle ? (
-        <WriteByMyselfPage
-          onBack={onBackFromEditor}
-          initialContent={currentArticle.content}
-          onSave={(content) => onSaveArticleContent(currentArticle.id, content)}
-          title={currentArticle.title}
-          readonly={(() => {
-            for (const category of categories) {
-              if (category.id === 'welcome') {
-                const findArticle = (articles: Article[]): boolean => {
-                  for (const article of articles) {
-                    if (article.id === currentArticle.id) return true;
-                    if (findArticle(article.children)) return true;
-                  }
-                  return false;
-                };
-                if (findArticle(category.articles)) return true;
-              }
-            }
-            return false;
-          })()}
+      <div className="size-full" hidden={showMarkdownEditor}>
+        <WelcomeScreen
+          showTrendingTopics={showTrendingTopics}
+          onScrollToTrending={onScrollToTrending}
+          onBackFromTrending={onBackFromTrending}
+          onTrendingTopicSelect={onTrendingTopicSelect}
+          topicInput={topicInput}
+          onTopicInputChange={onTopicInputChange}
+          onTopicSubmit={onTopicSubmit}
+          onWriteByMyself={onWriteByMyself}
         />
-      ) : (
-        <div className="relative size-full">
-          <motion.div
-            initial={{ y: 0 }}
-            animate={{
-              y: showTrendingTopics
-                ? typeof window !== 'undefined'
-                  ? -window.innerHeight
-                  : -800
-                : 0,
+      </div>
+
+      <div className="size-full" hidden={!showMarkdownEditor}>
+        <Suspense fallback={<div className="flex h-screen items-center justify-center text-gray-500">Loading Editor...</div>}>
+          <WriteByMyselfPage
+            onBack={onBackFromEditor}
+            initialContent={currentArticle?.content || ''}
+            onSave={(content) => {
+              if (currentArticle) {
+                onSaveArticleContent(currentArticle.id, content);
+              }
             }}
-            transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
-            className="absolute inset-0 flex items-center justify-center bg-white"
-          >
-            <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
-              <h2 className="text-[24px] font-[600] text-black">
-                Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what
-                would you like to write about today?
-              </h2>
-
-              <div className="relative">
-                <textarea
-                  placeholder="You can start with a topic or an opinion."
-                  value={topicInput}
-                  onChange={(e) => onTopicInputChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      onTopicSubmit();
+            title={currentArticle?.title || ''}
+            readonly={
+              currentArticle
+                ? (() => {
+                    for (const category of categories) {
+                      if (category.id === 'welcome') {
+                        const findArticle = (articles: Article[]): boolean => {
+                          for (const article of articles) {
+                            if (article.id === currentArticle.id) return true;
+                            if (findArticle(article.children)) return true;
+                          }
+                          return false;
+                        };
+                        if (findArticle(category.articles)) return true;
+                      }
                     }
-                  }}
-                  className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
-                  rows={4}
-                />
-                <Button
-                  isIconOnly
-                  color="primary"
-                  className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
-                  onPress={onTopicSubmit}
-                  disabled={!topicInput.trim()}
-                >
-                  <Image
-                    src="/icons/send.svg"
-                    alt="发送"
-                    width={40}
-                    height={40}
-                    className="pointer-events-none"
-                  />
-                </Button>
-              </div>
-
-              <div className="text-center">
-                <div
-                  onClick={onWriteByMyself}
-                  className="text-[16px] font-[500] text-black underline cursor-pointer hover:text-[#448AFF]"
-                >
-                  Write by Myself
-                </div>
-              </div>
-            </div>
-            {isAuthenticated && (
-              <div className="absolute inset-x-0 bottom-[55px] flex  justify-center">
-                <div
-                  className="flex cursor-pointer flex-col items-center transition-all duration-300 hover:scale-105 hover:opacity-70"
-                  onClick={onScrollToTrending}
-                >
-                  <Image
-                    src="/icons/scroll.svg"
-                    alt="scroll-down"
-                    width={24}
-                    height={24}
-                  />
-                  <span className="text-[18px] font-[500] text-[#448AFF]">
-                    Scroll down to explore trending topics
-                  </span>
-                </div>
-              </div>
-            )}
-          </motion.div>
-
-          {/* 只在需要显示时才渲染TrendingTopics组件 */}
-          {showTrendingTopics && (
-            <Suspense fallback={<TrendingTopicsLoadingFallback />}>
-              <TrendingTopics
-                isVisible={showTrendingTopics}
-                onBack={onBackFromTrending}
-                onTopicSelect={onTrendingTopicSelect}
-              />
-            </Suspense>
-          )}
-        </div>
-      )}
+                    return false;
+                  })()
+                : false
+            }
+          />
+        </Suspense>
+      </div>
     </motion.div>
   );
 };
