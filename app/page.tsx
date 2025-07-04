@@ -2,13 +2,13 @@
 
 import { useAuthStore } from '@/stores/authStore';
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
-import { Button, Image } from '@heroui/react';
+import { Button, cn, Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
 import { ApiTest } from '@/components/test/ApiTest';
-import { LoginModal } from '@/components/auth/LoginModal';
+import { createClient } from '@/lib/supabase/client';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -76,7 +76,7 @@ interface SuggestedTopic {
 }
 
 export default function Home() {
-  const { user, isAuthenticated, isLoginModalOpen, openLoginModal, closeLoginModal, checkAuthStatus, logout } = useAuthStore();
+  const { user, isAuthenticated, checkAuthStatus, logout } = useAuthStore();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [showWriteByMyself, setShowWriteByMyself] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
@@ -86,6 +86,7 @@ export default function Home() {
   const [tempTitle, setTempTitle] = useState('');
   const [topicInput, setTopicInput] = useState('');
   const [showTrendingTopics, setShowTrendingTopics] = useState(false);
+  const [showLoginPage, setShowLoginPage] = useState(false);
 
   useEffect(() => {
     console.log('Selected note changed:', selectedNote);
@@ -99,7 +100,7 @@ export default function Home() {
 
   const createNewNote = () => {
     if (!isAuthenticated) {
-      openLoginModal();
+      setShowLoginPage(true);
       return;
     }
 
@@ -138,7 +139,7 @@ export default function Home() {
 
   const handleTopicSubmit = () => {
     if (!isAuthenticated) {
-      openLoginModal();
+      setShowLoginPage(true);
       return;
     }
 
@@ -151,7 +152,7 @@ export default function Home() {
 
   const handleWriteByMyself = () => {
     if (!isAuthenticated) {
-      openLoginModal();
+      setShowLoginPage(true);
       return;
     }
 
@@ -184,6 +185,24 @@ export default function Home() {
     }, 400);
   };
 
+  const handleTwitterLogin = async () => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'twitter',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error('Twitter login error:', error);
+    }
+  };
+
+  const handleBackToMainPage = () => {
+    setShowLoginPage(false);
+  };
+
   // 如果正在显示内容生成页面
   if (showContentGeneration && currentTopic) {
     return (
@@ -199,8 +218,55 @@ export default function Home() {
     return <WriteByMyselfPage onBack={handleBackFromWriteByMyself} />;
   }
 
+  // 如果正在显示登录页面
+  if (showLoginPage) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="w-full max-w-md">
+          <div className="rounded-2xl bg-white p-8 shadow-lg">
+            {/* 品牌Logo区域 */}
+            <div className="mb-8 text-center">
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
+                Login to InfluFlow
+              </h1>
+              <p className="text-gray-600">
+                Transform your ideas into posts in seconds.
+              </p>
+            </div>
+
+            {/* 登录按钮 */}
+            <div className="space-y-4">
+              <Button
+                className="h-12 w-full border border-gray-300 bg-white text-base font-medium text-gray-700 hover:bg-gray-50"
+                startContent={
+                  <svg className="size-5" viewBox="0 0 24 24" fill="#1DA1F2">
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                  </svg>
+                }
+                onPress={handleTwitterLogin}
+              >
+                Continue with Twitter
+              </Button>
+            </div>
+
+            {/* 返回按钮 */}
+            <div className="mt-6 text-center">
+              <Button
+                variant="light"
+                onPress={handleBackToMainPage}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Back to Home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className={cn('flex h-screen overflow-hidden bg-gray-50')}>
       {!isAuthenticated && (
         <div className="fixed top-0 w-full h-[50px] z-50 flex justify-between items-center px-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
           <p className="text-[20px] font-bold leading-[1]">InfluFlow</p>
@@ -208,7 +274,7 @@ export default function Home() {
             className="px-[24px] py-[6px] bg-[#448AFF] text-white rounded-[24px]"
             color="primary"
             variant="flat"
-            onPress={openLoginModal}
+            onPress={() => setShowLoginPage(true)}
           >
             Login
           </Button>
@@ -216,93 +282,95 @@ export default function Home() {
       )}
 
       {/* 左侧导航栏 */}
-      <div className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-white">
-        {/* 用户信息 */}
-        <div className="border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {isAuthenticated && user?.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt="User Avatar"
-                  width={24}
-                  height={24}
-                  className="rounded-full"
-                />
-              ) : (
-                <UserIcon className="size-6 text-gray-600" />
-              )}
-              <span className="font-medium text-gray-900">
-                {isAuthenticated ? user?.name || 'User' : 'Guest'}
-              </span>
-            </div>
-            {isAuthenticated && (
-              <Button
-                size="sm"
-                variant="light"
-                onPress={() => logout()}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Logout
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* 笔记列表 */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4">
-            <div className="group mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-medium text-gray-900">Campaigns</h3>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                onPress={createNewNote}
-                className="opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <PlusIcon className="size-4 text-gray-600" />
-              </Button>
-            </div>
-
-            <div className="space-y-1">
-              {notes.map((note) => (
-                <div
-                  key={note.id}
-                  className={`cursor-pointer rounded p-2 transition-colors ${
-                    selectedNote?.id === note.id
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'hover:bg-gray-100'
-                  }`}
-                  onClick={() => setSelectedNote(note)}
+      {isAuthenticated && (
+        <div className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-white">
+          {/* 用户信息 */}
+          <div className="border-b border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {isAuthenticated && user?.avatar ? (
+                  <Image
+                    src={user.avatar}
+                    alt="User Avatar"
+                    width={24}
+                    height={24}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <UserIcon className="size-6 text-gray-600" />
+                )}
+                <span className="font-medium text-gray-900">
+                  {isAuthenticated ? user?.name || 'User' : 'Guest'}
+                </span>
+              </div>
+              {isAuthenticated && (
+                <Button
+                  size="sm"
+                  variant="light"
+                  onPress={() => logout()}
+                  className="text-gray-600 hover:text-gray-900"
                 >
-                  {editingTitle === note.id ? (
-                    <input
-                      type="text"
-                      value={tempTitle}
-                      onChange={(e) => setTempTitle(e.target.value)}
-                      onBlur={() => saveTitle(note.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') saveTitle(note.id);
-                        if (e.key === 'Escape') cancelEdit();
-                      }}
-                      className="w-full border-none bg-transparent text-sm outline-none"
-                      autoFocus
-                    />
-                  ) : (
-                    <div
-                      className="truncate text-sm"
-                      onDoubleClick={() => startEditTitle(note)}
-                    >
-                      {note.title}
-                    </div>
-                  )}
-                </div>
-              ))}
+                  Logout
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* 笔记列表 */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4">
+              <div className="group mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-900">Welcome</h3>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={createNewNote}
+                  className="opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  <PlusIcon className="size-4 text-gray-600" />
+                </Button>
+              </div>
+
+              <div className="space-y-1">
+                {notes.map((note) => (
+                  <div
+                    key={note.id}
+                    className={`cursor-pointer rounded p-2 transition-colors ${
+                      selectedNote?.id === note.id
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'hover:bg-gray-100'
+                    }`}
+                    onClick={() => setSelectedNote(note)}
+                  >
+                    {editingTitle === note.id ? (
+                      <input
+                        type="text"
+                        value={tempTitle}
+                        onChange={(e) => setTempTitle(e.target.value)}
+                        onBlur={() => saveTitle(note.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveTitle(note.id);
+                          if (e.key === 'Escape') cancelEdit();
+                        }}
+                        className="w-full border-none bg-transparent text-sm outline-none"
+                        autoFocus
+                      />
+                    ) : (
+                      <div
+                        className="truncate text-sm"
+                        onDoubleClick={() => startEditTitle(note)}
+                      >
+                        {note.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 右侧主内容区 */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
@@ -324,7 +392,8 @@ export default function Home() {
               >
                 <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
                   <h2 className="text-[24px] font-[600] text-black">
-                    Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would you like to write about today?
+                    Hey {isAuthenticated ? user?.name || 'there' : 'there'},
+                    what would you like to write about today?
                   </h2>
 
                   <div className="relative">
@@ -368,22 +437,24 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-                <div className="absolute inset-x-0 bottom-[55px] flex  justify-center">
-                  <div
-                    className="flex cursor-pointer flex-col items-center transition-all duration-300 hover:scale-105 hover:opacity-70"
-                    onClick={handleScrollToTrending}
-                  >
-                    <Image
-                      src="/icons/scroll.svg"
-                      alt="scroll-down"
-                      width={24}
-                      height={24}
-                    />
-                    <span className="text-[18px] font-[500] text-[#448AFF]">
-                      Scroll down to explore trending topics
-                    </span>
+                {isAuthenticated && (
+                  <div className="absolute inset-x-0 bottom-[55px] flex  justify-center">
+                    <div
+                      className="flex cursor-pointer flex-col items-center transition-all duration-300 hover:scale-105 hover:opacity-70"
+                      onClick={handleScrollToTrending}
+                    >
+                      <Image
+                        src="/icons/scroll.svg"
+                        alt="scroll-down"
+                        width={24}
+                        height={24}
+                      />
+                      <span className="text-[18px] font-[500] text-[#448AFF]">
+                        Scroll down to explore trending topics
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
               </motion.div>
 
               {/* Trending Topics组件 - 第二屏 */}
@@ -436,12 +507,6 @@ export default function Home() {
           )}
         </AnimatePresence>
       </div>
-      
-      {/* 登录模态框 */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={closeLoginModal}
-      />
     </div>
   );
 }
