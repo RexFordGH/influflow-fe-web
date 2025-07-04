@@ -44,6 +44,32 @@ export interface ModifyOutlineData {
 
 export type ModifyOutlineResponse = BaseResponse<ModifyOutlineData>;
 
+// Trending Topics 相关类型
+export interface TrendingTopic {
+  title: string;
+  type: string;
+  value: number;
+}
+
+export interface SuggestedTopic {
+  source: {
+    id: string;
+    name: string;
+  };
+  author: string;
+  title: string;
+  description: string;
+  url: string;
+  urlToImage: string;
+  publishedAt: string;
+  content: string;
+}
+
+export interface TrendingTopicsResponse {
+  trending_topics: TrendingTopic[];
+  suggested_topics: SuggestedTopic[];
+}
+
 // API 错误响应类型
 export interface ApiErrorResponse {
   detail:

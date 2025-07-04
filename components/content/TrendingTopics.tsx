@@ -2,22 +2,12 @@
 
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/base';
+import { useTrendingTopics, useTopicTypes } from '@/lib/api/services';
+import { type TrendingTopic, type SuggestedTopic } from '@/types/api';
 
-interface TrendingTopic {
-  id: string;
-  title: string;
-  category: string;
-  timeAgo: string;
-  popularity: number; // 热度值 0-100
-}
-
-interface SuggestedTopic {
-  id: string;
-  title: string;
-}
 
 interface TrendingTopicsProps {
   isVisible: boolean;
@@ -25,104 +15,6 @@ interface TrendingTopicsProps {
   onTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
 }
 
-// 模拟API请求hook
-const useTrendingData = (isVisible: boolean) => {
-  const [loading, setLoading] = useState(true);
-  const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
-  const [suggestedTopics, setSuggestedTopics] = useState<SuggestedTopic[]>([]);
-
-  useEffect(() => {
-    // 模拟API请求
-    const fetchTrendingData = async () => {
-      setLoading(true);
-      try {
-        // TODO: 替换为实际的API请求
-        await new Promise((resolve) => setTimeout(resolve, 1500)); // 模拟网络延迟
-
-        // 模拟数据 - 根据Figma设计
-        const mockTrendingTopics: TrendingTopic[] = [
-          {
-            id: '1',
-            title: 'OpenAI',
-            category: 'AI',
-            timeAgo: '20m',
-            popularity: 100,
-          },
-          {
-            id: '2',
-            title: 'Bitcoin',
-            category: 'Investment',
-            timeAgo: '17m',
-            popularity: 85,
-          },
-          {
-            id: '3',
-            title: 'Trump',
-            category: 'Politics',
-            timeAgo: '13m',
-            popularity: 70,
-          },
-          {
-            id: '4',
-            title: 'Enigma',
-            category: 'AI',
-            timeAgo: '8m',
-            popularity: 60,
-          },
-          {
-            id: '5',
-            title: 'AI Ethics',
-            category: 'AI',
-            timeAgo: '6m',
-            popularity: 50,
-          },
-        ];
-
-        const mockSuggestedTopics: SuggestedTopic[] = [
-          {
-            id: '1',
-            title:
-              "OpenAI vs. The Enigma: 80 Years of Cracking Codes—What's Next?",
-          },
-          {
-            id: '2',
-            title:
-              "Bitcoin ETFs Are Live—Here's the Quiet Revolution No One's Pricing In",
-          },
-          {
-            id: '3',
-            title:
-              'Trump, TikTok & the AI Arms Race: How 2024 Politics Rewired Tech Policy',
-          },
-          {
-            id: '4',
-            title:
-              "From Turing's Enigma to GPT-5 Rumors: 5 Milestones That Changed Digital Freedom",
-          },
-          {
-            id: '5',
-            title:
-              '10 OpenAI Research Papers Every Non-Coder Can Actually Understand',
-          },
-        ];
-
-        setTrendingTopics(mockTrendingTopics);
-        setSuggestedTopics(mockSuggestedTopics);
-      } catch (error) {
-        console.error('Failed to fetch trending data:', error);
-        // TODO: 处理错误状态
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isVisible) {
-      fetchTrendingData();
-    }
-  }, [isVisible]);
-
-  return { loading, trendingTopics, suggestedTopics };
-};
 
 // 骨架屏组件
 const TrendingTopicSkeleton = ({ index }: { index: number }) => (
@@ -145,21 +37,29 @@ const SuggestedTopicSkeleton = () => (
 
 export function TrendingTopics({
   isVisible,
-  onBack,
+  onBack: _onBack,
   onTopicSelect,
 }: TrendingTopicsProps) {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const { loading, trendingTopics, suggestedTopics } =
-    useTrendingData(isVisible);
+  const [selectedCategory, setSelectedCategory] = useState('ai');
+  
+  // 获取可用的话题类型
+  const { data: topicTypes = ['ai'] } = useTopicTypes();
+  
+  // 根据选中的分类获取trending topics数据
+  const { 
+    data, 
+    isLoading, 
+    error 
+  } = useTrendingTopics(isVisible ? selectedCategory : '');
 
-  // 分类列表 - 根据Figma设计更新
-  const categories = ['All', 'AI', 'Web3', 'Investment'];
+  const trendingTopics = data?.trending_topics || [];
+  const suggestedTopics = data?.suggested_topics || [];
 
-  // 过滤话题
-  const filteredTopics =
-    selectedCategory === 'All'
-      ? trendingTopics
-      : trendingTopics.filter((topic) => topic.category === selectedCategory);
+  // 分类列表：显示可用的话题类型
+  const categories = topicTypes.map(type => ({ 
+    id: type, 
+    label: type.charAt(0).toUpperCase() + type.slice(1) 
+  }));
 
   return (
     <motion.div
@@ -189,33 +89,39 @@ export function TrendingTopics({
               <div className="mb-4 flex gap-3">
                 {categories.map((category) => (
                   <Button
-                    key={category}
+                    key={category.id}
                     size="sm"
                     variant="bordered"
-                    onPress={() => setSelectedCategory(category)}
+                    onPress={() => setSelectedCategory(category.id)}
                     className={`rounded-xl border px-3 py-1 text-lg font-normal ${
-                      selectedCategory === category
+                      selectedCategory === category.id
                         ? 'border-gray-200 bg-gray-200 text-black'
                         : 'border-gray-200 bg-white text-black hover:bg-gray-50'
                     }`}
-                    isDisabled={loading}
+                    isDisabled={isLoading}
                   >
-                    {category}
+                    {category.label}
                   </Button>
                 ))}
               </div>
 
               {/* 热门话题列表 */}
               <div className="space-y-3">
-                {loading
+                {isLoading
                   ? // 骨架屏
                     Array.from({ length: 5 }).map((_, index) => (
                       <TrendingTopicSkeleton key={index} index={index} />
                     ))
+                  : error
+                  ? // 错误状态
+                    <div className="text-center py-8">
+                      <p className="text-red-500 mb-2">Failed to load trending topics</p>
+                      <p className="text-gray-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                    </div>
                   : // 实际数据 - 根据Figma设计样式
-                    filteredTopics.map((topic, index) => (
+                    trendingTopics.map((topic, index) => (
                       <motion.button
-                        key={topic.id}
+                        key={`${topic.title}-${index}`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -229,7 +135,7 @@ export function TrendingTopics({
                           {topic.title}
                         </span>
                         <span className="text-lg font-medium text-gray-600">
-                          {topic.timeAgo}
+                          {topic.value}
                         </span>
                       </motion.button>
                     ))}
@@ -242,15 +148,21 @@ export function TrendingTopics({
                 Suggested Topics
               </h3>
               <div className="space-y-3">
-                {loading
+                {isLoading
                   ? // 骨架屏
                     Array.from({ length: 5 }).map((_, index) => (
                       <SuggestedTopicSkeleton key={index} />
                     ))
+                  : error
+                  ? // 错误状态
+                    <div className="text-center py-8">
+                      <p className="text-red-500 mb-2">Failed to load suggested topics</p>
+                      <p className="text-gray-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                    </div>
                   : // 实际数据 - 根据Figma设计样式
                     suggestedTopics.map((topic, index) => (
                       <motion.button
-                        key={topic.id}
+                        key={`${topic.title}-${index}`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
@@ -261,9 +173,21 @@ export function TrendingTopics({
                             : 'border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
                         }`}
                       >
-                        <span className="text-[18px] font-normal leading-[27px] text-black">
-                          {topic.title}
-                        </span>
+                        <div className="mb-2">
+                          <span className="text-[18px] font-normal leading-[27px] text-black">
+                            {topic.title}
+                          </span>
+                        </div>
+                        {topic.description && (
+                          <div className="text-sm text-gray-600 line-clamp-2">
+                            {topic.description}
+                          </div>
+                        )}
+                        {topic.source && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {topic.source.name} • {new Date(topic.publishedAt).toLocaleDateString()}
+                          </div>
+                        )}
                       </motion.button>
                     ))}
               </div>

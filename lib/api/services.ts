@@ -7,8 +7,10 @@ import {
   type ModifyOutlineRequest,
   type ModifyTweetData,
   type ModifyTweetRequest,
+  type TrendingTopicsResponse,
 } from '@/types/api';
 import { Outline } from '@/types/outline';
+
 
 import { apiGet, apiPost } from './client';
 import {
@@ -22,6 +24,7 @@ export const QUERY_KEYS = {
   TWITTER_GENERATE: ['twitter', 'generate'] as const,
   TWITTER_MODIFY_TWEET: ['twitter', 'modify-tweet'] as const,
   TWITTER_MODIFY_OUTLINE: ['twitter', 'modify-outline'] as const,
+  TRENDING_TOPICS: ['trending', 'topics'] as const,
 } as const;
 
 export function useHealth() {
@@ -40,7 +43,7 @@ export function useHealth() {
 
 // 生成 Twitter Thread
 export function useGenerateThread() {
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: GenerateThreadRequest): Promise<Outline> => {
@@ -65,7 +68,7 @@ export function useGenerateThread() {
 
 // 修改单个 Tweet
 export function useModifyTweet() {
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: ModifyTweetRequest): Promise<ModifyTweetData> => {
@@ -98,7 +101,7 @@ export function useModifyTweet() {
 
 // 修改大纲
 export function useModifyOutline() {
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (
@@ -127,6 +130,37 @@ export function useModifyOutline() {
     onError: (error) => {
       console.error('Failed to modify outline:', error);
     },
+  });
+}
+
+// ========================
+// Trending Topics 相关
+// ========================
+
+// 获取 Trending Topics
+export function useTrendingTopics(topicType: string = 'ai') {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.TRENDING_TOPICS, topicType],
+    queryFn: (): Promise<TrendingTopicsResponse> => {
+      return apiGet<TrendingTopicsResponse>(`/trends/?topic_type=${topicType}`);
+    },
+    staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
+    gcTime: 10 * 60 * 1000, // 10分钟缓存
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+}
+
+// 获取可用的话题类型（如果后端提供这个接口）
+export function useTopicTypes() {
+  return useQuery({
+    queryKey: ['trending', 'topic-types'],
+    queryFn: async (): Promise<string[]> => {
+      // 暂时返回预定义的类型，如果后端有接口可以替换
+      return ['ai', 'web3', 'investment', 'politics', 'tech'];
+    },
+    staleTime: 60 * 60 * 1000, // 1小时内数据视为新鲜
+    gcTime: 2 * 60 * 60 * 1000, // 2小时缓存
   });
 }
 

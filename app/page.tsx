@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import { ApiTest } from '@/components/test/ApiTest';
 import { createClient } from '@/lib/supabase/client';
+import { type TrendingTopic, type SuggestedTopic } from '@/types/api';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -62,18 +63,6 @@ interface Note {
   createdAt: Date;
 }
 
-interface TrendingTopic {
-  id: string;
-  title: string;
-  category: string;
-  timeAgo: string;
-  popularity: number;
-}
-
-interface SuggestedTopic {
-  id: string;
-  title: string;
-}
 
 export default function Home() {
   const { user, isAuthenticated, checkAuthStatus, logout } = useAuthStore();
