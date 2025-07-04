@@ -21,7 +21,7 @@ import {
   MindmapEdgeData,
   MindmapNodeData,
 } from '@/types/content';
-import { Outline } from '@/types/outline';
+import { Outline, TweetContentItem } from '@/types/outline';
 
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
@@ -237,7 +237,7 @@ export function EnhancedContentGeneration({
       // 重新构建 nodes 数组
       newOutlineStructure.nodes = outlineNodes.map((outlineNode) => {
         const outlineIndex = outlineNode.data?.outlineIndex;
-        const originalNode = rawAPIData.nodes[outlineIndex] || { tweets: [] };
+        const originalNode = rawAPIData.nodes[outlineIndex!] || { tweets: [] };
 
         // 找到属于这个 outline 的所有 tweets
         const relatedTweets = tweetNodes
@@ -249,7 +249,7 @@ export function EnhancedContentGeneration({
               ) || {};
 
             return {
-              ...originalTweet,
+              ...(originalTweet as TweetContentItem),
               title: tweetNode.label, // 使用编辑后的标题
               tweet_number: tweetNode.data?.tweetId || 0,
             };
@@ -448,7 +448,6 @@ export function EnhancedContentGeneration({
                 onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}
                 highlightedSection={hoveredTweetId}
-                sources={generatedContent?.metadata.sources}
                 hoveredTweetId={hoveredTweetId}
                 imageData={generatedContent?.image}
                 loadingTweetId={loadingTweetId}
