@@ -5,12 +5,15 @@ import { Button } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
-import { getErrorMessage, useGenerateThread, useModifyOutline } from '@/lib/api/services';
+import {
+  getErrorMessage,
+  useGenerateThread,
+  useModifyOutline,
+} from '@/lib/api/services';
 import {
   convertAPIDataToGeneratedContent,
   convertAPIDataToMarkdown,
   convertMindmapToMarkdown,
-  convertMindmapToTweets,
   convertThreadDataToMindmap,
 } from '@/lib/data/converters';
 import {
@@ -197,7 +200,7 @@ export function EnhancedContentGeneration({
     console.log('🔄 Regenerate 按钮被点击了！');
     console.log('rawAPIData:', rawAPIData);
     console.log('currentNodes:', currentNodes);
-    
+
     if (!rawAPIData) {
       console.error('缺少原始数据，无法重新生成');
       alert('缺少原始数据，无法重新生成');
@@ -218,30 +221,33 @@ export function EnhancedContentGeneration({
       // 构建包含用户编辑的新 outline 结构
       // 这里需要从当前的思维导图节点中提取修改后的数据
       const newOutlineStructure = { ...currentOutlineFromMindmap };
-      
+
       // 更新主题（如果主题节点被编辑了）
-      const topicNode = currentNodes.find(n => n.type === 'topic');
+      const topicNode = currentNodes.find((n) => n.type === 'topic');
       if (topicNode) {
         newOutlineStructure.topic = topicNode.label;
       }
 
       // 更新大纲点和tweets
-      const outlineNodes = currentNodes.filter(n => n.type === 'outline_point');
-      const tweetNodes = currentNodes.filter(n => n.type === 'tweet');
+      const outlineNodes = currentNodes.filter(
+        (n) => n.type === 'outline_point',
+      );
+      const tweetNodes = currentNodes.filter((n) => n.type === 'tweet');
 
       // 重新构建 nodes 数组
       newOutlineStructure.nodes = outlineNodes.map((outlineNode) => {
         const outlineIndex = outlineNode.data?.outlineIndex;
         const originalNode = rawAPIData.nodes[outlineIndex] || { tweets: [] };
-        
+
         // 找到属于这个 outline 的所有 tweets
         const relatedTweets = tweetNodes
-          .filter(t => t.data?.groupIndex === outlineIndex)
-          .map(tweetNode => {
-            const originalTweet = originalNode.tweets.find(
-              t => t.tweet_number === tweetNode.data?.tweetId
-            ) || {};
-            
+          .filter((t) => t.data?.groupIndex === outlineIndex)
+          .map((tweetNode) => {
+            const originalTweet =
+              originalNode.tweets.find(
+                (t) => t.tweet_number === tweetNode.data?.tweetId,
+              ) || {};
+
             return {
               ...originalTweet,
               title: tweetNode.label, // 使用编辑后的标题
@@ -276,7 +282,8 @@ export function EnhancedContentGeneration({
         setRawAPIData(newOutline);
 
         // 重新构建思维导图
-        const { nodes: newNodes, edges: newEdges } = convertThreadDataToMindmap(newOutline);
+        const { nodes: newNodes, edges: newEdges } =
+          convertThreadDataToMindmap(newOutline);
         setCurrentNodes(newNodes);
         setCurrentEdges(newEdges);
 
@@ -299,7 +306,13 @@ export function EnhancedContentGeneration({
     } finally {
       setIsRegenerating(false);
     }
-  }, [rawAPIData, currentNodes, currentEdges, modifyOutlineMutation, generatedContent]);
+  }, [
+    rawAPIData,
+    currentNodes,
+    currentEdges,
+    modifyOutlineMutation,
+    generatedContent,
+  ]);
 
   const handleSourceClick = useCallback((sectionId: string) => {
     // 显示信息来源弹窗或侧边栏
@@ -355,7 +368,7 @@ export function EnhancedContentGeneration({
     isGenerating,
     generatedContent: !!generatedContent,
     apiError,
-    shouldShowLoading: isGenerating || (!generatedContent && apiError)
+    shouldShowLoading: isGenerating || (!generatedContent && apiError),
   });
 
   if (isGenerating || (!generatedContent && !rawAPIData)) {

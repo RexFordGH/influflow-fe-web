@@ -4,10 +4,13 @@ const TARGET_API_BASE_URL = 'https://influflow-api.up.railway.app';
 
 async function handler(
   req: NextRequest,
-  { params }: { params: Promise<{ slug: string[] }> }
+  { params }: { params: Promise<{ slug: string[] }> },
 ) {
   // CRITICAL FIX: The request body must be awaited BEFORE accessing params.
-  const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await req.text();
+  const body =
+    req.method === 'GET' || req.method === 'HEAD'
+      ? undefined
+      : await req.text();
 
   // Now it's safe to access params.
   const awaitedParams = await params;
@@ -43,4 +46,10 @@ async function handler(
   }
 }
 
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE, handler as PATCH };
+export {
+  handler as DELETE,
+  handler as GET,
+  handler as PATCH,
+  handler as POST,
+  handler as PUT,
+};

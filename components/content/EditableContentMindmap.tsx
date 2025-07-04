@@ -17,12 +17,8 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
-import {
-  useModifyTweet,
-} from '@/lib/api/services';
-import {
-  convertMindmapToMarkdown,
-} from '@/lib/data/converters';
+import { useModifyTweet } from '@/lib/api/services';
+import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import type { Outline } from '@/types/outline';
 
@@ -136,13 +132,13 @@ export function EditableContentMindmap({
           // 手动更新选中状态
           setSelectedNodeForAI(nodeId);
           onNodeSelect?.(nodeId);
-          
+
           // 手动设置 React Flow 的选中状态
-          setNodes((currentNodes) => 
+          setNodes((currentNodes) =>
             currentNodes.map((node) => ({
               ...node,
               selected: node.id === nodeId,
-            }))
+            })),
           );
         },
         onNodeHover: onNodeHover, // 传递hover回调
@@ -566,7 +562,7 @@ export function EditableContentMindmap({
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Node[] }) => {
       console.log('React Flow selection changed:', selectedNodes);
-      
+
       // 如果 React Flow 的原生选中仍然有效，使用它
       if (selectedNodes.length > 0) {
         const selectedNodeId = selectedNodes[0].id;
@@ -779,13 +775,13 @@ export function EditableContentMindmap({
           console.log('Pane clicked - clearing selection');
           setSelectedNodeForAI(null);
           onNodeSelect?.(null);
-          
+
           // 手动清除所有节点的选中状态
-          setNodes((currentNodes) => 
+          setNodes((currentNodes) =>
             currentNodes.map((node) => ({
               ...node,
               selected: false,
-            }))
+            })),
           );
         }} // 点击空白区域取消选择
         defaultEdgeOptions={{
@@ -843,7 +839,7 @@ export function EditableContentMindmap({
             variant="solid"
             onPress={async () => {
               console.log('🔄 Regenerate 按钮被点击 - 调用 API');
-              
+
               // 调用父组件的 API 重生成回调
               if (onRegenerateClick) {
                 await onRegenerateClick();

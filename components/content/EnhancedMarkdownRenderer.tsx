@@ -16,14 +16,21 @@ import {
   ModalContent,
   ModalHeader,
 } from '@heroui/react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
+import {
+  getBaseClasses,
+  getHeadingClass,
+  getHighlightClasses,
+  markdownStyles,
+  shouldEnableInteraction,
+} from './markdownStyles';
 
 interface EnhancedMarkdownRendererProps {
   content: string;
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
   highlightedSection?: string | null;
-  sources?: string[];
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
   imageData?: {
@@ -131,7 +138,6 @@ export function EnhancedMarkdownRenderer({
   onSectionHover,
   onSourceClick,
   highlightedSection,
-  sources = [],
   hoveredTweetId, // 新增参数
   loadingTweetId, // 新增loading参数
   imageData, // 图片数据
@@ -171,11 +177,13 @@ export function EnhancedMarkdownRenderer({
     });
     console.log('=== DEBUG: 开始解析 ===');
 
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
       const trimmedLine = line.trim();
 
       // 检查是否是时间标签 div
-      const timeDivMatch = trimmedLine.match(/<div\s+class="[^"]*">Edited on [^<]+<\/div>/);
+      const timeDivMatch = trimmedLine.match(
+        /<div\s+class="[^"]*">Edited on [^<]+<\/div>/,
+      );
       if (timeDivMatch) {
         if (currentSection) {
           sections.push(currentSection);
@@ -368,7 +376,9 @@ export function EnhancedMarkdownRenderer({
         console.log(`DEBUG: 处理段落行: "${trimmedLine}"`);
         if (!currentSection || currentSection.type !== 'paragraph') {
           if (currentSection) {
-            console.log(`DEBUG: 推送之前的section: ${currentSection.type} - "${currentSection.content}"`);
+            console.log(
+              `DEBUG: 推送之前的section: ${currentSection.type} - "${currentSection.content}"`,
+            );
             sections.push(currentSection);
           }
           currentSection = {
@@ -381,14 +391,19 @@ export function EnhancedMarkdownRenderer({
         } else {
           currentSection.content += ' ' + trimmedLine;
           currentSection.rawContent += '\n' + line;
-          console.log(`DEBUG: 追加到现有段落section: "${currentSection.content}"`);
+          console.log(
+            `DEBUG: 追加到现有段落section: "${currentSection.content}"`,
+          );
         }
       }
     });
 
     if (currentSection) {
-      console.log(`DEBUG: 推送最后的section: ${currentSection.type} - "${currentSection.content}"`);
-      sections.push(currentSection);
+      const section = currentSection as MarkdownSection;
+      console.log(
+        `DEBUG: 推送最后的section: ${section.type} - "${section.content || 'no content'}"`,
+      );
+      sections.push(section);
     }
 
     console.log('=== DEBUG: 最终解析结果 ===');
@@ -399,15 +414,55 @@ export function EnhancedMarkdownRenderer({
     return sections;
   }, [processedContent]);
 
-  const handleSourceClick = (sectionId: string, mappingId?: string) => {
-    const targetId = mappingId || sectionId;
-    setSelectedSourceSection(targetId);
-    setIsSourceModalOpen(true);
-    onSourceClick?.(targetId);
-  };
+  const handleSourceClick = useCallback(
+    (sectionId: string, mappingId?: string) => {
+      const targetId = mappingId || sectionId;
+      setSelectedSourceSection(targetId);
+      setIsSourceModalOpen(true);
+      onSourceClick?.(targetId);
+    },
+    [onSourceClick],
+  );
+
+  // 渲染表情符号 - 移到组件顶层
+  const renderEmoji = useCallback((text: string) => {
+    return text.replace(/[🧵📊💡🔧🚀✨]/gu, (match) =>
+      markdownStyles.formatting.emoji.replace('$1', match),
+    );
+  }, []);
+
+  // 创建鼠标事件处理器工厂函数
+  const createMouseHandlers = useCallback(
+    (section: MarkdownSection) => {
+      const shouldInteract = shouldEnableInteraction(section);
+      
+      const handleEnter = () => {
+        if (!shouldInteract) return;
+
+        if (section.type === 'tweet' && section.tweetId) {
+          console.log('Markdown section hover tweet:', section.tweetId);
+          onSectionHover?.(section.tweetId);
+        } else if (section.type === 'group' && section.groupId) {
+          console.log('Markdown section hover group:', section.groupId);
+          onSectionHover?.(`group-${section.groupId}`);
+        } else {
+          const targetId = section.mappingId || section.id;
+          onSectionHover?.(targetId);
+        }
+      };
+
+      const handleLeave = () => {
+        if (!shouldInteract) return;
+        onSectionHover?.(null);
+      };
+
+      return { handleEnter, handleLeave };
+    },
+    [onSectionHover],
+  );
 
   // 渲染单个段落
-  const renderSection = (section: MarkdownSection, index: number) => {
+  const renderSection = (section: MarkdownSection) => {
     // 检查是否应该高亮：增强匹配逻辑
     const isHighlighted =
       highlightedSection === section.mappingId ||
@@ -461,53 +516,31 @@ export function EnhancedMarkdownRenderer({
 
     // 检查是否正在loading - 增强匹配逻辑
     const isLoading =
-      loadingTweetId &&
-      (// Tweet节点的多种匹配方式
-        (section.tweetId &&
-          (section.tweetId === loadingTweetId ||
-            section.tweetId.toString() === loadingTweetId.toString() ||
-            Number(section.tweetId) === Number(loadingTweetId))) ||
+      loadingTweetId && // Tweet节点的多种匹配方式
+      ((section.tweetId &&
+        (section.tweetId === loadingTweetId ||
+          section.tweetId.toString() === loadingTweetId.toString() ||
+          Number(section.tweetId) === Number(loadingTweetId))) ||
         // Group节点的多种匹配方式
         (loadingTweetId.startsWith('group-') &&
           section.groupId &&
           (section.groupId === loadingTweetId.replace('group-', '') ||
-            section.groupId.toString() === loadingTweetId.replace('group-', '') ||
-            Number(section.groupId) === Number(loadingTweetId.replace('group-', '')))) ||
+            section.groupId.toString() ===
+              loadingTweetId.replace('group-', '') ||
+            Number(section.groupId) ===
+              Number(loadingTweetId.replace('group-', '')))) ||
         // Fallback：直接ID匹配
         loadingTweetId === section.id);
 
-    const baseClasses =
-      'transition-all duration-300 p-4 rounded-lg relative group cursor-pointer';
-    const highlightClasses = isHighlighted
-      ? 'bg-blue-50 border-2 border-blue-400 shadow-lg transform scale-[1.02]'
-      : 'hover:bg-gray-50 hover:shadow-md hover:border-gray-200';
-    const loadingClasses = isLoading
-      ? 'opacity-60 cursor-wait'
-      : '';
+    // 判断是否需要交互效果
+    const shouldInteract = shouldEnableInteraction(section);
 
-    const handleMouseEnter = () => {
-      // 根据section类型传递不同的hover标识
-      if (section.type === 'tweet' && section.tweetId) {
-        console.log('Markdown section hover tweet:', section.tweetId);
-        onSectionHover?.(section.tweetId);
-      } else if (section.type === 'group' && section.groupId) {
-        console.log('Markdown section hover group:', section.groupId);
-        onSectionHover?.(`group-${section.groupId}`);
-      } else {
-        const targetId = section.mappingId || section.id;
-        onSectionHover?.(targetId);
-      }
-    };
+    const baseClasses = getBaseClasses(shouldInteract);
+    const highlightClasses = getHighlightClasses(isHighlighted, shouldInteract);
+    const loadingClasses = isLoading ? markdownStyles.states.loading : '';
 
-    const handleMouseLeave = () => onSectionHover?.(null);
-
-    // 渲染表情符号
-    const renderEmoji = (text: string) => {
-      return text.replace(
-        /[🧵📊💡🔧🚀✨]/gu,
-        (match) => `<span class="text-lg mr-1">${match}</span>`,
-      );
-    };
+    // 创建当前 section 的鼠标事件处理器
+    const { handleEnter: sectionMouseEnter, handleLeave: sectionMouseLeave } = createMouseHandlers(section);
 
     switch (section.type) {
       case 'heading':
@@ -518,32 +551,22 @@ export function EnhancedMarkdownRenderer({
           | 'h4'
           | 'h5'
           | 'h6';
-        const headingClasses = {
-          1: 'text-2xl font-bold text-gray-900 mb-3',
-          2: 'text-xl font-bold text-gray-800 mb-3',
-          3: 'text-lg font-semibold text-gray-800 mb-2',
-          4: 'text-base font-semibold text-gray-700 mb-2',
-          5: 'text-sm font-semibold text-gray-700 mb-1',
-          6: 'text-sm font-medium text-gray-600 mb-1',
-        };
+        const headingClass = getHeadingClass(section.level || 1);
 
         return (
           <div
             key={section.id}
             className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={sectionMouseEnter}
+            onMouseLeave={sectionMouseLeave}
           >
             {isLoading && (
-              <div className="absolute left-2 top-2">
-                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              <div className={markdownStyles.loading.indicator}>
+                <div className={markdownStyles.loading.spinner}></div>
               </div>
             )}
             <HeadingTag
-              className={
-                headingClasses[section.level as keyof typeof headingClasses] ||
-                headingClasses[6]
-              }
+              className={headingClass}
               dangerouslySetInnerHTML={{ __html: renderEmoji(section.content) }}
             />
             <SourceButton
@@ -563,23 +586,23 @@ export function EnhancedMarkdownRenderer({
             <div
               key={section.id}
               className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
+              onMouseEnter={sectionMouseEnter}
+              onMouseLeave={sectionMouseLeave}
             >
               {isLoading && (
-                <div className="absolute left-2 top-2 z-10">
-                  <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                <div className={markdownStyles.loading.zIndex}>
+                  <div className={markdownStyles.loading.spinner}></div>
                 </div>
               )}
               <div className="relative">
                 <img
                   src={imageSrc}
                   alt={altText}
-                  className="h-48 w-full rounded-lg object-cover shadow-md"
+                  className={markdownStyles.image.image}
                 />
                 {imageData?.caption && (
-                  <div className="absolute inset-x-0 bottom-0 rounded-b-lg bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <p className="text-sm font-medium text-white drop-shadow-lg">
+                  <div className={markdownStyles.image.overlay}>
+                    <p className={markdownStyles.image.caption}>
                       {imageData.caption}
                     </p>
                   </div>
@@ -589,32 +612,26 @@ export function EnhancedMarkdownRenderer({
           );
         }
 
-        // 处理普通段落
-        const processedParagraphContent = section.content
-          .replace(
-            /\*\*(.*?)\*\*/g,
-            '<strong class="font-semibold text-gray-900">$1</strong>',
-          )
-          .replace(/\*(.*?)\*/g, '<em class="italic text-gray-600">$1</em>')
-          .replace(
-            /#([^\s#]+)/g,
-            '<span class="text-blue-600 font-medium">#$1</span>',
-          );
+        // 处理普通段落 - 使用统一样式配置
+        const processedParagraphContent = (section.content || '')
+          .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
+          .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
+          .replace(/#([^\s#]+)/g, markdownStyles.formatting.hashtag);
 
         return (
           <div
             key={section.id}
             className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={sectionMouseEnter}
+            onMouseLeave={sectionMouseLeave}
           >
             {isLoading && (
-              <div className="absolute left-2 top-2">
-                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              <div className={markdownStyles.loading.indicator}>
+                <div className={markdownStyles.loading.spinner}></div>
               </div>
             )}
             <p
-              className="mb-3 text-sm leading-relaxed text-gray-700"
+              className={markdownStyles.text.paragraph}
               dangerouslySetInnerHTML={{ __html: processedParagraphContent }}
             />
             <SourceButton
@@ -635,22 +652,19 @@ export function EnhancedMarkdownRenderer({
           <div
             key={section.id}
             className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={sectionMouseEnter}
+            onMouseLeave={sectionMouseLeave}
           >
             {isLoading && (
-              <div className="absolute left-2 top-2">
-                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              <div className={markdownStyles.loading.indicator}>
+                <div className={markdownStyles.loading.spinner}></div>
               </div>
             )}
             {isNumberedList ? (
-              <ol className="mb-3 ml-4 space-y-2">
+              <ol className={markdownStyles.lists.orderedContainer}>
                 {listItems.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="list-decimal text-sm leading-relaxed text-gray-700"
-                  >
-                    <span className="ml-2">
+                  <li key={idx} className={markdownStyles.lists.orderedItem}>
+                    <span className={markdownStyles.lists.itemContent}>
                       {item
                         .replace(/^\d+\.\s*/, '')
                         .replace(
@@ -662,13 +676,10 @@ export function EnhancedMarkdownRenderer({
                 ))}
               </ol>
             ) : (
-              <ul className="mb-3 space-y-2">
+              <ul className={markdownStyles.lists.container}>
                 {listItems.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-start text-sm leading-relaxed text-gray-700"
-                  >
-                    <span className="mr-3 mt-2 inline-block size-1.5 shrink-0 rounded-full bg-blue-500" />
+                  <li key={idx} className={markdownStyles.lists.item}>
+                    <span className={markdownStyles.lists.bullet} />
                     <span
                       dangerouslySetInnerHTML={{
                         __html: item
@@ -729,18 +740,7 @@ export function EnhancedMarkdownRenderer({
         // 根据原始level或者推断的level设置标题样式
         const titleLevel = section.level || 3;
         const getTitleComponent = () => {
-          const titleClasses = {
-            1: 'text-2xl font-bold text-gray-900 mb-3',
-            2: 'text-xl font-bold text-gray-800 mb-3',
-            3: 'text-lg font-semibold text-gray-800 mb-2',
-            4: 'text-base font-semibold text-gray-700 mb-2',
-            5: 'text-sm font-semibold text-gray-700 mb-1',
-            6: 'text-sm font-medium text-gray-600 mb-1',
-          };
-
-          const titleClass =
-            titleClasses[titleLevel as keyof typeof titleClasses] ||
-            titleClasses[3];
+          const titleClass = getHeadingClass(titleLevel);
 
           switch (titleLevel) {
             case 1:
@@ -763,9 +763,9 @@ export function EnhancedMarkdownRenderer({
         return (
           <div
             key={section.id}
-            className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6 border border-gray-100`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
+            onMouseEnter={sectionMouseEnter}
+            onMouseLeave={sectionMouseLeave}
           >
             {isLoading && (
               <div className="absolute left-2 top-2">
@@ -773,11 +773,7 @@ export function EnhancedMarkdownRenderer({
               </div>
             )}
             {/* Tweet Title with proper heading styling */}
-            {title && (
-              <div className="mb-4 border-b border-gray-200 pb-3">
-                {getTitleComponent()}
-              </div>
-            )}
+            {title && <div className="my-[12px]">{getTitleComponent()}</div>}
 
             {/* Tweet Content */}
             {content && (
@@ -819,12 +815,12 @@ export function EnhancedMarkdownRenderer({
         const groupTitleLevel = section.level || 2;
         const getGroupTitleComponent = () => {
           const titleClasses = {
-            1: 'text-2xl font-bold text-gray-900 mb-3',
-            2: 'text-xl font-bold text-gray-800 mb-3',
-            3: 'text-lg font-semibold text-gray-800 mb-2',
-            4: 'text-base font-semibold text-gray-700 mb-2',
-            5: 'text-sm font-semibold text-gray-700 mb-1',
-            6: 'text-sm font-medium text-gray-600 mb-1',
+            1: 'text-2xl font-bold text-gray-900',
+            2: 'text-xl font-bold text-gray-800',
+            3: 'text-lg font-semibold text-gray-800',
+            4: 'text-base font-semibold text-gray-700',
+            5: 'text-sm font-semibold text-gray-700',
+            6: 'text-sm font-medium text-gray-600',
           };
 
           const titleClass =
@@ -853,8 +849,8 @@ export function EnhancedMarkdownRenderer({
           <div
             key={section.id}
             className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={sectionMouseEnter}
+            onMouseLeave={sectionMouseLeave}
           >
             {isLoading && (
               <div className="absolute left-2 top-2">
@@ -935,10 +931,10 @@ export function EnhancedMarkdownRenderer({
 
   return (
     <>
-      <div className="h-full overflow-y-auto bg-white">
-        <div className="max-w-none p-6">
-          <div className="space-y-2">
-            {sections.map((section, index) => renderSection(section, index))}
+      <div className={markdownStyles.container.main}>
+        <div className={markdownStyles.container.content}>
+          <div className={markdownStyles.container.sections}>
+            {sections.map((section) => renderSection(section))}
           </div>
         </div>
       </div>
@@ -1033,10 +1029,10 @@ function SourceButton({
       isIconOnly
       size="sm"
       variant="light"
-      className="absolute right-2 top-2 opacity-0 transition-opacity hover:bg-blue-50 group-hover:opacity-100"
+      className={markdownStyles.source.button}
       onPress={() => onSourceClick?.(sectionId, mappingId)}
     >
-      <InformationCircleIcon className="size-4 text-blue-600" />
+      <InformationCircleIcon className={markdownStyles.source.icon} />
     </Button>
   );
 }
