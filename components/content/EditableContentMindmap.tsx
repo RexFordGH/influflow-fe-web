@@ -8,6 +8,7 @@ import ReactFlow, {
   Background,
   Connection,
   ConnectionMode,
+  Controls,
   Edge,
   Node,
   NodeTypes,
@@ -794,12 +795,12 @@ export function EditableContentMindmap({
           animated: false,
         }}
       >
-        {/* <Controls
+        <Controls
           showZoom
           showFitView
           showInteractive={true}
           className="bg-white border border-gray-200 rounded-lg"
-        /> */}
+        />
 
         {/* <MiniMap
           nodeColor={(node) => {
@@ -887,7 +888,7 @@ export function EditableContentMindmap({
           </Button>
         </Panel> */}
 
-        <Panel position="bottom-left" className="flex flex-col gap-2">
+        {/* <Panel position="bottom-left" className="flex flex-col gap-2">
           <Button
             size="sm"
             color="secondary"
@@ -897,7 +898,7 @@ export function EditableContentMindmap({
           >
             Auto Layout
           </Button>
-        </Panel>
+        </Panel> */}
       </ReactFlow>
 
       {/* AI编辑对话框 - 固定在底部 */}
