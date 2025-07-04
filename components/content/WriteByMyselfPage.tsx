@@ -9,15 +9,21 @@ import EditorPro from '@/components/editorPro';
 
 interface WriteByMyselfPageProps {
   onBack: () => void;
+  initialContent?: string;
+  onSave?: (content: string) => void;
+  title?: string;
+  readonly?: boolean;
 }
 
-export const WriteByMyselfPage = ({ onBack }: WriteByMyselfPageProps) => {
-  const [value, setValue] = useState('');
+export const WriteByMyselfPage = ({ onBack, initialContent = '', onSave, title, readonly = false }: WriteByMyselfPageProps) => {
+  const [value, setValue] = useState(initialContent);
 
   const handleContentChange = (content: string) => {
     setValue(content);
-    // 这里可以添加自动保存逻辑
-    console.log('Content changed:', content);
+    // 自动保存逻辑 - 只读模式下不保存
+    if (onSave && !readonly) {
+      onSave(content);
+    }
   };
 
   return (
@@ -39,6 +45,18 @@ export const WriteByMyselfPage = ({ onBack }: WriteByMyselfPageProps) => {
           >
             <ArrowLeftIcon className="size-5" />
           </Button>
+          {title && (
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-medium text-gray-900 truncate">
+                {title}
+              </h1>
+              {readonly && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  只读
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 编辑器区域 */}
@@ -46,13 +64,14 @@ export const WriteByMyselfPage = ({ onBack }: WriteByMyselfPageProps) => {
           <div className="h-full">
             <EditorPro
               value={value}
-              onChange={handleContentChange}
+              onChange={readonly ? undefined : handleContentChange}
               className={{
                 base: 'flex h-full flex-col',
                 editorWrapper: 'min-h-0 flex-1',
                 editor: 'h-full',
               }}
-              placeholder="start writing..."
+              placeholder={readonly ? "此文档为只读模式" : "start writing..."}
+              readOnly={readonly}
             />
           </div>
         </div>

@@ -2,9 +2,6 @@
 
 import { useAuthStore } from '@/stores/authStore';
 import {
-  AcademicCapIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   DocumentTextIcon,
   PlusIcon,
   UserIcon,
@@ -14,7 +11,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
-import { ApiTest } from '@/components/test/ApiTest';
 import { createClient } from '@/lib/supabase/client';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 
@@ -63,75 +59,216 @@ const WriteByMyselfPage = dynamic(
   },
 );
 
-interface Note {
+interface Article {
   id: string;
   title: string;
   content: string;
+  parentId?: string;
+  children: Article[];
+  expanded: boolean;
   createdAt: Date;
 }
+
+interface Category {
+  id: string;
+  title: string;
+  articles: Article[];
+  expanded: boolean;
+}
+
+// 递归文章项组件
+const ArticleItem = ({
+  article,
+  categoryId,
+  level = 0,
+  onToggleExpanded,
+  onOpenEditor,
+  onAddChild,
+  editingArticleId,
+  tempTitle,
+  onStartEditTitle,
+  onSaveTitle,
+  onCancelEdit,
+  onTempTitleChange,
+}: {
+  article: Article;
+  categoryId: string;
+  level?: number;
+  onToggleExpanded: (categoryId: string, articleId: string) => void;
+  onOpenEditor: (categoryId: string, articleId: string) => void;
+  onAddChild: (categoryId: string, parentId: string) => void;
+  editingArticleId: string | null;
+  tempTitle: string;
+  onStartEditTitle: (categoryId: string, articleId: string) => void;
+  onSaveTitle: (categoryId: string, articleId: string) => void;
+  onCancelEdit: () => void;
+  onTempTitleChange: (title: string) => void;
+}) => {
+  const hasChildren = article.children.length > 0;
+  const indentClass = level > 0 ? `ml-${level * 4}` : '';
+
+  return (
+    <div className={`${indentClass}`}>
+      <div className="min-h-[37px] group flex items-center justify-between px-2 py-1 hover:bg-[#E8E8E8] rounded-[8px]">
+        <div className="flex items-center space-x-2 flex-1">
+          {hasChildren && (
+            <button
+              onClick={() => onToggleExpanded(categoryId, article.id)}
+              className="p-1 hover:bg-gray-200 rounded"
+            >
+              <Image
+                src={'/icons/arrowLeft.svg'}
+                alt="arrow-right"
+                width={24}
+                height={24}
+                className={`transition-transform ${article.expanded ? 'rotate-90' : ''}`}
+              />
+            </button>
+          )}
+          {!hasChildren && <div className="w-5" />}
+          <DocumentTextIcon className="size-4 text-gray-500" />
+          {editingArticleId === article.id ? (
+            <input
+              type="text"
+              value={tempTitle}
+              onChange={(e) => onTempTitleChange(e.target.value)}
+              onBlur={() => onSaveTitle(categoryId, article.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSaveTitle(categoryId, article.id);
+                if (e.key === 'Escape') onCancelEdit();
+              }}
+              className="flex-1 text-sm bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+              autoFocus
+            />
+          ) : (
+            <button
+              onClick={() => onOpenEditor(categoryId, article.id)}
+              onDoubleClick={() => onStartEditTitle(categoryId, article.id)}
+              className={`text-sm text-gray-700 hover:text-gray-900 truncate flex-1 text-left ${
+                categoryId === 'welcome' ? 'cursor-default' : ''
+              }`}
+            >
+              {article.title}
+            </button>
+          )}
+        </div>
+        {categoryId !== 'welcome' && (
+          <button
+            onClick={() => onAddChild(categoryId, article.id)}
+            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity"
+          >
+            <PlusIcon className="size-3 text-gray-600" />
+          </button>
+        )}
+      </div>
+      {hasChildren && article.expanded && (
+        <div className="ml-4">
+          {article.children.map((child) => (
+            <ArticleItem
+              key={child.id}
+              article={child}
+              categoryId={categoryId}
+              level={level + 1}
+              onToggleExpanded={onToggleExpanded}
+              onOpenEditor={onOpenEditor}
+              onAddChild={onAddChild}
+              editingArticleId={editingArticleId}
+              tempTitle={tempTitle}
+              onStartEditTitle={onStartEditTitle}
+              onSaveTitle={onSaveTitle}
+              onCancelEdit={onCancelEdit}
+              onTempTitleChange={onTempTitleChange}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Home() {
   const { user, isAuthenticated, checkAuthStatus } = useAuthStore();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
-  const [showWriteByMyself, setShowWriteByMyself] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const [tempTitle, setTempTitle] = useState('');
   const [topicInput, setTopicInput] = useState('');
   const [showTrendingTopics, setShowTrendingTopics] = useState(false);
   const [showLoginPage, setShowLoginPage] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  useEffect(() => {
-    console.log('Selected note changed:', selectedNote);
-    console.log('Notes array:', notes);
-  }, [selectedNote, notes]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
+  const [showMarkdownEditor, setShowMarkdownEditor] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
+    null,
+  );
+  const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState('');
 
   // 检查用户登录状态
   useEffect(() => {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
-  const createNewNote = () => {
-    if (!isAuthenticated) {
-      setShowLoginPage(true);
-      return;
-    }
-
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: 'Untitled',
-      content: '',
-      createdAt: new Date(),
-    };
-    setNotes([...notes, newNote]);
-    setSelectedNote(newNote);
-    console.log('Created new note:', newNote);
-  };
-
-  const startEditTitle = (note: Note) => {
-    setEditingTitle(note.id);
-    setTempTitle(note.title);
-  };
-
-  const saveTitle = (noteId: string) => {
-    setNotes(
-      notes.map((note) =>
-        note.id === noteId ? { ...note, title: tempTitle } : note,
-      ),
-    );
-    setEditingTitle(null);
-    if (selectedNote?.id === noteId) {
-      setSelectedNote((prev) => (prev ? { ...prev, title: tempTitle } : null));
+  // localStorage 操作函数
+  const saveCategoriesToStorage = (cats: Category[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('article-categories', JSON.stringify(cats));
     }
   };
 
-  const cancelEdit = () => {
-    setEditingTitle(null);
-    setTempTitle('');
+  const loadCategoriesFromStorage = (): Category[] => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('article-categories');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    }
+    return [];
   };
+
+  // 初始化分类数据
+  useEffect(() => {
+    const storedCategories = loadCategoriesFromStorage();
+    if (storedCategories.length === 0) {
+      // 初始化默认分类
+      const defaultCategories: Category[] = [
+        {
+          id: 'welcome',
+          title: 'Welcome',
+          expanded: true,
+          articles: [
+            {
+              id: 'how-to-use',
+              title: 'How to Use InfluNotes',
+              content:
+                '# How to Use InfluNotes\n\n欢迎使用 InfluNotes！这是一个强大的文章编辑和管理工具。',
+              children: [],
+              expanded: false,
+              createdAt: new Date(),
+            },
+            {
+              id: 'why-built',
+              title: 'Why we Built this app',
+              content:
+                '# Why we Built this app\n\n我们构建这个应用是为了帮助用户更好地管理和编辑他们的文章内容。',
+              children: [],
+              expanded: false,
+              createdAt: new Date(),
+            },
+          ],
+        },
+        {
+          id: 'campaigns',
+          title: 'Campaigns',
+          expanded: true,
+          articles: [],
+        },
+      ];
+      setCategories(defaultCategories);
+      saveCategoriesToStorage(defaultCategories);
+    } else {
+      setCategories(storedCategories);
+    }
+  }, []);
 
   const handleTopicSubmit = () => {
     if (!isAuthenticated) {
@@ -152,16 +289,42 @@ export default function Home() {
       return;
     }
 
-    setShowWriteByMyself(true);
+    // 创建新文章
+    const articleId = `article-${Date.now()}`;
+    const newArticle: Article = {
+      id: articleId,
+      title: 'Untitled',
+      content: '# Untitled\n\n开始写你的文章...',
+      children: [],
+      expanded: false,
+      createdAt: new Date(),
+    };
+
+    // 创建新的分类作为根目录
+    const timestamp = new Date();
+    const categoryTitle = `My Article ${timestamp.getHours()}:${timestamp.getMinutes()}`;
+    const categoryId = `category-${Date.now()}`;
+    
+    const newCategory: Category = {
+      id: categoryId,
+      title: categoryTitle,
+      articles: [newArticle], // 直接包含新文章
+      expanded: true,
+    };
+    
+    const updatedCategories = [...categories, newCategory];
+    console.log('Creating new category and article:', { newCategory, newArticle, updatedCategories });
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+
+    // 打开编辑器
+    setCurrentArticle(newArticle);
+    setShowMarkdownEditor(true);
   };
 
   const handleBackToHome = () => {
     setShowContentGeneration(false);
     setCurrentTopic('');
-  };
-
-  const handleBackFromWriteByMyself = () => {
-    setShowWriteByMyself(false);
   };
 
   const handleScrollToTrending = () => {
@@ -199,6 +362,219 @@ export default function Home() {
     setShowLoginPage(false);
   };
 
+  // 文章管理函数
+  const toggleCategoryExpanded = (categoryId: string) => {
+    const updatedCategories = categories.map((cat) =>
+      cat.id === categoryId ? { ...cat, expanded: !cat.expanded } : cat,
+    );
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+  };
+
+  const toggleArticleExpanded = (categoryId: string, articleId: string) => {
+    const updatedCategories = categories.map((cat) => {
+      if (cat.id === categoryId) {
+        const updateArticle = (articles: Article[]): Article[] =>
+          articles.map((article) =>
+            article.id === articleId
+              ? { ...article, expanded: !article.expanded }
+              : { ...article, children: updateArticle(article.children) },
+          );
+        return { ...cat, articles: updateArticle(cat.articles) };
+      }
+      return cat;
+    });
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+  };
+
+  const createNewArticle = (categoryId: string, parentId?: string) => {
+    // Welcome 分类不允许添加新文章
+    if (categoryId === 'welcome') return;
+
+    const newArticle: Article = {
+      id: Date.now().toString(),
+      title: 'Untitled',
+      content: '# Untitled\n\n开始写你的文章...',
+      parentId,
+      children: [],
+      expanded: false,
+      createdAt: new Date(),
+    };
+
+    const updatedCategories = categories.map((cat) => {
+      if (cat.id === categoryId) {
+        if (parentId) {
+          // 添加为子文章
+          const addToParent = (articles: Article[]): Article[] =>
+            articles.map((article) =>
+              article.id === parentId
+                ? { ...article, children: [...article.children, newArticle] }
+                : { ...article, children: addToParent(article.children) },
+            );
+          return { ...cat, articles: addToParent(cat.articles) };
+        } else {
+          // 添加为根文章
+          return { ...cat, articles: [...cat.articles, newArticle] };
+        }
+      }
+      return cat;
+    });
+
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+    setCurrentArticle(newArticle);
+    setShowMarkdownEditor(true);
+  };
+
+  const createNewCategory = () => {
+    const newCategory: Category = {
+      id: Date.now().toString(),
+      title: 'New Category',
+      articles: [],
+      expanded: true,
+    };
+    const updatedCategories = [...categories, newCategory];
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+  };
+
+  const openArticleEditor = (categoryId: string, articleId: string) => {
+    const findArticle = (articles: Article[]): Article | null => {
+      for (const article of articles) {
+        if (article.id === articleId) return article;
+        const found = findArticle(article.children);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    for (const category of categories) {
+      if (category.id === categoryId) {
+        const article = findArticle(category.articles);
+        if (article) {
+          setCurrentArticle(article);
+          setShowMarkdownEditor(true);
+          return;
+        }
+      }
+    }
+  };
+
+  const saveArticleContent = (articleId: string, content: string) => {
+    // 检查是否是 Welcome 分类下的文章
+    let isWelcomeArticle = false;
+    for (const category of categories) {
+      if (category.id === 'welcome') {
+        const findArticle = (articles: Article[]): boolean => {
+          for (const article of articles) {
+            if (article.id === articleId) return true;
+            if (findArticle(article.children)) return true;
+          }
+          return false;
+        };
+        if (findArticle(category.articles)) {
+          isWelcomeArticle = true;
+          break;
+        }
+      }
+    }
+
+    // Welcome 分类下的文章不允许编辑内容
+    if (isWelcomeArticle) return;
+
+    const updatedCategories = categories.map((cat) => {
+      const updateArticle = (articles: Article[]): Article[] =>
+        articles.map((article) =>
+          article.id === articleId
+            ? { ...article, content }
+            : { ...article, children: updateArticle(article.children) },
+        );
+      return { ...cat, articles: updateArticle(cat.articles) };
+    });
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+  };
+
+  // 编辑标题相关函数
+  const startEditCategoryTitle = (categoryId: string) => {
+    // Welcome 分类不允许编辑
+    if (categoryId === 'welcome') return;
+
+    const category = categories.find((cat) => cat.id === categoryId);
+    if (category) {
+      setEditingCategoryId(categoryId);
+      setTempTitle(category.title);
+    }
+  };
+
+  const startEditArticleTitle = (categoryId: string, articleId: string) => {
+    // Welcome 分类下的文章不允许编辑标题
+    if (categoryId === 'welcome') return;
+
+    const findArticle = (articles: Article[]): Article | null => {
+      for (const article of articles) {
+        if (article.id === articleId) return article;
+        const found = findArticle(article.children);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    for (const category of categories) {
+      if (category.id === categoryId) {
+        const article = findArticle(category.articles);
+        if (article) {
+          setEditingArticleId(articleId);
+          setTempTitle(article.title);
+          return;
+        }
+      }
+    }
+  };
+
+  const saveCategoryTitle = (categoryId: string) => {
+    const updatedCategories = categories.map((cat) =>
+      cat.id === categoryId ? { ...cat, title: tempTitle } : cat,
+    );
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+    setEditingCategoryId(null);
+    setTempTitle('');
+  };
+
+  const saveArticleTitle = (categoryId: string, articleId: string) => {
+    const updatedCategories = categories.map((cat) => {
+      if (cat.id === categoryId) {
+        const updateArticle = (articles: Article[]): Article[] =>
+          articles.map((article) =>
+            article.id === articleId
+              ? { ...article, title: tempTitle }
+              : { ...article, children: updateArticle(article.children) },
+          );
+        return { ...cat, articles: updateArticle(cat.articles) };
+      }
+      return cat;
+    });
+    setCategories(updatedCategories);
+    saveCategoriesToStorage(updatedCategories);
+    setEditingArticleId(null);
+    setTempTitle('');
+
+    // 如果当前文章正在编辑中，也更新编辑器标题
+    if (currentArticle?.id === articleId) {
+      setCurrentArticle((prev) =>
+        prev ? { ...prev, title: tempTitle } : null,
+      );
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingCategoryId(null);
+    setEditingArticleId(null);
+    setTempTitle('');
+  };
+
   // 如果正在显示内容生成页面
   if (showContentGeneration && currentTopic) {
     return (
@@ -207,11 +583,6 @@ export default function Home() {
         onBack={handleBackToHome}
       />
     );
-  }
-
-  // 如果正在显示写作页面
-  if (showWriteByMyself) {
-    return <WriteByMyselfPage onBack={handleBackFromWriteByMyself} />;
   }
 
   // 如果正在显示登录页面
@@ -288,43 +659,44 @@ export default function Home() {
               duration: 0.3,
               ease: 'easeInOut',
             }}
-            className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-white fixed left-0 top-0 h-screen"
+            className="z-10 flex w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] fixed left-0 top-0 h-screen"
           >
-          {/* 收起按钮 */}
-          <Button
-            isIconOnly
-            size="sm"
-            variant="light"
-            onPress={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="absolute top-4 right-3 z-20 text-gray-600 hover:text-gray-900"
-          >
-            {sidebarCollapsed ? (
-              <ChevronRightIcon className="size-4" />
-            ) : (
-              <ChevronLeftIcon className="size-4" />
-            )}
-          </Button>
+            {/* 收起按钮 */}
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              onPress={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="absolute top-4 right-3 z-20 text-gray-600 hover:text-gray-900"
+            >
+              <Image
+                src={'/icons/doubleArrowRounded.svg'}
+                alt="arrow-right"
+                width={24}
+                height={24}
+              />
+            </Button>
 
-          {/* 用户信息 */}
-          <div className="border-b border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                {isAuthenticated && user?.avatar ? (
-                  <Image
-                    src={user.avatar}
-                    alt="User Avatar"
-                    width={24}
-                    height={24}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <UserIcon className="size-6 text-gray-600" />
-                )}
-                <span className="font-medium text-gray-900">
-                  {isAuthenticated ? user?.name || 'Kelly' : 'Guest'}
-                </span>
-              </div>
-              {/* {!sidebarCollapsed && isAuthenticated && (
+            {/* 用户信息 */}
+            <div className=" p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {isAuthenticated && user?.avatar ? (
+                    <Image
+                      src={user.avatar}
+                      alt="User Avatar"
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <UserIcon className="size-6 text-gray-600" />
+                  )}
+                  <span className="font-medium text-gray-900">
+                    {isAuthenticated ? user?.name || 'Kelly' : 'Guest'}
+                  </span>
+                </div>
+                {/* {!sidebarCollapsed && isAuthenticated && (
                 <Button
                   size="sm"
                   variant="light"
@@ -334,108 +706,113 @@ export default function Home() {
                   Logout
                 </Button>
               )} */}
-            </div>
-          </div>
-
-          {/* 导航内容 */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-4">
-              {/* Welcome 部分 */}
-              <div className="mb-6">
-                <div className="group mb-2 flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <ChevronRightIcon className="size-4 text-gray-400" />
-                    <h3 className="text-sm font-medium text-gray-900">
-                      Welcome
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="ml-6 space-y-1">
-                  <div className="flex items-center space-x-2 px-2 py-1 text-sm text-gray-600 hover:bg-gray-50 rounded cursor-pointer">
-                    <DocumentTextIcon className="size-4" />
-                    <span>How to Use InfluNotes</span>
-                  </div>
-                  <div className="flex items-center space-x-2 px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded cursor-pointer border-b border-blue-600">
-                    <AcademicCapIcon className="size-4" />
-                    <span>Why we Built this app</span>
-                  </div>
-                </div>
               </div>
+            </div>
 
-              {/* Campaigns 部分 */}
-              <div className="mb-6">
-                <div className="group mb-2 flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <ChevronRightIcon className="size-4 text-gray-400" />
-                    <h3 className="text-sm font-medium text-gray-900">
-                      Campaigns
-                    </h3>
-                  </div>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={createNewNote}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <PlusIcon className="size-4 text-gray-600" />
-                  </Button>
-                </div>
-
-                <div className="ml-6 space-y-1">
-                  {notes.map((note) => (
-                    <div
-                      key={note.id}
-                      className={`cursor-pointer rounded p-2 transition-colors ${
-                        selectedNote?.id === note.id
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'hover:bg-gray-100'
-                      }`}
-                      onClick={() => setSelectedNote(note)}
-                    >
-                      {editingTitle === note.id ? (
-                        <input
-                          type="text"
-                          value={tempTitle}
-                          onChange={(e) => setTempTitle(e.target.value)}
-                          onBlur={() => saveTitle(note.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveTitle(note.id);
-                            if (e.key === 'Escape') cancelEdit();
-                          }}
-                          className="w-full border-none bg-transparent text-sm outline-none"
-                          autoFocus
-                        />
-                      ) : (
-                        <div
-                          className="truncate text-sm"
-                          onDoubleClick={() => startEditTitle(note)}
+            {/* 导航内容 */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4">
+                {/* 分类列表 */}
+                {categories.map((category) => (
+                  <div key={category.id} className="">
+                    <div className="group flex items-center justify-between min-h-[37px] hover:bg-[#E8E8E8] rounded-[8px]">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => toggleCategoryExpanded(category.id)}
+                          className="p-1 hover:bg-gray-200 rounded"
                         >
-                          {note.title}
-                        </div>
+                          <Image
+                            src={'/icons/arrowLeft.svg'}
+                            alt="arrow-right"
+                            width={24}
+                            height={24}
+                            className={`transition-transform ${
+                              category.expanded ? 'rotate-90' : ''
+                            }`}
+                          />
+                        </button>
+                        {editingCategoryId === category.id ? (
+                          <input
+                            type="text"
+                            value={tempTitle}
+                            onChange={(e) => setTempTitle(e.target.value)}
+                            onBlur={() => saveCategoryTitle(category.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter')
+                                saveCategoryTitle(category.id);
+                              if (e.key === 'Escape') cancelEdit();
+                            }}
+                            className="text-sm font-medium bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                            autoFocus
+                          />
+                        ) : (
+                          <h3
+                            className={`text-sm font-medium text-gray-900 ${
+                              category.id !== 'welcome' ? 'cursor-pointer' : ''
+                            }`}
+                            onDoubleClick={() =>
+                              startEditCategoryTitle(category.id)
+                            }
+                          >
+                            {category.title}
+                          </h3>
+                        )}
+                      </div>
+                      {category.id !== 'welcome' && (
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          onPress={() => createNewArticle(category.id)}
+                          className="opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          <PlusIcon className="size-4 text-gray-600" />
+                        </Button>
                       )}
                     </div>
-                  ))}
+
+                    {category.expanded && (
+                      <div className="ml-2 space-y-1">
+                        {category.articles.map((article) => (
+                          <ArticleItem
+                            key={article.id}
+                            article={article}
+                            categoryId={category.id}
+                            onToggleExpanded={toggleArticleExpanded}
+                            onOpenEditor={openArticleEditor}
+                            onAddChild={createNewArticle}
+                            editingArticleId={editingArticleId}
+                            tempTitle={tempTitle}
+                            onStartEditTitle={startEditArticleTitle}
+                            onSaveTitle={saveArticleTitle}
+                            onCancelEdit={cancelEdit}
+                            onTempTitleChange={setTempTitle}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Add New 按钮 */}
+                <div
+                  className="flex items-center space-x-2 px-2 py-2 text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
+                  onClick={createNewCategory}
+                >
+                  <PlusIcon className="size-4" />
+                  <span>Add New</span>
                 </div>
               </div>
-
-              {/* Add New 按钮 */}
-              <div className="flex items-center space-x-2 px-2 py-2 text-sm text-gray-400 hover:text-gray-600 cursor-pointer">
-                <PlusIcon className="size-4" />
-                <span>Add New</span>
-              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
       {/* 右侧主内容区 */}
-      <motion.div 
+      <motion.div
         className="relative flex flex-1 flex-col overflow-hidden"
         animate={{
-          marginLeft: isAuthenticated && !sidebarCollapsed ? 320 : 0
+          marginLeft: isAuthenticated && !sidebarCollapsed ? 320 : 0,
         }}
         transition={{
           duration: 0.3,
@@ -451,141 +828,132 @@ export default function Home() {
             onPress={() => setSidebarCollapsed(false)}
             className="absolute top-4 left-4 z-50 text-gray-600 hover:text-gray-900 bg-white shadow-md"
           >
-            <ChevronRightIcon className="size-4" />
+            <Image
+              src={'/icons/doubleArrowRounded.svg'}
+              alt="arrow-right"
+              width={24}
+              height={24}
+              className="pointer-events-none transform scale-x-[-1]"
+            />
           </Button>
         )}
-        <AnimatePresence mode="wait">
-          {!selectedNote ? (
-            <div className="relative size-full">
-              {/* 欢迎界面 - 第一屏 */}
-              <motion.div
-                initial={{ y: 0 }}
-                animate={{
-                  y: showTrendingTopics
-                    ? typeof window !== 'undefined'
-                      ? -window.innerHeight
-                      : -800
-                    : 0,
-                }}
-                transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
-                className="absolute inset-0 flex items-center justify-center bg-gray-50"
-              >
-                <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
-                  <h2 className="text-[24px] font-[600] text-black">
-                    Hey {isAuthenticated ? user?.name || 'there' : 'there'},
-                    what would you like to write about today?
-                  </h2>
 
-                  <div className="relative">
-                    <textarea
-                      placeholder="You can start with a topic or an opinion."
-                      value={topicInput}
-                      onChange={(e) => setTopicInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleTopicSubmit();
-                        }
-                      }}
-                      className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
-                      rows={4}
-                    />
-                    <Button
-                      isIconOnly
-                      color="primary"
-                      className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
-                      onPress={handleTopicSubmit}
-                      disabled={!topicInput.trim()}
-                    >
-                      <Image
-                        src="/icons/send.svg"
-                        alt="发送"
-                        width={40}
-                        height={40}
-                        className="pointer-events-none"
-                      />
-                    </Button>
-                  </div>
-
-                  <div className="text-center">
-                    <Button
-                      variant="light"
-                      onPress={handleWriteByMyself}
-                      className="h-auto bg-transparent p-0 text-base font-medium text-gray-700 underline hover:bg-transparent hover:text-gray-900"
-                    >
-                      Write by Myself
-                    </Button>
-                  </div>
-                </div>
-                {isAuthenticated && (
-                  <div className="absolute inset-x-0 bottom-[55px] flex  justify-center">
-                    <div
-                      className="flex cursor-pointer flex-col items-center transition-all duration-300 hover:scale-105 hover:opacity-70"
-                      onClick={handleScrollToTrending}
-                    >
-                      <Image
-                        src="/icons/scroll.svg"
-                        alt="scroll-down"
-                        width={24}
-                        height={24}
-                      />
-                      <span className="text-[18px] font-[500] text-[#448AFF]">
-                        Scroll down to explore trending topics
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-
-              {/* Trending Topics组件 - 第二屏 */}
-              <TrendingTopics
-                isVisible={showTrendingTopics}
-                onBack={handleBackFromTrending}
-                onTopicSelect={handleTrendingTopicSelect}
-              />
-            </div>
-          ) : (
-            /* 笔记内容区 */
+        {/* 如果正在显示Markdown编辑器 */}
+        {showMarkdownEditor && currentArticle ? (
+          <WriteByMyselfPage
+            onBack={() => {
+              setShowMarkdownEditor(false);
+              setCurrentArticle(null);
+            }}
+            initialContent={currentArticle.content}
+            onSave={(content) => saveArticleContent(currentArticle.id, content)}
+            title={currentArticle.title}
+            readonly={(() => {
+              // 检查当前文章是否属于 Welcome 分类
+              for (const category of categories) {
+                if (category.id === 'welcome') {
+                  const findArticle = (articles: Article[]): boolean => {
+                    for (const article of articles) {
+                      if (article.id === currentArticle.id) return true;
+                      if (findArticle(article.children)) return true;
+                    }
+                    return false;
+                  };
+                  if (findArticle(category.articles)) return true;
+                }
+              }
+              return false;
+            })()}
+          />
+        ) : (
+          <div className="relative size-full">
+            {/* 欢迎界面 - 第一屏 */}
             <motion.div
-              key="note-content"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1 bg-gray-50 p-6"
+              initial={{ y: 0 }}
+              animate={{
+                y: showTrendingTopics
+                  ? typeof window !== 'undefined'
+                    ? -window.innerHeight
+                    : -800
+                  : 0,
+              }}
+              transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
+              className="absolute inset-0 flex items-center justify-center bg-white"
             >
-              <div className="mx-auto max-w-4xl">
-                <div className="mb-6">
-                  <h1 className="mb-2 text-3xl font-bold text-gray-900">
-                    {selectedNote.title}
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    Created: {selectedNote.createdAt.toLocaleDateString()}
-                  </p>
+              <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
+                <h2 className="text-[24px] font-[600] text-black">
+                  Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what
+                  would you like to write about today?
+                </h2>
+
+                <div className="relative">
+                  <textarea
+                    placeholder="You can start with a topic or an opinion."
+                    value={topicInput}
+                    onChange={(e) => setTopicInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleTopicSubmit();
+                      }
+                    }}
+                    className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                    rows={4}
+                  />
+                  <Button
+                    isIconOnly
+                    color="primary"
+                    className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
+                    onPress={handleTopicSubmit}
+                    disabled={!topicInput.trim()}
+                  >
+                    <Image
+                      src="/icons/send.svg"
+                      alt="发送"
+                      width={40}
+                      height={40}
+                      className="pointer-events-none"
+                    />
+                  </Button>
                 </div>
 
-                {/* TODO: 在这里添加思维导图和文章内容的双栏布局 */}
-                <div className="min-h-[500px] rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-                  <div className="py-20 text-center">
-                    <h3 className="mb-2 text-xl font-semibold text-gray-900">
-                      Welcome to your note: "{selectedNote.title}"
-                    </h3>
-                    <p className="mb-6 text-gray-500">
-                      Content editing interface will be implemented here
-                    </p>
-                    <div className="text-sm text-gray-400">
-                      Note ID: {selectedNote.id}
-                    </div>
-                  </div>
-
-                  {/* 临时API测试区域 */}
-                  <div className="mt-8">
-                    <ApiTest />
+                <div className="text-center">
+                  <div
+                    onClick={handleWriteByMyself}
+                    className="text-[16px] font-[500] text-black underline cursor-pointer hover:text-[#448AFF]"
+                  >
+                    Write by Myself
                   </div>
                 </div>
               </div>
+              {isAuthenticated && (
+                <div className="absolute inset-x-0 bottom-[55px] flex  justify-center">
+                  <div
+                    className="flex cursor-pointer flex-col items-center transition-all duration-300 hover:scale-105 hover:opacity-70"
+                    onClick={handleScrollToTrending}
+                  >
+                    <Image
+                      src="/icons/scroll.svg"
+                      alt="scroll-down"
+                      width={24}
+                      height={24}
+                    />
+                    <span className="text-[18px] font-[500] text-[#448AFF]">
+                      Scroll down to explore trending topics
+                    </span>
+                  </div>
+                </div>
+              )}
             </motion.div>
-          )}
-        </AnimatePresence>
+
+            {/* Trending Topics组件 - 第二屏 */}
+            <TrendingTopics
+              isVisible={showTrendingTopics}
+              onBack={handleBackFromTrending}
+              onTopicSelect={handleTrendingTopicSelect}
+            />
+          </div>
+        )}
       </motion.div>
     </div>
   );
