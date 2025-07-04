@@ -432,6 +432,7 @@ export function EnhancedContentGeneration({
               onRegenerateClick={handleRegenerateClick} // 传入 API 重生成回调
               highlightedNodeId={selectedNodeId}
               hoveredTweetId={hoveredTweetId}
+              isRegenerating={isRegenerating} // 传递 loading 状态
             />
           </ReactFlowProvider>
         </div>

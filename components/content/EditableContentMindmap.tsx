@@ -36,6 +36,7 @@ interface EditableContentMindmapProps {
   onRegenerateClick?: () => Promise<void>; // 新增：调用API的重生成回调
   highlightedNodeId?: string | null;
   hoveredTweetId?: string | null;
+  isRegenerating?: boolean; // 新增：regenerate loading 状态
 }
 
 export function EditableContentMindmap({
@@ -50,6 +51,7 @@ export function EditableContentMindmap({
   onRegenerateClick,
   highlightedNodeId,
   hoveredTweetId,
+  isRegenerating = false,
 }: EditableContentMindmapProps) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState([]);
@@ -837,6 +839,8 @@ export function EditableContentMindmap({
             size="md"
             color="primary"
             variant="solid"
+            isLoading={isRegenerating}
+            isDisabled={isRegenerating}
             onPress={async () => {
               console.log('🔄 Regenerate 按钮被点击 - 调用 API');
 
@@ -847,9 +851,13 @@ export function EditableContentMindmap({
                 console.warn('没有提供 onRegenerateClick 回调');
               }
             }}
-            className="rounded-full bg-[#4285F4] p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] hover:scale-110 hover:bg-[#3367D6]"
+            className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
+              isRegenerating 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
+            }`}
           >
-            Regenerate
+            {isRegenerating ? 'Regenerating...' : 'Regenerate'}
           </Button>
         </Panel>
 
