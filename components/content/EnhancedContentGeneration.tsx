@@ -265,49 +265,55 @@ export function EnhancedContentGeneration({
   }, []);
 
   // 处理图片点击事件
-  const handleImageClick = useCallback((image: {
-    url: string;
-    alt: string;
-    caption?: string;
-    prompt?: string;
-  }) => {
-    setEditingImage(image);
-    setIsImageEditModalOpen(true);
-  }, []);
+  const handleImageClick = useCallback(
+    (image: {
+      url: string;
+      alt: string;
+      caption?: string;
+      prompt?: string;
+    }) => {
+      setEditingImage(image);
+      setIsImageEditModalOpen(true);
+    },
+    [],
+  );
 
   // 处理图片更新
-  const handleImageUpdate = useCallback((newImage: {
-    url: string;
-    alt: string;
-    caption?: string;
-    prompt: string;
-  }) => {
-    // 更新 generatedContent 中的图片信息
-    if (generatedContent) {
-      const updatedContent = {
-        ...generatedContent,
-        image: {
-          url: newImage.url,
-          alt: newImage.alt,
-          caption: newImage.caption,
-          prompt: newImage.prompt,
-        },
-      };
-      setGeneratedContent(updatedContent);
-    }
+  const handleImageUpdate = useCallback(
+    (newImage: {
+      url: string;
+      alt: string;
+      caption?: string;
+      prompt: string;
+    }) => {
+      // 更新 generatedContent 中的图片信息
+      if (generatedContent) {
+        const updatedContent = {
+          ...generatedContent,
+          image: {
+            url: newImage.url,
+            alt: newImage.alt,
+            caption: newImage.caption,
+            prompt: newImage.prompt,
+          },
+        };
+        setGeneratedContent(updatedContent);
+      }
 
-    // 如果有 regeneratedMarkdown，则更新其中的图片 URL
-    if (regeneratedMarkdown) {
-      const updatedMarkdown = regeneratedMarkdown.replace(
-        /!\[([^\]]*)\]\([^)]+\)/g,
-        `![${newImage.alt}](${newImage.url})`
-      );
-      setRegeneratedMarkdown(updatedMarkdown);
-    }
+      // 如果有 regeneratedMarkdown，则更新其中的图片 URL
+      if (regeneratedMarkdown) {
+        const updatedMarkdown = regeneratedMarkdown.replace(
+          /!\[([^\]]*)\]\([^)]+\)/g,
+          `![${newImage.alt}](${newImage.url})`,
+        );
+        setRegeneratedMarkdown(updatedMarkdown);
+      }
 
-    setIsImageEditModalOpen(false);
-    setEditingImage(null);
-  }, [generatedContent, regeneratedMarkdown]);
+      setIsImageEditModalOpen(false);
+      setEditingImage(null);
+    },
+    [generatedContent, regeneratedMarkdown],
+  );
 
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
   const handleRegenerateClick = useCallback(async () => {

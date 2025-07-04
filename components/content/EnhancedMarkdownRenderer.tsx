@@ -30,7 +30,12 @@ interface EnhancedMarkdownRendererProps {
   content: string;
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
-  onImageClick?: (image: { url: string; alt: string; caption?: string; prompt?: string }) => void;
+  onImageClick?: (image: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt?: string;
+  }) => void;
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
@@ -598,17 +603,19 @@ export function EnhancedMarkdownRenderer({
                   <div className={markdownStyles.loading.spinner}></div>
                 </div>
               )}
-              <div className="relative cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
+              <div className="relative cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
                 <img
                   src={imageSrc}
                   alt={altText}
                   className={markdownStyles.image.image}
-                  onClick={() => onImageClick?.({
-                    url: imageSrc,
-                    alt: altText,
-                    caption: imageData?.caption,
-                    prompt: imageData?.prompt,
-                  })}
+                  onClick={() =>
+                    onImageClick?.({
+                      url: imageSrc,
+                      alt: altText,
+                      caption: imageData?.caption,
+                      prompt: imageData?.prompt,
+                    })
+                  }
                 />
                 {imageData?.caption && (
                   <div className={markdownStyles.image.overlay}>
@@ -618,7 +625,7 @@ export function EnhancedMarkdownRenderer({
                   </div>
                 )}
                 {/* 编辑提示 */}
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity hover:opacity-100">
+                <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs text-white opacity-0 transition-opacity hover:opacity-100">
                   点击编辑图片
                 </div>
               </div>

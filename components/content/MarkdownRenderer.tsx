@@ -14,7 +14,12 @@ interface MarkdownRendererProps {
   };
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
-  onImageClick?: (image: { url: string; alt: string; caption?: string; prompt?: string }) => void;
+  onImageClick?: (image: {
+    url: string;
+    alt: string;
+    caption?: string;
+    prompt?: string;
+  }) => void;
   highlightedSection?: string | null;
 }
 
@@ -215,7 +220,7 @@ export function MarkdownRenderer({
         {/* 图片显示 */}
         {image && (
           <div className="mb-8">
-            <div className="relative overflow-hidden rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
+            <div className="relative cursor-pointer overflow-hidden rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
               <img
                 src={image.url}
                 alt={image.alt}
@@ -228,7 +233,7 @@ export function MarkdownRenderer({
                 </div>
               )}
               {/* 编辑提示 */}
-              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity hover:opacity-100">
+              <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs text-white opacity-0 transition-opacity hover:opacity-100">
                 点击编辑图片
               </div>
             </div>
