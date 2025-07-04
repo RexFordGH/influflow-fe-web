@@ -1,13 +1,43 @@
-
 'use client';
 
+import { WriteByMyselfPage } from '@/components/content/WriteByMyselfPage';
+import { useAuthStore } from '@/stores/authStore';
+import { SuggestedTopic, TrendingTopic } from '@/types/api';
+import { Article, Category } from '@/types/content';
 import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useAuthStore } from '@/stores/authStore';
-import { WriteByMyselfPage } from '@/components/content/WriteByMyselfPage';
-import { TrendingTopics } from '@/components/content/TrendingTopics';
-import { Article, Category } from '@/types/content';
-import { SuggestedTopic, TrendingTopic } from '@/types/api';
+import { Suspense, lazy } from 'react';
+
+// 动态导入TrendingTopics组件
+const TrendingTopics = lazy(() =>
+  import('@/components/content/TrendingTopics').then((module) => ({
+    default: module.TrendingTopics,
+  })),
+);
+
+// TrendingTopics加载时的骨架屏组件
+const TrendingTopicsLoadingFallback = () => (
+  <div className="absolute inset-0 bg-white flex items-center justify-center">
+    <div className="animate-pulse space-y-4 w-full max-w-4xl px-8">
+      <div className="h-6 bg-gray-200 rounded w-48"></div>
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-12 bg-gradient-to-r from-yellow-200 to-yellow-100 rounded-xl"
+            style={{ width: `${Math.max(432, 880 - i * 110)}px` }}
+          ></div>
+        ))}
+      </div>
+      <div className="h-6 bg-gray-200 rounded w-56 mt-8"></div>
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-16 bg-gray-100 rounded-xl border"></div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export const MainContent = ({
   sidebarCollapsed,
@@ -175,11 +205,16 @@ export const MainContent = ({
             )}
           </motion.div>
 
-          <TrendingTopics
-            isVisible={showTrendingTopics}
-            onBack={onBackFromTrending}
-            onTopicSelect={onTrendingTopicSelect}
-          />
+          {/* 只在需要显示时才渲染TrendingTopics组件 */}
+          {showTrendingTopics && (
+            <Suspense fallback={<TrendingTopicsLoadingFallback />}>
+              <TrendingTopics
+                isVisible={showTrendingTopics}
+                onBack={onBackFromTrending}
+                onTopicSelect={onTrendingTopicSelect}
+              />
+            </Suspense>
+          )}
         </div>
       )}
     </motion.div>
