@@ -47,85 +47,6 @@ interface MarkdownSection {
   groupId?: string; // 用于group高亮
 }
 
-// 模拟信息来源数据
-const getMockSources = (sectionId: string) => {
-  const sourcesData: {
-    [key: string]: Array<{
-      type: 'report' | 'interview' | 'data' | 'survey' | 'ai';
-      title: string;
-      description: string;
-      reliability: number;
-    }>;
-  } = {
-    'background-analysis': [
-      {
-        type: 'report',
-        title: '2024年行业研究报告',
-        description: '权威机构发布的最新行业分析报告',
-        reliability: 95,
-      },
-      {
-        type: 'data',
-        title: '市场数据统计',
-        description: '来自官方统计局的市场规模数据',
-        reliability: 90,
-      },
-    ],
-    'core-viewpoints': [
-      {
-        type: 'interview',
-        title: '专家访谈记录',
-        description: '与行业专家的深度访谈内容',
-        reliability: 88,
-      },
-      {
-        type: 'ai',
-        title: 'AI知识整合',
-        description: '基于大量文献的AI分析结果',
-        reliability: 85,
-      },
-    ],
-    'practical-methods': [
-      {
-        type: 'survey',
-        title: '用户调研反馈',
-        description: '1000+用户的实践经验总结',
-        reliability: 92,
-      },
-      {
-        type: 'report',
-        title: '最佳实践案例集',
-        description: '成功企业的实施经验汇总',
-        reliability: 89,
-      },
-    ],
-    'future-trends': [
-      {
-        type: 'report',
-        title: '技术趋势预测报告',
-        description: '知名咨询公司的未来趋势分析',
-        reliability: 87,
-      },
-      {
-        type: 'ai',
-        title: 'AI趋势预测',
-        description: '基于大数据的AI预测模型结果',
-        reliability: 83,
-      },
-    ],
-  };
-
-  return (
-    sourcesData[sectionId] || [
-      {
-        type: 'ai',
-        title: 'AI生成内容',
-        description: '基于训练数据生成的综合性内容',
-        reliability: 80,
-      },
-    ]
-  );
-};
 
 export function EnhancedMarkdownRenderer({
   content,
@@ -146,10 +67,9 @@ export function EnhancedMarkdownRenderer({
 
   // 处理图片占位符
   const processedContent = useMemo(() => {
-    if (imageData) {
-      return content.replace('PLACEHOLDER_IMAGE', imageData.url);
-    }
-    return content;
+    // 确保有默认的图片URL来替换PLACEHOLDER_IMAGE
+    const defaultImageUrl = imageData?.url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center';
+    return content.replace('PLACEHOLDER_IMAGE', defaultImageUrl);
   }, [content, imageData]);
 
   // 解析含有HTML标签的Markdown为结构化数据
@@ -165,14 +85,6 @@ export function EnhancedMarkdownRenderer({
     let currentTweetIndex: number | null = null;
     let currentGroupId: string | null = null;
 
-    // 调试信息：输出原始markdown内容
-    console.log('=== DEBUG: 原始markdown内容 ===');
-    console.log(processedContent);
-    console.log('=== DEBUG: 分割后的行 ===');
-    lines.forEach((line, index) => {
-      console.log(`行 ${index}: "${line}"`);
-    });
-    console.log('=== DEBUG: 开始解析 ===');
 
     lines.forEach((line) => {
       const trimmedLine = line.trim();
@@ -370,12 +282,8 @@ export function EnhancedMarkdownRenderer({
         }
       } else if (trimmedLine && !trimmedLine.startsWith('---')) {
         // 段落（排除分隔线）
-        console.log(`DEBUG: 处理段落行: "${trimmedLine}"`);
         if (!currentSection || currentSection.type !== 'paragraph') {
           if (currentSection) {
-            console.log(
-              `DEBUG: 推送之前的section: ${currentSection.type} - "${currentSection.content}"`,
-            );
             sections.push(currentSection);
           }
           currentSection = {
@@ -384,29 +292,17 @@ export function EnhancedMarkdownRenderer({
             content: trimmedLine,
             rawContent: line,
           };
-          console.log(`DEBUG: 创建新的段落section: "${trimmedLine}"`);
         } else {
           currentSection.content += ' ' + trimmedLine;
           currentSection.rawContent += '\n' + line;
-          console.log(
-            `DEBUG: 追加到现有段落section: "${currentSection.content}"`,
-          );
         }
       }
     });
 
     if (currentSection) {
-      const section = currentSection as MarkdownSection;
-      console.log(
-        `DEBUG: 推送最后的section: ${section.type} - "${section.content || 'no content'}"`,
-      );
-      sections.push(section);
+      sections.push(currentSection);
     }
 
-    console.log('=== DEBUG: 最终解析结果 ===');
-    sections.forEach((section, index) => {
-      console.log(`Section ${index}: ${section.type} - "${section.content}"`);
-    });
 
     return sections;
   }, [processedContent]);
@@ -563,6 +459,8 @@ export function EnhancedMarkdownRenderer({
       case 'paragraph':
         // 检查是否是图片markdown语法
         const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
+        
+        
         if (imageMatch) {
           const [, altText, imageSrc] = imageMatch;
           return (
@@ -612,6 +510,7 @@ export function EnhancedMarkdownRenderer({
           .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
           .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
           .replace(/#([^\s#]+)/g, markdownStyles.formatting.hashtag);
+
 
         return (
           <div
@@ -709,8 +608,21 @@ export function EnhancedMarkdownRenderer({
 
         const content = contentLines.join('\n\n');
 
-        // 处理内容，保留换行和格式
-        const processedTweetContent = content
+        // 检查内容中是否包含图片语法，并分离图片和文本内容
+        const contentImageMatch = content.match(/!\[(.*?)\]\((.*?)\)/);
+        let textContent = content;
+        let tweetImageSrc = null;
+        let tweetImageAlt = null;
+        
+        if (contentImageMatch) {
+          // 从内容中移除图片语法，只保留文本部分
+          textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
+          tweetImageSrc = contentImageMatch[2];
+          tweetImageAlt = contentImageMatch[1];
+        }
+
+        // 处理文本内容，保留换行和格式
+        const processedTweetContent = textContent
           .replace(/\n/g, '<br>') // 转换换行为HTML
           .replace(
             /\*\*(.*?)\*\*/g,
@@ -772,24 +684,24 @@ export function EnhancedMarkdownRenderer({
             {title && <div className="my-[12px]">{getTitleComponent()}</div>}
 
             {/* Tweet Content */}
-            {content && (
+            {textContent && textContent.trim() && (
               <div
                 className="text-sm leading-relaxed text-gray-700"
                 dangerouslySetInnerHTML={{ __html: processedTweetContent }}
               />
             )}
 
-            {/* Tweet Image if exists */}
-            {currentTweetImageUrl && (
+            {/* Tweet Image from markdown or API data */}
+            {(tweetImageSrc || currentTweetImageUrl) && (
               <div className="mt-4 mb-4">
                 <img
-                  src={currentTweetImageUrl}
-                  alt={`${title}配图`}
+                  src={tweetImageSrc || currentTweetImageUrl}
+                  alt={tweetImageAlt || `${title}配图`}
                   className="w-full max-w-md rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                   onClick={() =>
                     onImageClick?.({
-                      url: currentTweetImageUrl,
-                      alt: `${title}配图`,
+                      url: tweetImageSrc || currentTweetImageUrl || '',
+                      alt: tweetImageAlt || `${title}配图`,
                       caption: title,
                       prompt: title,
                     })
