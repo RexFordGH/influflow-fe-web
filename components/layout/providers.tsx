@@ -3,6 +3,8 @@ import { HeroUIProvider, ToastProvider } from '@heroui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
+import { AuthProvider } from '@/components/auth/AuthProvider';
+
 const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -29,7 +31,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             },
           }}
         />
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </QueryClientProvider>
     </HeroUIProvider>
   );

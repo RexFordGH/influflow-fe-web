@@ -1,266 +1,187 @@
 'use client';
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Chip,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Progress,
-  Slider,
-  Switch,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  Tabs,
-  useDisclosure,
-} from '@heroui/react';
-import { useState } from 'react';
+import { cn } from '@heroui/react';
+import { AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+
+import { LoginPage } from '@/components/home/LoginPage';
+import { MainContent } from '@/components/home/MainContent';
+import { Sidebar } from '@/components/home/Sidebar';
+import { UnauthenticatedNavbar } from '@/components/home/UnauthenticatedNavbar';
+import { useArticleManagement } from '@/hooks/useArticleManagement';
+import { useAuthStore } from '@/stores/authStore';
+import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
+
+const EnhancedContentGeneration = dynamic(
+  () =>
+    import('@/components/content/EnhancedContentGeneration').then((mod) => ({
+      default: mod.EnhancedContentGeneration,
+    })),
+  {
+    ssr: false,
+  },
+);
 
 export default function Home() {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [switchValue, setSwitchValue] = useState(false);
-  const [sliderValue, setSliderValue] = useState(50);
-  const [inputValue, setInputValue] = useState('');
+  const { user, isAuthenticated, checkAuthStatus } = useAuthStore();
+  const [showContentGeneration, setShowContentGeneration] = useState(false);
+  const [currentTopic, setCurrentTopic] = useState('');
+  const [topicInput, setTopicInput] = useState('');
+  const [showTrendingTopics, setShowTrendingTopics] = useState(false);
+  const [showLoginPage, setShowLoginPage] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [hasCreatedContentGeneration, setHasCreatedContentGeneration] =
+    useState(false);
+
+  const {
+    categories,
+    currentArticle,
+    showMarkdownEditor,
+    editingCategoryId,
+    editingArticleId,
+    tempTitle,
+    setTempTitle,
+    setShowMarkdownEditor,
+    setCurrentArticle,
+    toggleCategoryExpanded,
+    toggleArticleExpanded,
+    createNewArticle,
+    createNewCategory,
+    openArticleEditor,
+    saveArticleContent,
+    startEditCategoryTitle,
+    startEditArticleTitle,
+    saveCategoryTitle,
+    saveArticleTitle,
+    cancelEdit,
+    handleWriteByMyself,
+  } = useArticleManagement();
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  const handleTopicSubmit = () => {
+    if (!isAuthenticated) {
+      setShowLoginPage(true);
+      return;
+    }
+
+    if (topicInput.trim()) {
+      setCurrentTopic(topicInput);
+      setShowContentGeneration(true);
+      setHasCreatedContentGeneration(true);
+      setTopicInput('');
+    }
+  };
+
+  const handleBackToHome = () => {
+    setShowContentGeneration(false);
+    setCurrentTopic('');
+  };
+
+  const handleScrollToTrending = () => {
+    setShowTrendingTopics(true);
+  };
+
+  const handleBackFromTrending = () => {
+    setShowTrendingTopics(false);
+  };
+
+  const handleTrendingTopicSelect = (topic: TrendingTopic | SuggestedTopic) => {
+    setShowTrendingTopics(false);
+    setTimeout(() => {
+      setTopicInput(topic.title);
+    }, 400);
+  };
+
+  const handleBackToMainPage = () => {
+    setShowLoginPage(false);
+  };
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <div className="text-center">
-          <h1 className="mb-4 text-4xl font-bold">HeroUI 组件测试</h1>
-          <p className="text-gray-600">这里展示了各种 HeroUI 组件的使用示例</p>
+    <div className="relative h-screen overflow-hidden">
+      {/* Login Page */}
+      <div
+        className={cn(
+          'absolute inset-0 z-50',
+          showLoginPage ? 'block' : 'hidden',
+        )}
+      >
+        <LoginPage onBack={handleBackToMainPage} />
+      </div>
+
+      {/* Content Generation */}
+      {hasCreatedContentGeneration && (
+        <div
+          className={cn(
+            'absolute inset-0 z-40',
+            showContentGeneration && currentTopic ? 'block' : 'hidden',
+          )}
+        >
+          <EnhancedContentGeneration
+            topic={currentTopic}
+            onBack={handleBackToHome}
+          />
         </div>
+      )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">按钮组件</h3>
-            </CardHeader>
-            <CardBody className="space-y-3">
-              <Button color="primary">主要按钮</Button>
-              <Button color="secondary">次要按钮</Button>
-              <Button color="success">成功按钮</Button>
-              <Button color="warning">警告按钮</Button>
-              <Button color="danger">危险按钮</Button>
-              <Button variant="ghost">幽灵按钮</Button>
-            </CardBody>
-          </Card>
+      {/* Main Content */}
+      <div
+        className={cn(
+          'flex h-screen overflow-hidden bg-gray-50',
+          (showContentGeneration && currentTopic) || showLoginPage
+            ? 'hidden'
+            : 'flex',
+        )}
+      >
+        {!isAuthenticated && (
+          <UnauthenticatedNavbar onLogin={() => setShowLoginPage(true)} />
+        )}
 
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">输入组件</h3>
-            </CardHeader>
-            <CardBody className="space-y-3">
-              <Input
-                label="用户名"
-                placeholder="请输入用户名"
-                value={inputValue}
-                onValueChange={setInputValue}
-              />
-              <Input
-                label="密码"
-                placeholder="请输入密码"
-                type="password"
-              />
-              <Input
-                label="邮箱"
-                placeholder="请输入邮箱"
-                type="email"
-                variant="bordered"
-              />
-            </CardBody>
-          </Card>
+        <AnimatePresence>
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            categories={categories}
+            editingCategoryId={editingCategoryId}
+            tempTitle={tempTitle}
+            onToggleCategoryExpanded={toggleCategoryExpanded}
+            onStartEditCategoryTitle={startEditCategoryTitle}
+            onSaveCategoryTitle={saveCategoryTitle}
+            onCancelEdit={cancelEdit}
+            onTempTitleChange={setTempTitle}
+            onCreateNewArticle={createNewArticle}
+            onCreateNewCategory={createNewCategory}
+            onToggleArticleExpanded={toggleArticleExpanded}
+            onOpenArticleEditor={openArticleEditor}
+            editingArticleId={editingArticleId}
+            onStartEditArticleTitle={startEditArticleTitle}
+            onSaveArticleTitle={saveArticleTitle}
+          />
+        </AnimatePresence>
 
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">开关和滑块</h3>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span>开关状态</span>
-                <Switch
-                  isSelected={switchValue}
-                  onValueChange={setSwitchValue}
-                />
-              </div>
-              <div>
-                <p className="mb-2">滑块值: {sliderValue}</p>
-                <Slider
-                  size="md"
-                  step={10}
-                  color="primary"
-                  showSteps
-                  showTooltip
-                  value={sliderValue}
-                  onChange={(value) => setSliderValue(value as number)}
-                  className="max-w-md"
-                />
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">进度条</h3>
-            </CardHeader>
-            <CardBody className="space-y-3">
-              <Progress value={30} className="max-w-md" />
-              <Progress value={60} color="success" className="max-w-md" />
-              <Progress value={80} color="warning" className="max-w-md" />
-              <Progress
-                value={sliderValue}
-                color="primary"
-                className="max-w-md"
-              />
-            </CardBody>
-          </Card>
-
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">标签组件</h3>
-            </CardHeader>
-            <CardBody>
-              <div className="flex flex-wrap gap-2">
-                <Chip color="primary">主要标签</Chip>
-                <Chip color="secondary">次要标签</Chip>
-                <Chip color="success">成功标签</Chip>
-                <Chip color="warning">警告标签</Chip>
-                <Chip color="danger">危险标签</Chip>
-                <Chip variant="bordered">边框标签</Chip>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="p-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">模态框</h3>
-            </CardHeader>
-            <CardBody>
-              <Button onPress={onOpen}>打开模态框</Button>
-              <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalContent>
-                  <ModalHeader className="flex flex-col gap-1">
-                    模态框标题
-                  </ModalHeader>
-                  <ModalBody>
-                    <p>这是一个 HeroUI 模态框的示例内容。</p>
-                    <p>你可以在这里放置任何内容。</p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      关闭
-                    </Button>
-                    <Button color="primary" onPress={onClose}>
-                      确认
-                    </Button>
-                  </ModalFooter>
-                </ModalContent>
-              </Modal>
-            </CardBody>
-          </Card>
-        </div>
-
-        <Card className="p-4">
-          <CardHeader>
-            <h3 className="text-lg font-semibold">标签页组件</h3>
-          </CardHeader>
-          <CardBody>
-            <Tabs aria-label="示例标签页">
-              <Tab key="photos" title="照片">
-                <Card>
-                  <CardBody>
-                    这里是照片内容。你可以在这里展示图片或相关内容。
-                  </CardBody>
-                </Card>
-              </Tab>
-              <Tab key="music" title="音乐">
-                <Card>
-                  <CardBody>
-                    这里是音乐内容。你可以在这里展示音乐播放器或播放列表。
-                  </CardBody>
-                </Card>
-              </Tab>
-              <Tab key="videos" title="视频">
-                <Card>
-                  <CardBody>
-                    这里是视频内容。你可以在这里展示视频播放器或视频列表。
-                  </CardBody>
-                </Card>
-              </Tab>
-            </Tabs>
-          </CardBody>
-        </Card>
-
-        <Card className="p-4">
-          <CardHeader>
-            <h3 className="text-lg font-semibold">表格组件</h3>
-          </CardHeader>
-          <CardBody>
-            <Table aria-label="示例表格">
-              <TableHeader>
-                <TableColumn>姓名</TableColumn>
-                <TableColumn>角色</TableColumn>
-                <TableColumn>状态</TableColumn>
-              </TableHeader>
-              <TableBody>
-                <TableRow key="1">
-                  <TableCell>张三</TableCell>
-                  <TableCell>管理员</TableCell>
-                  <TableCell>
-                    <Chip color="success" size="sm">
-                      活跃
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-                <TableRow key="2">
-                  <TableCell>李四</TableCell>
-                  <TableCell>用户</TableCell>
-                  <TableCell>
-                    <Chip color="warning" size="sm">
-                      暂停
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-                <TableRow key="3">
-                  <TableCell>王五</TableCell>
-                  <TableCell>编辑</TableCell>
-                  <TableCell>
-                    <Chip color="success" size="sm">
-                      活跃
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardBody>
-        </Card>
-
-        <Card className="p-4">
-          <CardHeader>
-            <h3 className="text-lg font-semibold">综合卡片示例</h3>
-          </CardHeader>
-          <CardBody>
-            <p className="mb-4">当前输入值: {inputValue || '未输入'}</p>
-            <p className="mb-4">开关状态: {switchValue ? '开启' : '关闭'}</p>
-            <p>滑块值: {sliderValue}</p>
-          </CardBody>
-          <CardFooter>
-            <Button color="primary" className="w-full">
-              提交数据
-            </Button>
-          </CardFooter>
-        </Card>
+        <MainContent
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed(false)}
+          showMarkdownEditor={showMarkdownEditor}
+          currentArticle={currentArticle}
+          categories={categories}
+          onBackFromEditor={() => {
+            setShowMarkdownEditor(false);
+            setCurrentArticle(null);
+          }}
+          onSaveArticleContent={saveArticleContent}
+          showTrendingTopics={showTrendingTopics}
+          onScrollToTrending={handleScrollToTrending}
+          onBackFromTrending={handleBackFromTrending}
+          onTrendingTopicSelect={handleTrendingTopicSelect}
+          topicInput={topicInput}
+          onTopicInputChange={setTopicInput}
+          onTopicSubmit={handleTopicSubmit}
+          onWriteByMyself={handleWriteByMyself}
+        />
       </div>
     </div>
   );

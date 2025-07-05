@@ -43,5 +43,6 @@ next-env.d.ts
 
 .idea
 .cursor
-docs
+.docs
+docs/
 *storybook.log
