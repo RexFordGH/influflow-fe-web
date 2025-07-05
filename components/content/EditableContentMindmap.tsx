@@ -199,6 +199,10 @@ export function EditableContentMindmap({
           'elk.padding': '[left=50,top=50,right=50,bottom=50]',
           'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
           'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+          // 添加垂直对齐选项
+          'elk.alignment': 'CENTER',
+          'elk.contentAlignment': 'CENTER',
+          'elk.layered.nodePlacement.strategy': 'SIMPLE',
         },
         children: nodes
           .sort((a: any, b: any) => {
