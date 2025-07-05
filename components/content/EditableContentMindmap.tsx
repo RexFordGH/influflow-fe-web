@@ -194,9 +194,9 @@ export function EditableContentMindmap({
           'elk.direction': 'RIGHT',
           // 基本间距控制 - 减少水平距离
           'elk.spacing.nodeNode': '20',
-          'elk.spacing.nodeNodeBetweenLayers': '40', 
+          'elk.spacing.nodeNodeBetweenLayers': '40',
           'elk.padding': '[left=20,top=20,right=20,bottom=20]',
-          // 树形算法特定设置  
+          // 树形算法特定设置
           'elk.mrtree.weighting': 'UNIFORM', // 改为UNIFORM避免按子节点数量重排
           'elk.mrtree.searchOrder': 'DFS',
           // 强制保持节点原始顺序
@@ -207,7 +207,7 @@ export function EditableContentMindmap({
         children: nodes.map((node: any, index: number) => {
           const level = node.data?.level || 1;
           const text = node.data?.label || '';
-          
+
           // 设置固定最大宽度（与CSS保持一致）
           let maxWidth;
           if (level === 1) {
@@ -217,24 +217,29 @@ export function EditableContentMindmap({
           } else {
             maxWidth = 200;
           }
-          
+
           // 动态计算高度以适应换行文本
-          const chineseCharCount = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+          const chineseCharCount = (text.match(/[\u4e00-\u9fff]/g) || [])
+            .length;
           const otherCharCount = text.length - chineseCharCount;
           const estimatedTextWidth = chineseCharCount * 14 + otherCharCount * 8;
-          
+
           const padding = 20; // 减少padding
           const availableTextWidth = maxWidth - padding;
-          const estimatedLines = Math.max(1, Math.ceil(estimatedTextWidth / availableTextWidth));
-          
+          const estimatedLines = Math.max(
+            1,
+            Math.ceil(estimatedTextWidth / availableTextWidth),
+          );
+
           const lineHeight = 16; // 减少行高
           const minHeight = level === 1 ? 40 : level === 2 ? 35 : 30; // 减少最小高度
-          
+
           // 如果是单行文本，使用最小高度；多行文本才增加高度
-          const height = estimatedLines === 1 
-            ? minHeight 
-            : Math.max(minHeight, estimatedLines * lineHeight + padding);
-          
+          const height =
+            estimatedLines === 1
+              ? minHeight
+              : Math.max(minHeight, estimatedLines * lineHeight + padding);
+
           return {
             ...node,
             targetPosition: isHorizontal ? 'left' : 'top',

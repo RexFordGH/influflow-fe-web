@@ -1,8 +1,8 @@
 'use client';
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useEffect, useRef, useState } from 'react';
 import { Image, Tooltip } from '@heroui/react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useGenerateImage } from '@/lib/api/services';
 import {
@@ -23,16 +23,16 @@ function ImageViewerModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 transition-opacity duration-300"
       onClick={onClose} // 点击背景关闭
     >
-      <div className="relative max-w-4xl max-h-[90vh] p-4">
+      <div className="relative max-h-[90vh] max-w-4xl p-4">
         <img
           src={imageUrl}
           alt="Magnified view"
-          className="object-contain w-full h-full rounded-lg shadow-2xl"
+          className="size-full rounded-lg object-contain shadow-2xl"
           onClick={(e) => e.stopPropagation()} // 防止点击图片自身导致关闭
         />
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 rounded-full p-2 text-white bg-black/50 hover:bg-black/75 transition-colors"
+          className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/75"
         >
           <XMarkIcon className="size-6" />
         </button>
@@ -55,7 +55,7 @@ function ImageBubble({
 
   return (
     <div className="flex items-end justify-start gap-[12px]">
-      <div className="relative w-[320px] h-auto min-h-[180px]">
+      <div className="relative h-auto min-h-[180px] w-[320px]">
         {isImageLoading && (
           <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-100">
             <div className="size-5 animate-spin rounded-full border-2 border-gray-500 border-t-transparent"></div>
@@ -65,7 +65,7 @@ function ImageBubble({
           src={item.imageUrl}
           alt={item.prompt}
           width={320}
-          className={`h-auto rounded-[12px] object-cover cursor-pointer transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+          className={`h-auto cursor-pointer rounded-[12px] object-cover transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
           onLoad={() => setIsImageLoading(false)}
           onError={() => setIsImageLoading(false)} // 加载失败也应移除loading
           onClick={() => onMagnify(item.imageUrl)} // 点击图片时调用放大回调
@@ -86,12 +86,7 @@ function ImageBubble({
             arrow: 'bg-black border-black',
           }}
         >
-          <Image
-            src="/icons/apply.svg"
-            alt="apply"
-            width={32}
-            height={32}
-          />
+          <Image src="/icons/apply.svg" alt="apply" width={32} height={32} />
         </Tooltip>
       </div>
     </div>
@@ -107,19 +102,25 @@ export function ImageEditModal({
 }: ImageEditProps) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [conversation, setConversation] = useState<ImageConversationItem[]>(() => {
-    if (image.url) {
-      return [{
-        id: 'original',
-        prompt: image.prompt || '原始图片',
-        imageUrl: image.url,
-        timestamp: Date.now() - 1000,
-        isApplied: true,
-      }];
-    }
-    return [];
-  });
-  const [magnifiedImageUrl, setMagnifiedImageUrl] = useState<string | null>(null); // 新增：用于放大图片的状态
+  const [conversation, setConversation] = useState<ImageConversationItem[]>(
+    () => {
+      if (image.url) {
+        return [
+          {
+            id: 'original',
+            prompt: image.prompt || '原始图片',
+            imageUrl: image.url,
+            timestamp: Date.now() - 1000,
+            isApplied: true,
+          },
+        ];
+      }
+      return [];
+    },
+  );
+  const [magnifiedImageUrl, setMagnifiedImageUrl] = useState<string | null>(
+    null,
+  ); // 新增：用于放大图片的状态
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const generateImageMutation = useGenerateImage();
@@ -215,10 +216,12 @@ export function ImageEditModal({
 
               {item.isLoading ? (
                 <div className="flex items-end justify-start gap-[12px]">
-                  <div className="relative w-[320px] h-auto min-h-[180px]">
+                  <div className="relative h-auto min-h-[180px] w-[320px]">
                     <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-100">
                       <div className="size-5 animate-spin rounded-full border-2 border-gray-500 border-t-transparent"></div>
-                      <span className="ml-2 text-sm text-gray-600">Generating...</span>
+                      <span className="ml-2 text-sm text-gray-600">
+                        Generating...
+                      </span>
                     </div>
                   </div>
                 </div>

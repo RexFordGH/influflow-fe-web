@@ -129,6 +129,7 @@ export interface ImageConversationItem {
   imageUrl: string;
   timestamp: number;
   isApplied?: boolean;
+  isLoading?: boolean;
 }
 
 export interface ImageEditProps {

@@ -1,5 +1,4 @@
 import {
-  type Outline as ContentOutline,
   type SimpleTweet as ContentTweet,
   type GeneratedContent,
   type MindmapEdgeData,
@@ -156,7 +155,7 @@ export function convertAPIDataToMarkdown(data: Outline): string {
       markdown += `<div data-tweet-id="${tweetItem.tweet_number}" data-group-index="${groupIndex}" data-tweet-index="${tweetIndex}">\n\n`;
       markdown += `### ${tweetItem.title}\n\n`;
       markdown += `${tweetItem.content}\n\n`;
-      
+
       markdown += `</div>\n\n`;
     });
   });
@@ -259,7 +258,7 @@ export function convertMindmapToMarkdown(
           if (childNode.type === 'tweet') {
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
-            
+
             // 在第一个tweet的内容后面添加图片占位标记
             if (isFirstTweet) {
               markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
@@ -279,7 +278,7 @@ export function convertMindmapToMarkdown(
           if (childNode.type === 'tweet') {
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
-            
+
             // 在第一个tweet的内容后面添加图片占位标记
             if (isFirstTweet) {
               markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
