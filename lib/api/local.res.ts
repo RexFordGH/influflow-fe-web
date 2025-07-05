@@ -5,7 +5,8 @@ export const localGenerateThreadResponse: Outline = {
   topic: "What's AI?",
   nodes: [
     {
-      title: 'The Core of AI',
+      title:
+        'The Core of AI The Core of AI The Core of AI The Core of AI The Core of AI',
       tweets: [
         {
           tweet_number: 1,
@@ -15,7 +16,8 @@ export const localGenerateThreadResponse: Outline = {
         },
         {
           tweet_number: 2,
-          title: 'Definition & Foundation',
+          title:
+            'Definition & Foundation Definition & Foundation Definition & Foundation Definition & Foundation',
           content:
             'Artificial Intelligence (AI) means machines can mimic human abilities like learning, reasoning, and decision-making. \n• Think: computers playing chess\n• Apps recommending your next binge\n• Cars recognizing stop signs\n\nIt’s everywhere—often undetected. #AIexplained',
         },

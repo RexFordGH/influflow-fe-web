@@ -190,73 +190,66 @@ export function EditableContentMindmap({
       const graph = {
         id: 'root',
         layoutOptions: {
-          'elk.algorithm': 'layered',
-          'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
-          'elk.spacing.nodeNode': '30',
-          'elk.layered.spacing.nodeNodeBetweenLayers': '60',
-          'elk.spacing.edgeNode': '20',
-          'elk.spacing.edgeEdge': '10',
-          'elk.padding': '[left=50,top=50,right=50,bottom=50]',
-          'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
-          'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-          // 添加垂直对齐选项
-          'elk.alignment': 'CENTER',
-          'elk.contentAlignment': 'CENTER',
-          'elk.layered.nodePlacement.strategy': 'SIMPLE',
+          'elk.algorithm': 'mrtree',
+          'elk.direction': 'RIGHT',
+          // 基本间距控制 - 减少水平距离
+          'elk.spacing.nodeNode': '20',
+          'elk.spacing.nodeNodeBetweenLayers': '40', 
+          'elk.padding': '[left=20,top=20,right=20,bottom=20]',
+          // 树形算法特定设置  
+          'elk.mrtree.weighting': 'UNIFORM', // 改为UNIFORM避免按子节点数量重排
+          'elk.mrtree.searchOrder': 'DFS',
+          // 强制保持节点原始顺序
+          'elk.separateConnectedComponents': 'false',
+          'elk.partitioning.activate': 'false',
+          'elk.mrtree.orderChildren': 'true', // 强制保持子节点顺序
         },
-        children: nodes
-          .sort((a: any, b: any) => {
-            // 按level排序，再按数据顺序排序
-            if (a.data?.level !== b.data?.level) {
-              return (a.data?.level || 0) - (b.data?.level || 0);
-            }
-            // 同level内按原始顺序
-            if (
-              a.data?.outlineIndex !== undefined &&
-              b.data?.outlineIndex !== undefined
-            ) {
-              return a.data.outlineIndex - b.data.outlineIndex;
-            }
-            if (
-              a.data?.tweetId !== undefined &&
-              b.data?.tweetId !== undefined
-            ) {
-              return a.data.tweetId - b.data.tweetId;
-            }
-            return 0;
-          })
-          .map((node: any, index: number) => {
-            // 根据节点级别调整大小
-            const level = node.data?.level || 1;
-            let nodeWidth = 150;
-            let nodeHeight = 50;
-
-            if (level === 1) {
-              nodeWidth = 180;
-              nodeHeight = 60;
-            } else if (level === 2) {
-              nodeWidth = 160;
-              nodeHeight = 55;
-            }
-
-            return {
-              ...node,
-              // Adjust the target and source handle positions based on the layout
-              // direction.
-              targetPosition: isHorizontal ? 'left' : 'top',
-              sourcePosition: isHorizontal ? 'right' : 'bottom',
-
-              // Hardcode a width and height for elk to use when layouting.
-              width: nodeWidth,
-              height: nodeHeight,
-
-              // 添加ELK排序属性
-              layoutOptions: {
-                'elk.priority': level === 1 ? 100 : level === 2 ? 50 : 10,
-                'elk.layered.priority': index,
-              },
-            };
-          }),
+        children: nodes.map((node: any, index: number) => {
+          const level = node.data?.level || 1;
+          const text = node.data?.label || '';
+          
+          // 设置固定最大宽度（与CSS保持一致）
+          let maxWidth;
+          if (level === 1) {
+            maxWidth = 300;
+          } else if (level === 2) {
+            maxWidth = 250;
+          } else {
+            maxWidth = 200;
+          }
+          
+          // 动态计算高度以适应换行文本
+          const chineseCharCount = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+          const otherCharCount = text.length - chineseCharCount;
+          const estimatedTextWidth = chineseCharCount * 14 + otherCharCount * 8;
+          
+          const padding = 20; // 减少padding
+          const availableTextWidth = maxWidth - padding;
+          const estimatedLines = Math.max(1, Math.ceil(estimatedTextWidth / availableTextWidth));
+          
+          const lineHeight = 16; // 减少行高
+          const minHeight = level === 1 ? 40 : level === 2 ? 35 : 30; // 减少最小高度
+          
+          // 如果是单行文本，使用最小高度；多行文本才增加高度
+          const height = estimatedLines === 1 
+            ? minHeight 
+            : Math.max(minHeight, estimatedLines * lineHeight + padding);
+          
+          return {
+            ...node,
+            targetPosition: isHorizontal ? 'left' : 'top',
+            sourcePosition: isHorizontal ? 'right' : 'bottom',
+            width: maxWidth,
+            height,
+            // 添加强制布局选项保持原始顺序
+            layoutOptions: {
+              'elk.priority': 1000 - index, // 使用倒序优先级，确保原始顺序不变
+              'elk.mrtree.orderChildren': 'true', // 保持子节点顺序
+              'elk.mrtree.weighting': 'UNIFORM', // 节点级别也设置UNIFORM
+              'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES', // 考虑模型顺序
+            },
+          };
+        }),
         edges: edges,
       };
 
