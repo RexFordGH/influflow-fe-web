@@ -1,21 +1,6 @@
 'use client';
 
-import {
-  DocumentTextIcon,
-  GlobeAltIcon,
-  InformationCircleIcon,
-  UserIcon,
-} from '@heroicons/react/24/outline';
-import {
-  Button,
-  Card,
-  CardBody,
-  Chip,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-} from '@heroui/react';
+import { Button, Image } from '@heroui/react';
 import { useCallback, useMemo, useState } from 'react';
 
 import {
@@ -36,6 +21,7 @@ interface EnhancedMarkdownRendererProps {
     caption?: string;
     prompt?: string;
   }) => void;
+  onTweetImageEdit?: (tweetData: any) => void; // 新增：tweet图片编辑回调
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
@@ -45,6 +31,7 @@ interface EnhancedMarkdownRendererProps {
     caption?: string;
     prompt?: string;
   };
+  tweetData?: any; // 新增：tweet数据，用于获取image_url
 }
 
 interface MarkdownSection {
@@ -60,107 +47,31 @@ interface MarkdownSection {
   groupId?: string; // 用于group高亮
 }
 
-// 模拟信息来源数据
-const getMockSources = (sectionId: string) => {
-  const sourcesData: {
-    [key: string]: Array<{
-      type: 'report' | 'interview' | 'data' | 'survey' | 'ai';
-      title: string;
-      description: string;
-      reliability: number;
-    }>;
-  } = {
-    'background-analysis': [
-      {
-        type: 'report',
-        title: '2024年行业研究报告',
-        description: '权威机构发布的最新行业分析报告',
-        reliability: 95,
-      },
-      {
-        type: 'data',
-        title: '市场数据统计',
-        description: '来自官方统计局的市场规模数据',
-        reliability: 90,
-      },
-    ],
-    'core-viewpoints': [
-      {
-        type: 'interview',
-        title: '专家访谈记录',
-        description: '与行业专家的深度访谈内容',
-        reliability: 88,
-      },
-      {
-        type: 'ai',
-        title: 'AI知识整合',
-        description: '基于大量文献的AI分析结果',
-        reliability: 85,
-      },
-    ],
-    'practical-methods': [
-      {
-        type: 'survey',
-        title: '用户调研反馈',
-        description: '1000+用户的实践经验总结',
-        reliability: 92,
-      },
-      {
-        type: 'report',
-        title: '最佳实践案例集',
-        description: '成功企业的实施经验汇总',
-        reliability: 89,
-      },
-    ],
-    'future-trends': [
-      {
-        type: 'report',
-        title: '技术趋势预测报告',
-        description: '知名咨询公司的未来趋势分析',
-        reliability: 87,
-      },
-      {
-        type: 'ai',
-        title: 'AI趋势预测',
-        description: '基于大数据的AI预测模型结果',
-        reliability: 83,
-      },
-    ],
-  };
-
-  return (
-    sourcesData[sectionId] || [
-      {
-        type: 'ai',
-        title: 'AI生成内容',
-        description: '基于训练数据生成的综合性内容',
-        reliability: 80,
-      },
-    ]
-  );
-};
 
 export function EnhancedMarkdownRenderer({
   content,
   onSectionHover,
   onSourceClick,
   onImageClick,
+  onTweetImageEdit, // 新增tweet图片编辑回调
   highlightedSection,
   hoveredTweetId, // 新增参数
   loadingTweetId, // 新增loading参数
   imageData, // 图片数据
+  tweetData, // 新增tweet数据
 }: EnhancedMarkdownRendererProps) {
   const [selectedSourceSection, setSelectedSourceSection] = useState<
     string | null
   >(null);
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
 
-  // 处理图片占位符
+  // 处理图片占位符 - 只有真实的图片URL才会被替换
   const processedContent = useMemo(() => {
-    if (imageData) {
+    if (imageData?.url) {
       return content.replace('PLACEHOLDER_IMAGE', imageData.url);
     }
-    return content;
+    // 如果没有真实图片，移除占位符
+    return content.replace('PLACEHOLDER_IMAGE', '');
   }, [content, imageData]);
 
   // 解析含有HTML标签的Markdown为结构化数据
@@ -176,14 +87,6 @@ export function EnhancedMarkdownRenderer({
     let currentTweetIndex: number | null = null;
     let currentGroupId: string | null = null;
 
-    // 调试信息：输出原始markdown内容
-    console.log('=== DEBUG: 原始markdown内容 ===');
-    console.log(processedContent);
-    console.log('=== DEBUG: 分割后的行 ===');
-    lines.forEach((line, index) => {
-      console.log(`行 ${index}: "${line}"`);
-    });
-    console.log('=== DEBUG: 开始解析 ===');
 
     lines.forEach((line) => {
       const trimmedLine = line.trim();
@@ -381,12 +284,8 @@ export function EnhancedMarkdownRenderer({
         }
       } else if (trimmedLine && !trimmedLine.startsWith('---')) {
         // 段落（排除分隔线）
-        console.log(`DEBUG: 处理段落行: "${trimmedLine}"`);
         if (!currentSection || currentSection.type !== 'paragraph') {
           if (currentSection) {
-            console.log(
-              `DEBUG: 推送之前的section: ${currentSection.type} - "${currentSection.content}"`,
-            );
             sections.push(currentSection);
           }
           currentSection = {
@@ -395,42 +294,20 @@ export function EnhancedMarkdownRenderer({
             content: trimmedLine,
             rawContent: line,
           };
-          console.log(`DEBUG: 创建新的段落section: "${trimmedLine}"`);
         } else {
           currentSection.content += ' ' + trimmedLine;
           currentSection.rawContent += '\n' + line;
-          console.log(
-            `DEBUG: 追加到现有段落section: "${currentSection.content}"`,
-          );
         }
       }
     });
 
     if (currentSection) {
-      const section = currentSection as MarkdownSection;
-      console.log(
-        `DEBUG: 推送最后的section: ${section.type} - "${section.content || 'no content'}"`,
-      );
-      sections.push(section);
+      sections.push(currentSection);
     }
 
-    console.log('=== DEBUG: 最终解析结果 ===');
-    sections.forEach((section, index) => {
-      console.log(`Section ${index}: ${section.type} - "${section.content}"`);
-    });
 
     return sections;
   }, [processedContent]);
-
-  const handleSourceClick = useCallback(
-    (sectionId: string, mappingId?: string) => {
-      const targetId = mappingId || sectionId;
-      setSelectedSourceSection(targetId);
-      setIsSourceModalOpen(true);
-      onSourceClick?.(targetId);
-    },
-    [onSourceClick],
-  );
 
   // 渲染表情符号 - 移到组件顶层
   const renderEmoji = useCallback((text: string) => {
@@ -578,17 +455,14 @@ export function EnhancedMarkdownRenderer({
               className={headingClass}
               dangerouslySetInnerHTML={{ __html: renderEmoji(section.content) }}
             />
-            <SourceButton
-              sectionId={section.id}
-              mappingId={section.mappingId}
-              onSourceClick={handleSourceClick}
-            />
           </div>
         );
 
       case 'paragraph':
         // 检查是否是图片markdown语法
         const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
+        
+        
         if (imageMatch) {
           const [, altText, imageSrc] = imageMatch;
           return (
@@ -639,6 +513,7 @@ export function EnhancedMarkdownRenderer({
           .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
           .replace(/#([^\s#]+)/g, markdownStyles.formatting.hashtag);
 
+
         return (
           <div
             key={section.id}
@@ -654,11 +529,6 @@ export function EnhancedMarkdownRenderer({
             <p
               className={markdownStyles.text.paragraph}
               dangerouslySetInnerHTML={{ __html: processedParagraphContent }}
-            />
-            <SourceButton
-              sectionId={section.id}
-              mappingId={section.mappingId}
-              onSourceClick={handleSourceClick}
             />
           </div>
         );
@@ -715,11 +585,6 @@ export function EnhancedMarkdownRenderer({
                 ))}
               </ul>
             )}
-            <SourceButton
-              sectionId={section.id}
-              mappingId={section.mappingId}
-              onSourceClick={handleSourceClick}
-            />
           </div>
         );
 
@@ -745,8 +610,21 @@ export function EnhancedMarkdownRenderer({
 
         const content = contentLines.join('\n\n');
 
-        // 处理内容，保留换行和格式
-        const processedTweetContent = content
+        // 检查内容中是否包含图片语法，并分离图片和文本内容
+        const contentImageMatch = content.match(/!\[(.*?)\]\((.*?)\)/);
+        let textContent = content;
+        let tweetImageSrc = null;
+        let tweetImageAlt = null;
+        
+        if (contentImageMatch) {
+          // 从内容中移除图片语法，只保留文本部分
+          textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
+          tweetImageSrc = contentImageMatch[2];
+          tweetImageAlt = contentImageMatch[1];
+        }
+
+        // 处理文本内容，保留换行和格式
+        const processedTweetContent = textContent
           .replace(/\n/g, '<br>') // 转换换行为HTML
           .replace(
             /\*\*(.*?)\*\*/g,
@@ -781,36 +659,62 @@ export function EnhancedMarkdownRenderer({
           }
         };
 
-        return (
-          <div
-            key={section.id}
-            className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
-            onMouseEnter={sectionMouseEnter}
-            onMouseLeave={sectionMouseLeave}
-          >
-            {isLoading && (
-              <div className="absolute left-2 top-2">
-                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-              </div>
-            )}
-            {/* Tweet Title with proper heading styling */}
-            {title && <div className="my-[12px]">{getTitleComponent()}</div>}
+        // 获取当前tweet的完整数据
+        const currentTweetData = tweetData?.nodes
+          ?.flatMap((group: any) => group.tweets)
+          ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
 
-            {/* Tweet Content */}
-            {content && (
+        // 获取当前tweet的图片URL
+        const currentTweetImageUrl = currentTweetData?.image_url;
+
+            return (
               <div
-                className="text-sm leading-relaxed text-gray-700"
-                dangerouslySetInnerHTML={{ __html: processedTweetContent }}
-              />
-            )}
+                key={section.id}
+                className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
+                onMouseEnter={sectionMouseEnter}
+                onMouseLeave={sectionMouseLeave}
+              >
+                {isLoading && (
+                  <div className="absolute left-2 top-2">
+                    <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                  </div>
+                )}
+                {/* Tweet Title with proper heading styling */}
+                {title && <div className="my-[12px]">{getTitleComponent()}</div>}
 
-            <SourceButton
-              sectionId={section.id}
-              mappingId={section.tweetId}
-              onSourceClick={handleSourceClick}
-            />
-          </div>
-        );
+                {/* Tweet Content */}
+                {textContent && textContent.trim() && (
+                  <div
+                    className="text-sm leading-relaxed text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: processedTweetContent }}
+                  />
+                )}
+
+                {/* Tweet Image from markdown or API data */}
+                {(tweetImageSrc || currentTweetImageUrl) && (
+                  <div className="mt-4 mb-4">
+                    <img
+                      src={tweetImageSrc || currentTweetImageUrl}
+                      alt={tweetImageAlt || `${title}配图`}
+                      className="w-full max-w-md rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                      onClick={() =>
+                        onImageClick?.({
+                          url: tweetImageSrc || currentTweetImageUrl || '',
+                          alt: tweetImageAlt || `${title}配图`,
+                          caption: title,
+                          prompt: title,
+                        })
+                      }
+                    />
+                  </div>
+                )}
+
+                <TweetImageButton
+                  currentTweetData={currentTweetData}
+                  onTweetImageEdit={onTweetImageEdit}
+                />
+              </div>
+            );
 
       case 'group':
         // 改进的分组标题处理，支持div内的标题
@@ -884,69 +788,11 @@ export function EnhancedMarkdownRenderer({
                 {groupContent}
               </div>
             )}
-            <SourceButton
-              sectionId={section.id}
-              mappingId={section.groupId}
-              onSourceClick={handleSourceClick}
-            />
           </div>
         );
 
       default:
         return null;
-    }
-  };
-
-  const getSourceIcon = (type: string) => {
-    switch (type) {
-      case 'report':
-        return <DocumentTextIcon className="size-4" />;
-      case 'interview':
-        return <UserIcon className="size-4" />;
-      case 'data':
-        return <GlobeAltIcon className="size-4" />;
-      case 'survey':
-        return <UserIcon className="size-4" />;
-      case 'ai':
-        return (
-          <div className="size-4 rounded-full bg-gradient-to-r from-purple-500 to-blue-500" />
-        );
-      default:
-        return <InformationCircleIcon className="size-4" />;
-    }
-  };
-
-  const getSourceColor = (type: string) => {
-    switch (type) {
-      case 'report':
-        return 'primary';
-      case 'interview':
-        return 'success';
-      case 'data':
-        return 'warning';
-      case 'survey':
-        return 'secondary';
-      case 'ai':
-        return 'default';
-      default:
-        return 'default';
-    }
-  };
-
-  const getSourceBgColor = (type: string) => {
-    switch (type) {
-      case 'report':
-        return 'bg-blue-100';
-      case 'interview':
-        return 'bg-green-100';
-      case 'data':
-        return 'bg-orange-100';
-      case 'survey':
-        return 'bg-gray-100';
-      case 'ai':
-        return 'bg-gray-100';
-      default:
-        return 'bg-gray-100';
     }
   };
 
@@ -959,101 +805,33 @@ export function EnhancedMarkdownRenderer({
           </div>
         </div>
       </div>
-
-      {/* 信息来源弹窗 */}
-      <Modal
-        isOpen={isSourceModalOpen}
-        onClose={() => setIsSourceModalOpen(false)}
-        size="2xl"
-        scrollBehavior="inside"
-      >
-        <ModalContent>
-          <ModalHeader className="flex flex-col gap-1">
-            <h3 className="text-lg font-semibold">信息来源</h3>
-            <p className="text-sm text-gray-500">
-              该内容段落的信息来源和可靠性分析
-            </p>
-          </ModalHeader>
-          <ModalBody className="pb-6">
-            <div className="space-y-4">
-              {selectedSourceSection &&
-                getMockSources(selectedSourceSection).map((source, index) => (
-                  <Card key={index} className="border border-gray-200">
-                    <CardBody className="p-4">
-                      <div className="flex items-start space-x-3">
-                        <div
-                          className={`${getSourceBgColor(source.type)} rounded-lg p-2`}
-                        >
-                          {getSourceIcon(source.type)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="mb-2 flex items-center justify-between">
-                            <h4 className="font-semibold text-gray-900">
-                              {source.title}
-                            </h4>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-xs text-gray-500">
-                                可靠性
-                              </span>
-                              <div className="h-2 w-16 rounded-full bg-gray-200">
-                                <div
-                                  className="h-2 rounded-full bg-green-500"
-                                  style={{ width: `${source.reliability}%` }}
-                                />
-                              </div>
-                              <span className="text-xs font-medium text-green-600">
-                                {source.reliability}%
-                              </span>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {source.description}
-                          </p>
-                          <div className="mt-2">
-                            <Chip
-                              size="sm"
-                              variant="flat"
-                              color={getSourceColor(source.type) as any}
-                            >
-                              {source.type === 'report' && '研究报告'}
-                              {source.type === 'interview' && '专家访谈'}
-                              {source.type === 'data' && '官方数据'}
-                              {source.type === 'survey' && '用户调研'}
-                              {source.type === 'ai' && 'AI分析'}
-                            </Chip>
-                          </div>
-                        </div>
-                      </div>
-                    </CardBody>
-                  </Card>
-                ))}
-            </div>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </>
   );
 }
 
-// 信息来源按钮组件
-function SourceButton({
-  sectionId,
-  mappingId,
-  onSourceClick,
+// Tweet图片编辑按钮组件
+function TweetImageButton({
+  currentTweetData,
+  onTweetImageEdit,
 }: {
-  sectionId: string;
-  mappingId?: string;
-  onSourceClick?: (sectionId: string, mappingId?: string) => void;
+  currentTweetData?: any;
+  onTweetImageEdit?: (tweetData: any) => void;
 }) {
+  const handleImageEdit = () => {
+    if (onTweetImageEdit && currentTweetData) {
+      onTweetImageEdit(currentTweetData);
+    }
+  };
+
   return (
     <Button
       isIconOnly
       size="sm"
       variant="light"
       className={markdownStyles.source.button}
-      onPress={() => onSourceClick?.(sectionId, mappingId)}
+      onPress={handleImageEdit}
     >
-      <InformationCircleIcon className={markdownStyles.source.icon} />
+      <Image src="/icons/image.svg" alt="edit" width={20} height={20} />
     </Button>
   );
 }

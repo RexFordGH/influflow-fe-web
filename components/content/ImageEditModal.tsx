@@ -1,14 +1,102 @@
 'use client';
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { CheckIcon } from '@heroicons/react/24/solid';
 import { useEffect, useRef, useState } from 'react';
+import { Image, Tooltip } from '@heroui/react';
 
+import { useGenerateImage } from '@/lib/api/services';
 import {
   type ImageConversationItem,
   type ImageEditProps,
 } from '@/types/content';
-import { useGenerateImage } from '@/lib/api/services';
+
+// 新增：图片放大器模态框组件
+function ImageViewerModal({
+  imageUrl,
+  onClose,
+}: {
+  imageUrl: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 transition-opacity duration-300"
+      onClick={onClose} // 点击背景关闭
+    >
+      <div className="relative max-w-4xl max-h-[90vh] p-4">
+        <img
+          src={imageUrl}
+          alt="Magnified view"
+          className="object-contain w-full h-full rounded-lg shadow-2xl"
+          onClick={(e) => e.stopPropagation()} // 防止点击图片自身导致关闭
+        />
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 rounded-full p-2 text-white bg-black/50 hover:bg-black/75 transition-colors"
+        >
+          <XMarkIcon className="size-6" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 子组件：用于渲染和管理单个图片气泡的加载状态
+function ImageBubble({
+  item,
+  onApply,
+  onMagnify, // 新增：点击放大图片的回调
+}: {
+  item: ImageConversationItem;
+  onApply: (item: ImageConversationItem) => void;
+  onMagnify: (url: string) => void;
+}) {
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
+  return (
+    <div className="flex items-end justify-start gap-[12px]">
+      <div className="relative w-[320px] h-auto min-h-[180px]">
+        {isImageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-100">
+            <div className="size-5 animate-spin rounded-full border-2 border-gray-500 border-t-transparent"></div>
+          </div>
+        )}
+        <Image
+          src={item.imageUrl}
+          alt={item.prompt}
+          width={320}
+          className={`h-auto rounded-[12px] object-cover cursor-pointer transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+          onLoad={() => setIsImageLoading(false)}
+          onError={() => setIsImageLoading(false)} // 加载失败也应移除loading
+          onClick={() => onMagnify(item.imageUrl)} // 点击图片时调用放大回调
+        />
+      </div>
+
+      <div
+        onClick={() => onApply(item)}
+        className="cursor-pointer hover:opacity-70"
+      >
+        <Tooltip
+          content="Apply"
+          delay={50}
+          closeDelay={0}
+          placement="top"
+          classNames={{
+            content: 'bg-black text-white',
+            arrow: 'bg-black border-black',
+          }}
+        >
+          <Image
+            src="/icons/apply.svg"
+            alt="apply"
+            width={32}
+            height={32}
+          />
+        </Tooltip>
+      </div>
+    </div>
+  );
+}
 
 export function ImageEditModal({
   image,
@@ -19,21 +107,23 @@ export function ImageEditModal({
 }: ImageEditProps) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [conversation, setConversation] = useState<ImageConversationItem[]>([
-    // 初始化时添加原始图片作为第一个对话项
-    {
-      id: 'original',
-      prompt: image.prompt || '原始图片',
-      imageUrl: image.url,
-      timestamp: Date.now() - 1000,
-      isApplied: true,
-    },
-  ]);
+  const [conversation, setConversation] = useState<ImageConversationItem[]>(() => {
+    if (image.url) {
+      return [{
+        id: 'original',
+        prompt: image.prompt || '原始图片',
+        imageUrl: image.url,
+        timestamp: Date.now() - 1000,
+        isApplied: true,
+      }];
+    }
+    return [];
+  });
+  const [magnifiedImageUrl, setMagnifiedImageUrl] = useState<string | null>(null); // 新增：用于放大图片的状态
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const generateImageMutation = useGenerateImage();
 
-  // 自动滚动到底部
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -43,53 +133,54 @@ export function ImageEditModal({
   }, [conversation]);
 
   const handleGenerateImage = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || isGenerating) return;
 
-    setIsGenerating(true);
     const currentPrompt = prompt.trim();
-    setPrompt(''); // 清空输入框
+    const newItemId = `generating-${Date.now()}`;
+
+    setConversation((prev) => [
+      ...prev,
+      {
+        id: newItemId,
+        prompt: currentPrompt,
+        imageUrl: '',
+        timestamp: Date.now(),
+        isApplied: false,
+        isLoading: true,
+      },
+    ]);
+
+    setPrompt('');
+    setIsGenerating(true);
 
     try {
       const imageUrl = await generateImageMutation.mutateAsync({
-        target_tweet: targetTweet,
-        tweet_thread: tweetThread + `\n\n图片生成提示词: ${currentPrompt}`,
+        target_tweet: currentPrompt,
+        tweet_thread: tweetThread,
       });
 
-      // 添加新的对话项
-      const newItem: ImageConversationItem = {
-        id: `generated-${Date.now()}`,
-        prompt: currentPrompt,
-        imageUrl: imageUrl,
-        timestamp: Date.now(),
-        isApplied: false,
-      };
-
-      setConversation((prev) => [...prev, newItem]);
+      setConversation((prev) =>
+        prev.map((item) =>
+          item.id === newItemId
+            ? { ...item, imageUrl: imageUrl, isLoading: false }
+            : item,
+        ),
+      );
     } catch (error) {
       console.error('生成图片失败:', error);
-      // 这里可以添加错误提示
+      setConversation((prev) => prev.filter((item) => item.id !== newItemId));
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleApplyImage = (item: ImageConversationItem) => {
-    // 更新所有项目的应用状态
-    setConversation((prev) =>
-      prev.map((convItem) => ({
-        ...convItem,
-        isApplied: convItem.id === item.id,
-      })),
-    );
-
-    // 应用图片
     onImageUpdate({
       url: item.imageUrl,
       alt: item.prompt,
       caption: item.prompt,
       prompt: item.prompt,
     });
-
     onClose();
   };
 
@@ -102,97 +193,57 @@ export function ImageEditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-start bg-black bg-opacity-50">
-      {/* 左半边覆盖层 - 覆盖思维导图区域 */}
       <div className="flex h-full w-1/2 flex-col bg-white shadow-2xl">
-        {/* 标题栏 */}
-        <div className="flex items-center justify-between border-b border-gray-200 p-4">
+        <div className="flex items-center justify-between p-4">
           <div></div>
           <button
-            onClick={onClose}
+            onClick={onClose} // 只有这个按钮可以关闭
             className="rounded-full p-2 transition-colors hover:bg-gray-100"
           >
             <XMarkIcon className="size-5 text-gray-500" />
           </button>
         </div>
 
-        {/* 对话历史区域 */}
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {conversation.map((item) => (
-            <div key={item.id} className="space-y-3">
-              {/* 用户提示词 */}
+            <div key={item.id} className="space-y-[24px]">
               <div className="flex justify-end">
-                <div className="max-w-xs rounded-lg bg-blue-600 px-4 py-2 text-white">
+                <div className="max-w-xs rounded-lg bg-[#E8E8E8] px-[12px] py-[8px] text-black">
                   <p className="text-sm">{item.prompt}</p>
-                  <p className="mt-1 text-xs opacity-75">
-                    {new Date(item.timestamp).toLocaleTimeString()}
-                  </p>
                 </div>
               </div>
 
-              {/* AI 生成的图片 */}
-              <div className="flex justify-start">
-                <div className="max-w-sm rounded-lg bg-gray-100 p-3">
-                  <div className="relative">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.prompt}
-                      className="h-48 w-full rounded-lg border object-cover"
-                    />
-                    {item.isApplied && (
-                      <div className="absolute right-2 top-2 rounded-full bg-green-500 p-1 text-white">
-                        <CheckIcon className="size-4" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Apply 按钮 */}
-                  {!item.isApplied && (
-                    <button
-                      onClick={() => handleApplyImage(item)}
-                      className="mt-3 w-full rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-                    >
-                      Apply
-                    </button>
-                  )}
-
-                  {item.isApplied && (
-                    <div className="mt-3 w-full rounded-lg bg-green-100 px-4 py-2 text-center text-sm font-medium text-green-800">
-                      ✓ Applied
+              {item.isLoading ? (
+                <div className="flex items-end justify-start gap-[12px]">
+                  <div className="relative w-[320px] h-auto min-h-[180px]">
+                    <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-100">
+                      <div className="size-5 animate-spin rounded-full border-2 border-gray-500 border-t-transparent"></div>
+                      <span className="ml-2 text-sm text-gray-600">Generating...</span>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <ImageBubble
+                  item={item}
+                  onApply={handleApplyImage}
+                  onMagnify={setMagnifiedImageUrl} // 传递放大函数
+                />
+              )}
             </div>
           ))}
-
-          {/* 生成中状态 */}
-          {isGenerating && (
-            <div className="flex justify-start">
-              <div className="max-w-sm rounded-lg bg-gray-100 p-3">
-                <div className="flex items-center space-x-3">
-                  <div className="size-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-                  <span className="text-sm text-gray-600">
-                    Generating image...
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 输入区域 */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="p-[48px]">
           <div className="flex items-center justify-between gap-[10px]">
             <div className="flex-1">
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full resize-none rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                rows={2}
-                placeholder="Enter image generation prompt, e.g. a futuristic AI robot..."
+                className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                rows={4}
+                placeholder="Please limit to 300 words."
                 disabled={isGenerating}
               />
             </div>
@@ -200,8 +251,16 @@ export function ImageEditModal({
         </div>
       </div>
 
-      {/* 右半边点击关闭 */}
-      <div className="h-full w-1/2" onClick={onClose} />
+      {/* 右半边空白区域，不再有关闭功能 */}
+      <div className="h-full w-1/2" />
+
+      {/* 图片放大器 */}
+      {magnifiedImageUrl && (
+        <ImageViewerModal
+          imageUrl={magnifiedImageUrl}
+          onClose={() => setMagnifiedImageUrl(null)}
+        />
+      )}
     </div>
   );
 }
