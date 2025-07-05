@@ -21,7 +21,7 @@ interface EnhancedMarkdownRendererProps {
     caption?: string;
     prompt?: string;
   }) => void;
-  onTweetImageEdit?: (tweetId: string, tweetData: any) => void; // 新增：tweet图片编辑回调
+  onTweetImageEdit?: (tweetData: any) => void; // 新增：tweet图片编辑回调
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
@@ -65,11 +65,13 @@ export function EnhancedMarkdownRenderer({
   >(null);
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
 
-  // 处理图片占位符
+  // 处理图片占位符 - 只有真实的图片URL才会被替换
   const processedContent = useMemo(() => {
-    // 确保有默认的图片URL来替换PLACEHOLDER_IMAGE
-    const defaultImageUrl = imageData?.url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center';
-    return content.replace('PLACEHOLDER_IMAGE', defaultImageUrl);
+    if (imageData?.url) {
+      return content.replace('PLACEHOLDER_IMAGE', imageData.url);
+    }
+    // 如果没有真实图片，移除占位符
+    return content.replace('PLACEHOLDER_IMAGE', '');
   }, [content, imageData]);
 
   // 解析含有HTML标签的Markdown为结构化数据
@@ -657,66 +659,62 @@ export function EnhancedMarkdownRenderer({
           }
         };
 
+        // 获取当前tweet的完整数据
+        const currentTweetData = tweetData?.nodes
+          ?.flatMap((group: any) => group.tweets)
+          ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
+
         // 获取当前tweet的图片URL
-        const currentTweetImageUrl = tweetData?.nodes
-          ?.find((group: any) =>
-            group.tweets?.find(
-              (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
-            ),
-          )
-          ?.tweets?.find(
-            (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
-          )?.image_url;
+        const currentTweetImageUrl = currentTweetData?.image_url;
 
-        return (
-          <div
-            key={section.id}
-            className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
-            onMouseEnter={sectionMouseEnter}
-            onMouseLeave={sectionMouseLeave}
-          >
-            {isLoading && (
-              <div className="absolute left-2 top-2">
-                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-              </div>
-            )}
-            {/* Tweet Title with proper heading styling */}
-            {title && <div className="my-[12px]">{getTitleComponent()}</div>}
-
-            {/* Tweet Content */}
-            {textContent && textContent.trim() && (
+            return (
               <div
-                className="text-sm leading-relaxed text-gray-700"
-                dangerouslySetInnerHTML={{ __html: processedTweetContent }}
-              />
-            )}
+                key={section.id}
+                className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
+                onMouseEnter={sectionMouseEnter}
+                onMouseLeave={sectionMouseLeave}
+              >
+                {isLoading && (
+                  <div className="absolute left-2 top-2">
+                    <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                  </div>
+                )}
+                {/* Tweet Title with proper heading styling */}
+                {title && <div className="my-[12px]">{getTitleComponent()}</div>}
 
-            {/* Tweet Image from markdown or API data */}
-            {(tweetImageSrc || currentTweetImageUrl) && (
-              <div className="mt-4 mb-4">
-                <img
-                  src={tweetImageSrc || currentTweetImageUrl}
-                  alt={tweetImageAlt || `${title}配图`}
-                  className="w-full max-w-md rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                  onClick={() =>
-                    onImageClick?.({
-                      url: tweetImageSrc || currentTweetImageUrl || '',
-                      alt: tweetImageAlt || `${title}配图`,
-                      caption: title,
-                      prompt: title,
-                    })
-                  }
+                {/* Tweet Content */}
+                {textContent && textContent.trim() && (
+                  <div
+                    className="text-sm leading-relaxed text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: processedTweetContent }}
+                  />
+                )}
+
+                {/* Tweet Image from markdown or API data */}
+                {(tweetImageSrc || currentTweetImageUrl) && (
+                  <div className="mt-4 mb-4">
+                    <img
+                      src={tweetImageSrc || currentTweetImageUrl}
+                      alt={tweetImageAlt || `${title}配图`}
+                      className="w-full max-w-md rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                      onClick={() =>
+                        onImageClick?.({
+                          url: tweetImageSrc || currentTweetImageUrl || '',
+                          alt: tweetImageAlt || `${title}配图`,
+                          caption: title,
+                          prompt: title,
+                        })
+                      }
+                    />
+                  </div>
+                )}
+
+                <TweetImageButton
+                  currentTweetData={currentTweetData}
+                  onTweetImageEdit={onTweetImageEdit}
                 />
               </div>
-            )}
-
-            <TweetImageButton
-              tweetId={section.tweetId || ''}
-              tweetData={tweetData}
-              onTweetImageEdit={onTweetImageEdit}
-            />
-          </div>
-        );
+            );
 
       case 'group':
         // 改进的分组标题处理，支持div内的标题
@@ -813,17 +811,15 @@ export function EnhancedMarkdownRenderer({
 
 // Tweet图片编辑按钮组件
 function TweetImageButton({
-  tweetId,
-  tweetData,
+  currentTweetData,
   onTweetImageEdit,
 }: {
-  tweetId: string;
-  tweetData?: any;
-  onTweetImageEdit?: (tweetId: string, tweetData: any) => void;
+  currentTweetData?: any;
+  onTweetImageEdit?: (tweetData: any) => void;
 }) {
   const handleImageEdit = () => {
-    if (onTweetImageEdit && tweetData) {
-      onTweetImageEdit(tweetId, tweetData);
+    if (onTweetImageEdit && currentTweetData) {
+      onTweetImageEdit(currentTweetData);
     }
   };
 

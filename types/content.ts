@@ -140,6 +140,7 @@ export interface ImageEditProps {
   };
   targetTweet: string;
   tweetThread: string;
+  isInitialGenerating?: boolean; // 新增：是否正在初次生成图片
   onImageUpdate: (newImage: {
     url: string;
     alt: string;

@@ -2,33 +2,38 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
+import { Image, Tooltip } from '@heroui/react';
 
 import { useGenerateImage } from '@/lib/api/services';
 import {
   type ImageConversationItem,
   type ImageEditProps,
 } from '@/types/content';
-import { Image, Tooltip } from '@heroui/react';
 
 export function ImageEditModal({
   image,
   targetTweet,
   tweetThread,
+  isInitialGenerating = false,
   onImageUpdate,
   onClose,
 }: ImageEditProps) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [conversation, setConversation] = useState<ImageConversationItem[]>([
-    // 初始化时添加原始图片作为第一个对话项
-    {
-      id: 'original',
-      prompt: image.prompt || '原始图片',
-      imageUrl: image.url,
-      timestamp: Date.now() - 1000,
-      isApplied: true,
-    },
-  ]);
+  const [conversation, setConversation] = useState<ImageConversationItem[]>(() => {
+    // 只有当有真实图片URL时才初始化对话项
+    if (image.url && image.url.length > 0) {
+      return [{
+        id: 'original',
+        prompt: image.prompt || '原始图片',
+        imageUrl: image.url,
+        timestamp: Date.now() - 1000,
+        isApplied: true,
+      }];
+    }
+    // 如果没有图片，返回空对话
+    return [];
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const generateImageMutation = useGenerateImage();
@@ -41,6 +46,23 @@ export function ImageEditModal({
   useEffect(() => {
     scrollToBottom();
   }, [conversation]);
+
+  // 监听图片URL变化，用于处理后台自动生成的图片
+  useEffect(() => {
+    // 检查是否是从空状态到有图片的转换（首次生成）
+    const isFirstImageGenerated = image.url && image.url.length > 0 && conversation.length === 0;
+    
+    if (isFirstImageGenerated) {
+      // 添加第一个生成的图片到对话
+      setConversation([{
+        id: 'original',
+        prompt: image.prompt || '自动生成的图片',
+        imageUrl: image.url,
+        timestamp: Date.now() - 1000,
+        isApplied: true,
+      }]);
+    }
+  }, [image.url, image.prompt, conversation.length]);
 
   const handleGenerateImage = async () => {
     if (!prompt.trim()) return;
@@ -74,6 +96,8 @@ export function ImageEditModal({
   };
 
   const handleApplyImage = (item: ImageConversationItem) => {
+    console.log('handleApplyImage called with item:', item);
+    
     // 更新所有项目的应用状态
     setConversation((prev) =>
       prev.map((convItem) => ({
@@ -83,12 +107,15 @@ export function ImageEditModal({
     );
 
     // 应用图片
-    onImageUpdate({
+    const imageToApply = {
       url: item.imageUrl,
       alt: item.prompt,
       caption: item.prompt,
       prompt: item.prompt,
-    });
+    };
+    console.log('Calling onImageUpdate with:', imageToApply);
+    
+    onImageUpdate(imageToApply);
 
     onClose();
   };
@@ -127,7 +154,7 @@ export function ImageEditModal({
               </div>
 
               {/* AI 生成的图片 */}
-              <div className="flex justify-start items-end gap-[12px]">
+              <div className="flex items-end justify-start gap-[12px]">
                 <Image
                   src={item.imageUrl}
                   alt={item.prompt}
@@ -137,7 +164,7 @@ export function ImageEditModal({
 
                 <div
                   onClick={() => handleApplyImage(item)}
-                  className="hover:opacity-70 cursor-pointer"
+                  className="cursor-pointer hover:opacity-70"
                 >
                   <Tooltip
                     content="Apply"
@@ -162,10 +189,12 @@ export function ImageEditModal({
           ))}
 
           {/* 生成中状态 */}
-          {isGenerating && (
-            <div className="flex justify-center items-center space-x-3 size-[320px] rounded-lg bg-gray-100 p-3">
-              <div className="size-5 animate-spin rounded-full border-2 border-black-500 border-t-transparent"></div>
-              <span className="text-sm text-gray-600">Generating image...</span>
+          {(isGenerating || isInitialGenerating) && (
+            <div className="flex size-[320px] items-center justify-center space-x-3 rounded-lg bg-gray-100 p-3">
+              <div className="size-5 animate-spin rounded-full border-2 border-gray-500 border-t-transparent"></div>
+              <span className="text-sm text-gray-600">
+                {isInitialGenerating ? 'Generating initial image...' : 'Generating image...'}
+              </span>
             </div>
           )}
 

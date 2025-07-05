@@ -9,6 +9,7 @@ import {
   getErrorMessage,
   useGenerateThread,
   useModifyOutline,
+  useGenerateImage,
 } from '@/lib/api/services';
 import {
   convertAPIDataToGeneratedContent,
@@ -59,7 +60,8 @@ export function EnhancedContentGeneration({
     caption?: string;
     prompt?: string;
   } | null>(null);
-  const [editingTweetId, setEditingTweetId] = useState<string | null>(null); // 新增：正在编辑的tweet ID
+  const [editingTweetData, setEditingTweetData] = useState<any | null>(null); // 新增：正在编辑的tweet 数据
+  
   const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
     null,
   ); // 重新生成的markdown
@@ -72,6 +74,7 @@ export function EnhancedContentGeneration({
   const { mutate: generateThread, isPending: isGeneratingAPI } =
     useGenerateThread();
   const modifyOutlineMutation = useModifyOutline();
+  const generateImageMutation = useGenerateImage();
 
   // 生成思维过程步骤
   const generationSteps = [
@@ -279,84 +282,105 @@ export function EnhancedContentGeneration({
     [],
   );
 
-  // 处理Tweet图片编辑
-  const handleTweetImageEdit = useCallback(
-    (tweetId: string, tweetData: any) => {
-      console.log('编辑Tweet图片:', tweetId, tweetData);
-      
-      // 找到对应的tweet数据
-      const targetTweet = rawAPIData?.nodes?.find((group: any) => 
-        group.tweets?.find((tweet: any) => tweet.tweet_number.toString() === tweetId)
-      )?.tweets?.find((tweet: any) => tweet.tweet_number.toString() === tweetId);
+  /**
+   * 更新或插入Tweet图片的Markdown内容
+   * @param fullContent - 完整的Markdown字符串
+   * @param tweetNumber - 目标Tweet的编号
+   * @param newImageUrl - 新图片的URL
+   * @param tweetText - Tweet的文本，用于alt标签
+   * @returns 更新后的完整Markdown字符串
+   */
+  const updateTweetImageInContent = (
+    fullContent: string,
+    tweetNumber: string,
+    newImageUrl: string,
+    tweetText: string,
+  ): string => {
+    const imageMarkdown = `\n\n![${tweetText}](${newImageUrl})`;
+    const tweetDivRegex = new RegExp(
+      `(<div\s+data-tweet-id="${tweetNumber}"[^>]*>[\s\S]*?)(<\/div>)`,
+    );
+    const tweetBlockMatch = fullContent.match(tweetDivRegex);
 
-      if (targetTweet) {
-        // 设置当前编辑的图片信息
-        setEditingImage({
-          url: targetTweet.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center',
-          alt: `${targetTweet.title}配图`,
-          caption: targetTweet.title,
-          prompt: `Create an illustration for: ${targetTweet.title}`,
-        });
-        setEditingTweetId(tweetId);
-        setIsImageEditModalOpen(true);
-      }
-    },
-    [rawAPIData],
-  );
+    if (!tweetBlockMatch) {
+      console.error(`无法找到 Tweet ${tweetNumber} 的区块。`);
+      return fullContent;
+    }
 
-  // 处理图片更新
+    const tweetBlock = tweetBlockMatch[0];
+    const imageRegex = /!\[.*?\]\(https?:\/\/[^\s)]+\)/g;
+
+    // 如果Tweet区块内已有图片，则替换它
+    if (imageRegex.test(tweetBlock)) {
+      return fullContent.replace(
+        tweetBlock,
+        tweetBlock.replace(imageRegex, imageMarkdown.trim()),
+      );
+    }
+    // 如果没有图片，则在 </div> 前插入
+    else {
+      const openingDiv = tweetBlockMatch[1];
+      const closingDiv = tweetBlockMatch[2];
+      const updatedBlock = `${openingDiv.trim()}${imageMarkdown}\n\n${closingDiv}`;
+      return fullContent.replace(tweetBlock, updatedBlock);
+    }
+  };
+
+  // 新逻辑: 点击后不再自动生成图片，而是直接打开模态框
+  const handleTweetImageEdit = useCallback((tweetData: any) => {
+    setEditingTweetData(tweetData);
+    setEditingImage({
+      url: tweetData.image_url || '', // 如果没有图片URL，则传递空字符串
+      alt: tweetData.content || tweetData.title || '',
+      caption: tweetData.title,
+      prompt: tweetData.content || tweetData.title,
+    });
+    setIsImageEditModalOpen(true);
+  }, []);
+
+  // 新逻辑: 精确地将选中的图片URL更新到Markdown中
   const handleImageUpdate = useCallback(
     (newImage: {
       url: string;
       alt: string;
       caption?: string;
-      prompt: string;
+      prompt?: string;
     }) => {
-      if (editingTweetId && rawAPIData) {
-        // 更新特定tweet的图片
+      if (!editingTweetData) return;
+
+      const { tweet_number, content: tweetText, title } = editingTweetData;
+      const currentMarkdown =
+        regeneratedMarkdown ||
+        (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '');
+
+      // 1. 更新Markdown内容
+      const updatedMarkdown = updateTweetImageInContent(
+        currentMarkdown,
+        tweet_number.toString(),
+        newImage.url,
+        newImage.alt || tweetText || title, // 优先使用 newImage 的 alt
+      );
+      setRegeneratedMarkdown(updatedMarkdown);
+
+      // 2. 更新 rawAPIData 中的图片URL，以保持数据同步
+      if (rawAPIData) {
         const updatedNodes = rawAPIData.nodes.map((group: any) => ({
           ...group,
-          tweets: group.tweets.map((tweet: any) => 
-            tweet.tweet_number.toString() === editingTweetId 
+          tweets: group.tweets.map((tweet: any) =>
+            tweet.tweet_number === tweet_number
               ? { ...tweet, image_url: newImage.url }
-              : tweet
+              : tweet,
           ),
         }));
-
-        const updatedRawAPIData = {
-          ...rawAPIData,
-          nodes: updatedNodes,
-        };
-
-        setRawAPIData(updatedRawAPIData);
-        setEditingTweetId(null);
-      } else if (generatedContent) {
-        // 更新 generatedContent 中的图片信息（原有逻辑）
-        const updatedContent = {
-          ...generatedContent,
-          image: {
-            url: newImage.url,
-            alt: newImage.alt,
-            caption: newImage.caption,
-            prompt: newImage.prompt,
-          },
-        };
-        setGeneratedContent(updatedContent);
+        setRawAPIData({ ...rawAPIData, nodes: updatedNodes });
       }
 
-      // 如果有 regeneratedMarkdown，则更新其中的图片 URL
-      if (regeneratedMarkdown) {
-        const updatedMarkdown = regeneratedMarkdown.replace(
-          /!\[([^\]]*)\]\([^)]+\)/g,
-          `![${newImage.alt}](${newImage.url})`,
-        );
-        setRegeneratedMarkdown(updatedMarkdown);
-      }
-
+      // 3. 关闭模态框并重置状态
       setIsImageEditModalOpen(false);
       setEditingImage(null);
+      setEditingTweetData(null);
     },
-    [generatedContent, regeneratedMarkdown, editingTweetId, rawAPIData],
+    [editingTweetData, rawAPIData, regeneratedMarkdown],
   );
 
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
@@ -628,24 +652,14 @@ export function EnhancedContentGeneration({
         <ImageEditModal
           image={editingImage}
           targetTweet={
-            editingTweetId
-              ? rawAPIData.nodes
-                  ?.find((group: any) =>
-                    group.tweets?.find(
-                      (tweet: any) => tweet.tweet_number.toString() === editingTweetId
-                    )
-                  )
-                  ?.tweets?.find(
-                    (tweet: any) => tweet.tweet_number.toString() === editingTweetId
-                  )?.content || ''
-              : rawAPIData.nodes[0]?.tweets[0]?.content || ''
+            editingTweetData?.content || editingTweetData?.title || ''
           }
           tweetThread={convertAPIDataToMarkdown(rawAPIData)}
           onImageUpdate={handleImageUpdate}
           onClose={() => {
             setIsImageEditModalOpen(false);
             setEditingImage(null);
-            setEditingTweetId(null);
+            setEditingTweetData(null);
           }}
         />
       )}

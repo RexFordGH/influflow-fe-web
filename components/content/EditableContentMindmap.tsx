@@ -799,7 +799,7 @@ export function EditableContentMindmap({
           showZoom
           showFitView
           showInteractive={true}
-          className="bg-white border border-gray-200 rounded-lg"
+          className="rounded-lg border border-gray-200 bg-white"
         />
 
         {/* <MiniMap
@@ -830,7 +830,7 @@ export function EditableContentMindmap({
             variant="solid"
             startContent={<PencilIcon className="size-4" />}
             onPress={() => setShowAIEditModal(true)}
-            className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6] `}
+            className={`rounded-full bg-[#4285F4] p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] hover:scale-110 hover:bg-[#3367D6] `}
           >
             Edit with AI
           </Button>
