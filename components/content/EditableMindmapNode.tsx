@@ -25,16 +25,20 @@ const EditableMindmapNode = ({
 
   // 根据层级确定样式 - 使用 useMemo 优化
   const getNodeStyle = useMemo(() => {
+    // 优化文本换行和显示 - 确保长文本能正确换行
     const baseStyle =
-      'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[12px] font-[500]';
+      'min-w-[80px] min-h-[30px] px-[12px] py-[8px] rounded-[8px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[12px] font-[500] leading-[1.4]';
+
+    // 根据层级决定对齐方式 - 移除flex相关类，让文本自然换行
+    const alignmentStyle = level === 1 ? 'text-center' : 'text-left';
 
     const levelColors = {
-      1: 'bg-[#000000] text-white text-center min-w-[180px] hover:bg-[rgba(0,0,0,0.6)]',
-      2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
-      3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
-      4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
-      5: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
-      6: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
+      1: '!bg-[#000000] !text-white !hover:bg-[rgba(0,0,0,0.6)] max-w-[300px] min-h-[40px]',
+      2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[250px] min-h-[35px]',
+      3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
+      4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
+      5: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
+      6: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
     };
 
     const levelStyle =
@@ -85,7 +89,7 @@ const EditableMindmapNode = ({
     const hoverStyle = isHovered && !selected ? '!bg-[#DDE9FF]' : '';
 
     // 添加调试样式检查
-    const finalStyle = `${baseStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
+    const finalStyle = `${baseStyle} ${alignmentStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
     if (isHovered) {
       console.log(`🎨 Node ${id} applying hover style:`, {
         isHovered,
@@ -279,6 +283,13 @@ const EditableMindmapNode = ({
             onClick={handleNodeClick}
             onDoubleClick={handleDoubleClick}
             title="双击编辑"
+            className="w-full h-full break-words whitespace-normal"
+            style={{
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              hyphens: 'auto',
+              display: 'block',
+            }}
           >
             {pendingValue || label}
           </div>
