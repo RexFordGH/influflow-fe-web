@@ -59,6 +59,7 @@ export function EnhancedContentGeneration({
     caption?: string;
     prompt?: string;
   } | null>(null);
+  const [editingTweetId, setEditingTweetId] = useState<string | null>(null); // 新增：正在编辑的tweet ID
   const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
     null,
   ); // 重新生成的markdown
@@ -278,6 +279,31 @@ export function EnhancedContentGeneration({
     [],
   );
 
+  // 处理Tweet图片编辑
+  const handleTweetImageEdit = useCallback(
+    (tweetId: string, tweetData: any) => {
+      console.log('编辑Tweet图片:', tweetId, tweetData);
+      
+      // 找到对应的tweet数据
+      const targetTweet = rawAPIData?.nodes?.find((group: any) => 
+        group.tweets?.find((tweet: any) => tweet.tweet_number.toString() === tweetId)
+      )?.tweets?.find((tweet: any) => tweet.tweet_number.toString() === tweetId);
+
+      if (targetTweet) {
+        // 设置当前编辑的图片信息
+        setEditingImage({
+          url: targetTweet.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop&crop=center',
+          alt: `${targetTweet.title}配图`,
+          caption: targetTweet.title,
+          prompt: `Create an illustration for: ${targetTweet.title}`,
+        });
+        setEditingTweetId(tweetId);
+        setIsImageEditModalOpen(true);
+      }
+    },
+    [rawAPIData],
+  );
+
   // 处理图片更新
   const handleImageUpdate = useCallback(
     (newImage: {
@@ -286,8 +312,26 @@ export function EnhancedContentGeneration({
       caption?: string;
       prompt: string;
     }) => {
-      // 更新 generatedContent 中的图片信息
-      if (generatedContent) {
+      if (editingTweetId && rawAPIData) {
+        // 更新特定tweet的图片
+        const updatedNodes = rawAPIData.nodes.map((group: any) => ({
+          ...group,
+          tweets: group.tweets.map((tweet: any) => 
+            tweet.tweet_number.toString() === editingTweetId 
+              ? { ...tweet, image_url: newImage.url }
+              : tweet
+          ),
+        }));
+
+        const updatedRawAPIData = {
+          ...rawAPIData,
+          nodes: updatedNodes,
+        };
+
+        setRawAPIData(updatedRawAPIData);
+        setEditingTweetId(null);
+      } else if (generatedContent) {
+        // 更新 generatedContent 中的图片信息（原有逻辑）
         const updatedContent = {
           ...generatedContent,
           image: {
@@ -312,7 +356,7 @@ export function EnhancedContentGeneration({
       setIsImageEditModalOpen(false);
       setEditingImage(null);
     },
-    [generatedContent, regeneratedMarkdown],
+    [generatedContent, regeneratedMarkdown, editingTweetId, rawAPIData],
   );
 
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
@@ -567,9 +611,11 @@ export function EnhancedContentGeneration({
                 onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}
                 onImageClick={handleImageClick}
+                onTweetImageEdit={handleTweetImageEdit}
                 highlightedSection={hoveredTweetId}
                 hoveredTweetId={hoveredTweetId}
                 imageData={generatedContent?.image}
+                tweetData={rawAPIData}
                 loadingTweetId={loadingTweetId}
               />
             )}
@@ -581,12 +627,25 @@ export function EnhancedContentGeneration({
       {isImageEditModalOpen && editingImage && rawAPIData && (
         <ImageEditModal
           image={editingImage}
-          targetTweet={rawAPIData.nodes[0]?.tweets[0]?.content || ''}
+          targetTweet={
+            editingTweetId
+              ? rawAPIData.nodes
+                  ?.find((group: any) =>
+                    group.tweets?.find(
+                      (tweet: any) => tweet.tweet_number.toString() === editingTweetId
+                    )
+                  )
+                  ?.tweets?.find(
+                    (tweet: any) => tweet.tweet_number.toString() === editingTweetId
+                  )?.content || ''
+              : rawAPIData.nodes[0]?.tweets[0]?.content || ''
+          }
           tweetThread={convertAPIDataToMarkdown(rawAPIData)}
           onImageUpdate={handleImageUpdate}
           onClose={() => {
             setIsImageEditModalOpen(false);
             setEditingImage(null);
+            setEditingTweetId(null);
           }}
         />
       )}

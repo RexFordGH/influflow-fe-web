@@ -143,10 +143,8 @@ export function convertAPIDataToMarkdown(data: Outline): string {
   });
   markdown += `<div class="text-gray-500 text-sm mb-4">Edited on ${currentTime}</div>\n\n`;
 
-  // 添加图片占位标记
-  markdown += `![${data.topic}主题配图](PLACEHOLDER_IMAGE)\n\n`;
-
   // 按接口数据数组排列，包含分组标题
+  let isFirstTweet = true;
   data.nodes.forEach((tweetGroup: any, groupIndex: number) => {
     // 添加分组标题 (H2) 包含group标识符
     markdown += `<div data-group-id="${groupIndex}">\n\n`;
@@ -159,6 +157,13 @@ export function convertAPIDataToMarkdown(data: Outline): string {
       markdown += `<div data-tweet-id="${tweetItem.tweet_number}" data-group-index="${groupIndex}" data-tweet-index="${tweetIndex}">\n\n`;
       markdown += `### ${tweetItem.title}\n\n`;
       markdown += `${tweetItem.content}\n\n`;
+      
+      // 在第一个tweet的内容后面添加图片占位标记
+      if (isFirstTweet) {
+        markdown += `![${data.topic}主题配图](PLACEHOLDER_IMAGE)\n\n`;
+        isFirstTweet = false;
+      }
+      
       markdown += `</div>\n\n`;
     });
   });
@@ -279,10 +284,8 @@ export function convertMindmapToMarkdown(
   });
   markdown += `<div class="text-gray-500 text-sm mb-4">Edited on ${currentTime}</div>\n\n`;
 
-  // 添加图片占位标记
-  markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
-
   // 递归函数：处理任意层级的节点
+  let isFirstTweet = true;
   const renderNodeAndChildren = (
     nodeId: string,
     currentLevel: number,
@@ -347,6 +350,12 @@ export function convertMindmapToMarkdown(
           if (childNode.type === 'tweet') {
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
+            
+            // 在第一个tweet的内容后面添加图片占位标记
+            if (isFirstTweet) {
+              markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
+              isFirstTweet = false;
+            }
           } else if (content !== title && content !== childNode.label) {
             // 其他节点只有内容不同时才显示
             markdown += `${content}\n\n`;
@@ -361,6 +370,12 @@ export function convertMindmapToMarkdown(
           if (childNode.type === 'tweet') {
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
+            
+            // 在第一个tweet的内容后面添加图片占位标记
+            if (isFirstTweet) {
+              markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
+              isFirstTweet = false;
+            }
           } else if (content !== title && content !== childNode.label) {
             // 其他节点只有内容不同时才显示
             markdown += `${content}\n\n`;
