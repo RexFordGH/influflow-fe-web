@@ -7,9 +7,9 @@ import { ReactFlowProvider } from 'reactflow';
 
 import {
   getErrorMessage,
+  useGenerateImage,
   useGenerateThread,
   useModifyOutline,
-  useGenerateImage,
 } from '@/lib/api/services';
 import {
   convertAPIDataToGeneratedContent,
@@ -61,7 +61,7 @@ export function EnhancedContentGeneration({
     prompt?: string;
   } | null>(null);
   const [editingTweetData, setEditingTweetData] = useState<any | null>(null); // 新增：正在编辑的tweet 数据
-  
+
   const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
     null,
   ); // 重新生成的markdown

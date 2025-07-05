@@ -283,7 +283,7 @@ const EditableMindmapNode = ({
             onClick={handleNodeClick}
             onDoubleClick={handleDoubleClick}
             title="双击编辑"
-            className="w-full h-full break-words whitespace-normal"
+            className="size-full whitespace-normal break-words"
             style={{
               wordBreak: 'break-word',
               overflowWrap: 'break-word',

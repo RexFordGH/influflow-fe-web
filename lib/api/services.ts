@@ -142,19 +142,19 @@ export function useGenerateImage() {
       if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
         // 模拟网络延迟
         await new Promise((resolve) => setTimeout(resolve, 3000));
-        
+
         // 基于请求内容生成一致的图片ID，这样同样的内容会得到同样的图片
         // 使用简单的字符串哈希避免 btoa 的编码问题
         const content = data.target_tweet || '';
         let hash = 0;
         for (let i = 0; i < content.length; i++) {
           const char = content.charCodeAt(i);
-          hash = ((hash << 5) - hash) + char;
+          hash = (hash << 5) - hash + char;
           hash = hash & hash; // 转换为32位整数
         }
         const contentHash = Math.abs(hash).toString(36).slice(0, 8);
         const timestamp = Date.now();
-        
+
         // 返回一个带有内容标识和时间戳的模拟图片URL，便于测试
         return `https://picsum.photos/800/600?seed=${contentHash}&t=${timestamp}`;
       }

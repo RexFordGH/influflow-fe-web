@@ -47,7 +47,6 @@ interface MarkdownSection {
   groupId?: string; // 用于group高亮
 }
 
-
 export function EnhancedMarkdownRenderer({
   content,
   onSectionHover,
@@ -86,7 +85,6 @@ export function EnhancedMarkdownRenderer({
     let currentGroupIndex: number | null = null;
     let currentTweetIndex: number | null = null;
     let currentGroupId: string | null = null;
-
 
     lines.forEach((line) => {
       const trimmedLine = line.trim();
@@ -305,7 +303,6 @@ export function EnhancedMarkdownRenderer({
       sections.push(currentSection);
     }
 
-
     return sections;
   }, [processedContent]);
 
@@ -461,8 +458,7 @@ export function EnhancedMarkdownRenderer({
       case 'paragraph':
         // 检查是否是图片markdown语法
         const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
-        
-        
+
         if (imageMatch) {
           const [, altText, imageSrc] = imageMatch;
           return (
@@ -512,7 +508,6 @@ export function EnhancedMarkdownRenderer({
           .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
           .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
           .replace(/#([^\s#]+)/g, markdownStyles.formatting.hashtag);
-
 
         return (
           <div
@@ -615,7 +610,7 @@ export function EnhancedMarkdownRenderer({
         let textContent = content;
         let tweetImageSrc = null;
         let tweetImageAlt = null;
-        
+
         if (contentImageMatch) {
           // 从内容中移除图片语法，只保留文本部分
           textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
@@ -662,59 +657,61 @@ export function EnhancedMarkdownRenderer({
         // 获取当前tweet的完整数据
         const currentTweetData = tweetData?.nodes
           ?.flatMap((group: any) => group.tweets)
-          ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
+          ?.find(
+            (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
+          );
 
         // 获取当前tweet的图片URL
         const currentTweetImageUrl = currentTweetData?.image_url;
 
-            return (
+        return (
+          <div
+            key={section.id}
+            className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
+            onMouseEnter={sectionMouseEnter}
+            onMouseLeave={sectionMouseLeave}
+          >
+            {isLoading && (
+              <div className="absolute left-2 top-2">
+                <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              </div>
+            )}
+            {/* Tweet Title with proper heading styling */}
+            {title && <div className="my-[12px]">{getTitleComponent()}</div>}
+
+            {/* Tweet Content */}
+            {textContent && textContent.trim() && (
               <div
-                key={section.id}
-                className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
-                onMouseEnter={sectionMouseEnter}
-                onMouseLeave={sectionMouseLeave}
-              >
-                {isLoading && (
-                  <div className="absolute left-2 top-2">
-                    <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-                  </div>
-                )}
-                {/* Tweet Title with proper heading styling */}
-                {title && <div className="my-[12px]">{getTitleComponent()}</div>}
+                className="text-sm leading-relaxed text-gray-700"
+                dangerouslySetInnerHTML={{ __html: processedTweetContent }}
+              />
+            )}
 
-                {/* Tweet Content */}
-                {textContent && textContent.trim() && (
-                  <div
-                    className="text-sm leading-relaxed text-gray-700"
-                    dangerouslySetInnerHTML={{ __html: processedTweetContent }}
-                  />
-                )}
-
-                {/* Tweet Image from markdown or API data */}
-                {(tweetImageSrc || currentTweetImageUrl) && (
-                  <div className="mt-4 mb-4">
-                    <img
-                      src={tweetImageSrc || currentTweetImageUrl}
-                      alt={tweetImageAlt || `${title}配图`}
-                      className="w-full max-w-md rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                      onClick={() =>
-                        onImageClick?.({
-                          url: tweetImageSrc || currentTweetImageUrl || '',
-                          alt: tweetImageAlt || `${title}配图`,
-                          caption: title,
-                          prompt: title,
-                        })
-                      }
-                    />
-                  </div>
-                )}
-
-                <TweetImageButton
-                  currentTweetData={currentTweetData}
-                  onTweetImageEdit={onTweetImageEdit}
+            {/* Tweet Image from markdown or API data */}
+            {(tweetImageSrc || currentTweetImageUrl) && (
+              <div className="my-4">
+                <img
+                  src={tweetImageSrc || currentTweetImageUrl}
+                  alt={tweetImageAlt || `${title}配图`}
+                  className="w-full max-w-md cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                  onClick={() =>
+                    onImageClick?.({
+                      url: tweetImageSrc || currentTweetImageUrl || '',
+                      alt: tweetImageAlt || `${title}配图`,
+                      caption: title,
+                      prompt: title,
+                    })
+                  }
                 />
               </div>
-            );
+            )}
+
+            <TweetImageButton
+              currentTweetData={currentTweetData}
+              onTweetImageEdit={onTweetImageEdit}
+            />
+          </div>
+        );
 
       case 'group':
         // 改进的分组标题处理，支持div内的标题
