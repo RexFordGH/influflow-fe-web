@@ -29,7 +29,7 @@ const EditableMindmapNode = ({
       'min-w-[120px] max-w-[250px] min-h-[37px] px-[12px] py-[8px] rounded-[12px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[12px] font-[500]';
 
     const levelColors = {
-      1: 'bg-[#000000] text-white text-center min-w-[180px] hover:bg-[rgba(0,0,0,0.6)]',
+      1: '!bg-[#000000] text-white text-center min-w-[180px] !hover:bg-[rgba(0,0,0,0.6)]',
       2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
       3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
       4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF]',
