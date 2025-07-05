@@ -1,7 +1,7 @@
 'use client';
 
 import { PencilIcon } from '@heroicons/react/24/outline';
-import { Button } from '@heroui/react';
+import { Button, cn } from '@heroui/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
@@ -830,7 +830,13 @@ export function EditableContentMindmap({
             variant="solid"
             startContent={<PencilIcon className="size-4" />}
             onPress={() => setShowAIEditModal(true)}
-            className={`rounded-full bg-[#4285F4] p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] hover:scale-110 hover:bg-[#3367D6] `}
+            isDisabled={!selectedNodeForAI}
+            className={cn(
+              'rounded-full  p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] hover:scale-110 ',
+              selectedNodeForAI
+                ? 'bg-[#4285F4] hover:bg-[#3367D6] cursor-pointer'
+                : 'bg-gray-400 cursor-not-allowed',
+            )}
           >
             Edit with AI
           </Button>
