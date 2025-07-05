@@ -654,7 +654,13 @@ export function EnhancedContentGeneration({
           targetTweet={
             editingTweetData?.content || editingTweetData?.title || ''
           }
-          tweetThread={convertAPIDataToMarkdown(rawAPIData)}
+          tweetThread={rawAPIData.nodes
+            .flatMap((group: any) => group.tweets)
+            .map(
+              (tweet: any, index: number) =>
+                `(${index + 1}) ${tweet.content || tweet.title}`,
+            )
+            .join(' \n')}
           onImageUpdate={handleImageUpdate}
           onClose={() => {
             setIsImageEditModalOpen(false);

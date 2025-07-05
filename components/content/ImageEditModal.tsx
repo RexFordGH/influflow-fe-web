@@ -73,8 +73,8 @@ export function ImageEditModal({
 
     try {
       const imageUrl = await generateImageMutation.mutateAsync({
-        target_tweet: targetTweet,
-        tweet_thread: tweetThread + `\n\n图片生成提示词: ${currentPrompt}`,
+        target_tweet: currentPrompt, // 使用用户在输入框的当前输入
+        tweet_thread: tweetThread, // 使用父组件格式化好的纯文本 a
       });
 
       // 添加新的对话项
