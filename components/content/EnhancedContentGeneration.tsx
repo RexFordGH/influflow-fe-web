@@ -23,6 +23,7 @@ import {
   MindmapNodeData,
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
+import { useAuthStore } from '@/stores/authStore';
 
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
@@ -70,6 +71,9 @@ export function EnhancedContentGeneration({
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
+  
+  // 获取用户信息用于个性化设置
+  const { user } = useAuthStore();
 
   // API调用hook
   const { mutate: generateThread, isPending: isGeneratingAPI } =
@@ -164,9 +168,22 @@ export function EnhancedContentGeneration({
       stepTimeouts.forEach((timeout) => clearTimeout(timeout));
     };
 
+    // 准备请求数据，包含用户个性化信息
+    const requestData = {
+      user_input: topic.trim(),
+      ...(user && user.account_name && user.tone && {
+        personalization: {
+          account_name: user.account_name,
+          tone: user.tone,
+          bio: user.bio,
+          tweet_examples: user.tweet_examples,
+        },
+      }),
+    };
+
     // 调用API
     generateThread(
-      { user_input: topic.trim() },
+      requestData,
       {
         onSuccess: (response) => {
           // 检查请求是否还是当前请求（避免竞态条件）

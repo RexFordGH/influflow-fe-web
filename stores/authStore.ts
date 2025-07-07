@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -24,6 +24,7 @@ interface AuthState {
   // Actions
   setSession: (user: User | null, accessToken: string | null) => void;
   updateUser: (userData: Partial<User>) => void;
+  syncProfileFromSupabase: () => Promise<void>;
   logout: () => Promise<void>;
   openLoginModal: () => void;
   closeLoginModal: () => void;
@@ -49,6 +50,32 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...userData } : null,
         })),
+
+      syncProfileFromSupabase: async () => {
+        try {
+          const { loadProfileFromSupabase } = await import(
+            '@/utils/supabaseProfile'
+          );
+          const { data: supabaseProfile, error } =
+            await loadProfileFromSupabase();
+
+          if (supabaseProfile && !error) {
+            set((state) => ({
+              user: state.user
+                ? {
+                    ...state.user,
+                    account_name: supabaseProfile.account_name,
+                    tone: supabaseProfile.tone,
+                    bio: supabaseProfile.bio,
+                    tweet_examples: supabaseProfile.tweet_examples,
+                  }
+                : null,
+            }));
+          }
+        } catch (error) {
+          console.error('Failed to sync profile from Supabase:', error);
+        }
+      },
 
       logout: async () => {
         try {

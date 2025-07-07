@@ -1,3 +1,4 @@
+import { User } from '@/stores/authStore';
 import { Outline } from './outline';
 
 export interface BaseResponse<T> {
@@ -17,6 +18,7 @@ export type HealthResponse = BaseResponse<HealthData>;
 
 export interface GenerateThreadRequest {
   user_input: string;
+  personalization?: Pick<User, 'account_name' | 'tone' | 'bio' | 'tweet_examples'>;
 }
 
 export type GenerateThreadResponse = BaseResponse<Outline>;

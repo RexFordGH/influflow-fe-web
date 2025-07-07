@@ -13,7 +13,11 @@ import { ProfileCompletePrompt } from '@/components/profile';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
-import { needsProfileCompletion, isPromptDismissed, setPromptDismissed } from '@/utils/profileStorage';
+import {
+  isPromptDismissed,
+  needsProfileCompletion,
+  setPromptDismissed,
+} from '@/utils/profileStorage';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -26,7 +30,8 @@ const EnhancedContentGeneration = dynamic(
 );
 
 export default function Home() {
-  const { user, isAuthenticated, checkAuthStatus } = useAuthStore();
+  const { user, isAuthenticated, checkAuthStatus, syncProfileFromSupabase } =
+    useAuthStore();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
   const [topicInput, setTopicInput] = useState('');
@@ -35,7 +40,8 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hasCreatedContentGeneration, setHasCreatedContentGeneration] =
     useState(false);
-  const [showProfileCompletePrompt, setShowProfileCompletePrompt] = useState(false);
+  const [showProfileCompletePrompt, setShowProfileCompletePrompt] =
+    useState(false);
 
   const {
     categories,
@@ -67,24 +73,41 @@ export default function Home() {
 
   useEffect(() => {
     // 检查是否需要显示 profile 完善提示
-    const checkProfileCompletion = () => {
+    const checkProfileCompletion = async () => {
       if (isAuthenticated && user) {
-        const needsCompletion = needsProfileCompletion(user);
-        const isDismissed = isPromptDismissed();
-        
-        // 如果需要完善 profile 且用户还没有关闭过提示，则显示提示
-        if (needsCompletion && !isDismissed) {
-          setShowProfileCompletePrompt(true);
+        try {
+          // 先从 Supabase 拉取最新的 profile 数据并同步到 authStore
+          await syncProfileFromSupabase();
+
+          // 基于最新数据判断是否需要完善 profile
+          const updatedUser = useAuthStore.getState().user;
+          const needsCompletion = needsProfileCompletion(updatedUser);
+          const isDismissed = isPromptDismissed();
+
+          // 如果需要完善 profile 且用户还没有关闭过提示，则显示提示
+          if (needsCompletion && !isDismissed) {
+            setShowProfileCompletePrompt(true);
+          }
+        } catch (error) {
+          console.error('Failed to sync profile from Supabase:', error);
+
+          // 如果同步失败，仍然基于当前用户数据进行判断
+          const needsCompletion = needsProfileCompletion(user);
+          const isDismissed = isPromptDismissed();
+
+          if (needsCompletion && !isDismissed) {
+            setShowProfileCompletePrompt(true);
+          }
         }
       }
     };
 
     // 延迟 2 秒再进行检查
     const timer = setTimeout(checkProfileCompletion, 2000);
-    
+
     // 清理定时器
     return () => clearTimeout(timer);
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, syncProfileFromSupabase]);
 
   const handleTopicSubmit = () => {
     if (!isAuthenticated) {
