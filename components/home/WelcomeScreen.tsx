@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
-import { motion } from 'framer-motion';
+import { motion, PanInfo } from 'framer-motion';
 import { lazy } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
@@ -61,6 +61,25 @@ export const WelcomeScreen = ({
 }: WelcomeScreenProps) => {
   const { user, isAuthenticated } = useAuthStore();
 
+  // 处理滑动手势
+  const handlePanEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const { offset, velocity } = info;
+    
+    // 上滑检测：位移超过-100px 或者 速度超过-300px/s
+    if (offset.y < -100 || velocity.y < -300) {
+      if (!showTrendingTopics) {
+        onScrollToTrending();
+      }
+    }
+    
+    // 下滑检测：位移超过100px 或者 速度超过300px/s
+    if (offset.y > 100 || velocity.y > 300) {
+      if (showTrendingTopics) {
+        onBackFromTrending();
+      }
+    }
+  };
+
   return (
     <div className="relative size-full">
       <motion.div
@@ -73,6 +92,10 @@ export const WelcomeScreen = ({
             : 0,
         }}
         transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.2}
+        onPanEnd={handlePanEnd}
         className="absolute inset-0 flex items-center justify-center bg-white"
       >
         <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
@@ -123,18 +146,27 @@ export const WelcomeScreen = ({
         </div>
         {isAuthenticated && (
           <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
-            <div
-              className="flex cursor-pointer flex-col items-center transition-all duration-300 hover:scale-105 hover:opacity-70"
-              onClick={onScrollToTrending}
-            >
-              <Image
-                src="/icons/scroll.svg"
-                alt="scroll-down"
-                width={24}
-                height={24}
-              />
+            <div className="flex flex-col items-center">
+              <motion.div
+                animate={{
+                  y: [0, -8, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatType: "loop",
+                }}
+              >
+                <Image
+                  src="/icons/scroll.svg"
+                  alt="swipe-up"
+                  width={24}
+                  height={24}
+                />
+              </motion.div>
               <span className="text-[18px] font-[500] text-[#448AFF]">
-                Scroll down to explore trending topics
+                Swipe up to explore trending topics
               </span>
             </div>
           </div>
@@ -142,11 +174,19 @@ export const WelcomeScreen = ({
       </motion.div>
 
       {showTrendingTopics && (
-        <TrendingTopics
-          isVisible={showTrendingTopics}
-          onBack={onBackFromTrending}
-          onTopicSelect={onTrendingTopicSelect}
-        />
+        <motion.div
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.2}
+          onPanEnd={handlePanEnd}
+          className="absolute inset-0"
+        >
+          <TrendingTopics
+            isVisible={showTrendingTopics}
+            onBack={onBackFromTrending}
+            onTopicSelect={onTrendingTopicSelect}
+          />
+        </motion.div>
       )}
     </div>
   );
