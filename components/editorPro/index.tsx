@@ -42,6 +42,7 @@ export interface EditorProProps {
     editorWrapper?: string;
     editor?: string;
   };
+  hideMenuBar?: boolean;
   isEdit?: boolean;
   onClick?: () => void;
   collapsable?: boolean;
@@ -317,6 +318,7 @@ const EditorPro: React.FC<EditorProProps> = ({
   onChange,
   placeholder = 'Start writing...',
   className,
+  hideMenuBar = false,
   isEdit = true,
   onClick,
   collapsable = false,
@@ -490,7 +492,9 @@ const EditorPro: React.FC<EditorProProps> = ({
             : undefined
         }
       >
-        {isEdit && <MenuBar editor={editor} className={className?.menuBar} />}
+        {isEdit && !hideMenuBar && (
+          <MenuBar editor={editor} className={className?.menuBar} />
+        )}
         <div
           ref={contentRef}
           className={cn(
