@@ -24,10 +24,10 @@ export const LoginPage = ({ onBack }: { onBack: () => void }) => {
       <div className="w-full max-w-md">
         <div className="rounded-2xl bg-white p-8 shadow-lg">
           <div className="flex flex-col gap-[12px]">
-            <p className="text-[20px] font-[600] text-[#8C8C8C] leading-[1]">
+            <p className="text-[20px] font-[600] leading-none text-[#8C8C8C]">
               Welcome to Influxy
             </p>
-            <div className="text-[24px] font-[600] text-black leading-[1.2]">
+            <div className="text-[24px] font-[600] leading-[1.2] text-black">
               <p>Transform your ideas into posts,</p>
               <p>In seconds</p>
             </div>
@@ -36,7 +36,7 @@ export const LoginPage = ({ onBack }: { onBack: () => void }) => {
           {/* 登录按钮 */}
           <div className="mt-[32px]">
             <Button
-              className="w-full border border-gray-300 bg-white p-[24px] rounded-[12px] hover:bg-gray-50 flex items-center justify-start gap-2"
+              className="flex w-full items-center justify-start gap-2 rounded-[12px] border border-gray-300 bg-white p-[24px] hover:bg-gray-50"
               onPress={handleTwitterLogin}
             >
               <Image src="/icons/x.svg" alt="X" width={24} height={24} />

@@ -2,7 +2,7 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Image, Tooltip } from '@heroui/react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useGenerateImage } from '@/lib/api/services';
 import {
@@ -129,9 +129,65 @@ export function ImageEditModal({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleAutoGenerateImage = useCallback(async () => {
+    if (!targetTweet || !targetTweet.trim() || isGenerating) return;
+
+    const currentPrompt = targetTweet.trim();
+    const newItemId = `auto-generating-${Date.now()}`;
+
+    setConversation([
+      {
+        id: newItemId,
+        prompt: currentPrompt,
+        imageUrl: '',
+        timestamp: Date.now(),
+        isApplied: false,
+        isLoading: true,
+      },
+    ]);
+
+    setIsGenerating(true);
+
+    try {
+      const imageUrl = await generateImageMutation.mutateAsync({
+        target_tweet: currentPrompt,
+        tweet_thread: tweetThread,
+      });
+
+      setConversation([
+        {
+          id: newItemId,
+          prompt: currentPrompt,
+          imageUrl: imageUrl,
+          timestamp: Date.now(),
+          isApplied: false,
+          isLoading: false,
+        },
+      ]);
+    } catch (error) {
+      console.error('自动生成图片失败:', error);
+      setConversation([]);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [targetTweet, isGenerating, tweetThread, generateImageMutation]);
+
   useEffect(() => {
     scrollToBottom();
   }, [conversation]);
+
+  // 自动生成图片的逻辑
+  useEffect(() => {
+    // 检查是否没有图片并且有targetTweet内容
+    if (
+      !image.url &&
+      targetTweet &&
+      targetTweet.trim() &&
+      conversation.length === 0
+    ) {
+      handleAutoGenerateImage();
+    }
+  }, [image.url, targetTweet, conversation.length, handleAutoGenerateImage]);
 
   const handleGenerateImage = async () => {
     if (!prompt.trim() || isGenerating) return;
