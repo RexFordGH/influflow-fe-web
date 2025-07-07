@@ -13,7 +13,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <HeroUIProvider navigate={router.push}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider
-          placement={'bottom-left'}
+          placement={'top-right'}
           toastOffset={20}
           toastProps={{
             classNames: {

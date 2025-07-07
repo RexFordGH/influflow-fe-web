@@ -5,6 +5,7 @@ import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useMemo, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
+import { addToast } from '../base/toast';
 import {
   getBaseClasses,
   getHeadingClass,
@@ -844,6 +845,11 @@ function CopyButton({ currentTweetData }: { currentTweetData?: any }) {
       text={currentTweetData.content}
       onCopy={() => {
         console.log('copied');
+        addToast({
+          title: 'Copied Successfully',
+          description: 'The tweet content has been copied to your clipboard',
+          color: 'success',
+        });
       }}
     >
       <Button
