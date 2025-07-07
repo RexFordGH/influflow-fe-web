@@ -1,7 +1,9 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
+import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useMemo, useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import {
   getBaseClasses,
@@ -706,10 +708,13 @@ export function EnhancedMarkdownRenderer({
               </div>
             )}
 
-            <TweetImageButton
-              currentTweetData={currentTweetData}
-              onTweetImageEdit={onTweetImageEdit}
-            />
+            <div className="absolute right-2 top-2  flex items-center justify-end">
+              <TweetImageButton
+                currentTweetData={currentTweetData}
+                onTweetImageEdit={onTweetImageEdit}
+              />
+              <CopyButton currentTweetData={currentTweetData} />
+            </div>
           </div>
         );
 
@@ -830,5 +835,25 @@ function TweetImageButton({
     >
       <Image src="/icons/image.svg" alt="edit" width={20} height={20} />
     </Button>
+  );
+}
+
+function CopyButton({ currentTweetData }: { currentTweetData?: any }) {
+  return (
+    <CopyToClipboard
+      text={currentTweetData.content}
+      onCopy={() => {
+        console.log('copied');
+      }}
+    >
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        className={markdownStyles.source.button}
+      >
+        <CopyIcon size={20} />
+      </Button>
+    </CopyToClipboard>
   );
 }

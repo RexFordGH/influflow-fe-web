@@ -87,7 +87,7 @@ export const markdownStyles = {
   // 来源按钮样式
   source: {
     button:
-      'absolute right-2 top-2 opacity-0 transition-opacity hover:bg-blue-50 group-hover:opacity-100',
+      'opacity-0 transition-opacity hover:bg-blue-50 group-hover:opacity-100',
     icon: 'size-4 text-blue-600',
   },
 
