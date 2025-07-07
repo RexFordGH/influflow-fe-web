@@ -3,32 +3,14 @@
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/stores/authStore';
 import { Category } from '@/types/content';
 
-import { ArticleItem } from './ArticleItem';
+import { ArticleItem } from '../home/ArticleItem';
 
-export const Sidebar = ({
-  collapsed,
-  onToggle,
-  categories,
-  editingCategoryId,
-  tempTitle,
-  onToggleCategoryExpanded,
-  onStartEditCategoryTitle,
-  onSaveCategoryTitle,
-  onCancelEdit,
-  onTempTitleChange,
-  onCreateNewArticle,
-  onCreateNewCategory,
-  onToggleArticleExpanded,
-  onOpenArticleEditor,
-  editingArticleId,
-  onStartEditArticleTitle,
-  onSaveArticleTitle,
-  onOpenProfile,
-}: {
+interface AppSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   categories: Category[];
@@ -46,9 +28,33 @@ export const Sidebar = ({
   editingArticleId: string | null;
   onStartEditArticleTitle: (categoryId: string, articleId: string) => void;
   onSaveArticleTitle: (categoryId: string, articleId: string) => void;
-  onOpenProfile?: () => void;
-}) => {
+}
+
+export const AppSidebar = ({
+  collapsed,
+  onToggle,
+  categories,
+  editingCategoryId,
+  tempTitle,
+  onToggleCategoryExpanded,
+  onStartEditCategoryTitle,
+  onSaveCategoryTitle,
+  onCancelEdit,
+  onTempTitleChange,
+  onCreateNewArticle,
+  onCreateNewCategory,
+  onToggleArticleExpanded,
+  onOpenArticleEditor,
+  editingArticleId,
+  onStartEditArticleTitle,
+  onSaveArticleTitle,
+}: AppSidebarProps) => {
   const { user, isAuthenticated } = useAuthStore();
+  const router = useRouter();
+
+  const handleOpenProfile = () => {
+    router.push('/profile');
+  };
 
   if (!isAuthenticated || collapsed) {
     return null;
@@ -84,7 +90,7 @@ export const Sidebar = ({
         <div className="flex items-center justify-between">
           <div 
             className="-m-2 flex cursor-pointer items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-100"
-            onClick={onOpenProfile}
+            onClick={handleOpenProfile}
           >
             {user?.avatar ? (
               <Image

@@ -7,12 +7,13 @@ import { useEffect, useState } from 'react';
 
 import { LoginPage } from '@/components/home/LoginPage';
 import { MainContent } from '@/components/home/MainContent';
-import { Sidebar } from '@/components/home/Sidebar';
 import { UnauthenticatedNavbar } from '@/components/home/UnauthenticatedNavbar';
-import { ProfilePage, ProfilePrompt } from '@/components/profile';
+import { AppSidebar } from '@/components/layout/AppSidebar';
+import { ProfileCompletePrompt } from '@/components/profile';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
+import { needsProfileCompletion, isPromptDismissed, setPromptDismissed } from '@/utils/profileStorage';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -34,8 +35,7 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hasCreatedContentGeneration, setHasCreatedContentGeneration] =
     useState(false);
-  const [showProfilePage, setShowProfilePage] = useState(false);
-  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [showProfileCompletePrompt, setShowProfileCompletePrompt] = useState(false);
 
   const {
     categories,
@@ -66,13 +66,24 @@ export default function Home() {
   }, [checkAuthStatus]);
 
   useEffect(() => {
-    // 检查是否需要显示个人信息提示
-    if (isAuthenticated && user) {
-      const hasBasicInfo = user.name && user.name !== 'User';
-      if (!hasBasicInfo) {
-        setShowProfilePrompt(true);
+    // 检查是否需要显示 profile 完善提示
+    const checkProfileCompletion = () => {
+      if (isAuthenticated && user) {
+        const needsCompletion = needsProfileCompletion(user);
+        const isDismissed = isPromptDismissed();
+        
+        // 如果需要完善 profile 且用户还没有关闭过提示，则显示提示
+        if (needsCompletion && !isDismissed) {
+          setShowProfileCompletePrompt(true);
+        }
       }
-    }
+    };
+
+    // 延迟 2 秒再进行检查
+    const timer = setTimeout(checkProfileCompletion, 2000);
+    
+    // 清理定时器
+    return () => clearTimeout(timer);
   }, [isAuthenticated, user]);
 
   const handleTopicSubmit = () => {
@@ -113,33 +124,18 @@ export default function Home() {
     setShowLoginPage(false);
   };
 
-  const handleOpenProfile = () => {
-    setShowProfilePage(true);
-    setShowProfilePrompt(false);
-  };
-
-  const handleCloseProfile = () => {
-    setShowProfilePage(false);
-  };
-
-  const handleCloseProfilePrompt = () => {
-    setShowProfilePrompt(false);
+  const handleCloseProfileCompletePrompt = () => {
+    setShowProfileCompletePrompt(false);
+    setPromptDismissed(); // 记录用户已关闭提示
   };
 
   return (
     <div className="relative h-screen overflow-hidden">
-      {/* Profile Page */}
-      {showProfilePage && (
-        <ProfilePage onBack={handleCloseProfile} />
-      )}
-
-      {/* Profile Prompt */}
-      {showProfilePrompt && (
-        <ProfilePrompt 
-          onCustomize={handleOpenProfile}
-          onClose={handleCloseProfilePrompt}
-        />
-      )}
+      {/* Profile Complete Prompt */}
+      <ProfileCompletePrompt
+        isVisible={showProfileCompletePrompt}
+        onClose={handleCloseProfileCompletePrompt}
+      />
 
       {/* Login Page */}
       <div
@@ -180,7 +176,7 @@ export default function Home() {
         )}
 
         <AnimatePresence>
-          <Sidebar
+          <AppSidebar
             collapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             categories={categories}
@@ -198,7 +194,6 @@ export default function Home() {
             editingArticleId={editingArticleId}
             onStartEditArticleTitle={startEditArticleTitle}
             onSaveArticleTitle={saveArticleTitle}
-            onOpenProfile={handleOpenProfile}
           />
         </AnimatePresence>
 

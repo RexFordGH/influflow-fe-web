@@ -3,6 +3,7 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 interface ProfilePromptProps {
   onCustomize: () => void;
@@ -10,6 +11,13 @@ interface ProfilePromptProps {
 }
 
 export const ProfilePrompt = ({ onCustomize, onClose }: ProfilePromptProps) => {
+  const router = useRouter();
+
+  const handleCustomize = () => {
+    router.push('/profile');
+    onCustomize();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -27,7 +35,7 @@ export const ProfilePrompt = ({ onCustomize, onClose }: ProfilePromptProps) => {
         size="sm"
         variant="solid"
         className="bg-white font-medium text-blue-500"
-        onPress={onCustomize}
+        onPress={handleCustomize}
       >
         立即填写
       </Button>
