@@ -19,6 +19,7 @@ interface EnhancedMarkdownRendererProps {
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
+  generatingImageTweetId?: string | null; // 新增：正在生图的tweetId
   imageData?: {
     url: string;
     alt: string;
@@ -50,6 +51,7 @@ export function EnhancedMarkdownRenderer({
   highlightedSection,
   hoveredTweetId,
   loadingTweetId,
+  generatingImageTweetId,
   imageData,
   tweetData,
 }: EnhancedMarkdownRendererProps) {
@@ -316,6 +318,12 @@ export function EnhancedMarkdownRenderer({
           section.groupId.toString() === hoveredTweetId.replace('group-', '') ||
           Number(section.groupId) ===
             Number(hoveredTweetId.replace('group-', '')))) ||
+      // 生图状态高亮 - 新增
+      (generatingImageTweetId &&
+        section.tweetId &&
+        (section.tweetId === generatingImageTweetId ||
+          section.tweetId.toString() === generatingImageTweetId.toString() ||
+          Number(section.tweetId) === Number(generatingImageTweetId))) ||
       // Fallback：直接ID匹配
       hoveredTweetId === section.id;
 

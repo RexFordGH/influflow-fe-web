@@ -66,6 +66,7 @@ export function EnhancedContentGeneration({
     null,
   ); // 重新生成的markdown
   const [loadingTweetId, setLoadingTweetId] = useState<string | null>(null); // markdown loading状态
+  const [generatingImageTweetId, setGeneratingImageTweetId] = useState<string | null>(null); // 正在生图的tweetId
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
@@ -335,6 +336,8 @@ export function EnhancedContentGeneration({
       caption: tweetData.title,
       prompt: tweetData.content || tweetData.title,
     });
+    // 设置正在生图的 tweetId，用于高亮显示
+    setGeneratingImageTweetId(tweetData.tweet_number?.toString() || null);
     setIsImageEditModalOpen(true);
   }, []);
 
@@ -379,6 +382,7 @@ export function EnhancedContentGeneration({
       setIsImageEditModalOpen(false);
       setEditingImage(null);
       setEditingTweetData(null);
+      setGeneratingImageTweetId(null); // 清除生图高亮状态
     },
     [editingTweetData, rawAPIData, regeneratedMarkdown],
   );
@@ -641,6 +645,7 @@ export function EnhancedContentGeneration({
                 imageData={generatedContent?.image}
                 tweetData={rawAPIData}
                 loadingTweetId={loadingTweetId}
+                generatingImageTweetId={generatingImageTweetId}
               />
             )}
           </div>
@@ -666,6 +671,7 @@ export function EnhancedContentGeneration({
             setIsImageEditModalOpen(false);
             setEditingImage(null);
             setEditingTweetData(null);
+            setGeneratingImageTweetId(null); // 清除生图高亮状态
           }}
         />
       )}

@@ -249,7 +249,7 @@ export function ImageEditModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-start bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-start bg-transparent bg-opacity-50">
       <div className="flex h-full w-1/2 flex-col bg-white shadow-2xl">
         <div className="flex items-center justify-between p-4">
           <div></div>
