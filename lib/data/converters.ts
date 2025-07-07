@@ -193,7 +193,6 @@ export function convertMindmapToMarkdown(
   markdown += `<div class="text-gray-500 text-sm mb-4">Edited on ${currentTime}</div>\n\n`;
 
   // 递归函数：处理任意层级的节点
-  let isFirstTweet = true;
   const renderNodeAndChildren = (
     nodeId: string,
     currentLevel: number,
@@ -259,11 +258,6 @@ export function convertMindmapToMarkdown(
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
 
-            // 在第一个tweet的内容后面添加图片占位标记
-            if (isFirstTweet) {
-              markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
-              isFirstTweet = false;
-            }
           } else if (content !== title && content !== childNode.label) {
             // 其他节点只有内容不同时才显示
             markdown += `${content}\n\n`;
@@ -279,11 +273,6 @@ export function convertMindmapToMarkdown(
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
 
-            // 在第一个tweet的内容后面添加图片占位标记
-            if (isFirstTweet) {
-              markdown += `![${topicNode.label}主题配图](PLACEHOLDER_IMAGE)\n\n`;
-              isFirstTweet = false;
-            }
           } else if (content !== title && content !== childNode.label) {
             // 其他节点只有内容不同时才显示
             markdown += `${content}\n\n`;
