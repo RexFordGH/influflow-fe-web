@@ -2,7 +2,7 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
 interface ProfileCompletePromptProps {
@@ -10,7 +10,10 @@ interface ProfileCompletePromptProps {
   onClose: () => void;
 }
 
-export const ProfileCompletePrompt = ({ isVisible, onClose }: ProfileCompletePromptProps) => {
+export const ProfileCompletePrompt = ({
+  isVisible,
+  onClose,
+}: ProfileCompletePromptProps) => {
   const router = useRouter();
 
   const handleGoToProfile = () => {
@@ -25,11 +28,11 @@ export const ProfileCompletePrompt = ({ isVisible, onClose }: ProfileCompletePro
           initial={{ x: 400, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 400, opacity: 0 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 300, 
+          transition={{
+            type: 'spring',
+            stiffness: 300,
             damping: 30,
-            duration: 0.4 
+            duration: 0.4,
           }}
           className="fixed right-4 top-4 z-50 max-w-sm"
         >

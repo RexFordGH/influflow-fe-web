@@ -42,6 +42,7 @@ export default function Home() {
     useState(false);
   const [showProfileCompletePrompt, setShowProfileCompletePrompt] =
     useState(false);
+  const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
 
   const {
     categories,
@@ -71,10 +72,15 @@ export default function Home() {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
+  // 重置 profile 检查状态当认证状态变化时
+  useEffect(() => {
+    setHasCheckedProfile(false);
+  }, [isAuthenticated]);
+
   useEffect(() => {
     // 检查是否需要显示 profile 完善提示
     const checkProfileCompletion = async () => {
-      if (isAuthenticated && user) {
+      if (isAuthenticated && user && !hasCheckedProfile) {
         try {
           // 先从 Supabase 拉取最新的 profile 数据并同步到 authStore
           await syncProfileFromSupabase();
@@ -88,6 +94,9 @@ export default function Home() {
           if (needsCompletion && !isDismissed) {
             setShowProfileCompletePrompt(true);
           }
+
+          // 标记已经检查过，避免重复执行
+          setHasCheckedProfile(true);
         } catch (error) {
           console.error('Failed to sync profile from Supabase:', error);
 
@@ -98,6 +107,9 @@ export default function Home() {
           if (needsCompletion && !isDismissed) {
             setShowProfileCompletePrompt(true);
           }
+
+          // 即使失败也标记为已检查，避免无限重试
+          setHasCheckedProfile(true);
         }
       }
     };
@@ -107,7 +119,7 @@ export default function Home() {
 
     // 清理定时器
     return () => clearTimeout(timer);
-  }, [isAuthenticated, user, syncProfileFromSupabase]);
+  }, [isAuthenticated, syncProfileFromSupabase, hasCheckedProfile]);
 
   const handleTopicSubmit = () => {
     if (!isAuthenticated) {

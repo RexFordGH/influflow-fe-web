@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
-import { hasProfileData, loadProfileFromLocalStorage, type ProfileData } from '@/utils/profileStorage';
+import {
+  hasProfileData,
+  loadProfileFromLocalStorage,
+  type ProfileData,
+} from '@/utils/profileStorage';
 
 export const useProfileData = () => {
   const { user } = useAuthStore();
@@ -11,9 +15,14 @@ export const useProfileData = () => {
   useEffect(() => {
     const loadData = () => {
       setIsLoading(true);
-      
+
       // 优先从 authStore 获取数据
-      if (user?.bio || user?.tone || user?.tweet_examples?.length || user?.account_name) {
+      if (
+        user?.bio ||
+        user?.tone ||
+        user?.tweet_examples?.length ||
+        user?.account_name
+      ) {
         setProfileData({
           bio: user.bio,
           tone: user.tone,
@@ -25,7 +34,7 @@ export const useProfileData = () => {
         const savedData = loadProfileFromLocalStorage();
         setProfileData(savedData);
       }
-      
+
       setIsLoading(false);
     };
 
@@ -33,7 +42,15 @@ export const useProfileData = () => {
   }, [user]);
 
   const hasData = () => {
-    return hasProfileData() || !!(user?.bio || user?.tone || user?.tweet_examples?.length || user?.account_name);
+    return (
+      hasProfileData() ||
+      !!(
+        user?.bio ||
+        user?.tone ||
+        user?.tweet_examples?.length ||
+        user?.account_name
+      )
+    );
   };
 
   const getTone = () => {
@@ -47,7 +64,7 @@ export const useProfileData = () => {
   const getTweetExamples = () => {
     return profileData?.tweet_examples || user?.tweet_examples || [];
   };
-  
+
   const getAccountName = () => {
     return profileData?.account_name || user?.account_name;
   };

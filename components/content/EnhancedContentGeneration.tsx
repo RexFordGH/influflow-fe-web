@@ -17,13 +17,13 @@ import {
   convertMindmapToMarkdown,
   convertThreadDataToMindmap,
 } from '@/lib/data/converters';
+import { useAuthStore } from '@/stores/authStore';
 import {
   GeneratedContent,
   MindmapEdgeData,
   MindmapNodeData,
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
-import { useAuthStore } from '@/stores/authStore';
 
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
@@ -67,11 +67,13 @@ export function EnhancedContentGeneration({
     null,
   ); // 重新生成的markdown
   const [loadingTweetId, setLoadingTweetId] = useState<string | null>(null); // markdown loading状态
-  const [generatingImageTweetId, setGeneratingImageTweetId] = useState<string | null>(null); // 正在生图的tweetId
+  const [generatingImageTweetId, setGeneratingImageTweetId] = useState<
+    string | null
+  >(null); // 正在生图的tweetId
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
-  
+
   // 获取用户信息用于个性化设置
   const { user } = useAuthStore();
 
@@ -171,73 +173,72 @@ export function EnhancedContentGeneration({
     // 准备请求数据，包含用户个性化信息
     const requestData = {
       user_input: topic.trim(),
-      ...(user && user.account_name && user.tone && {
-        personalization: {
-          account_name: user.account_name,
-          tone: user.tone,
-          bio: user.bio,
-          tweet_examples: user.tweet_examples,
-        },
-      }),
+      ...(user &&
+        user.account_name &&
+        user.tone && {
+          personalization: {
+            account_name: user.account_name,
+            tone: user.tone,
+            bio: user.bio,
+            tweet_examples: user.tweet_examples,
+          },
+        }),
     };
 
     // 调用API
-    generateThread(
-      requestData,
-      {
-        onSuccess: (response) => {
-          // 检查请求是否还是当前请求（避免竞态条件）
-          if (requestIdRef.current !== currentRequestId) {
-            console.log('忽略过期的API响应');
-            cleanup();
-            return;
+    generateThread(requestData, {
+      onSuccess: (response) => {
+        // 检查请求是否还是当前请求（避免竞态条件）
+        if (requestIdRef.current !== currentRequestId) {
+          console.log('忽略过期的API响应');
+          cleanup();
+          return;
+        }
+
+        isAPICompleted = true;
+        cleanup();
+        console.log('API生成成功:', response);
+
+        // 快速完成所有步骤
+        const completeSteps = async () => {
+          // 快速推进到最后几个步骤
+          for (let i = 4; i < generationSteps.length; i++) {
+            setGenerationStep(i);
+            await new Promise((resolve) => setTimeout(resolve, 150)); // 快速推进
           }
 
-          isAPICompleted = true;
-          cleanup();
-          console.log('API生成成功:', response);
+          // 存储原始API数据
+          setRawAPIData(response);
 
-          // 快速完成所有步骤
-          const completeSteps = async () => {
-            // 快速推进到最后几个步骤
-            for (let i = 4; i < generationSteps.length; i++) {
-              setGenerationStep(i);
-              await new Promise((resolve) => setTimeout(resolve, 150)); // 快速推进
-            }
-
-            // 存储原始API数据
-            setRawAPIData(response);
-
-            // 转换API数据为组件所需格式
-            const content = convertAPIDataToGeneratedContent(response);
-            setGeneratedContent(content);
-            setCurrentNodes(content.mindmap.nodes);
-            setCurrentEdges(content.mindmap.edges);
-            setIsGenerating(false);
-            setGenerationStep(generationSteps.length - 1);
-          };
-
-          completeSteps();
-        },
-        onError: (error) => {
-          // 检查请求是否还是当前请求
-          if (requestIdRef.current !== currentRequestId) {
-            console.log('忽略过期的API错误');
-            cleanup();
-            return;
-          }
-
-          isAPICompleted = true;
-          cleanup();
-          console.error('API生成失败:', error);
-          const errorMessage = getErrorMessage(error);
-          setApiError(errorMessage);
+          // 转换API数据为组件所需格式
+          const content = convertAPIDataToGeneratedContent(response);
+          setGeneratedContent(content);
+          setCurrentNodes(content.mindmap.nodes);
+          setCurrentEdges(content.mindmap.edges);
           setIsGenerating(false);
-          setHasStartedGeneration(false); // 失败时重置，允许重试
-          requestIdRef.current = null; // 清除请求ID
-        },
+          setGenerationStep(generationSteps.length - 1);
+        };
+
+        completeSteps();
       },
-    );
+      onError: (error) => {
+        // 检查请求是否还是当前请求
+        if (requestIdRef.current !== currentRequestId) {
+          console.log('忽略过期的API错误');
+          cleanup();
+          return;
+        }
+
+        isAPICompleted = true;
+        cleanup();
+        console.error('API生成失败:', error);
+        const errorMessage = getErrorMessage(error);
+        setApiError(errorMessage);
+        setIsGenerating(false);
+        setHasStartedGeneration(false); // 失败时重置，允许重试
+        requestIdRef.current = null; // 清除请求ID
+      },
+    });
 
     return cleanup;
   }, [

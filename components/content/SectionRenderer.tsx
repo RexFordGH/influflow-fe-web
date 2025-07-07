@@ -2,7 +2,7 @@
 
 import { Button, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { addToast } from '../base/toast';
@@ -84,7 +84,7 @@ export function SectionRenderer({
     if (section.type === 'tweet') {
       const lines = section.content.split('\n\n');
       let contentLines = [];
-      
+
       const titleLine = lines.find((line) => line.startsWith('#'));
       if (titleLine) {
         contentLines = lines.filter(
@@ -93,7 +93,7 @@ export function SectionRenderer({
       } else {
         contentLines = lines.slice(1).filter((line) => line.trim() !== '');
       }
-      
+
       const content = contentLines.join('\n\n');
       const textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
       setCurrentEditorContent(textContent);
@@ -415,8 +415,8 @@ export function SectionRenderer({
               currentTweetData={currentTweetData}
               onTweetImageEdit={onTweetImageEdit}
             />
-            <CopyButton 
-              currentTweetData={currentTweetData} 
+            <CopyButton
+              currentTweetData={currentTweetData}
               currentContent={currentEditorContent}
             />
           </div>
@@ -528,10 +528,10 @@ function TweetImageButton({
 }
 
 // 复制按钮组件
-function CopyButton({ 
-  currentTweetData, 
-  currentContent 
-}: { 
+function CopyButton({
+  currentTweetData,
+  currentContent,
+}: {
   currentTweetData?: any;
   currentContent?: string;
 }) {

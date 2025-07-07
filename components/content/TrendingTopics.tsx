@@ -44,9 +44,11 @@ export function TrendingTopics({
   const { data: topicTypes } = useTopicTypes();
 
   // 根据选中的分类获取trending topics数据
-  const { data: trendingData, isLoading, error } = useTrendingTopics(
-    isVisible ? selectedCategory : '',
-  );
+  const {
+    data: trendingData,
+    isLoading,
+    error,
+  } = useTrendingTopics(isVisible ? selectedCategory : '');
 
   const trendingTopics = trendingData?.trending_topics || [];
   const suggestedTopics = trendingData?.suggested_topics || [];

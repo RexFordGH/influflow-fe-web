@@ -257,7 +257,6 @@ export function convertMindmapToMarkdown(
           if (childNode.type === 'tweet') {
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
-
           } else if (content !== title && content !== childNode.label) {
             // 其他节点只有内容不同时才显示
             markdown += `${content}\n\n`;
@@ -272,7 +271,6 @@ export function convertMindmapToMarkdown(
           if (childNode.type === 'tweet') {
             // tweet 节点总是显示 content
             markdown += `${content}\n\n`;
-
           } else if (content !== title && content !== childNode.label) {
             // 其他节点只有内容不同时才显示
             markdown += `${content}\n\n`;

@@ -10,11 +10,11 @@ import {
   loadProfileFromLocalStorage,
   saveProfileToLocalStorage,
 } from '@/utils/profileStorage';
-import {
-  saveProfileToSupabase,
-  loadProfileFromSupabase,
-} from '@/utils/supabaseProfile';
 import { debugSupabaseAuth } from '@/utils/supabaseDebug';
+import {
+  loadProfileFromSupabase,
+  saveProfileToSupabase,
+} from '@/utils/supabaseProfile';
 
 import { addToast } from '../base/toast';
 
@@ -33,17 +33,24 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     '',
   ]);
   const [personalIntro, setPersonalIntro] = useState(user?.bio || '');
-  const [accountName, setAccountName] = useState(user?.account_name || user?.name || '');
+  const [accountName, setAccountName] = useState(
+    user?.account_name || user?.name || '',
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   // 从 authStore、localStorage 和 Supabase 加载数据
   useEffect(() => {
     const loadProfileData = async () => {
       setIsLoading(true);
-      
+
       try {
         // 1. 优先从 authStore 加载数据
-        if (user?.tone || user?.tweet_examples?.length || user?.bio || user?.account_name) {
+        if (
+          user?.tone ||
+          user?.tweet_examples?.length ||
+          user?.bio ||
+          user?.account_name
+        ) {
           if (user.tone) {
             setSelectedStyle(user.tone);
           } else if (user.tweet_examples && user.tweet_examples.length > 0) {
@@ -54,7 +61,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           if (user.bio) {
             setPersonalIntro(user.bio);
           }
-          
+
           if (user.account_name) {
             setAccountName(user.account_name);
           }
@@ -69,20 +76,23 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               savedProfile.tweet_examples.length > 0
             ) {
               setSelectedStyle('Customize');
-              setCustomLinks([...savedProfile.tweet_examples, '', ''].slice(0, 3));
+              setCustomLinks(
+                [...savedProfile.tweet_examples, '', ''].slice(0, 3),
+              );
             }
 
             if (savedProfile.bio) {
               setPersonalIntro(savedProfile.bio);
             }
-            
+
             if (savedProfile.account_name) {
               setAccountName(savedProfile.account_name);
             }
           }
-          
+
           // 3. 从 Supabase 加载最新数据
-          const { data: supabaseProfile, error } = await loadProfileFromSupabase();
+          const { data: supabaseProfile, error } =
+            await loadProfileFromSupabase();
           if (supabaseProfile && !error) {
             if (supabaseProfile.tone) {
               setSelectedStyle(supabaseProfile.tone);
@@ -91,17 +101,19 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               supabaseProfile.tweet_examples.length > 0
             ) {
               setSelectedStyle('Customize');
-              setCustomLinks([...supabaseProfile.tweet_examples, '', ''].slice(0, 3));
+              setCustomLinks(
+                [...supabaseProfile.tweet_examples, '', ''].slice(0, 3),
+              );
             }
 
             if (supabaseProfile.bio) {
               setPersonalIntro(supabaseProfile.bio);
             }
-            
+
             if (supabaseProfile.account_name) {
               setAccountName(supabaseProfile.account_name);
             }
-            
+
             // 更新 authStore 和 localStorage
             updateUser({
               bio: supabaseProfile.bio,
@@ -109,7 +121,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               tweet_examples: supabaseProfile.tweet_examples,
               account_name: supabaseProfile.account_name,
             });
-            
+
             saveProfileToLocalStorage(supabaseProfile);
           }
         }
@@ -125,11 +137,11 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    
+
     try {
       // 调试认证状态
       await debugSupabaseAuth();
-      
+
       // 准备要保存的数据
       const profileData = {
         account_name: accountName,
@@ -145,7 +157,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
       // 1. 保存到 Supabase
       const { success, error } = await saveProfileToSupabase(profileData);
-      
+
       if (!success) {
         console.error('Supabase save failed:', error);
         throw new Error(error || 'Failed to save to Supabase');
@@ -161,7 +173,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       };
 
       if (selectedStyle === 'Customize') {
-        updateData.tweet_examples = customLinks.filter((link) => link.trim() !== '');
+        updateData.tweet_examples = customLinks.filter(
+          (link) => link.trim() !== '',
+        );
         updateData.tone = undefined;
       } else {
         updateData.tone = selectedStyle;
@@ -237,7 +251,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       <div className="mx-auto max-w-4xl p-12">
         {/* Account Name Section */}
         <div className="mb-10">
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900">Account Name</h2>
+          <h2 className="mb-2 text-2xl font-semibold text-gray-900">
+            Account Name
+          </h2>
           <p className="mb-6 text-gray-500">
             Set your account name for personalized content generation.
           </p>

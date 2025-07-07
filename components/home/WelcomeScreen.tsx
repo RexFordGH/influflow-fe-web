@@ -62,16 +62,19 @@ export const WelcomeScreen = ({
   const { user, isAuthenticated } = useAuthStore();
 
   // 处理滑动手势
-  const handlePanEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handlePanEnd = (
+    _event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo,
+  ) => {
     const { offset, velocity } = info;
-    
+
     // 上滑检测：位移超过-100px 或者 速度超过-300px/s
     if (offset.y < -100 || velocity.y < -300) {
       if (!showTrendingTopics) {
         onScrollToTrending();
       }
     }
-    
+
     // 下滑检测：位移超过100px 或者 速度超过300px/s
     if (offset.y > 100 || velocity.y > 300) {
       if (showTrendingTopics) {
@@ -153,9 +156,9 @@ export const WelcomeScreen = ({
                 }}
                 transition={{
                   duration: 2,
-                  ease: "easeInOut",
+                  ease: 'easeInOut',
                   repeat: Infinity,
-                  repeatType: "loop",
+                  repeatType: 'loop',
                 }}
               >
                 <Image

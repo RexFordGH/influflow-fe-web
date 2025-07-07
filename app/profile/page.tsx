@@ -65,7 +65,9 @@ export default function Profile() {
         />
       </AnimatePresence>
 
-      <div className={`flex-1 ${sidebarCollapsed ? 'ml-0' : 'ml-[320px]'} transition-all duration-300`}>
+      <div
+        className={`flex-1 ${sidebarCollapsed ? 'ml-0' : 'ml-[320px]'} transition-all duration-300`}
+      >
         <ProfilePage onBack={handleBackToHome} />
       </div>
     </div>

@@ -55,7 +55,6 @@ export function EnhancedMarkdownRenderer({
   imageData,
   tweetData,
 }: EnhancedMarkdownRendererProps) {
-
   // 处理图片占位符 - 只有真实的图片URL才会被替换
   const processedContent = useMemo(() => {
     if (imageData?.url) {
@@ -360,20 +359,20 @@ export function EnhancedMarkdownRenderer({
     // 检查是否正在loading - 增强匹配逻辑
     const isLoading = Boolean(
       loadingTweetId && // Tweet节点的多种匹配方式
-      ((section.tweetId &&
-        (section.tweetId === loadingTweetId ||
-          section.tweetId.toString() === loadingTweetId.toString() ||
-          Number(section.tweetId) === Number(loadingTweetId))) ||
-        // Group节点的多种匹配方式
-        (loadingTweetId.startsWith('group-') &&
-          section.groupId &&
-          (section.groupId === loadingTweetId.replace('group-', '') ||
-            section.groupId.toString() ===
-              loadingTweetId.replace('group-', '') ||
-            Number(section.groupId) ===
-              Number(loadingTweetId.replace('group-', '')))) ||
-        // Fallback：直接ID匹配
-        loadingTweetId === section.id)
+        ((section.tweetId &&
+          (section.tweetId === loadingTweetId ||
+            section.tweetId.toString() === loadingTweetId.toString() ||
+            Number(section.tweetId) === Number(loadingTweetId))) ||
+          // Group节点的多种匹配方式
+          (loadingTweetId.startsWith('group-') &&
+            section.groupId &&
+            (section.groupId === loadingTweetId.replace('group-', '') ||
+              section.groupId.toString() ===
+                loadingTweetId.replace('group-', '') ||
+              Number(section.groupId) ===
+                Number(loadingTweetId.replace('group-', '')))) ||
+          // Fallback：直接ID匹配
+          loadingTweetId === section.id),
     );
 
     return (

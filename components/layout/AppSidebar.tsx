@@ -88,7 +88,7 @@ export const AppSidebar = ({
 
       <div className="p-4">
         <div className="flex items-center justify-between">
-          <div 
+          <div
             className="-m-2 flex cursor-pointer items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-100"
             onClick={handleOpenProfile}
           >

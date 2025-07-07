@@ -16,15 +16,21 @@ export const saveProfileToSupabase = async (
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const supabase = createClient();
-    
+
     // 获取当前用户
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+      error: authError,
+    } = await supabase.auth.getSession();
+
     if (authError) {
       console.error('Auth error:', authError);
-      return { success: false, error: `Authentication error: ${authError.message}` };
+      return {
+        success: false,
+        error: `Authentication error: ${authError.message}`,
+      };
     }
-    
+
     if (!session?.user) {
       return { success: false, error: 'User not authenticated' };
     }
@@ -65,14 +71,15 @@ export const saveProfileToSupabase = async (
         .eq('uid', userId);
     } else {
       // 插入新记录
-      result = await supabase
-        .from('user_personalization')
-        .insert(upsertData);
+      result = await supabase.from('user_personalization').insert(upsertData);
     }
 
     if (result.error) {
       console.error('Supabase operation error:', result.error);
-      return { success: false, error: `Database error: ${result.error.message}` };
+      return {
+        success: false,
+        error: `Database error: ${result.error.message}`,
+      };
     }
 
     return { success: true };
@@ -88,10 +95,13 @@ export const loadProfileFromSupabase = async (): Promise<{
 }> => {
   try {
     const supabase = createClient();
-    
+
     // 获取当前用户
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+      error: authError,
+    } = await supabase.auth.getSession();
+
     if (authError || !session?.user) {
       return { data: null, error: 'User not authenticated' };
     }
@@ -105,7 +115,8 @@ export const loadProfileFromSupabase = async (): Promise<{
       .eq('uid', userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 表示未找到记录
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 表示未找到记录
       console.error('Supabase query error:', error);
       return { data: null, error: error.message };
     }
@@ -117,7 +128,7 @@ export const loadProfileFromSupabase = async (): Promise<{
     // 转换数据格式
     const profileData: ProfileData = {
       account_name: data.account_name || undefined,
-      tone: data.tone as ProfileData['tone'] || undefined,
+      tone: (data.tone as ProfileData['tone']) || undefined,
       bio: data.bio || undefined,
       tweet_examples: data.tweet_examples || undefined,
     };
