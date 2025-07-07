@@ -26,7 +26,7 @@ export const LoginPage = ({ onBack }: { onBack: () => void }) => {
           {/* 品牌Logo区域 */}
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold text-gray-900">
-              Login to InfluFlow
+              Login to Influxy
             </h1>
             <p className="text-gray-600">
               Transform your ideas into posts in seconds.
