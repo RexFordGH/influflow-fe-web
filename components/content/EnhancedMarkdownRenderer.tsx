@@ -680,7 +680,8 @@ export function EnhancedMarkdownRenderer({
               </div>
             )}
             {/* Tweet Title with proper heading styling */}
-            {title && <div className="my-[12px]">{getTitleComponent()}</div>}
+            {/* hide title 2025-07-07 by Rex */}
+            {/* {title && <div className="my-[12px]">{getTitleComponent()}</div>} */}
 
             {/* Tweet Content */}
             {textContent && textContent.trim() && (
