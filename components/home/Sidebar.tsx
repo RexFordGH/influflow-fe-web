@@ -27,6 +27,7 @@ export const Sidebar = ({
   editingArticleId,
   onStartEditArticleTitle,
   onSaveArticleTitle,
+  onOpenProfile,
 }: {
   collapsed: boolean;
   onToggle: () => void;
@@ -45,6 +46,7 @@ export const Sidebar = ({
   editingArticleId: string | null;
   onStartEditArticleTitle: (categoryId: string, articleId: string) => void;
   onSaveArticleTitle: (categoryId: string, articleId: string) => void;
+  onOpenProfile?: () => void;
 }) => {
   const { user, isAuthenticated } = useAuthStore();
 
@@ -80,7 +82,10 @@ export const Sidebar = ({
 
       <div className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div 
+            className="-m-2 flex cursor-pointer items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-100"
+            onClick={onOpenProfile}
+          >
             {user?.avatar ? (
               <Image
                 src={user.avatar}

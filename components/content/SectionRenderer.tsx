@@ -381,10 +381,10 @@ export function SectionRenderer({
                 isEdit={true}
                 hideMenuBar={true}
                 className={{
-                  base: 'bg-transparent border-none',
+                  base: 'border-none bg-transparent',
                   editorWrapper: 'p-0',
                   editor:
-                    'bg-transparent prose prose-sm max-w-none text-black [&_.tiptap]:text-inherit [&_.tiptap]:leading-inherit [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent',
+                    'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:text-inherit',
                 }}
               />
             </div>

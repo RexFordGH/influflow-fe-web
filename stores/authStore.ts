@@ -7,6 +7,11 @@ interface User {
   name: string;
   email: string;
   avatar?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  style?: 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
+  customLinks?: string[];
 }
 
 interface AuthState {
@@ -17,6 +22,7 @@ interface AuthState {
 
   // Actions
   setSession: (user: User | null, accessToken: string | null) => void;
+  updateUser: (userData: Partial<User>) => void;
   logout: () => Promise<void>;
   openLoginModal: () => void;
   closeLoginModal: () => void;
@@ -37,6 +43,11 @@ export const useAuthStore = create<AuthState>()(
           accessToken,
           isAuthenticated: !!user && !!accessToken,
         }),
+
+      updateUser: (userData) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...userData } : null,
+        })),
 
       logout: async () => {
         try {
