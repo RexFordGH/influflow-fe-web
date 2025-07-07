@@ -41,20 +41,20 @@ export function TrendingTopics({
   const [selectedCategory, setSelectedCategory] = useState('ai');
 
   // 获取可用的话题类型
-  const { data: topicTypes = ['ai'] } = useTopicTypes();
+  const { data: topicTypes } = useTopicTypes();
 
   // 根据选中的分类获取trending topics数据
-  const { data, isLoading, error } = useTrendingTopics(
+  const { data: trendingData, isLoading, error } = useTrendingTopics(
     isVisible ? selectedCategory : '',
   );
 
-  const trendingTopics = data?.trending_topics || [];
-  const suggestedTopics = data?.suggested_topics || [];
+  const trendingTopics = trendingData?.trending_topics || [];
+  const suggestedTopics = trendingData?.suggested_topics || [];
 
   // 分类列表：显示可用的话题类型
-  const categories = topicTypes.map((type) => ({
-    id: type,
-    label: type.charAt(0).toUpperCase() + type.slice(1),
+  const categories = topicTypes?.map((type: { id: string; label: string }) => ({
+    id: type.id,
+    label: type.label,
   }));
 
   return (
@@ -83,7 +83,7 @@ export function TrendingTopics({
 
               {/* 分类筛选 */}
               <div className="mb-4 flex gap-3">
-                {categories.map((category) => (
+                {categories?.map((category: { id: string; label: string }) => (
                   <Button
                     key={category.id}
                     size="sm"
@@ -120,7 +120,7 @@ export function TrendingTopics({
                   </div>
                 ) : (
                   // 实际数据 - 根据Figma设计样式
-                  trendingTopics.map((topic, index) => (
+                  trendingTopics.map((topic: any, index: number) => (
                     <motion.button
                       key={`${topic.title}-${index}`}
                       initial={{ opacity: 0, x: -20 }}
@@ -167,7 +167,7 @@ export function TrendingTopics({
                   </div>
                 ) : (
                   // 实际数据 - 根据Figma设计样式
-                  suggestedTopics.map((topic, index) => (
+                  suggestedTopics.map((topic: any, index: number) => (
                     <motion.button
                       key={`${topic.title}-${index}`}
                       initial={{ opacity: 0, y: 20 }}

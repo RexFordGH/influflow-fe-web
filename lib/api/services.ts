@@ -194,9 +194,13 @@ export function useTrendingTopics(topicType: string = 'ai') {
 export function useTopicTypes() {
   return useQuery({
     queryKey: ['trending', 'topic-types'],
-    queryFn: async (): Promise<string[]> => {
+    queryFn: async (): Promise<{ id: string; label: string }[]> => {
       // 暂时返回预定义的类型，如果后端有接口可以替换
-      return ['ai', 'web3', 'investment'];
+      return [
+        { id: 'ai', label: 'AI' },
+        { id: 'web3', label: 'Web3' },
+        { id: 'investment', label: 'Investment' },
+      ];
     },
     staleTime: 60 * 60 * 1000, // 1小时内数据视为新鲜
     gcTime: 2 * 60 * 60 * 1000, // 2小时缓存
