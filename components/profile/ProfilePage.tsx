@@ -10,6 +10,12 @@ import {
   loadProfileFromLocalStorage,
   saveProfileToLocalStorage,
 } from '@/utils/profileStorage';
+import {
+  saveProfileToSupabase,
+  loadProfileFromSupabase,
+} from '@/utils/supabaseProfile';
+import { debugSupabaseAuth } from '@/utils/supabaseDebug';
+
 import { addToast } from '../base/toast';
 
 type StyleType = 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
@@ -27,93 +33,160 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     '',
   ]);
   const [personalIntro, setPersonalIntro] = useState(user?.bio || '');
+  const [accountName, setAccountName] = useState(user?.account_name || user?.name || '');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 从 authStore 和 localStorage 加载数据
+  // 从 authStore、localStorage 和 Supabase 加载数据
   useEffect(() => {
-    // 优先从 authStore 加载数据
-    if (user?.style || user?.customLinks?.length || user?.bio) {
-      if (user.style) {
-        setSelectedStyle(user.style);
-      } else if (user.customLinks && user.customLinks.length > 0) {
-        setSelectedStyle('Customize');
-        setCustomLinks([...user.customLinks, '', ''].slice(0, 3));
-      }
+    const loadProfileData = async () => {
+      setIsLoading(true);
+      
+      try {
+        // 1. 优先从 authStore 加载数据
+        if (user?.tone || user?.tweet_examples?.length || user?.bio || user?.account_name) {
+          if (user.tone) {
+            setSelectedStyle(user.tone);
+          } else if (user.tweet_examples && user.tweet_examples.length > 0) {
+            setSelectedStyle('Customize');
+            setCustomLinks([...user.tweet_examples, '', ''].slice(0, 3));
+          }
 
-      if (user.bio) {
-        setPersonalIntro(user.bio);
-      }
-    } else {
-      // 如果 authStore 没有数据，从 localStorage 加载
-      const savedProfile = loadProfileFromLocalStorage();
-      if (savedProfile) {
-        // 恢复风格选择
-        if (savedProfile.style) {
-          setSelectedStyle(savedProfile.style);
-        } else if (
-          savedProfile.customLinks &&
-          savedProfile.customLinks.length > 0
-        ) {
-          setSelectedStyle('Customize');
-          setCustomLinks([...savedProfile.customLinks, '', ''].slice(0, 3));
+          if (user.bio) {
+            setPersonalIntro(user.bio);
+          }
+          
+          if (user.account_name) {
+            setAccountName(user.account_name);
+          }
+        } else {
+          // 2. 从 localStorage 加载
+          const savedProfile = loadProfileFromLocalStorage();
+          if (savedProfile) {
+            if (savedProfile.tone) {
+              setSelectedStyle(savedProfile.tone);
+            } else if (
+              savedProfile.tweet_examples &&
+              savedProfile.tweet_examples.length > 0
+            ) {
+              setSelectedStyle('Customize');
+              setCustomLinks([...savedProfile.tweet_examples, '', ''].slice(0, 3));
+            }
+
+            if (savedProfile.bio) {
+              setPersonalIntro(savedProfile.bio);
+            }
+            
+            if (savedProfile.account_name) {
+              setAccountName(savedProfile.account_name);
+            }
+          }
+          
+          // 3. 从 Supabase 加载最新数据
+          const { data: supabaseProfile, error } = await loadProfileFromSupabase();
+          if (supabaseProfile && !error) {
+            if (supabaseProfile.tone) {
+              setSelectedStyle(supabaseProfile.tone);
+            } else if (
+              supabaseProfile.tweet_examples &&
+              supabaseProfile.tweet_examples.length > 0
+            ) {
+              setSelectedStyle('Customize');
+              setCustomLinks([...supabaseProfile.tweet_examples, '', ''].slice(0, 3));
+            }
+
+            if (supabaseProfile.bio) {
+              setPersonalIntro(supabaseProfile.bio);
+            }
+            
+            if (supabaseProfile.account_name) {
+              setAccountName(supabaseProfile.account_name);
+            }
+            
+            // 更新 authStore 和 localStorage
+            updateUser({
+              bio: supabaseProfile.bio,
+              tone: supabaseProfile.tone,
+              tweet_examples: supabaseProfile.tweet_examples,
+              account_name: supabaseProfile.account_name,
+            });
+            
+            saveProfileToLocalStorage(supabaseProfile);
+          }
         }
-
-        // 恢复个人介绍
-        if (savedProfile.bio) {
-          setPersonalIntro(savedProfile.bio);
-        }
-
-        // 同步到 authStore
-        updateUser({
-          bio: savedProfile.bio,
-          style: savedProfile.style,
-          customLinks: savedProfile.customLinks,
-        });
+      } catch (error) {
+        console.error('Failed to load profile data:', error);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+
+    loadProfileData();
   }, [user, updateUser]);
 
-  const handleSubmit = () => {
-    // 准备要保存的数据
-    const profileData = {
-      bio: personalIntro,
-      style: selectedStyle === 'Customize' ? undefined : selectedStyle,
-      customLinks:
-        selectedStyle === 'Customize'
-          ? customLinks.filter((link) => link.trim() !== '')
-          : [],
-    };
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    
+    try {
+      // 调试认证状态
+      await debugSupabaseAuth();
+      
+      // 准备要保存的数据
+      const profileData = {
+        account_name: accountName,
+        bio: personalIntro,
+        tone: selectedStyle === 'Customize' ? undefined : selectedStyle,
+        tweet_examples:
+          selectedStyle === 'Customize'
+            ? customLinks.filter((link) => link.trim() !== '')
+            : [],
+      };
 
-    // 1. 保存到 localStorage
-    saveProfileToLocalStorage(profileData);
+      console.log('Submitting profile data:', profileData);
 
-    // 2. 更新 authStore
-    const updateData: any = {
-      bio: personalIntro,
-    };
+      // 1. 保存到 Supabase
+      const { success, error } = await saveProfileToSupabase(profileData);
+      
+      if (!success) {
+        console.error('Supabase save failed:', error);
+        throw new Error(error || 'Failed to save to Supabase');
+      }
 
-    if (selectedStyle === 'Customize') {
-      updateData.customLinks = customLinks.filter((link) => link.trim() !== '');
-      updateData.style = undefined; // 使用自定义链接时不设置预设风格
-    } else {
-      updateData.style = selectedStyle;
-      updateData.customLinks = []; // 使用预设风格时清空自定义链接
+      // 2. 保存到 localStorage
+      saveProfileToLocalStorage(profileData);
+
+      // 3. 更新 authStore
+      const updateData: any = {
+        bio: personalIntro,
+        account_name: accountName,
+      };
+
+      if (selectedStyle === 'Customize') {
+        updateData.tweet_examples = customLinks.filter((link) => link.trim() !== '');
+        updateData.tone = undefined;
+      } else {
+        updateData.tone = selectedStyle;
+        updateData.tweet_examples = [];
+      }
+
+      updateUser(updateData);
+
+      addToast({
+        title: 'Profile saved successfully',
+        description: 'Your profile has been saved to the database',
+        color: 'success',
+      });
+
+      onBack();
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      addToast({
+        title: 'Save failed',
+        description: 'Failed to save your profile. Please try again.',
+        color: 'danger',
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    updateUser(updateData);
-
-    // 显示保存成功提示（可选）
-    console.log(
-      'Profile data saved successfully to localStorage and authStore',
-    );
-
-    addToast({
-      title: 'Profile data saved successfully',
-      description:
-        'Profile data saved successfully to localStorage and authStore',
-      color: 'success',
-    });
-
-    onBack();
   };
 
   const handleStyleSelect = (style: StyleType) => {
@@ -146,7 +219,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       className="h-screen overflow-y-auto bg-white"
     >
       {/* Header */}
-      <div className="sticky top-0 flex items-center justify-between border-b bg-white p-6 z-10">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-6">
         <div className="flex items-center space-x-4">
           <Button
             variant="light"
@@ -162,16 +235,31 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
       {/* Main Content */}
       <div className="mx-auto max-w-4xl p-12">
+        {/* Account Name Section */}
+        <div className="mb-10">
+          <h2 className="mb-2 text-2xl font-semibold text-gray-900">Account Name</h2>
+          <p className="mb-6 text-gray-500">
+            Set your account name for personalized content generation.
+          </p>
+          <Input
+            value={accountName}
+            onChange={(e) => setAccountName(e.target.value)}
+            placeholder="Enter your account name"
+            variant="bordered"
+            className="w-full max-w-md"
+          />
+        </div>
+
         {/* Style Section */}
         <div className="mb-10">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Style</h2>
-          <p className="text-gray-500 mb-6">
+          <h2 className="mb-2 text-2xl font-semibold text-gray-900">Style</h2>
+          <p className="mb-6 text-gray-500">
             Choose a tone for your content, or paste links to match a custom
             style.
           </p>
 
           {/* Style Options */}
-          <div className="flex gap-4 mb-6">
+          <div className="mb-6 flex gap-4">
             {(
               [
                 'Professional',
@@ -183,9 +271,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               <Button
                 key={style}
                 variant="bordered"
-                className={`px-6 py-3 border-1 rounded-[12px] ${
+                className={`border-1 rounded-[12px] px-6 py-3 ${
                   selectedStyle === style
-                    ? 'bg-[#DDE9FF] border-[#448AFF]  text-blue-600'
+                    ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
                     : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                 } ${style === 'Customize' ? 'underline' : ''}`}
                 onPress={() => handleStyleSelect(style)}
@@ -198,10 +286,10 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           {/* Custom Style Links - 只在选择 Customize 时显示 */}
           {selectedStyle === 'Customize' && (
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="mb-2 text-lg font-medium text-gray-900">
                 Examples of Customized Style
               </h3>
-              <p className="text-gray-500 mb-4">
+              <p className="mb-4 text-gray-500">
                 Paste the link to the posts you'd like to use as style
                 references.
               </p>
@@ -223,10 +311,10 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
         {/* Personal Introduction Section */}
         <div className="mb-10">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+          <h2 className="mb-2 text-2xl font-semibold text-gray-900">
             Personal Introduction
           </h2>
-          <p className="text-gray-500 mb-6">
+          <p className="mb-6 text-gray-500">
             Introduce yourself in 100-300 words, using a first-person tone. This
             will help personalize your future content.
           </p>
@@ -244,9 +332,10 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         <div className="flex justify-center">
           <Button
             onPress={handleSubmit}
-            className="bg-black text-white px-8 py-3 rounded-full font-medium"
+            isLoading={isLoading}
+            className="rounded-full bg-black px-8 py-3 font-medium text-white"
           >
-            Save Changes
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>

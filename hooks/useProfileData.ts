@@ -13,11 +13,12 @@ export const useProfileData = () => {
       setIsLoading(true);
       
       // 优先从 authStore 获取数据
-      if (user?.bio || user?.style || user?.customLinks?.length) {
+      if (user?.bio || user?.tone || user?.tweet_examples?.length || user?.account_name) {
         setProfileData({
           bio: user.bio,
-          style: user.style,
-          customLinks: user.customLinks,
+          tone: user.tone,
+          tweet_examples: user.tweet_examples,
+          account_name: user.account_name,
         });
       } else {
         // 从 localStorage 获取数据
@@ -32,27 +33,32 @@ export const useProfileData = () => {
   }, [user]);
 
   const hasData = () => {
-    return hasProfileData() || !!(user?.bio || user?.style || user?.customLinks?.length);
+    return hasProfileData() || !!(user?.bio || user?.tone || user?.tweet_examples?.length || user?.account_name);
   };
 
-  const getStyle = () => {
-    return profileData?.style || user?.style;
+  const getTone = () => {
+    return profileData?.tone || user?.tone;
   };
 
   const getBio = () => {
     return profileData?.bio || user?.bio;
   };
 
-  const getCustomLinks = () => {
-    return profileData?.customLinks || user?.customLinks || [];
+  const getTweetExamples = () => {
+    return profileData?.tweet_examples || user?.tweet_examples || [];
+  };
+  
+  const getAccountName = () => {
+    return profileData?.account_name || user?.account_name;
   };
 
   return {
     profileData,
     isLoading,
     hasData: hasData(),
-    getStyle,
+    getTone,
     getBio,
-    getCustomLinks,
+    getTweetExamples,
+    getAccountName,
   };
 };

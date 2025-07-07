@@ -31,9 +31,9 @@ export const ProfileCompletePrompt = ({ isVisible, onClose }: ProfileCompletePro
             damping: 30,
             duration: 0.4 
           }}
-          className="fixed top-4 right-4 z-50 max-w-sm"
+          className="fixed right-4 top-4 z-50 max-w-sm"
         >
-          <div className="bg-blue-500 text-white rounded-2xl shadow-xl p-4 flex items-center space-x-3">
+          <div className="flex items-center space-x-3 rounded-2xl bg-blue-500 p-4 text-white shadow-xl">
             {/* 内容区域 */}
             <div className="flex-1">
               <p className="text-sm font-medium">
@@ -44,7 +44,7 @@ export const ProfileCompletePrompt = ({ isVisible, onClose }: ProfileCompletePro
             {/* GO 按钮 */}
             <Button
               size="sm"
-              className="bg-white text-blue-500 font-semibold px-4 py-1 rounded-full min-w-0 h-8"
+              className="h-8 min-w-0 rounded-full bg-white px-4 py-1 font-semibold text-blue-500"
               onPress={handleGoToProfile}
             >
               GO
@@ -55,10 +55,10 @@ export const ProfileCompletePrompt = ({ isVisible, onClose }: ProfileCompletePro
               isIconOnly
               size="sm"
               variant="light"
-              className="text-white hover:bg-blue-600 min-w-0 w-8 h-8"
+              className="size-8 min-w-0 text-white hover:bg-blue-600"
               onPress={onClose}
             >
-              <XMarkIcon className="w-4 h-4" />
+              <XMarkIcon className="size-4" />
             </Button>
           </div>
         </motion.div>

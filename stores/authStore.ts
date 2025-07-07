@@ -10,8 +10,9 @@ interface User {
   bio?: string;
   location?: string;
   website?: string;
-  style?: 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
-  customLinks?: string[];
+  account_name?: string;
+  tone?: 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
+  tweet_examples?: string[];
 }
 
 interface AuthState {

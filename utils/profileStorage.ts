@@ -1,6 +1,7 @@
 export interface ProfileData {
-  style?: 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
-  customLinks?: string[];
+  account_name?: string;
+  tone?: 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
+  tweet_examples?: string[];
   bio?: string;
   lastUpdated?: number;
 }
@@ -57,8 +58,8 @@ export const hasProfileData = (): boolean => {
   return (
     data !== null &&
     (!!data.bio ||
-      !!data.style ||
-      !!(data.customLinks && data.customLinks.length > 0))
+      !!data.tone ||
+      !!(data.tweet_examples && data.tweet_examples.length > 0))
   );
 };
 
@@ -71,8 +72,8 @@ export const needsProfileCompletion = (user: any): boolean => {
   // 检查 authStore 中的用户数据
   const hasAuthStoreData = !!(
     user?.bio ||
-    user?.style ||
-    (user?.customLinks && user.customLinks.length > 0)
+    user?.tone ||
+    (user?.tweet_examples && user.tweet_examples.length > 0)
   );
 
   // 检查 localStorage 中的数据
