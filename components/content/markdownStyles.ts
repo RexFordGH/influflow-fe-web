@@ -6,14 +6,14 @@ export const markdownStyles = {
   container: {
     main: 'h-full overflow-y-auto bg-white',
     content: 'max-w-none p-6',
-    sections: 'space-y-[24px]',
+    sections: 'space-y-[12px]',
   },
 
   // 基础布局样式
   base: {
     // 可交互的内容模块
     interactive:
-      'transition-all duration-300 py-[12px] px-[24px] rounded-lg relative group cursor-pointer',
+      'transition-all duration-300 py-[24px] px-[24px] rounded-lg relative group cursor-pointer',
     // 静态内容模块（标题、时间、图片等）
     static: 'rounded-lg relative',
   },
