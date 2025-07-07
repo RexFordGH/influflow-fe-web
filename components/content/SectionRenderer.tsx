@@ -2,7 +2,7 @@
 
 import { Button, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { addToast } from '../base/toast';
@@ -60,6 +60,45 @@ export function SectionRenderer({
   tweetData,
   imageData,
 }: SectionRendererProps) {
+  // 状态来跟踪编辑器的当前内容（仅用于 tweet 类型）
+  const [currentEditorContent, setCurrentEditorContent] = useState('');
+
+  // 处理编辑器内容变化的回调
+  const handleEditorChange = useCallback((newValue: string) => {
+    try {
+      const parsed = JSON.parse(newValue);
+      // 将HTML内容转换为纯文本用于复制
+      const plainText = parsed.content
+        .replace(/<br\s*\/?>/g, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .trim();
+      setCurrentEditorContent(plainText);
+    } catch (e) {
+      console.error('Failed to parse editor content:', e);
+    }
+  }, []);
+
+  // 为 tweet 类型初始化编辑器内容
+  useEffect(() => {
+    if (section.type === 'tweet') {
+      const lines = section.content.split('\n\n');
+      let contentLines = [];
+      
+      const titleLine = lines.find((line) => line.startsWith('#'));
+      if (titleLine) {
+        contentLines = lines.filter(
+          (line) => !line.startsWith('#') && line.trim() !== '',
+        );
+      } else {
+        contentLines = lines.slice(1).filter((line) => line.trim() !== '');
+      }
+      
+      const content = contentLines.join('\n\n');
+      const textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
+      setCurrentEditorContent(textContent);
+    }
+  }, [section]);
   // 创建鼠标事件处理器
   const createMouseHandlers = useCallback(() => {
     const shouldInteract = shouldEnableInteraction(section);
@@ -338,6 +377,7 @@ export function SectionRenderer({
             <div className="text-[14px] leading-[1.6] text-black">
               <EditorPro
                 value={editorValue}
+                onChange={handleEditorChange}
                 isEdit={true}
                 hideMenuBar={true}
                 className={{
@@ -375,7 +415,10 @@ export function SectionRenderer({
               currentTweetData={currentTweetData}
               onTweetImageEdit={onTweetImageEdit}
             />
-            <CopyButton currentTweetData={currentTweetData} />
+            <CopyButton 
+              currentTweetData={currentTweetData} 
+              currentContent={currentEditorContent}
+            />
           </div>
         </div>
       );
@@ -485,12 +528,21 @@ function TweetImageButton({
 }
 
 // 复制按钮组件
-function CopyButton({ currentTweetData }: { currentTweetData?: any }) {
+function CopyButton({ 
+  currentTweetData, 
+  currentContent 
+}: { 
+  currentTweetData?: any;
+  currentContent?: string;
+}) {
+  // 优先使用编辑器中的当前内容，如果没有则回退到原始数据
+  const contentToCopy = currentContent || currentTweetData?.content || '';
+
   return (
     <CopyToClipboard
-      text={currentTweetData?.content || ''}
+      text={contentToCopy}
       onCopy={() => {
-        console.log('copied');
+        console.log('copied:', contentToCopy);
         addToast({
           title: 'Copied Successfully',
           description: 'The tweet content has been copied to your clipboard',
