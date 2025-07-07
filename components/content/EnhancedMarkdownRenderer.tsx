@@ -623,7 +623,7 @@ export function EnhancedMarkdownRenderer({
 
         // 处理文本内容，保留换行和格式
         const processedTweetContent = textContent
-          .replace(/\n/g, '<br>') // 转换换行为HTML
+          .replace(/\n\n/g, '<br>') // 转换换行为HTML
           .replace(
             /\*\*(.*?)\*\*/g,
             '<strong class="font-semibold text-gray-900">$1</strong>',
@@ -686,7 +686,7 @@ export function EnhancedMarkdownRenderer({
             {/* Tweet Content */}
             {textContent && textContent.trim() && (
               <div
-                className="text-sm leading-relaxed text-gray-700"
+                className="text-[14px] leading-[1.6] text-black"
                 dangerouslySetInnerHTML={{ __html: processedTweetContent }}
               />
             )}
@@ -710,7 +710,7 @@ export function EnhancedMarkdownRenderer({
               </div>
             )}
 
-            <div className="absolute right-2 top-2  flex items-center justify-end">
+            <div className="absolute right-[4px] top-[4px] flex items-center justify-end">
               <TweetImageButton
                 currentTweetData={currentTweetData}
                 onTweetImageEdit={onTweetImageEdit}
