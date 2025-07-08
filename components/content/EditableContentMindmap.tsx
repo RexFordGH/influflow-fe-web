@@ -1,7 +1,7 @@
 'use client';
 
 import { PencilIcon } from '@heroicons/react/24/outline';
-import { Button, cn } from '@heroui/react';
+import { Button } from '@heroui/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
@@ -81,7 +81,31 @@ export function EditableContentMindmap({
   const [aiEditInstruction, setAiEditInstruction] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
 
-  // 移除了 loading 状态管理，因为现在双击编辑是本地操作
+  const handleEditWithAI = useCallback((nodeId: string) => {
+    setSelectedNodeForAI(nodeId);
+    setShowAIEditModal(true);
+  }, []);
+
+  const NodeWithAIButton = useCallback((props: any) => {
+    const { selected, data, id } = props;
+    return (
+      <div className="relative">
+        {selected && (
+          <div className="absolute left-1/2 top-[-45px] z-10 -translate-x-1/2 transform">
+            <Button
+              size="sm"
+              onPress={() => data.onEditWithAI(id)}
+              startContent={<PencilIcon className="size-3" />}
+              className="flex items-center rounded-full bg-[#4285F4] shadow-[0px_0px_12px_0px_rgba(68, 138, 255, 0.5)] px-[14px] py-[8px] text-xs text-white hover:bg-[#3367D6]"
+            >
+              Edit with AI
+            </Button>
+          </div>
+        )}
+        <EditableMindmapNode {...props} />
+      </div>
+    );
+  }, []);
 
   // 转换数据格式为 React Flow 格式（稳定版本，不包含hover状态）
   const convertToFlowDataStable = useCallback(() => {
@@ -146,6 +170,7 @@ export function EditableContentMindmap({
         },
         onNodeHover: onNodeHover, // 传递hover回调
         hoveredTweetId: hoveredTweetId, // 传递hover状态
+        onEditWithAI: handleEditWithAI,
         ...node.data,
       },
       style: {
@@ -178,6 +203,7 @@ export function EditableContentMindmap({
     onNodesChange,
     onEdgesChange,
     onNodeHover,
+    handleEditWithAI,
   ]);
 
   // 参考官方ELK.js示例的布局函数
@@ -219,8 +245,7 @@ export function EditableContentMindmap({
           }
 
           // 动态计算高度以适应换行文本
-          const chineseCharCount = (text.match(/[\u4e00-\u9fff]/g) || [])
-            .length;
+          const chineseCharCount = (text.match(/[一-鿿]/g) || []).length;
           const otherCharCount = text.length - chineseCharCount;
           const estimatedTextWidth = chineseCharCount * 14 + otherCharCount * 8;
 
@@ -558,9 +583,9 @@ export function EditableContentMindmap({
   // 节点类型定义
   const nodeTypes: NodeTypes = useMemo(
     () => ({
-      editableMindmapNode: EditableMindmapNode,
+      editableMindmapNode: NodeWithAIButton,
     }),
-    [],
+    [NodeWithAIButton],
   );
 
   // 处理节点选择 - 作为备选方案
@@ -690,7 +715,7 @@ export function EditableContentMindmap({
         modification_prompt: aiEditInstruction,
       });
 
-      // API只返回更新的tweet内容，需要局部更新
+      // API只返回更新のtweet内容，需要局部更新
       if (result.updated_tweet_content) {
         console.log('AI编辑成功，返回的数据:', result);
 
@@ -826,22 +851,6 @@ export function EditableContentMindmap({
           position="bottom-center"
           className="mb-[24px] flex flex-col gap-[10px]"
         >
-          <Button
-            size="md"
-            color="primary"
-            variant="solid"
-            startContent={<PencilIcon className="size-4" />}
-            onPress={() => setShowAIEditModal(true)}
-            isDisabled={!selectedNodeForAI}
-            className={cn(
-              'rounded-full  p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] hover:scale-110 ',
-              selectedNodeForAI
-                ? 'bg-[#4285F4] hover:bg-[#3367D6] cursor-pointer'
-                : 'bg-gray-400 cursor-not-allowed',
-            )}
-          >
-            Edit with AI
-          </Button>
           <Button
             size="md"
             color="primary"
