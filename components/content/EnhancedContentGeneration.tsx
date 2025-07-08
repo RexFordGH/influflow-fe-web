@@ -27,7 +27,7 @@ import {
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
 
-import { ContentGenerationLoading } from './ContentGenerationLoading';
+import StreamingContentDisplay from './StreamingContentDisplay';
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
 import { ImageEditModal } from './ImageEditModal';
@@ -46,6 +46,8 @@ export function EnhancedContentGeneration({
   onDataUpdate,
 }: EnhancedContentGenerationProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [fullStreamedContent, setFullStreamedContent] = useState<string | null>(null);
   const [generatedContent, setGeneratedContent] =
     useState<GeneratedContent | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -101,16 +103,6 @@ export function EnhancedContentGeneration({
   const modifyOutlineMutation = useModifyOutline();
   const generateImageMutation = useGenerateImage();
 
-  // 生成思维过程步骤
-  const generationSteps = [
-    'Analyzing topic content and related background',
-    'Building mind map structure framework',
-    'Generating structured article content',
-    'Creating topic-related illustrations',
-    'Establishing relationships between content',
-    'Refining details and optimizing layout',
-  ];
-
   // 当topic变化时重置状态并启动生成
   useEffect(() => {
     if (topic && !initialData) {
@@ -123,8 +115,8 @@ export function EnhancedContentGeneration({
       setIsRegenerating(false);
       requestIdRef.current = null;
 
-      // 启动生成过程
-      setIsGenerating(true);
+      // 启动流式生成
+      setIsStreaming(true);
     }
   }, [topic, initialData]);
 
@@ -141,149 +133,26 @@ export function EnhancedContentGeneration({
     }
   }, [initialData]);
 
-  // AI生成过程 - 使用真实API
-  useEffect(() => {
-    // 防止重复请求：如果已经开始生成或者不在生成状态，直接返回
-    if (!isGenerating || hasStartedGeneration) return;
+  const handleGenerationComplete = (fullContent: string) => {
+    try {
+      const parsedData = JSON.parse(fullContent);
+      setRawAPIData(parsedData);
+      const content = convertAPIDataToGeneratedContent(parsedData);
+      setGeneratedContent(content);
+      setCurrentNodes(content.mindmap.nodes);
+      setCurrentEdges(content.mindmap.edges);
+    } catch (error) {
+      console.error('Failed to parse full streamed content:', error);
+      setApiError('Failed to process generated content.');
+    } finally {
+      setIsStreaming(false);
+    }
+  };
 
-    // 生成唯一的请求ID
-    const currentRequestId = `${topic}-${Date.now()}`;
-
-    // 如果当前请求ID与ref中的相同，说明是重复执行，直接返回
-    if (requestIdRef.current === currentRequestId) return;
-
-    console.log('开始API生成，topic:', topic, 'requestId:', currentRequestId);
-    requestIdRef.current = currentRequestId;
-    setHasStartedGeneration(true);
-    setApiError(null);
-    setGenerationStep(0);
-
-    // 启动智能UI进度动画
-    const stepTimeouts: NodeJS.Timeout[] = [];
-    let isAPICompleted = false;
-
-    // 步骤时间配置：前4个步骤按固定时间推进，最后2个步骤等待API
-    const stepTimings = [
-      { step: 1, delay: 2000 }, // 2秒后推进到第2个步骤
-      { step: 2, delay: 4000 }, // 4秒后推进到第3个步骤
-      { step: 3, delay: 6500 }, // 6.5秒后推进到第4个步骤
-      // 后面的步骤会等待API返回
-    ];
-
-    // 安排前几个步骤的推进
-    stepTimings.forEach(({ step, delay }) => {
-      const timeout = setTimeout(() => {
-        if (!isAPICompleted) {
-          setGenerationStep(step);
-        }
-      }, delay);
-      stepTimeouts.push(timeout);
-    });
-
-    // 8秒后开始最后两个步骤的等待状态
-    const waitingStepTimeout = setTimeout(() => {
-      if (!isAPICompleted) {
-        setGenerationStep(4); // 开始第5个步骤
-
-        // 12秒后进入最后一个步骤
-        const finalStepTimeout = setTimeout(() => {
-          if (!isAPICompleted) {
-            setGenerationStep(5); // 最后一个步骤，等待API返回
-          }
-        }, 4000);
-        stepTimeouts.push(finalStepTimeout);
-      }
-    }, 8000);
-    stepTimeouts.push(waitingStepTimeout);
-
-    // 清理函数
-    const cleanup = () => {
-      stepTimeouts.forEach((timeout) => clearTimeout(timeout));
-    };
-
-    // 准备请求数据，包含用户个性化信息
-    const requestData = {
-      user_input: topic.trim(),
-      ...(user && {
-        personalization: {
-          tone: user.tone,
-          bio: user.bio,
-          tweet_examples: user.tweet_examples,
-        },
-      }),
-    };
-
-    // 调用API
-    generateThread(requestData, {
-      onSuccess: (response) => {
-        // 检查请求是否还是当前请求（避免竞态条件）
-        if (requestIdRef.current !== currentRequestId) {
-          console.log('忽略过期的API响应');
-          cleanup();
-          return;
-        }
-
-        isAPICompleted = true;
-        cleanup();
-        console.log('API生成成功:', response);
-
-        // 快速完成所有步骤
-        const completeSteps = async () => {
-          // 快速推进到最后几个步骤
-          for (let i = 4; i < generationSteps.length; i++) {
-            setGenerationStep(i);
-            await new Promise((resolve) => setTimeout(resolve, 500)); // 快速推进
-          }
-
-          // 存储原始API数据，确保包含 id
-          setRawAPIData(response);
-
-          // 转换API数据为组件所需格式
-          const content = convertAPIDataToGeneratedContent(response);
-          setGeneratedContent(content);
-          setCurrentNodes(content.mindmap.nodes);
-          setCurrentEdges(content.mindmap.edges);
-          setIsGenerating(false);
-          setGenerationStep(generationSteps.length - 1);
-        };
-
-        completeSteps();
-      },
-      onError: (error) => {
-        // 检查请求是否还是当前请求
-        if (requestIdRef.current !== currentRequestId) {
-          console.log('忽略过期的API错误');
-          cleanup();
-          return;
-        }
-
-        isAPICompleted = true;
-        cleanup();
-        console.error('API生成失败:', error);
-        const errorMessage = getErrorMessage(error);
-
-        // 显示错误 toast
-        addToast({
-          title: 'Failed to generate content',
-          description: errorMessage,
-          color: 'danger',
-          timeout: 3000,
-        });
-
-        // 返回首页
-        onBack();
-      },
-    });
-
-    return cleanup;
-  }, [
-    topic,
-    isGenerating,
-    hasStartedGeneration,
-    generateThread,
-    generationSteps.length,
-    onBack,
-  ]);
+  const handleStreamCancel = () => {
+    setIsStreaming(false);
+    onBack();
+  };
 
   const handleNodeSelect = useCallback(
     (nodeId: string | null) => {
@@ -815,27 +684,35 @@ export function EnhancedContentGeneration({
   //   shouldShowLoading: isGenerating || (!generatedContent && apiError),
   // });
 
-  if (isGenerating || (!generatedContent && !rawAPIData && !initialData)) {
-    const hasError = !isGenerating && !!apiError;
+  if (isStreaming) {
+    const requestBody = {
+      topic: topic.trim(),
+      ...(user && {
+        style: user.tone,
+        mood: user.mood,
+        audience: user.audience,
+        language: user.language,
+      }),
+    };
 
     return (
-      <ContentGenerationLoading
-        topic={topic}
-        onBack={onBack}
-        isError={hasError}
-        errorMessage={apiError || undefined}
-        generationSteps={generationSteps}
-        onRetry={
-          hasError
-            ? () => {
-                setApiError(null);
-                setHasStartedGeneration(false);
-                requestIdRef.current = null;
-                setIsGenerating(true);
-              }
-            : undefined
-        }
+      <StreamingContentDisplay
+        requestBody={requestBody}
+        onGenerationComplete={handleGenerationComplete}
+        onCancel={handleStreamCancel}
       />
+    );
+  }
+
+  if (!generatedContent && !rawAPIData && !initialData) {
+    // This state can be reached if there's an error before streaming starts
+    // or after an error in streaming.
+    // You might want to show a generic error or a retry mechanism here.
+    return (
+      <div className="flex h-screen flex-col items-center justify-center bg-gray-50">
+        <p className="text-red-500">{apiError || 'An unexpected error occurred.'}</p>
+        <Button onClick={onBack} className="mt-4">Back</Button>
+      </div>
     );
   }
 
