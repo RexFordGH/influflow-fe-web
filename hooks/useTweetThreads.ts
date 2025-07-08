@@ -45,10 +45,14 @@ export const useTweetThreads = (uid?: string) => {
         }
 
         // 额外的安全检查：确保返回的数据都属于当前用户
-        const filteredData = (data || []).filter(thread => thread.uid === uid);
+        const filteredData = (data || []).filter(
+          (thread) => thread.uid === uid,
+        );
         setTweetThreads(filteredData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch tweet threads');
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch tweet threads',
+        );
       } finally {
         setLoading(false);
       }
@@ -85,10 +89,16 @@ export const useTweetThreads = (uid?: string) => {
           }
 
           // 额外的安全检查：确保返回的数据都属于当前用户
-          const filteredData = (data || []).filter(thread => thread.uid === uid);
+          const filteredData = (data || []).filter(
+            (thread) => thread.uid === uid,
+          );
           setTweetThreads(filteredData);
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch tweet threads');
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to fetch tweet threads',
+          );
         } finally {
           setLoading(false);
         }

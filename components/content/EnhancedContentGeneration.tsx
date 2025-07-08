@@ -17,6 +17,7 @@ import {
   convertMindmapToMarkdown,
   convertThreadDataToMindmap,
 } from '@/lib/data/converters';
+import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import {
   GeneratedContent,
@@ -25,7 +26,6 @@ import {
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
 
-import { createClient } from '@/lib/supabase/client';
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
@@ -449,7 +449,7 @@ export function EnhancedContentGeneration({
           throw error;
         }
         console.log('Tweet content updated successfully in Supabase.');
-        
+
         // 成功更新后，触发侧边栏数据刷新
         onDataUpdate?.();
       } catch (error) {
@@ -478,6 +478,7 @@ export function EnhancedContentGeneration({
     try {
       // 从当前思维导图状态构建新的 outline 结构
       const currentOutlineFromMindmap = {
+        id: rawAPIData.id,
         topic: rawAPIData.topic,
         nodes: rawAPIData.nodes, // 使用原始结构，但会被思维导图的更改覆盖
         total_tweets: rawAPIData.total_tweets,

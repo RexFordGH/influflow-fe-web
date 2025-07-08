@@ -2,7 +2,7 @@
 
 import { Button, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { createClient } from '../../lib/supabase/client';

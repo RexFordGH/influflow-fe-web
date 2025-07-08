@@ -7,7 +7,11 @@ import { useCallback, useEffect, useState } from 'react';
 
 export const useArticleManagement = () => {
   const { user } = useAuthStore();
-  const { tweetThreads, loading: tweetThreadsLoading, refetch: refetchTweetThreads } = useTweetThreads(user?.id);
+  const {
+    tweetThreads,
+    loading: tweetThreadsLoading,
+    refetch: refetchTweetThreads,
+  } = useTweetThreads(user?.id);
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
   const [showMarkdownEditor, setShowMarkdownEditor] = useState(false);

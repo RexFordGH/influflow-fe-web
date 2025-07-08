@@ -2,6 +2,7 @@ import { ModifyOutlineData, ModifyTweetData } from '@/types/api';
 import type { Outline } from '@/types/outline';
 
 export const localGenerateThreadResponse: Outline = {
+  id: '123',
   topic: "What's AI?",
   nodes: [
     {
@@ -144,6 +145,7 @@ export const createLocalModifyOutlineResponse = (
 
   return {
     updated_outline: {
+      id: originalOutline.id,
       nodes: enhancedNodes,
       topic: `${newOutlineStructure.topic}（AI优化版）`,
       total_tweets: enhancedNodes.length,
