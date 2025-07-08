@@ -252,7 +252,7 @@ export function EnhancedContentGeneration({
         
         // 显示错误 toast
         addToast({
-          title: '生成失败',
+          title: 'Failed to generate content',
           description: errorMessage,
           color: 'danger',
           timeout: 3000,
