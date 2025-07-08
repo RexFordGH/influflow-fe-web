@@ -250,7 +250,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       {/* Main Content */}
       <div className="mx-auto max-w-4xl p-12">
         {/* Account Name Section */}
-        <div className="mb-10">
+        {/* <div className="mb-10">
           <h2 className="mb-2 text-2xl font-semibold text-gray-900">
             Account Name
           </h2>
@@ -264,7 +264,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             variant="bordered"
             className="w-full max-w-md"
           />
-        </div>
+        </div> */}
 
         {/* Style Section */}
         <div className="mb-10">
