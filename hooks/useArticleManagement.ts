@@ -21,36 +21,36 @@ export const useArticleManagement = () => {
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState('');
 
-  useEffect(() => {
-    const defaultCategories: Category[] = [
-      {
-        id: 'welcome',
-        title: 'Welcome',
-        expanded: true,
-        articles: [
-          {
-            id: 'how-to-use',
-            title: 'How to Use InfluNotes',
-            content:
-              '# How to Use InfluNotes\n\n欢迎使用 InfluNotes！这是一个强大的文章编辑和管理工具。',
-            children: [],
-            expanded: false,
-            createdAt: new Date(),
-          },
-          {
-            id: 'why-built',
-            title: 'Why we Built this app',
-            content:
-              '# Why we Built this app\n\n我们构建这个应用是为了帮助用户更好地管理和编辑他们的文章内容。',
-            children: [],
-            expanded: false,
-            createdAt: new Date(),
-          },
-        ],
-      },
-    ];
-    setCategories(defaultCategories);
-  }, []);
+  // useEffect(() => {
+  //   const defaultCategories: Category[] = [
+  //     {
+  //       id: 'welcome',
+  //       title: 'Welcome',
+  //       expanded: true,
+  //       articles: [
+  //         {
+  //           id: 'how-to-use',
+  //           title: 'How to Use InfluNotes',
+  //           content:
+  //             '# How to Use InfluNotes\n\n欢迎使用 InfluNotes！这是一个强大的文章编辑和管理工具。',
+  //           children: [],
+  //           expanded: false,
+  //           createdAt: new Date(),
+  //         },
+  //         {
+  //           id: 'why-built',
+  //           title: 'Why we Built this app',
+  //           content:
+  //             '# Why we Built this app\n\n我们构建这个应用是为了帮助用户更好地管理和编辑他们的文章内容。',
+  //           children: [],
+  //           expanded: false,
+  //           createdAt: new Date(),
+  //         },
+  //       ],
+  //     },
+  //   ];
+  //   setCategories(defaultCategories);
+  // }, []);
 
   // 将 tweet_thread 数据合并到 categories 中
   useEffect(() => {

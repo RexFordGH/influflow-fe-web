@@ -248,13 +248,13 @@ export const AppSidebar = ({
                 </div>
               ))}
 
-              <div
+              {/* <div
                 className="flex cursor-pointer items-center space-x-2 p-2 text-sm text-gray-400 hover:text-gray-600"
                 onClick={onAddNewClick}
               >
                 <PlusIcon className="size-4" />
                 <span>Add New</span>
-              </div>
+              </div> */}
             </>
           )}
         </div>

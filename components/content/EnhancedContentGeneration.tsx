@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
@@ -771,12 +771,13 @@ export function EnhancedContentGeneration({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
-              isIconOnly
+              size="sm"
               variant="light"
               onPress={onBack}
-              className="hover:bg-gray-100"
+              className="text-gray-600"
+              startContent={<ChevronLeftIcon className="size-4" />}
             >
-              <ArrowLeftIcon className="size-5" />
+              Back
             </Button>
           </div>
         </div>

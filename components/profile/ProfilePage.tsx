@@ -243,9 +243,10 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       className="h-screen overflow-y-auto bg-white"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-6">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-[24px] py-[6px]">
         <div className="flex items-center space-x-4">
           <Button
+            size="sm"
             variant="light"
             onPress={onBack}
             className="text-gray-600"
@@ -253,29 +254,11 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           >
             Back
           </Button>
-          {/* <h1 className="text-2xl font-semibold text-gray-900">个人设置</h1> */}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="mx-auto max-w-4xl p-12">
-        {/* Account Name Section */}
-        {/* <div className="mb-10">
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900">
-            Account Name
-          </h2>
-          <p className="mb-6 text-gray-500">
-            Set your account name for personalized content generation.
-          </p>
-          <Input
-            value={accountName}
-            onChange={(e) => setAccountName(e.target.value)}
-            placeholder="Enter your account name"
-            variant="bordered"
-            className="w-full max-w-md"
-          />
-        </div> */}
-
         {/* Style Section */}
         <div className="mb-10">
           <h2 className="mb-2 text-2xl font-semibold text-gray-900">Style</h2>
