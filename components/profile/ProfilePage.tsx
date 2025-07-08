@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
 import {
+  ITone,
   loadProfileFromLocalStorage,
   saveProfileToLocalStorage,
 } from '@/utils/profileStorage';
@@ -18,7 +19,24 @@ import {
 
 import { addToast } from '../base/toast';
 
-type StyleType = 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
+const STYLE_OPTIONS = [
+  {
+    value: 'Expert',
+    label: 'Professional',
+  },
+  {
+    value: 'Humorous',
+    label: 'Humorous',
+  },
+  {
+    value: 'Motivational',
+    label: 'Inspirational',
+  },
+  {
+    value: 'Customize',
+    label: 'Customize',
+  },
+] as const;
 
 interface ProfilePageProps {
   onBack: () => void;
@@ -26,7 +44,7 @@ interface ProfilePageProps {
 
 export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   const { user, updateUser } = useAuthStore();
-  const [selectedStyle, setSelectedStyle] = useState<StyleType | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<ITone | null>(null);
   const [customLinks, setCustomLinks] = useState([
     'https://x.com/influxy.ai...',
     'https://x.com/influxy.ai...',
@@ -207,7 +225,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     }
   };
 
-  const handleStyleSelect = (style: StyleType) => {
+  const handleStyleSelect = (style: ITone) => {
     // 如果已经选中了这个风格，则取消选择
     if (selectedStyle === style) {
       setSelectedStyle(null);
@@ -269,25 +287,18 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
           {/* Style Options */}
           <div className="mb-6 flex gap-4">
-            {(
-              [
-                'Professional',
-                'Humorous',
-                'Inspirational',
-                'Customize',
-              ] as StyleType[]
-            ).map((style) => (
+            {STYLE_OPTIONS.map((option) => (
               <Button
-                key={style}
+                key={option.value}
                 variant="bordered"
                 className={`border-1 rounded-[12px] px-6 py-3 ${
-                  selectedStyle === style
+                  selectedStyle === option.value
                     ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
                     : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                } ${style === 'Customize' ? 'underline' : ''}`}
-                onPress={() => handleStyleSelect(style)}
+                } ${option.value === 'Customize' ? 'underline' : ''}`}
+                onPress={() => handleStyleSelect(option.value)}
               >
-                {style}
+                {option.label}
               </Button>
             ))}
           </div>

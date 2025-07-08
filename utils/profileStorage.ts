@@ -1,6 +1,8 @@
+export type ITone = 'Expert' | 'Humorous' | 'Motivational' | 'Customize';
+
 export interface ProfileData {
   account_name?: string;
-  tone?: 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
+  tone?: ITone;
   tweet_examples?: string[];
   bio?: string;
   lastUpdated?: number;
@@ -99,9 +101,9 @@ export const isPromptDismissed = (): boolean => {
     const dismissed = localStorage.getItem(PROMPT_DISMISSED_KEY);
     if (!dismissed) return false;
 
-    // 如果超过5分钟，重新显示提示
+    // 如果超过30分钟，重新显示提示
     const dismissedTime = parseInt(dismissed);
-    const sevenDaysAgo = Date.now() - 5 * 60 * 1000;
+    const sevenDaysAgo = Date.now() - 30 * 60 * 1000;
 
     return dismissedTime > sevenDaysAgo;
   } catch (error) {

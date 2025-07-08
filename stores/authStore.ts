@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { ITone } from '@/utils/profileStorage';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -11,7 +12,7 @@ export interface User {
   location?: string;
   website?: string;
   account_name?: string;
-  tone?: 'Professional' | 'Humorous' | 'Inspirational' | 'Customize';
+  tone?: ITone;
   tweet_examples?: string[];
 }
 

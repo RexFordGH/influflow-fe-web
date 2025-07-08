@@ -91,12 +91,12 @@ export function EditableContentMindmap({
     return (
       <div className="relative">
         {selected && (
-          <div className="absolute left-1/2 top-[-45px] z-10 -translate-x-1/2 transform">
+          <div className="absolute left-1/2 top-[-45px] z-10 -translate-x-1/2">
             <Button
               size="sm"
               onPress={() => data.onEditWithAI(id)}
               startContent={<PencilIcon className="size-3" />}
-              className="flex items-center rounded-full bg-[#4285F4] shadow-[0px_0px_12px_0px_rgba(68, 138, 255, 0.5)] px-[14px] py-[8px] text-xs text-white hover:bg-[#3367D6]"
+              className="shadow-[0px_0px_12px_0px_rgba(68, 138, 255, 0.5)] flex items-center rounded-full bg-[#4285F4] px-[14px] py-[8px] text-xs text-white hover:bg-[#3367D6]"
             >
               Edit with AI
             </Button>
