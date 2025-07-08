@@ -17,6 +17,7 @@ interface EnhancedMarkdownRendererProps {
   }) => void;
   onTweetImageEdit?: (tweetData: any) => void; // 新增：tweet图片编辑回调
   onTweetContentChange?: (tweetId: string, newContent: string) => void;
+  onDirectGenerate?: (tweetData: any) => void; // 新增：直接生图回调
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   selectedNodeId?: string | null; // 新增：从思维导图选中传递的NodeId
@@ -52,6 +53,7 @@ export function EnhancedMarkdownRenderer({
   onImageClick,
   onTweetImageEdit,
   onTweetContentChange,
+  onDirectGenerate,
   highlightedSection,
   hoveredTweetId,
   selectedNodeId,
@@ -420,6 +422,8 @@ export function EnhancedMarkdownRenderer({
         onImageClick={onImageClick}
         onTweetImageEdit={onTweetImageEdit}
         onTweetContentChange={onTweetContentChange}
+        onDirectGenerate={onDirectGenerate}
+        generatingImageTweetId={generatingImageTweetId}
         tweetData={tweetData}
         imageData={imageData}
         setSectionRef={setSectionRef}

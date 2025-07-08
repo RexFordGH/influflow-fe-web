@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Image } from '@heroui/react';
+import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -43,6 +43,8 @@ interface SectionRendererProps {
   }) => void;
   onTweetImageEdit?: (tweetData: any) => void;
   onTweetContentChange?: (tweetId: string, newContent: string) => void;
+  onDirectGenerate?: (tweetData: any) => void;
+  generatingImageTweetId?: string | null;
   tweetData?: any;
   imageData?: {
     url: string;
@@ -61,6 +63,8 @@ export function SectionRenderer({
   onImageClick,
   onTweetImageEdit,
   onTweetContentChange,
+  onDirectGenerate,
+  generatingImageTweetId,
   tweetData,
   imageData,
   setSectionRef,
@@ -436,7 +440,13 @@ export function SectionRenderer({
                 src={tweetImageSrc || currentTweetImageUrl}
                 alt={tweetImageAlt || `${title}配图`}
                 className="w-full max-w-md cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                onClick={() => onTweetImageEdit?.(currentTweetData)}
+                onClick={() => {
+                  if (onDirectGenerate && currentTweetData) {
+                    onDirectGenerate(currentTweetData);
+                  } else if (onTweetImageEdit && currentTweetData) {
+                    onTweetImageEdit(currentTweetData);
+                  }
+                }}
               />
             </div>
           )}
@@ -446,6 +456,8 @@ export function SectionRenderer({
             <TweetImageButton
               currentTweetData={currentTweetData}
               onTweetImageEdit={onTweetImageEdit}
+              isGeneratingImage={generatingImageTweetId === section.tweetId}
+              onDirectGenerate={onDirectGenerate}
             />
             <CopyButton
               currentTweetData={currentTweetData}
@@ -537,12 +549,18 @@ export function SectionRenderer({
 function TweetImageButton({
   currentTweetData,
   onTweetImageEdit,
+  isGeneratingImage,
+  onDirectGenerate,
 }: {
   currentTweetData?: any;
   onTweetImageEdit?: (tweetData: any) => void;
+  isGeneratingImage?: boolean;
+  onDirectGenerate?: (tweetData: any) => void;
 }) {
-  const handleImageEdit = () => {
-    if (onTweetImageEdit && currentTweetData) {
+  const handleImageAction = () => {
+    if (onDirectGenerate && currentTweetData) {
+      onDirectGenerate(currentTweetData);
+    } else if (onTweetImageEdit && currentTweetData) {
       onTweetImageEdit(currentTweetData);
     }
   };
@@ -552,8 +570,12 @@ function TweetImageButton({
       isIconOnly
       size="sm"
       variant="light"
-      className={markdownStyles.source.button}
-      onPress={handleImageEdit}
+      className={cn(
+        markdownStyles.source.button,
+        isGeneratingImage && 'opacity-70',
+      )}
+      onPress={handleImageAction}
+      isLoading={isGeneratingImage}
     >
       <Image src="/icons/image.svg" alt="edit" width={20} height={20} />
     </Button>

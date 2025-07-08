@@ -368,7 +368,6 @@ export function EnhancedContentGeneration({
     const tweetBlockMatch = fullContent.match(tweetDivRegex);
 
     if (!tweetBlockMatch) {
-      console.error(`无法找到 Tweet ${tweetNumber} 的区块。`);
       return fullContent;
     }
 
@@ -377,17 +376,20 @@ export function EnhancedContentGeneration({
 
     // 如果Tweet区块内已有图片，则替换它
     if (imageRegex.test(tweetBlock)) {
-      return fullContent.replace(
+      const result = fullContent.replace(
         tweetBlock,
         tweetBlock.replace(imageRegex, imageMarkdown.trim()),
       );
+
+      return result;
     }
     // 如果没有图片，则在 </div> 前插入
     else {
       const openingDiv = tweetBlockMatch[1];
       const closingDiv = tweetBlockMatch[2];
       const updatedBlock = `${openingDiv.trim()}${imageMarkdown}\n\n${closingDiv}`;
-      return fullContent.replace(tweetBlock, updatedBlock);
+      const result = fullContent.replace(tweetBlock, updatedBlock);
+      return result;
     }
   };
 
@@ -407,15 +409,27 @@ export function EnhancedContentGeneration({
 
   // 新逻辑: 精确地将选中的图片URL更新到Markdown中
   const handleImageUpdate = useCallback(
-    async (newImage: {
-      url: string;
-      alt: string;
-      caption?: string;
-      prompt?: string;
-    }) => {
-      if (!editingTweetData) return;
+    async (
+      newImage: {
+        url: string;
+        alt: string;
+        caption?: string;
+        prompt?: string;
+      },
+      tweetData?: any, // 新增：可选的tweetData参数，用于直接生图场景
+    ) => {
+      // 优先使用传入的tweetData，如果没有则使用editingTweetData
+      const targetTweetData = tweetData || editingTweetData;
 
-      const { tweet_number, content: tweetText, title } = editingTweetData;
+      if (!targetTweetData) {
+        console.error(
+          'handleImageUpdate: tweetData 和 editingTweetData 都为空',
+        );
+        return;
+      }
+
+      const { tweet_number, content: tweetText, title } = targetTweetData;
+
       const currentMarkdown =
         regeneratedMarkdown ||
         (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '');
@@ -427,6 +441,7 @@ export function EnhancedContentGeneration({
         newImage.url,
         newImage.alt || tweetText || title, // 优先使用 newImage 的 alt
       );
+
       setRegeneratedMarkdown(updatedMarkdown);
 
       // 2. 更新 rawAPIData 中的图片URL，以保持数据同步
@@ -440,6 +455,7 @@ export function EnhancedContentGeneration({
           ),
         }));
         const updatedRawAPIData = { ...rawAPIData, nodes: updatedNodes };
+
         setRawAPIData(updatedRawAPIData);
 
         // 3. 更新 Supabase 数据库
@@ -468,10 +484,69 @@ export function EnhancedContentGeneration({
       // 4. 关闭模态框并重置状态
       setIsImageEditModalOpen(false);
       setEditingImage(null);
-      setEditingTweetData(null);
+
+      // 只有在使用editingTweetData时才清除它（即从弹窗调用时）
+      // 如果是直接生图调用，则不清除，因为状态管理在handleDirectGenerate中
+      if (!tweetData) {
+        setEditingTweetData(null);
+      }
+
       setGeneratingImageTweetId(null); // 清除生图高亮状态
     },
     [editingTweetData, rawAPIData, regeneratedMarkdown, onDataUpdate],
+  );
+
+  const handleDirectGenerate = useCallback(
+    async (tweetData: any) => {
+      if (!tweetData) return;
+
+      const tweetId = tweetData.tweet_number?.toString();
+      if (!tweetId) return;
+
+      setGeneratingImageTweetId(tweetId);
+
+      try {
+        const imageUrl = await generateImageMutation.mutateAsync({
+          target_tweet: tweetData.content || tweetData.title || '',
+          tweet_thread: rawAPIData
+            ? rawAPIData.nodes
+                .flatMap((group: any) => group.tweets)
+                .map(
+                  (tweet: any, index: number) =>
+                    `(${index + 1}) ${tweet.content || tweet.title}`,
+                )
+                .join(' \n')
+            : '',
+        });
+
+        // 自动应用图片
+        const newImage = {
+          url: imageUrl,
+          alt: tweetData.content || tweetData.title || '',
+          caption: tweetData.content,
+          prompt: tweetData.content || tweetData.title,
+        };
+
+        // 直接调用更新逻辑，将tweetData作为参数传递
+        await handleImageUpdate(newImage, tweetData);
+
+        addToast({
+          title: 'Image generated successfully',
+          color: 'success',
+        });
+      } catch (error) {
+        console.error('Direct image generation failed:', error);
+        addToast({
+          title: 'Image generation failed',
+          color: 'danger',
+        });
+      } finally {
+        // 清除loading状态
+        setGeneratingImageTweetId(null);
+        // 注意：不在这里清除editingTweetData，因为handleImageUpdate会清除
+      }
+    },
+    [rawAPIData, generateImageMutation, handleImageUpdate],
   );
 
   const handleTweetContentChange = useCallback(
@@ -820,6 +895,7 @@ export function EnhancedContentGeneration({
                 onImageClick={handleImageClick}
                 onTweetImageEdit={handleTweetImageEdit}
                 onTweetContentChange={handleTweetContentChange}
+                onDirectGenerate={handleDirectGenerate}
                 highlightedSection={hoveredTweetId}
                 hoveredTweetId={hoveredTweetId}
                 selectedNodeId={selectedNodeId}
