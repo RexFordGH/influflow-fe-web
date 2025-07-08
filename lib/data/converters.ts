@@ -92,7 +92,7 @@ export function convertAPIDataToGeneratedContent(
 
   // 将嵌套的tweets结构展平为简单数组
   const flatTweets: ContentTweet[] = [];
-  data.nodes.forEach((tweetGroup: any) => {
+  (data?.nodes || []).forEach((tweetGroup: any) => {
     tweetGroup.tweets.forEach((tweetItem: any) => {
       flatTweets.push({
         id: tweetItem.tweet_number,

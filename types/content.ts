@@ -13,6 +13,7 @@ export interface Category {
   title: string;
   articles: Article[];
   expanded: boolean;
+  tweetData?: any; // 保存原始 tweet_thread 数据
 }
 
 // 导入API中统一的类型定义

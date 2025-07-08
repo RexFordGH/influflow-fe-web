@@ -1,42 +1,13 @@
 'use client';
 
+import { useTweetThreads } from '@/hooks/useTweetThreads';
+import { useAuthStore } from '@/stores/authStore';
 import { Article, Category } from '@/types/content';
 import { useCallback, useEffect, useState } from 'react';
 
-const saveCategoriesToStorage = (cats: Category[]) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('article-categories', JSON.stringify(cats));
-  }
-};
-
-const loadCategoriesFromStorage = (): Category[] => {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('article-categories');
-    if (stored) {
-      try {
-        // Properly parse dates, which are stored as strings
-        const parsed = JSON.parse(stored);
-        const restoreDates = (articles: Article[]): Article[] =>
-          articles.map((article) => ({
-            ...article,
-            createdAt: new Date(article.createdAt),
-            children: restoreDates(article.children),
-          }));
-
-        return parsed.map((category: Category) => ({
-          ...category,
-          articles: restoreDates(category.articles),
-        }));
-      } catch (e) {
-        console.error('Failed to parse categories from localStorage', e);
-        return [];
-      }
-    }
-  }
-  return [];
-};
-
 export const useArticleManagement = () => {
+  const { user } = useAuthStore();
+  const { tweetThreads, loading: tweetThreadsLoading } = useTweetThreads(user?.id);
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
   const [showMarkdownEditor, setShowMarkdownEditor] = useState(false);
@@ -47,51 +18,61 @@ export const useArticleManagement = () => {
   const [tempTitle, setTempTitle] = useState('');
 
   useEffect(() => {
-    const storedCategories = loadCategoriesFromStorage();
-    if (storedCategories.length === 0) {
-      const defaultCategories: Category[] = [
-        {
-          id: 'welcome',
-          title: 'Welcome',
-          expanded: true,
-          articles: [
-            {
-              id: 'how-to-use',
-              title: 'How to Use InfluNotes',
-              content:
-                '# How to Use InfluNotes\n\n欢迎使用 InfluNotes！这是一个强大的文章编辑和管理工具。',
-              children: [],
-              expanded: false,
-              createdAt: new Date(),
-            },
-            {
-              id: 'why-built',
-              title: 'Why we Built this app',
-              content:
-                '# Why we Built this app\n\n我们构建这个应用是为了帮助用户更好地管理和编辑他们的文章内容。',
-              children: [],
-              expanded: false,
-              createdAt: new Date(),
-            },
-          ],
-        },
-        {
-          id: 'campaigns',
-          title: 'Campaigns',
-          expanded: true,
-          articles: [],
-        },
-      ];
-      setCategories(defaultCategories);
-      saveCategoriesToStorage(defaultCategories);
-    } else {
-      setCategories(storedCategories);
-    }
+    const defaultCategories: Category[] = [
+      {
+        id: 'welcome',
+        title: 'Welcome',
+        expanded: true,
+        articles: [
+          {
+            id: 'how-to-use',
+            title: 'How to Use InfluNotes',
+            content:
+              '# How to Use InfluNotes\n\n欢迎使用 InfluNotes！这是一个强大的文章编辑和管理工具。',
+            children: [],
+            expanded: false,
+            createdAt: new Date(),
+          },
+          {
+            id: 'why-built',
+            title: 'Why we Built this app',
+            content:
+              '# Why we Built this app\n\n我们构建这个应用是为了帮助用户更好地管理和编辑他们的文章内容。',
+            children: [],
+            expanded: false,
+            createdAt: new Date(),
+          },
+        ],
+      },
+    ];
+    setCategories(defaultCategories);
   }, []);
+
+  // 将 tweet_thread 数据合并到 categories 中
+  useEffect(() => {
+    if (tweetThreads.length > 0) {
+      const tweetCategories: Category[] = tweetThreads.map((thread) => ({
+        id: `tweet-${thread.id}`,
+        title: thread.topic || 'Untitled Thread',
+        expanded: false,
+        articles: [], // 不展示子文章，只显示 topic
+        tweetData: thread, // 保存原始 tweet 数据
+      }));
+
+      // 合并默认分类和 tweet 分类
+      setCategories((prevCategories) => {
+        // 过滤掉之前的 tweet 分类
+        const nonTweetCategories = prevCategories.filter(
+          (cat) => !cat.id.startsWith('tweet-'),
+        );
+        // 添加新的 tweet 分类
+        return [...nonTweetCategories, ...tweetCategories];
+      });
+    }
+  }, [tweetThreads]);
 
   const updateCategories = useCallback((newCategories: Category[]) => {
     setCategories(newCategories);
-    saveCategoriesToStorage(newCategories);
   }, []);
 
   const toggleCategoryExpanded = (categoryId: string) => {
@@ -118,7 +99,7 @@ export const useArticleManagement = () => {
   };
 
   const createNewArticle = (categoryId: string, parentId?: string) => {
-    if (categoryId === 'welcome') return;
+    if (categoryId === 'welcome' || categoryId.startsWith('tweet-')) return;
 
     const newArticle: Article = {
       id: Date.now().toString(),
@@ -221,7 +202,7 @@ export const useArticleManagement = () => {
   };
 
   const startEditCategoryTitle = (categoryId: string) => {
-    if (categoryId === 'welcome') return;
+    if (categoryId === 'welcome' || categoryId.startsWith('tweet-')) return;
 
     const category = categories.find((cat) => cat.id === categoryId);
     if (category) {
@@ -231,7 +212,7 @@ export const useArticleManagement = () => {
   };
 
   const startEditArticleTitle = (categoryId: string, articleId: string) => {
-    if (categoryId === 'welcome') return;
+    if (categoryId === 'welcome' || categoryId.startsWith('tweet-')) return;
 
     const findArticle = (articles: Article[]): Article | null => {
       for (const article of articles) {
@@ -329,6 +310,7 @@ export const useArticleManagement = () => {
     editingCategoryId,
     editingArticleId,
     tempTitle,
+    tweetThreadsLoading,
     setTempTitle,
     setShowMarkdownEditor,
     setCurrentArticle,

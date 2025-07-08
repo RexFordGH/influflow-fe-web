@@ -33,11 +33,13 @@ import { ImageEditModal } from './ImageEditModal';
 interface EnhancedContentGenerationProps {
   topic: string;
   onBack: () => void;
+  initialData?: Outline;
 }
 
 export function EnhancedContentGeneration({
   topic,
   onBack,
+  initialData,
 }: EnhancedContentGenerationProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] =
@@ -95,7 +97,7 @@ export function EnhancedContentGeneration({
 
   // 当topic变化时重置状态并启动生成
   useEffect(() => {
-    if (topic) {
+    if (topic && !initialData) {
       // 重置所有状态
       setGeneratedContent(null);
       setRawAPIData(null);
@@ -108,7 +110,20 @@ export function EnhancedContentGeneration({
       // 启动生成过程
       setIsGenerating(true);
     }
-  }, [topic]);
+  }, [topic, initialData]);
+
+  // 新增：处理 initialData 的逻辑
+  useEffect(() => {
+    if (initialData) {
+      // 如果有初始数据，直接渲染，跳过 API 调用
+      setRawAPIData(initialData);
+      const content = convertAPIDataToGeneratedContent(initialData);
+      setGeneratedContent(content);
+      setCurrentNodes(content.mindmap.nodes);
+      setCurrentEdges(content.mindmap.edges);
+      setIsGenerating(false);
+    }
+  }, [initialData]);
 
   // AI生成过程 - 使用真实API
   useEffect(() => {
@@ -581,7 +596,7 @@ export function EnhancedContentGeneration({
     shouldShowLoading: isGenerating || (!generatedContent && apiError),
   });
 
-  if (isGenerating || (!generatedContent && !rawAPIData)) {
+  if (isGenerating || (!generatedContent && !rawAPIData && !initialData)) {
     const hasError = !isGenerating && !!apiError;
 
     return (
@@ -649,10 +664,11 @@ export function EnhancedContentGeneration({
         <div className="flex w-1/2 flex-col bg-white">
           {/* Twitter Thread内容区域 */}
           <div className="flex-1 overflow-hidden">
-            {rawAPIData && (
+            {(rawAPIData) && (
               <EnhancedMarkdownRenderer
                 content={
-                  regeneratedMarkdown || convertAPIDataToMarkdown(rawAPIData)
+                  regeneratedMarkdown ||
+                  (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '')
                 }
                 onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}

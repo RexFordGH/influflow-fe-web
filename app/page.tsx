@@ -18,6 +18,10 @@ import {
   needsProfileCompletion,
   setPromptDismissed,
 } from '@/utils/profileStorage';
+import { useContentStore } from '@/stores/contentStore';
+import { parseMarkdown } from '@/lib/markdown/parser';
+import { type TweetThread } from '@/hooks/useTweetThreads';
+import { Outline } from '@/types/outline';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -43,6 +47,9 @@ export default function Home() {
   const [showProfileCompletePrompt, setShowProfileCompletePrompt] =
     useState(false);
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
+  const [initialData, setInitialData] = useState<Outline | undefined>(
+    undefined,
+  );
 
   const {
     categories,
@@ -51,6 +58,7 @@ export default function Home() {
     editingCategoryId,
     editingArticleId,
     tempTitle,
+    tweetThreadsLoading,
     setTempTitle,
     setShowMarkdownEditor,
     setCurrentArticle,
@@ -159,9 +167,43 @@ export default function Home() {
     setShowLoginPage(false);
   };
 
+  const {
+    setMarkdown,
+    setMarkdownNodes,
+    syncMarkdownToFlow,
+  } = useContentStore();
+
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
     setPromptDismissed(); // 记录用户已关闭提示
+  };
+
+  const handleTweetThreadClick = (tweetData: any) => {
+    // 1. 将 TweetThread 格式转换为 Outline 格式
+    const outlineData: Outline = {
+      topic: tweetData.topic,
+      nodes: tweetData.tweets, // 将 'tweets' 映射到 'nodes'
+      total_tweets: tweetData.tweets.reduce(
+        (acc: number, group: any) => acc + (group.tweets?.length || 0),
+        0,
+      ),
+    };
+
+    // 2. 设置 initialData 和 topic
+    setInitialData(outlineData);
+    setCurrentTopic(outlineData.topic || 'Tweet Thread');
+
+    // 3. 切换视图
+    setShowContentGeneration(true);
+    setHasCreatedContentGeneration(true);
+  };
+
+  const handleAddNewClick = () => {
+    // 点击 Add New 返回主页面
+    setShowContentGeneration(false);
+    setShowMarkdownEditor(false);
+    setCurrentArticle(null);
+    setCurrentTopic('');
   };
 
   return (
@@ -193,6 +235,7 @@ export default function Home() {
           <EnhancedContentGeneration
             topic={currentTopic}
             onBack={handleBackToHome}
+            initialData={initialData}
           />
         </div>
       )}
@@ -229,6 +272,9 @@ export default function Home() {
             editingArticleId={editingArticleId}
             onStartEditArticleTitle={startEditArticleTitle}
             onSaveArticleTitle={saveArticleTitle}
+            onTweetThreadClick={handleTweetThreadClick}
+            onAddNewClick={handleAddNewClick}
+            tweetThreadsLoading={tweetThreadsLoading}
           />
         </AnimatePresence>
 

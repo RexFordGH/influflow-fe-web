@@ -1,7 +1,11 @@
 'use client';
 
-import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
-import { Button, Image } from '@heroui/react';
+import {
+  DocumentTextIcon,
+  PlusIcon,
+  UserIcon,
+} from '@heroicons/react/24/outline';
+import { Button, Image, Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
@@ -9,6 +13,17 @@ import { useAuthStore } from '@/stores/authStore';
 import { Category } from '@/types/content';
 
 import { ArticleItem } from '../home/ArticleItem';
+
+const TweetThreadsSkeleton = () => (
+  <div className="space-y-2">
+    {Array.from({ length: 10 }).map((_, index) => (
+      <div key={index} className="flex items-center space-x-2 p-2">
+        <Skeleton className="size-6 rounded" />
+        <Skeleton className="h-4 w-32 rounded" />
+      </div>
+    ))}
+  </div>
+);
 
 interface AppSidebarProps {
   collapsed: boolean;
@@ -28,6 +43,9 @@ interface AppSidebarProps {
   editingArticleId: string | null;
   onStartEditArticleTitle: (categoryId: string, articleId: string) => void;
   onSaveArticleTitle: (categoryId: string, articleId: string) => void;
+  onTweetThreadClick?: (tweetData: any) => void;
+  onAddNewClick?: () => void;
+  tweetThreadsLoading?: boolean;
 }
 
 export const AppSidebar = ({
@@ -48,12 +66,29 @@ export const AppSidebar = ({
   editingArticleId,
   onStartEditArticleTitle,
   onSaveArticleTitle,
+  onTweetThreadClick,
+  onAddNewClick,
+  tweetThreadsLoading = false,
 }: AppSidebarProps) => {
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
 
   const handleOpenProfile = () => {
     router.push('/profile');
+  };
+
+  const handleCategoryClick = (category: Category) => {
+    if (
+      category.id.startsWith('tweet-') &&
+      category.tweetData &&
+      onTweetThreadClick
+    ) {
+      // 点击 tweet 分类时，打开思维导图和 MD 区域
+      onTweetThreadClick(category.tweetData);
+    } else {
+      // 普通分类的展开/收起
+      onToggleCategoryExpanded(category.id);
+    }
   };
 
   if (!isAuthenticated || collapsed) {
@@ -112,93 +147,116 @@ export const AppSidebar = ({
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
-          {categories.map((category) => (
-            <div key={category.id} className="">
-              <div className="group flex min-h-[37px] items-center justify-between rounded-[8px] hover:bg-[#E8E8E8]">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => onToggleCategoryExpanded(category.id)}
-                    className="rounded p-1 hover:bg-gray-200"
-                  >
-                    <Image
-                      src={'/icons/arrowLeft.svg'}
-                      alt="arrow-right"
-                      width={24}
-                      height={24}
-                      className={`transition-transform ${
-                        category.expanded ? 'rotate-90' : ''
-                      }`}
-                    />
-                  </button>
-                  {editingCategoryId === category.id ? (
-                    <input
-                      type="text"
-                      value={tempTitle}
-                      onChange={(e) => onTempTitleChange(e.target.value)}
-                      onBlur={() => onSaveCategoryTitle(category.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') onSaveCategoryTitle(category.id);
-                        if (e.key === 'Escape') onCancelEdit();
-                      }}
-                      className="rounded border-none bg-transparent px-1 text-sm font-medium outline-none focus:ring-1 focus:ring-blue-500"
-                      autoFocus
-                    />
-                  ) : (
-                    <h3
-                      className={`text-sm font-medium text-gray-900 ${
-                        category.id !== 'welcome' ? 'cursor-pointer' : ''
-                      }`}
-                      onDoubleClick={() =>
-                        onStartEditCategoryTitle(category.id)
-                      }
-                    >
-                      {category.title}
-                    </h3>
+          {tweetThreadsLoading ? (
+            <TweetThreadsSkeleton />
+          ) : (
+            <>
+              {categories.map((category) => (
+                <div key={category.id} className="">
+                  <div className="group flex min-h-[37px] items-center justify-between rounded-[8px] hover:bg-[#E8E8E8]">
+                    <div className="flex items-center space-x-2">
+                      {/* 使用不同图标区分普通分类和tweet内容 */}
+                      <button
+                        onClick={() => handleCategoryClick(category)}
+                        className="rounded p-1 hover:bg-gray-200"
+                      >
+                        {category.id.startsWith('tweet-') ? (
+                          <DocumentTextIcon className="size-4 text-gray-500 opacity-70" />
+                        ) : (
+                          <Image
+                            src="/icons/arrowLeft.svg"
+                            alt="arrow icon"
+                            width={24}
+                            height={24}
+                            className={`transition-transform ${
+                              category.expanded ? 'rotate-90' : ''
+                            }`}
+                          />
+                        )}
+                      </button>
+                      {editingCategoryId === category.id ? (
+                        <input
+                          type="text"
+                          value={tempTitle}
+                          onChange={(e) => onTempTitleChange(e.target.value)}
+                          onBlur={() => onSaveCategoryTitle(category.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter')
+                              onSaveCategoryTitle(category.id);
+                            if (e.key === 'Escape') onCancelEdit();
+                          }}
+                          className="rounded border-none bg-transparent px-1 text-sm font-medium outline-none focus:ring-1 focus:ring-blue-500"
+                          autoFocus
+                        />
+                      ) : (
+                        <h3
+                          className={`text-sm font-medium text-gray-900 ${
+                            category.id !== 'welcome' &&
+                            !category.id.startsWith('tweet-')
+                              ? 'cursor-pointer'
+                              : category.id.startsWith('tweet-')
+                                ? 'cursor-pointer'
+                                : ''
+                          }`}
+                          onClick={() => {
+                            if (category.id.startsWith('tweet-')) {
+                              handleCategoryClick(category);
+                            }
+                          }}
+                          onDoubleClick={() =>
+                            onStartEditCategoryTitle(category.id)
+                          }
+                        >
+                          {category.title}
+                        </h3>
+                      )}
+                    </div>
+                    {category.id !== 'welcome' &&
+                      !category.id.startsWith('tweet-') && (
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          onPress={() => onCreateNewArticle(category.id)}
+                          className="opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          <PlusIcon className="size-4 text-gray-600" />
+                        </Button>
+                      )}
+                  </div>
+
+                  {category.expanded && (
+                    <div className="ml-2 space-y-1">
+                      {category.articles.map((article) => (
+                        <ArticleItem
+                          key={article.id}
+                          article={article}
+                          categoryId={category.id}
+                          onToggleExpanded={onToggleArticleExpanded}
+                          onOpenEditor={onOpenArticleEditor}
+                          onAddChild={onCreateNewArticle}
+                          editingArticleId={editingArticleId}
+                          tempTitle={tempTitle}
+                          onStartEditTitle={onStartEditArticleTitle}
+                          onSaveTitle={onSaveArticleTitle}
+                          onCancelEdit={onCancelEdit}
+                          onTempTitleChange={onTempTitleChange}
+                        />
+                      ))}
+                    </div>
                   )}
                 </div>
-                {category.id !== 'welcome' && (
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={() => onCreateNewArticle(category.id)}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <PlusIcon className="size-4 text-gray-600" />
-                  </Button>
-                )}
+              ))}
+
+              <div
+                className="flex cursor-pointer items-center space-x-2 p-2 text-sm text-gray-400 hover:text-gray-600"
+                onClick={onAddNewClick || onCreateNewCategory}
+              >
+                <PlusIcon className="size-4" />
+                <span>Add New</span>
               </div>
-
-              {category.expanded && (
-                <div className="ml-2 space-y-1">
-                  {category.articles.map((article) => (
-                    <ArticleItem
-                      key={article.id}
-                      article={article}
-                      categoryId={category.id}
-                      onToggleExpanded={onToggleArticleExpanded}
-                      onOpenEditor={onOpenArticleEditor}
-                      onAddChild={onCreateNewArticle}
-                      editingArticleId={editingArticleId}
-                      tempTitle={tempTitle}
-                      onStartEditTitle={onStartEditArticleTitle}
-                      onSaveTitle={onSaveArticleTitle}
-                      onCancelEdit={onCancelEdit}
-                      onTempTitleChange={onTempTitleChange}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-
-          <div
-            className="flex cursor-pointer items-center space-x-2 p-2 text-sm text-gray-400 hover:text-gray-600"
-            onClick={onCreateNewCategory}
-          >
-            <PlusIcon className="size-4" />
-            <span>Add New</span>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </motion.div>
