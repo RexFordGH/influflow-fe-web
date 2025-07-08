@@ -138,14 +138,14 @@ export const WelcomeScreen = ({
             </Button>
           </div>
 
-          <div className="text-center">
+          {/* <div className="text-center">
             <div
               onClick={onWriteByMyself}
               className="cursor-pointer text-[16px] font-[500] text-black underline hover:text-[#448AFF]"
             >
               Write by Myself
             </div>
-          </div>
+          </div> */}
         </div>
         {isAuthenticated && (
           <div className="absolute inset-x-0 bottom-[55px] flex justify-center">

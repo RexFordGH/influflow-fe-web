@@ -147,7 +147,7 @@ export const AppSidebar = ({
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
-          {tweetThreadsLoading && categories.length === 0 ? (
+          {tweetThreadsLoading ? (
             <TweetThreadsSkeleton />
           ) : (
             <>
