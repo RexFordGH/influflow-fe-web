@@ -57,17 +57,8 @@ export interface TrendingTopic {
 }
 
 export interface SuggestedTopic {
-  source: {
-    id: string;
-    name: string;
-  };
-  author: string;
-  title: string;
-  description: string;
-  url: string;
-  urlToImage: string;
-  publishedAt: string;
-  content: string;
+  topic: string;
+  type: string;
 }
 
 export interface TrendingTopicsResponse {

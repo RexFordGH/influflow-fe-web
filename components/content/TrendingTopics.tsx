@@ -123,7 +123,7 @@ export function TrendingTopics({
                         width: `${Math.max(432, 880 - index * 110)}px`,
                       }}
                     >
-                      <span className="text-lg font-medium text-black">
+                      <span className="text-lg font-medium text-black text-left">
                         {topic.title}
                       </span>
                       <span className="text-lg font-medium text-gray-600">
@@ -160,7 +160,7 @@ export function TrendingTopics({
                   // 实际数据 - 根据Figma设计样式
                   suggestedTopics.map((topic: any, index: number) => (
                     <motion.button
-                      key={`${topic.title}-${index}`}
+                      key={`${topic.topic}-${index}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
@@ -171,22 +171,11 @@ export function TrendingTopics({
                           : 'border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="mb-2">
+                      <div className="">
                         <span className="text-[18px] font-normal leading-[27px] text-black">
-                          {topic.title}
+                          {topic.topic}
                         </span>
                       </div>
-                      {topic.description && (
-                        <div className="line-clamp-2 text-sm text-gray-600">
-                          {topic.description}
-                        </div>
-                      )}
-                      {topic.source && (
-                        <div className="mt-1 text-xs text-gray-500">
-                          {topic.source.name} •{' '}
-                          {new Date(topic.publishedAt).toLocaleDateString()}
-                        </div>
-                      )}
                     </motion.button>
                   ))
                 )}

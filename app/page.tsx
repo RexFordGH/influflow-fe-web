@@ -162,7 +162,9 @@ export default function Home() {
   const handleTrendingTopicSelect = (topic: TrendingTopic | SuggestedTopic) => {
     setShowTrendingTopics(false);
     setTimeout(() => {
-      setTopicInput(topic.title);
+      // TrendingTopic 使用 title 字段，SuggestedTopic 使用 topic 字段
+      const topicText = 'title' in topic ? topic.title : topic.topic;
+      setTopicInput(topicText);
     }, 400);
   };
 
