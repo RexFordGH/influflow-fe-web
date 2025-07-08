@@ -821,6 +821,7 @@ export function EnhancedContentGeneration({
                 onTweetContentChange={handleTweetContentChange}
                 highlightedSection={hoveredTweetId}
                 hoveredTweetId={hoveredTweetId}
+                selectedNodeId={selectedNodeId}
                 imageData={generatedContent?.image}
                 tweetData={rawAPIData}
                 loadingTweetId={loadingTweetId}
