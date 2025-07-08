@@ -187,7 +187,7 @@ export function ImageEditModal({
     ) {
       handleAutoGenerateImage();
     }
-  }, [image.url, targetTweet, conversation.length, handleAutoGenerateImage]);
+  }, [image.url, targetTweet, conversation.length]);
 
   const handleGenerateImage = async () => {
     if (!prompt.trim() || isGenerating) return;

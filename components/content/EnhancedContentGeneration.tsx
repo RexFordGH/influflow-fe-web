@@ -11,6 +11,7 @@ import {
   useGenerateThread,
   useModifyOutline,
 } from '@/lib/api/services';
+import { addToast } from '@/components/base/toast';
 import {
   convertAPIDataToGeneratedContent,
   convertAPIDataToMarkdown,
@@ -248,10 +249,17 @@ export function EnhancedContentGeneration({
         cleanup();
         console.error('API生成失败:', error);
         const errorMessage = getErrorMessage(error);
-        setApiError(errorMessage);
-        setIsGenerating(false);
-        setHasStartedGeneration(false); // 失败时重置，允许重试
-        requestIdRef.current = null; // 清除请求ID
+        
+        // 显示错误 toast
+        addToast({
+          title: '生成失败',
+          description: errorMessage,
+          color: 'danger',
+          timeout: 3000,
+        });
+        
+        // 返回首页
+        onBack();
       },
     });
 
@@ -262,6 +270,7 @@ export function EnhancedContentGeneration({
     hasStartedGeneration,
     generateThread,
     generationSteps.length,
+    onBack,
   ]);
 
   const handleNodeSelect = useCallback(
