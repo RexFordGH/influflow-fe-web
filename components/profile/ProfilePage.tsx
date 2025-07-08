@@ -26,7 +26,7 @@ interface ProfilePageProps {
 
 export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   const { user, updateUser } = useAuthStore();
-  const [selectedStyle, setSelectedStyle] = useState<StyleType>('Professional');
+  const [selectedStyle, setSelectedStyle] = useState<StyleType | null>(null);
   const [customLinks, setCustomLinks] = useState([
     'https://x.com/influxy.ai...',
     'https://x.com/influxy.ai...',
@@ -146,7 +146,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       const profileData = {
         account_name: accountName,
         bio: personalIntro,
-        tone: selectedStyle === 'Customize' ? undefined : selectedStyle,
+        tone: selectedStyle === 'Customize' || selectedStyle === null ? undefined : selectedStyle,
         tweet_examples:
           selectedStyle === 'Customize'
             ? customLinks.filter((link) => link.trim() !== '')
@@ -177,6 +177,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           (link) => link.trim() !== '',
         );
         updateData.tone = undefined;
+      } else if (selectedStyle === null) {
+        updateData.tone = undefined;
+        updateData.tweet_examples = [];
       } else {
         updateData.tone = selectedStyle;
         updateData.tweet_examples = [];
@@ -204,13 +207,19 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   };
 
   const handleStyleSelect = (style: StyleType) => {
-    setSelectedStyle(style);
-    // 如果不是 Customize，清空自定义链接
-    if (style !== 'Customize') {
+    // 如果已经选中了这个风格，则取消选择
+    if (selectedStyle === style) {
+      setSelectedStyle(null);
       setCustomLinks(['', '', '']);
     } else {
-      // 如果是 Customize，设置默认链接
-      setCustomLinks(['https://x.com/influxy.ai...', '', '']);
+      setSelectedStyle(style);
+      // 如果不是 Customize，清空自定义链接
+      if (style !== 'Customize') {
+        setCustomLinks(['', '', '']);
+      } else {
+        // 如果是 Customize，设置默认链接
+        setCustomLinks(['https://x.com/influxy.ai...', '', '']);
+      }
     }
   };
 
