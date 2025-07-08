@@ -146,7 +146,10 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       const profileData = {
         account_name: accountName,
         bio: personalIntro,
-        tone: selectedStyle === 'Customize' || selectedStyle === null ? undefined : selectedStyle,
+        tone:
+          selectedStyle === 'Customize' || selectedStyle === null
+            ? undefined
+            : selectedStyle,
         tweet_examples:
           selectedStyle === 'Customize'
             ? customLinks.filter((link) => link.trim() !== '')
@@ -188,17 +191,16 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       updateUser(updateData);
 
       addToast({
-        title: 'Profile saved successfully',
-        description: 'Your profile has been saved to the database',
+        title: 'Saved Successfully',
         color: 'success',
+        timeout: 2000,
       });
 
-      onBack();
+      // onBack();
     } catch (error) {
       console.error('Failed to save profile:', error);
       addToast({
-        title: 'Save failed',
-        description: 'Failed to save your profile. Please try again.',
+        title: 'Failed to save',
         color: 'danger',
       });
     } finally {
