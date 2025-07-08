@@ -218,9 +218,9 @@ export function EditableContentMindmap({
         layoutOptions: {
           'elk.algorithm': 'mrtree',
           'elk.direction': 'RIGHT',
-          // 基本间距控制 - 减少水平距离
-          'elk.spacing.nodeNode': '20',
-          'elk.spacing.nodeNodeBetweenLayers': '40',
+          // 基本间距控制 - 大幅减少水平距离
+          'elk.spacing.nodeNode': '15',
+          'elk.spacing.nodeNodeBetweenLayers': '25', // 减少层级间距
           'elk.padding': '[left=20,top=20,right=20,bottom=20]',
           // 树形算法特定设置
           'elk.mrtree.weighting': 'UNIFORM', // 改为UNIFORM避免按子节点数量重排
@@ -329,10 +329,10 @@ export function EditableContentMindmap({
     setTimeout(() => {
       fitView({
         duration: 600,
-        padding: 0.2, // 增加边距确保完全可见
+        padding: 0.3, // 适当边距，让内容居中但不过度拉伸
         includeHiddenNodes: true,
-        minZoom: 0.1,
-        maxZoom: 2,
+        minZoom: 1.0, // 保持原始大小或稍大，不强制缩放
+        maxZoom: 3, // 提高最大缩放支持更大显示
       });
     }, 500); // 增加延迟确保布局完成
   }, [
@@ -472,10 +472,10 @@ export function EditableContentMindmap({
           setTimeout(() => {
             fitView({
               duration: 600,
-              padding: 0.2,
+              padding: 0.3, // 适当边距，让内容居中但不过度拉伸
               includeHiddenNodes: true,
-              minZoom: 0.1,
-              maxZoom: 2,
+              minZoom: 1.0, // 保持原始大小或稍大，不强制缩放
+              maxZoom: 3, // 提高最大缩放支持更大显示
             });
           }, 300);
         }
