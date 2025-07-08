@@ -1,6 +1,9 @@
 import { API_BASE_URL } from '@/constants/env';
+import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { type ApiErrorResponse, type BaseResponse } from '@/types/api';
+
+const supabase = createClient();
 
 export class ApiError extends Error {
   constructor(
@@ -17,6 +20,7 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
   timeoutMs: number = 10000,
+  isRetry: boolean = false,
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
@@ -41,6 +45,36 @@ export async function apiRequest<T>(
     const response = await fetch(url, config);
 
     if (!response.ok) {
+      if (response.status === 401 && !isRetry) {
+        try {
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.refreshSession();
+          if (error || !session) {
+            throw new Error('Failed to refresh token');
+          }
+          useAuthStore.getState().setSession(
+            {
+              id: session.user.id,
+              name:
+                session.user.user_metadata?.full_name ||
+                session.user.user_metadata?.name ||
+                'User',
+              email: session.user.email || '',
+              avatar:
+                session.user.user_metadata?.avatar_url ||
+                session.user.user_metadata?.picture,
+            },
+            session.access_token,
+          );
+          return apiRequest<T>(endpoint, options, timeoutMs, true);
+        } catch (refreshError) {
+          useAuthStore.getState().logout();
+          throw new ApiError('Session expired, please log in again.', 401);
+        }
+      }
+
       let errorData: ApiErrorResponse;
       let responseText = '';
       try {

@@ -135,6 +135,8 @@ export default function Home() {
     }
 
     if (topicInput.trim()) {
+      // 清除之前选择的笔记数据，确保重新生成新内容
+      setInitialData(undefined);
       setCurrentTopic(topicInput);
       setShowContentGeneration(true);
       setHasCreatedContentGeneration(true);
@@ -166,8 +168,7 @@ export default function Home() {
     setShowLoginPage(false);
   };
 
-  const { setMarkdown, setMarkdownNodes, syncMarkdownToFlow } =
-    useContentStore();
+  const { syncMarkdownToFlow } = useContentStore();
 
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
@@ -206,17 +207,17 @@ export default function Home() {
   };
 
   // 页面 focus 时刷新数据
-  useEffect(() => {
-    const handleFocus = () => {
-      if (isAuthenticated && !showContentGeneration) {
-        // 只在用户已登录且在首页时刷新
-        refetchTweetThreads();
-      }
-    };
+  // useEffect(() => {
+  //   const handleFocus = () => {
+  //     if (isAuthenticated && !showContentGeneration) {
+  //       // 只在用户已登录且在首页时刷新
+  //       refetchTweetThreads();
+  //     }
+  //   };
 
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [isAuthenticated, showContentGeneration, refetchTweetThreads]);
+  //   window.addEventListener('focus', handleFocus);
+  //   return () => window.removeEventListener('focus', handleFocus);
+  // }, [isAuthenticated, showContentGeneration, refetchTweetThreads]);
 
   return (
     <div className="relative h-screen overflow-hidden">
