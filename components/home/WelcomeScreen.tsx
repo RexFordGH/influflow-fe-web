@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
-import { motion, PanInfo } from 'framer-motion';
-import { lazy } from 'react';
+import { lazy, useEffect, useRef, useState } from 'react';
+import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
 import { SuggestedTopic, TrendingTopic } from '@/types/api';
@@ -60,137 +60,104 @@ export const WelcomeScreen = ({
   onWriteByMyself,
 }: WelcomeScreenProps) => {
   const { user, isAuthenticated } = useAuthStore();
+  const [currentPage, setCurrentPage] = useState(0);
 
-  // 处理滑动手势
-  const handlePanEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo,
-  ) => {
-    const { offset, velocity } = info;
-
-    // 上滑检测：位移超过-100px 或者 速度超过-300px/s
-    if (offset.y < -100 || velocity.y < -300) {
-      if (!showTrendingTopics) {
-        onScrollToTrending();
-      }
+  // 同步外部状态和内部页面状态
+  useEffect(() => {
+    if (showTrendingTopics && currentPage === 0) {
+      setCurrentPage(1);
+    } else if (!showTrendingTopics && currentPage === 1) {
+      setCurrentPage(0);
     }
+  }, [showTrendingTopics, currentPage]);
 
-    // 下滑检测：位移超过100px 或者 速度超过300px/s
-    if (offset.y > 100 || velocity.y > 300) {
-      if (showTrendingTopics) {
-        onBackFromTrending();
-      }
+  // 处理页面切换
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    if (pageNumber === 0) {
+      onBackFromTrending();
+    } else if (pageNumber === 1) {
+      onScrollToTrending();
     }
   };
 
   return (
     <div className="relative size-full">
-      <motion.div
-        initial={{ y: 0 }}
-        animate={{
-          y: showTrendingTopics
-            ? typeof window !== 'undefined'
-              ? -window.innerHeight
-              : -800
-            : 0,
-        }}
-        transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.2}
-        onPanEnd={handlePanEnd}
-        className="absolute inset-0 flex items-center justify-center bg-white"
+      <ReactPageScroller
+        pageOnChange={handlePageChange}
+        customPageNumber={currentPage}
+        animationTimer={600}
+        transitionTimingFunction="ease-in-out"
+        containerHeight="100vh"
+        containerWidth="100%"
       >
-        <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
-          <h2 className="text-[24px] font-[600] text-black">
-            Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would
-            you like to write about today?
-          </h2>
+        {/* 首页 */}
+        <div className="flex size-full items-center justify-center bg-white">
+          <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
+            <h2 className="text-[24px] font-[600] text-black">
+              Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would
+              you like to write about today?
+            </h2>
 
-          <div className="relative">
-            <textarea
-              placeholder="You can start with a topic or an opinion."
-              value={topicInput}
-              onChange={(e) => onTopicInputChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  onTopicSubmit();
-                }
-              }}
-              className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
-              rows={4}
-            />
-            <Button
-              isIconOnly
-              color="primary"
-              className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
-              onPress={onTopicSubmit}
-              disabled={!topicInput.trim()}
-            >
-              <Image
-                src="/icons/send.svg"
-                alt="发送"
-                width={40}
-                height={40}
-                className="pointer-events-none"
+            <div className="relative">
+              <textarea
+                placeholder="You can start with a topic or an opinion."
+                value={topicInput}
+                onChange={(e) => onTopicInputChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onTopicSubmit();
+                  }
+                }}
+                className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                rows={4}
               />
-            </Button>
-          </div>
-
-          {/* <div className="text-center">
-            <div
-              onClick={onWriteByMyself}
-              className="cursor-pointer text-[16px] font-[500] text-black underline hover:text-[#448AFF]"
-            >
-              Write by Myself
-            </div>
-          </div> */}
-        </div>
-        {isAuthenticated && (
-          <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
-            <div className="flex flex-col items-center">
-              <motion.div
-                animate={{
-                  y: [0, -8, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  ease: 'easeInOut',
-                  repeat: Infinity,
-                  repeatType: 'loop',
-                }}
+              <Button
+                isIconOnly
+                color="primary"
+                className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
+                onPress={onTopicSubmit}
+                disabled={!topicInput.trim()}
               >
                 <Image
-                  src="/icons/scroll.svg"
-                  alt="swipe-up"
-                  width={24}
-                  height={24}
+                  src="/icons/send.svg"
+                  alt="发送"
+                  width={40}
+                  height={40}
+                  className="pointer-events-none"
                 />
-              </motion.div>
-              <span className="text-[18px] font-[500] text-[#448AFF]">
-                Swipe up to explore trending topics
-              </span>
+              </Button>
             </div>
           </div>
-        )}
-      </motion.div>
+          {isAuthenticated && (
+            <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
+              <div className="flex flex-col items-center">
+                <div className="animate-bounce">
+                  <Image
+                    src="/icons/scroll.svg"
+                    alt="swipe-up"
+                    width={24}
+                    height={24}
+                  />
+                </div>
+                <span className="text-[18px] font-[500] text-[#448AFF]">
+                  Scroll down to explore trending topics
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
 
-      {showTrendingTopics && (
-        <motion.div
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={0.2}
-          onPanEnd={handlePanEnd}
-          className="absolute inset-0"
-        >
+        {/* Trending Topics 页面 */}
+        <div className="size-full">
           <TrendingTopics
-            isVisible={showTrendingTopics}
+            isVisible={true}
             onBack={onBackFromTrending}
             onTopicSelect={onTrendingTopicSelect}
           />
-        </motion.div>
-      )}
+        </div>
+      </ReactPageScroller>
     </div>
   );
 };

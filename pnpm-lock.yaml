@@ -101,6 +101,9 @@ importers:
       react-hook-form:
         specifier: ^7.56.0
         version: 7.58.1(react@19.1.0)
+      react-page-scroller:
+        specifier: ^3.0.1
+        version: 3.0.1(babel-polyfill@6.26.0)(prop-types@15.8.1)(react-dom@19.1.0(react@19.1.0))(react-router-dom@4.3.1(react@19.1.0))(react@19.1.0)
       reactflow:
         specifier: ^11.11.4
         version: 11.11.4(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -2446,6 +2449,12 @@ packages:
     resolution: {integrity: sha512-Cg7TFGpIr01vOQNODXOOaGz2NpCU5gl8x1qJFbb6hbZxR7XrcE2vtbAsTAbJ7/xwJtUuJEw8K8Zr/AE0LHlesg==, tarball: https://registry.npmjs.org/babel-plugin-macros/-/babel-plugin-macros-3.1.0.tgz}
     engines: {node: '>=10', npm: '>=6'}
 
+  babel-polyfill@6.26.0:
+    resolution: {integrity: sha512-F2rZGQnAdaHWQ8YAoeRbukc7HS9QgdgeyJ0rQDd485v9opwuPvjpPFcOOT/WmkKTdgy9ESgSPXDcTNpzrGr6iQ==, tarball: https://registry.npmjs.org/babel-polyfill/-/babel-polyfill-6.26.0.tgz}
+
+  babel-runtime@6.26.0:
+    resolution: {integrity: sha512-ITKNuq2wKlW1fJg9sSW52eepoYgZBggvOAHC0u/CYu/qxQ9EVzThCgR69BnSXLHjy2f7SY5zaQ4yt7H9ZVxY2g==, tarball: https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.26.0.tgz}
+
   bail@2.0.2:
     resolution: {integrity: sha512-0xO6mYd7JB2YesxDKplafRpsiOzPt9V02ddPCLbY1xYGPOX24NTyN50qnUxgCPcSoYMhKpAuBTjQoRZCAkUDRw==, tarball: https://registry.npmjs.org/bail/-/bail-2.0.2.tgz}
 
@@ -2595,6 +2604,10 @@ packages:
 
   copy-to-clipboard@3.3.3:
     resolution: {integrity: sha512-2KV8NhB5JqC3ky0r9PMCAZKbUHSwtEo4CwCs0KXgruG43gX5PMqDEBbVU4OUzw2MuAWUfsuFmWvEKG5QRfSnJA==, tarball: https://registry.npmjs.org/copy-to-clipboard/-/copy-to-clipboard-3.3.3.tgz}
+
+  core-js@2.6.12:
+    resolution: {integrity: sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==, tarball: https://registry.npmjs.org/core-js/-/core-js-2.6.12.tgz}
+    deprecated: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
 
   cosmiconfig@7.1.0:
     resolution: {integrity: sha512-AdmX6xUzdNASswsFtmwSt7Vj8po9IuqXm0UXz7QKPuEUmPB4XyjGfaAr2PSuELMwkRMVH1EpIkX5bTZGRB3eCA==, tarball: https://registry.npmjs.org/cosmiconfig/-/cosmiconfig-7.1.0.tgz}
@@ -3169,6 +3182,12 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==, tarball: https://registry.npmjs.org/hasown/-/hasown-2.0.2.tgz}
     engines: {node: '>= 0.4'}
 
+  history@4.10.1:
+    resolution: {integrity: sha512-36nwAD620w12kuzPAsyINPWJqlNbij+hpK1k9XRloDtym8mxzGYl2c17LnV6IAGB2Dmg4tEa7G7DlawS0+qjew==, tarball: https://registry.npmjs.org/history/-/history-4.10.1.tgz}
+
+  hoist-non-react-statics@2.5.5:
+    resolution: {integrity: sha512-rqcy4pJo55FTTLWt+bU8ukscqHeE/e9KWvsOW2b/a3afxQZhwkQdT1rPPCJ0rYXdj4vNcasY8zHTH+jF/qStxw==, tarball: https://registry.npmjs.org/hoist-non-react-statics/-/hoist-non-react-statics-2.5.5.tgz}
+
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==, tarball: https://registry.npmjs.org/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz}
 
@@ -3212,6 +3231,9 @@ packages:
 
   intl-messageformat@10.7.16:
     resolution: {integrity: sha512-UmdmHUmp5CIKKjSoE10la5yfU+AYJAaiYLsodbjL4lji83JNvgOQUjGaGhGrpFCb0Uh7sl7qfP1IyILa8Z40ug==, tarball: https://registry.npmjs.org/intl-messageformat/-/intl-messageformat-10.7.16.tgz}
+
+  invariant@2.2.4:
+    resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==, tarball: https://registry.npmjs.org/invariant/-/invariant-2.2.4.tgz}
 
   is-array-buffer@3.0.5:
     resolution: {integrity: sha512-DDfANUiiG2wC1qawP66qlTugJeL5HyzMpfr8lLK+jMQirGzNod0B12cFB/9q838Ru27sBwfw78/rdoU7RERz6A==, tarball: https://registry.npmjs.org/is-array-buffer/-/is-array-buffer-3.0.5.tgz}
@@ -3345,6 +3367,9 @@ packages:
   is-weakset@2.0.4:
     resolution: {integrity: sha512-mfcwb6IzQyOKTs84CQMrOwW4gQcaTOAWJ0zzJCl2WSPDrWk/OzDaImWFH3djXhb24g4eudZfLRozAvPGw4d9hQ==, tarball: https://registry.npmjs.org/is-weakset/-/is-weakset-2.0.4.tgz}
     engines: {node: '>= 0.4'}
+
+  isarray@0.0.1:
+    resolution: {integrity: sha512-D2S+3GLxWH+uhrNEcoh/fnmYeP8E8/zHl644d/jdA0g2uyXvy3sb0qxotE+ne0LtccHknQzWwZEzhak7oJ0COQ==, tarball: https://registry.npmjs.org/isarray/-/isarray-0.0.1.tgz}
 
   isarray@2.0.5:
     resolution: {integrity: sha512-xHjhDr3cNBK0BzdUJSPXZntQUx/mwMS5Rw4A7lPJ90XGAO6ISP/ePDNuo0vhqOZU+UD5JoodwCAAoZQd3FeAKw==, tarball: https://registry.npmjs.org/isarray/-/isarray-2.0.5.tgz}
@@ -3888,6 +3913,9 @@ packages:
     resolution: {integrity: sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==, tarball: https://registry.npmjs.org/path-scurry/-/path-scurry-1.11.1.tgz}
     engines: {node: '>=16 || 14 >=14.18'}
 
+  path-to-regexp@1.9.0:
+    resolution: {integrity: sha512-xIp7/apCFJuUHdDLWe8O1HIkb0kQrOMb/0u6FXQjemHn/ii5LrIzU6bdECnsiTF/GjZkMEKg1xdiZwNqDYlZ6g==, tarball: https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-1.9.0.tgz}
+
   path-type@3.0.0:
     resolution: {integrity: sha512-T2ZUsdZFHgA3u4e5PfPbjd7HDDpxPnQb5jN0SrDsjNSuVXHJqtwTnWqG0B1jZrgmJ/7lj1EmVIByWt1gxGkWvg==, tarball: https://registry.npmjs.org/path-type/-/path-type-3.0.0.tgz}
     engines: {node: '>=4'}
@@ -4147,6 +4175,25 @@ packages:
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==, tarball: https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz}
 
+  react-page-scroller@3.0.1:
+    resolution: {integrity: sha512-1OTlUHOSFCG8wmYzy3wo4dUIugXORzgZZ/Pj4BbkxN3n+Nv5tynfo7kygUiLYgE0QhDJslzZ4lntpCONAlv/vA==, tarball: https://registry.npmjs.org/react-page-scroller/-/react-page-scroller-3.0.1.tgz}
+    peerDependencies:
+      babel-polyfill: ^6.26.0
+      prop-types: ^15.6.2
+      react: ^18.2.0
+      react-dom: ^18.2.0
+      react-router-dom: ^4.3.1
+
+  react-router-dom@4.3.1:
+    resolution: {integrity: sha512-c/MlywfxDdCp7EnB7YfPMOfMD3tOtIjrQlj/CKfNMBxdmpJP8xcz5P/UAFn3JbnQCNUxsHyVVqllF9LhgVyFCA==, tarball: https://registry.npmjs.org/react-router-dom/-/react-router-dom-4.3.1.tgz}
+    peerDependencies:
+      react: '>=15'
+
+  react-router@4.3.1:
+    resolution: {integrity: sha512-yrvL8AogDh2X42Dt9iknk4wF4V8bWREPirFfS9gLU1huk6qK41sg7Z/1S81jjTrGHxa3B8R3J6xIkDAA6CVarg==, tarball: https://registry.npmjs.org/react-router/-/react-router-4.3.1.tgz}
+    peerDependencies:
+      react: '>=15'
+
   react-textarea-autosize@8.5.9:
     resolution: {integrity: sha512-U1DGlIQN5AwgjTyOEnI1oCcMuEr1pv1qOtklB2l4nyMGbHzWrI0eFsYK0zos2YWqAolJyG0IWJaqWmWj5ETh0A==, tarball: https://registry.npmjs.org/react-textarea-autosize/-/react-textarea-autosize-8.5.9.tgz}
     engines: {node: '>=10'}
@@ -4178,6 +4225,12 @@ packages:
     resolution: {integrity: sha512-00o4I+DVrefhv+nX0ulyi3biSHCPDe+yLv5o/p6d/UVlirijB8E16FtfwSAi4g3tcqrQ4lRAqQSoFEZJehYEcw==, tarball: https://registry.npmjs.org/reflect.getprototypeof/-/reflect.getprototypeof-1.0.10.tgz}
     engines: {node: '>= 0.4'}
 
+  regenerator-runtime@0.10.5:
+    resolution: {integrity: sha512-02YopEIhAgiBHWeoTiA8aitHDt8z6w+rQqNuIftlM+ZtvSl/brTouaU7DW6GO/cHtvxJvS4Hwv2ibKdxIRi24w==, tarball: https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.10.5.tgz}
+
+  regenerator-runtime@0.11.1:
+    resolution: {integrity: sha512-MguG95oij0fC3QV3URf4V2SDYGJhJnJGqvIIgdECeODCT98wSWDAJ94SSuVpYQUoTcGUIL6L4yNB7j1DFFHSBg==, tarball: https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz}
+
   regexp.prototype.flags@1.5.4:
     resolution: {integrity: sha512-dYqgNSZbDwkaJ2ceRd9ojCGjBq+mOm9LmtXnAnEGyHhN/5R7iDW2TRw3h+o/jCFxus3P2LfWIIiwowAjANm7IA==, tarball: https://registry.npmjs.org/regexp.prototype.flags/-/regexp.prototype.flags-1.5.4.tgz}
     engines: {node: '>= 0.4'}
@@ -4194,6 +4247,9 @@ packages:
   resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==, tarball: https://registry.npmjs.org/resolve-from/-/resolve-from-4.0.0.tgz}
     engines: {node: '>=4'}
+
+  resolve-pathname@3.0.0:
+    resolution: {integrity: sha512-C7rARubxI8bXFNB/hqcp/4iUeIXJhJZvFPFPiSPRnhU5UPxzMFIl+2E6yY6c4k9giDJAhtV+enfA+G89N6Csng==, tarball: https://registry.npmjs.org/resolve-pathname/-/resolve-pathname-3.0.0.tgz}
 
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==, tarball: https://registry.npmjs.org/resolve-pkg-maps/-/resolve-pkg-maps-1.0.0.tgz}
@@ -4485,6 +4541,12 @@ packages:
   thenify@3.3.1:
     resolution: {integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==, tarball: https://registry.npmjs.org/thenify/-/thenify-3.3.1.tgz}
 
+  tiny-invariant@1.3.3:
+    resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==, tarball: https://registry.npmjs.org/tiny-invariant/-/tiny-invariant-1.3.3.tgz}
+
+  tiny-warning@1.0.3:
+    resolution: {integrity: sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==, tarball: https://registry.npmjs.org/tiny-warning/-/tiny-warning-1.0.3.tgz}
+
   tinyglobby@0.2.14:
     resolution: {integrity: sha512-tX5e7OM1HnYr2+a2C/4V0htOcSQcoSTH9KgJnVvNm5zm/cyEWKJ7j7YutsH9CxMdtOkkLFy2AHrMci9IM8IPZQ==, tarball: https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.14.tgz}
     engines: {node: '>=12.0.0'}
@@ -4635,6 +4697,9 @@ packages:
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==, tarball: https://registry.npmjs.org/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz}
 
+  value-equal@1.0.1:
+    resolution: {integrity: sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==, tarball: https://registry.npmjs.org/value-equal/-/value-equal-1.0.1.tgz}
+
   vfile-message@4.0.2:
     resolution: {integrity: sha512-jRDZ1IMLttGj41KcZvlrYAaI3CfqpLpfpf+Mfig13viT6NKvRzWZ+lXz0Y5D60w6uJIBAOGq9mSHf0gktF0duw==, tarball: https://registry.npmjs.org/vfile-message/-/vfile-message-4.0.2.tgz}
 
@@ -4643,6 +4708,9 @@ packages:
 
   w3c-keyname@2.2.8:
     resolution: {integrity: sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==, tarball: https://registry.npmjs.org/w3c-keyname/-/w3c-keyname-2.2.8.tgz}
+
+  warning@4.0.3:
+    resolution: {integrity: sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==, tarball: https://registry.npmjs.org/warning/-/warning-4.0.3.tgz}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==, tarball: https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz}
@@ -7898,6 +7966,17 @@ snapshots:
       cosmiconfig: 7.1.0
       resolve: 1.22.10
 
+  babel-polyfill@6.26.0:
+    dependencies:
+      babel-runtime: 6.26.0
+      core-js: 2.6.12
+      regenerator-runtime: 0.10.5
+
+  babel-runtime@6.26.0:
+    dependencies:
+      core-js: 2.6.12
+      regenerator-runtime: 0.11.1
+
   bail@2.0.2: {}
 
   balanced-match@1.0.2: {}
@@ -8040,6 +8119,8 @@ snapshots:
   copy-to-clipboard@3.3.3:
     dependencies:
       toggle-selection: 1.0.6
+
+  core-js@2.6.12: {}
 
   cosmiconfig@7.1.0:
     dependencies:
@@ -8745,6 +8826,17 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
+  history@4.10.1:
+    dependencies:
+      '@babel/runtime': 7.27.6
+      loose-envify: 1.4.0
+      resolve-pathname: 3.0.0
+      tiny-invariant: 1.3.3
+      tiny-warning: 1.0.3
+      value-equal: 1.0.1
+
+  hoist-non-react-statics@2.5.5: {}
+
   hoist-non-react-statics@3.3.2:
     dependencies:
       react-is: 16.13.1
@@ -8783,6 +8875,10 @@ snapshots:
       '@formatjs/fast-memoize': 2.2.7
       '@formatjs/icu-messageformat-parser': 2.11.2
       tslib: 2.8.1
+
+  invariant@2.2.4:
+    dependencies:
+      loose-envify: 1.4.0
 
   is-array-buffer@3.0.5:
     dependencies:
@@ -8914,6 +9010,8 @@ snapshots:
     dependencies:
       call-bound: 1.0.4
       get-intrinsic: 1.3.0
+
+  isarray@0.0.1: {}
 
   isarray@2.0.5: {}
 
@@ -9627,6 +9725,10 @@ snapshots:
       lru-cache: 10.4.3
       minipass: 7.1.2
 
+  path-to-regexp@1.9.0:
+    dependencies:
+      isarray: 0.0.1
+
   path-type@3.0.0:
     dependencies:
       pify: 3.0.0
@@ -9845,6 +9947,35 @@ snapshots:
 
   react-is@16.13.1: {}
 
+  react-page-scroller@3.0.1(babel-polyfill@6.26.0)(prop-types@15.8.1)(react-dom@19.1.0(react@19.1.0))(react-router-dom@4.3.1(react@19.1.0))(react@19.1.0):
+    dependencies:
+      babel-polyfill: 6.26.0
+      prop-types: 15.8.1
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+      react-router-dom: 4.3.1(react@19.1.0)
+
+  react-router-dom@4.3.1(react@19.1.0):
+    dependencies:
+      history: 4.10.1
+      invariant: 2.2.4
+      loose-envify: 1.4.0
+      prop-types: 15.8.1
+      react: 19.1.0
+      react-router: 4.3.1(react@19.1.0)
+      warning: 4.0.3
+
+  react-router@4.3.1(react@19.1.0):
+    dependencies:
+      history: 4.10.1
+      hoist-non-react-statics: 2.5.5
+      invariant: 2.2.4
+      loose-envify: 1.4.0
+      path-to-regexp: 1.9.0
+      prop-types: 15.8.1
+      react: 19.1.0
+      warning: 4.0.3
+
   react-textarea-autosize@8.5.9(@types/react@19.1.8)(react@19.1.0):
     dependencies:
       '@babel/runtime': 7.27.6
@@ -9895,6 +10026,10 @@ snapshots:
       get-proto: 1.0.1
       which-builtin-type: 1.2.1
 
+  regenerator-runtime@0.10.5: {}
+
+  regenerator-runtime@0.11.1: {}
+
   regexp.prototype.flags@1.5.4:
     dependencies:
       call-bind: 1.0.8
@@ -9931,6 +10066,8 @@ snapshots:
       unified: 11.0.5
 
   resolve-from@4.0.0: {}
+
+  resolve-pathname@3.0.0: {}
 
   resolve-pkg-maps@1.0.0: {}
 
@@ -10305,6 +10442,10 @@ snapshots:
     dependencies:
       any-promise: 1.3.0
 
+  tiny-invariant@1.3.3: {}
+
+  tiny-warning@1.0.3: {}
+
   tinyglobby@0.2.14:
     dependencies:
       fdir: 6.4.6(picomatch@4.0.2)
@@ -10490,6 +10631,8 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
+  value-equal@1.0.1: {}
+
   vfile-message@4.0.2:
     dependencies:
       '@types/unist': 3.0.3
@@ -10501,6 +10644,10 @@ snapshots:
       vfile-message: 4.0.2
 
   w3c-keyname@2.2.8: {}
+
+  warning@4.0.3:
+    dependencies:
+      loose-envify: 1.4.0
 
   webidl-conversions@3.0.1: {}
 

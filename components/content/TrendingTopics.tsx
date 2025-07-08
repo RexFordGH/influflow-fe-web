@@ -60,18 +60,7 @@ export function TrendingTopics({
   }));
 
   return (
-    <motion.div
-      initial={{ y: typeof window !== 'undefined' ? window.innerHeight : 800 }}
-      animate={{
-        y: isVisible
-          ? 0
-          : typeof window !== 'undefined'
-            ? window.innerHeight
-            : 800,
-      }}
-      transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1] }}
-      className="absolute inset-0 overflow-y-auto bg-white"
-    >
+    <div className="size-full overflow-y-auto bg-white">
       <div className="flex min-h-full flex-col">
         {/* 内容区域 */}
         <div className="flex-1 px-[30px] py-14">
@@ -207,7 +196,7 @@ export function TrendingTopics({
         </div>
 
         {/* 返回首屏悬浮按钮 */}
-        <Button
+        {/* <Button
           size="sm"
           variant="solid"
           onPress={_onBack}
@@ -227,8 +216,8 @@ export function TrendingTopics({
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
             />
           </svg>
-        </Button>
+        </Button> */}
       </div>
-    </motion.div>
+    </div>
   );
 }

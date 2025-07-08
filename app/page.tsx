@@ -12,7 +12,6 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
-import { useContentStore } from '@/stores/contentStore';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 import { Outline } from '@/types/outline';
 import {
@@ -168,7 +167,6 @@ export default function Home() {
     setShowLoginPage(false);
   };
 
-  const { syncMarkdownToFlow } = useContentStore();
 
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
