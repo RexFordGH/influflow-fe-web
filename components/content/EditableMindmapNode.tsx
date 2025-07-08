@@ -1,6 +1,5 @@
 'use client';
 
-import { PlusIcon } from '@heroicons/react/24/outline';
 import { Input } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Handle, Position } from 'reactflow';
@@ -298,7 +297,8 @@ const EditableMindmapNode = ({
       </div>
 
       {/* 添加子节点按钮 - hover 时显示，且当前节点深度小于4层 */}
-      {isHovered && level < 4 && (
+      {/* 直接隐藏 2025-07-08 */}
+      {/* {isHovered && level < 4 && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -309,7 +309,7 @@ const EditableMindmapNode = ({
         >
           <PlusIcon className="size-3" />
         </button>
-      )}
+      )} */}
 
       <Handle
         type="source"
