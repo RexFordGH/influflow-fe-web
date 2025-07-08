@@ -19,7 +19,7 @@ import {
 import Link from '@tiptap/extension-link';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/base';
 
@@ -49,6 +49,7 @@ export interface EditorProProps {
   collapseHeight?: number;
   collapsed?: boolean;
   onCollapse?: (collapsed: boolean) => void;
+  debounceMs?: number; // 新增：防抖时间配置
 }
 
 const isContentEmpty = (content: string): boolean => {
@@ -325,8 +326,41 @@ const EditorPro: React.FC<EditorProProps> = ({
   collapseHeight = 150,
   collapsed = false,
   onCollapse,
+  debounceMs = 300, // 默认300ms防抖
 }) => {
   const [isInitialized, setIsInitialized] = useState(false);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 防抖的 onChange 处理函数
+  const debouncedOnChange = useCallback(
+    (html: string) => {
+      // 清除之前的定时器
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      // 设置新的定时器
+      debounceTimeoutRef.current = setTimeout(() => {
+        const contentIsEmpty = isContentEmpty(html);
+        const jsonValue: EditorValue = {
+          content: html,
+          type: 'doc',
+          isEmpty: contentIsEmpty,
+        };
+        onChange?.(JSON.stringify(jsonValue));
+      }, debounceMs);
+    },
+    [onChange, debounceMs],
+  );
+
+  // 清理函数
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const editorValue = React.useMemo(() => {
     if (!value) return JSON.parse(defaultValue);
@@ -414,13 +448,7 @@ const EditorPro: React.FC<EditorProProps> = ({
     onUpdate: ({ editor }) => {
       if (!isEdit || !isInitialized) return;
       const html = editor.getHTML();
-      const contentIsEmpty = isContentEmpty(html);
-      const jsonValue: EditorValue = {
-        content: html,
-        type: 'doc',
-        isEmpty: contentIsEmpty,
-      };
-      onChange?.(JSON.stringify(jsonValue));
+      debouncedOnChange(html);
     },
     immediatelyRender: false,
   });

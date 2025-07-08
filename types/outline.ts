@@ -11,6 +11,7 @@ export interface Tweet {
 }
 
 export interface Outline {
+  id: string;
   nodes: Tweet[];
   topic: string;
   total_tweets: number;

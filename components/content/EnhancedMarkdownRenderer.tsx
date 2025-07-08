@@ -16,6 +16,7 @@ interface EnhancedMarkdownRendererProps {
     prompt?: string;
   }) => void;
   onTweetImageEdit?: (tweetData: any) => void; // 新增：tweet图片编辑回调
+  onTweetContentChange?: (tweetId: string, newContent: string) => void;
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
@@ -48,6 +49,7 @@ export function EnhancedMarkdownRenderer({
   onSourceClick,
   onImageClick,
   onTweetImageEdit,
+  onTweetContentChange,
   highlightedSection,
   hoveredTweetId,
   loadingTweetId,
@@ -326,36 +328,6 @@ export function EnhancedMarkdownRenderer({
       // Fallback：直接ID匹配
       hoveredTweetId === section.id;
 
-    // Debug信息 - 增强版本，帮助排查"漏一个"问题
-    if (
-      hoveredTweetId &&
-      (section.type === 'tweet' || section.type === 'group')
-    ) {
-      console.log(`Markdown section matching debug:`, {
-        sectionType: section.type,
-        sectionId: section.id,
-        sectionTweetId: section.tweetId,
-        sectionGroupId: section.groupId,
-        hoveredTweetId,
-        isHighlighted,
-        matchDetails: {
-          tweetIdMatch: section.tweetId === hoveredTweetId,
-          tweetIdStringMatch:
-            section.tweetId?.toString() === hoveredTweetId?.toString(),
-          tweetIdNumberMatch:
-            Number(section.tweetId) === Number(hoveredTweetId),
-          groupIdMatch:
-            section.groupId === hoveredTweetId?.replace('group-', ''),
-          groupIdStringMatch:
-            section.groupId?.toString() ===
-            hoveredTweetId?.replace('group-', ''),
-          groupIdNumberMatch:
-            Number(section.groupId) ===
-            Number(hoveredTweetId?.replace('group-', '')),
-        },
-      });
-    }
-
     // 检查是否正在loading - 增强匹配逻辑
     const isLoading = Boolean(
       loadingTweetId && // Tweet节点的多种匹配方式
@@ -384,6 +356,7 @@ export function EnhancedMarkdownRenderer({
         onSectionHover={onSectionHover}
         onImageClick={onImageClick}
         onTweetImageEdit={onTweetImageEdit}
+        onTweetContentChange={onTweetContentChange}
         tweetData={tweetData}
         imageData={imageData}
       />

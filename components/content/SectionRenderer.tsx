@@ -2,9 +2,10 @@
 
 import { Button, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
+import { createClient } from '../../lib/supabase/client';
 import { addToast } from '../base/toast';
 import EditorPro from '../editorPro/index';
 
@@ -41,6 +42,7 @@ interface SectionRendererProps {
     prompt?: string;
   }) => void;
   onTweetImageEdit?: (tweetData: any) => void;
+  onTweetContentChange?: (tweetId: string, newContent: string) => void;
   tweetData?: any;
   imageData?: {
     url: string;
@@ -57,27 +59,40 @@ export function SectionRenderer({
   onSectionHover,
   onImageClick,
   onTweetImageEdit,
+  onTweetContentChange,
   tweetData,
   imageData,
 }: SectionRendererProps) {
   // 状态来跟踪编辑器的当前内容（仅用于 tweet 类型）
   const [currentEditorContent, setCurrentEditorContent] = useState('');
 
+  const supabase = createClient();
+
   // 处理编辑器内容变化的回调
-  const handleEditorChange = useCallback((newValue: string) => {
-    try {
-      const parsed = JSON.parse(newValue);
-      // 将HTML内容转换为纯文本用于复制
-      const plainText = parsed.content
-        .replace(/<br\s*\/?>/g, '\n')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .trim();
-      setCurrentEditorContent(plainText);
-    } catch (e) {
-      console.error('Failed to parse editor content:', e);
-    }
-  }, []);
+  const handleEditorChange = useCallback(
+    (newValue: string) => {
+      try {
+        const parsed = JSON.parse(newValue);
+        // 将HTML内容转换为纯文本用于复制
+        const plainText = parsed.content
+          .replace(/<br\s*\/?>/g, '\n')
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .trim();
+        setCurrentEditorContent(plainText);
+
+        // 如果是 tweet 类型，则更新数据库
+        // 由于 EditorPro 现在已经有防抖了，这里直接调用
+        if (section.type === 'tweet' && section.tweetId) {
+          console.log('handleEditorChange', section.tweetId, plainText);
+          onTweetContentChange?.(section.tweetId!, plainText);
+        }
+      } catch (e) {
+        console.error('Failed to parse editor content:', e);
+      }
+    },
+    [section.type, section.tweetId, onTweetContentChange],
+  );
 
   // 为 tweet 类型初始化编辑器内容
   useEffect(() => {
@@ -380,6 +395,7 @@ export function SectionRenderer({
                 onChange={handleEditorChange}
                 isEdit={true}
                 hideMenuBar={true}
+                debounceMs={1000}
                 className={{
                   base: 'border-none bg-transparent',
                   editorWrapper: 'p-0',

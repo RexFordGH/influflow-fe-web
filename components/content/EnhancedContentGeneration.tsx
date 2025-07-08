@@ -25,6 +25,7 @@ import {
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
 
+import { createClient } from '@/lib/supabase/client';
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
@@ -216,10 +217,10 @@ export function EnhancedContentGeneration({
           // 快速推进到最后几个步骤
           for (let i = 4; i < generationSteps.length; i++) {
             setGenerationStep(i);
-            await new Promise((resolve) => setTimeout(resolve, 150)); // 快速推进
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 快速推进
           }
 
-          // 存储原始API数据
+          // 存储原始API数据，确保包含 id
           setRawAPIData(response);
 
           // 转换API数据为组件所需格式
@@ -417,6 +418,43 @@ export function EnhancedContentGeneration({
     [editingTweetData, rawAPIData, regeneratedMarkdown],
   );
 
+  const handleTweetContentChange = useCallback(
+    async (tweetId: string, newContent: string) => {
+      console.log('handleTweetContentChange', tweetId, newContent, rawAPIData);
+      if (!rawAPIData || !rawAPIData.id) return;
+
+      // 更新 rawAPIData 状态
+      const updatedNodes = rawAPIData.nodes.map((group: any) => ({
+        ...group,
+        tweets: group.tweets.map((tweet: any) =>
+          tweet.tweet_number.toString() === tweetId
+            ? { ...tweet, content: newContent }
+            : tweet,
+        ),
+      }));
+      const updatedRawAPIData = { ...rawAPIData, nodes: updatedNodes };
+      setRawAPIData(updatedRawAPIData);
+
+      // 更新 Supabase
+      try {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from('tweet_thread')
+          .update({ tweets: updatedRawAPIData.nodes })
+          .eq('id', rawAPIData.id);
+
+        if (error) {
+          throw error;
+        }
+        console.log('Tweet content updated successfully in Supabase.');
+      } catch (error) {
+        console.error('Error updating tweet content in Supabase:', error);
+        // 可以在这里添加一些错误处理逻辑，比如 toast 通知
+      }
+    },
+    [rawAPIData],
+  );
+
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
   const handleRegenerateClick = useCallback(async () => {
     console.log('🔄 Regenerate 按钮被点击了！');
@@ -586,12 +624,12 @@ export function EnhancedContentGeneration({
   }, []);
 
   // 调试状态
-  console.log('Render 条件检查:', {
-    isGenerating,
-    generatedContent: !!generatedContent,
-    apiError,
-    shouldShowLoading: isGenerating || (!generatedContent && apiError),
-  });
+  // console.log('Render 条件检查:', {
+  //   isGenerating,
+  //   generatedContent: !!generatedContent,
+  //   apiError,
+  //   shouldShowLoading: isGenerating || (!generatedContent && apiError),
+  // });
 
   if (isGenerating || (!generatedContent && !rawAPIData && !initialData)) {
     const hasError = !isGenerating && !!apiError;
@@ -671,6 +709,7 @@ export function EnhancedContentGeneration({
                 onSourceClick={handleSourceClick}
                 onImageClick={handleImageClick}
                 onTweetImageEdit={handleTweetImageEdit}
+                onTweetContentChange={handleTweetContentChange}
                 highlightedSection={hoveredTweetId}
                 hoveredTweetId={hoveredTweetId}
                 imageData={generatedContent?.image}

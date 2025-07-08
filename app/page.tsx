@@ -187,6 +187,7 @@ export default function Home() {
         (acc: number, group: any) => acc + (group.tweets?.length || 0),
         0,
       ),
+      id: tweetData.id,
     };
 
     // 2. 设置 initialData 和 topic

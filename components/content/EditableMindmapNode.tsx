@@ -90,14 +90,14 @@ const EditableMindmapNode = ({
 
     // 添加调试样式检查
     const finalStyle = `${baseStyle} ${alignmentStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
-    if (isHovered) {
-      console.log(`🎨 Node ${id} applying hover style:`, {
-        isHovered,
-        selected,
-        hoverStyle,
-        finalStyle,
-      });
-    }
+    // if (isHovered) {
+    //   console.log(`🎨 Node ${id} applying hover style:`, {
+    //     isHovered,
+    //     selected,
+    //     hoverStyle,
+    //     finalStyle,
+    //   });
+    // }
 
     return finalStyle;
   }, [level, selected, hoveredTweetId, data.tweetId, data.outlineIndex, id]);
