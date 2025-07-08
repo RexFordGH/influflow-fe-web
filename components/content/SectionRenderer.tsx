@@ -423,7 +423,7 @@ export function SectionRenderer({
                   base: 'border-none bg-transparent',
                   editorWrapper: 'p-0',
                   editor:
-                    'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:text-inherit',
+                    'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:p-[6px] [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:text-inherit',
                 }}
               />
             </div>
