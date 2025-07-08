@@ -144,8 +144,11 @@ export default function Home() {
   };
 
   const handleBackToHome = () => {
+    setInitialData(undefined);
     setShowContentGeneration(false);
     setCurrentTopic('');
+    // 返回首页时重新拉取文章列表确保数据同步
+    refetchTweetThreads();
   };
 
   const handleScrollToTrending = () => {

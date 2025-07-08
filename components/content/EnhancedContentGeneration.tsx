@@ -376,7 +376,7 @@ export function EnhancedContentGeneration({
 
   // 新逻辑: 精确地将选中的图片URL更新到Markdown中
   const handleImageUpdate = useCallback(
-    (newImage: {
+    async (newImage: {
       url: string;
       alt: string;
       caption?: string;
@@ -408,16 +408,39 @@ export function EnhancedContentGeneration({
               : tweet,
           ),
         }));
-        setRawAPIData({ ...rawAPIData, nodes: updatedNodes });
+        const updatedRawAPIData = { ...rawAPIData, nodes: updatedNodes };
+        setRawAPIData(updatedRawAPIData);
+
+        // 3. 更新 Supabase 数据库
+        if (rawAPIData.id) {
+          try {
+            const supabase = createClient();
+            const { error } = await supabase
+              .from('tweet_thread')
+              .update({ tweets: updatedRawAPIData.nodes })
+              .eq('id', rawAPIData.id);
+
+            if (error) {
+              throw error;
+            }
+            console.log('Tweet image updated successfully in Supabase.');
+
+            // 成功更新后，触发侧边栏数据刷新
+            onDataUpdate?.();
+          } catch (error) {
+            console.error('Error updating tweet image in Supabase:', error);
+            // 可以在这里添加一些错误处理逻辑，比如 toast 通知
+          }
+        }
       }
 
-      // 3. 关闭模态框并重置状态
+      // 4. 关闭模态框并重置状态
       setIsImageEditModalOpen(false);
       setEditingImage(null);
       setEditingTweetData(null);
       setGeneratingImageTweetId(null); // 清除生图高亮状态
     },
-    [editingTweetData, rawAPIData, regeneratedMarkdown],
+    [editingTweetData, rawAPIData, regeneratedMarkdown, onDataUpdate],
   );
 
   const handleTweetContentChange = useCallback(
@@ -544,26 +567,71 @@ export function EnhancedContentGeneration({
 
         const newOutline = result.updated_outline;
 
-        // 更新所有状态
-        setRawAPIData(newOutline);
+        // 从 Supabase 拉取最新数据确保同步
+        try {
+          const supabase = createClient();
+          const { data: latestData, error } = await supabase
+            .from('tweet_thread')
+            .select('*')
+            .eq('id', rawAPIData.id)
+            .single();
 
-        // 重新构建思维导图
-        const { nodes: newNodes, edges: newEdges } =
-          convertThreadDataToMindmap(newOutline);
-        setCurrentNodes(newNodes);
-        setCurrentEdges(newEdges);
+          if (error) {
+            throw error;
+          }
 
-        // 重新生成 markdown
-        const newMarkdown = convertAPIDataToMarkdown(newOutline);
-        setRegeneratedMarkdown(newMarkdown);
+          // 使用从数据库拉取的最新数据
+          const syncedOutline = latestData || newOutline;
+          console.log('从 Supabase 拉取到的最新数据:', syncedOutline);
 
-        // 更新生成的内容
-        if (generatedContent) {
-          const updatedContent = convertAPIDataToGeneratedContent(newOutline);
-          setGeneratedContent({
-            ...generatedContent,
-            ...updatedContent,
-          });
+          // 更新所有状态
+          setRawAPIData(syncedOutline);
+
+          // 重新构建思维导图
+          const { nodes: newNodes, edges: newEdges } =
+            convertThreadDataToMindmap(syncedOutline);
+          setCurrentNodes(newNodes);
+          setCurrentEdges(newEdges);
+
+          // 重新生成 markdown
+          const newMarkdown = convertAPIDataToMarkdown(syncedOutline);
+          setRegeneratedMarkdown(newMarkdown);
+
+          // 更新生成的内容
+          if (generatedContent) {
+            const updatedContent = convertAPIDataToGeneratedContent(syncedOutline);
+            setGeneratedContent({
+              ...generatedContent,
+              ...updatedContent,
+            });
+          }
+
+          // 触发侧边栏数据刷新
+          onDataUpdate?.();
+        } catch (dbError) {
+          console.error('从 Supabase 拉取数据失败，使用 API 返回的数据:', dbError);
+          
+          // 如果数据库拉取失败，使用 API 返回的数据作为备选
+          setRawAPIData(newOutline);
+
+          // 重新构建思维导图
+          const { nodes: newNodes, edges: newEdges } =
+            convertThreadDataToMindmap(newOutline);
+          setCurrentNodes(newNodes);
+          setCurrentEdges(newEdges);
+
+          // 重新生成 markdown
+          const newMarkdown = convertAPIDataToMarkdown(newOutline);
+          setRegeneratedMarkdown(newMarkdown);
+
+          // 更新生成的内容
+          if (generatedContent) {
+            const updatedContent = convertAPIDataToGeneratedContent(newOutline);
+            setGeneratedContent({
+              ...generatedContent,
+              ...updatedContent,
+            });
+          }
         }
       }
     } catch (error) {
