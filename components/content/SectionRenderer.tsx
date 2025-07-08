@@ -360,6 +360,15 @@ export function SectionRenderer({
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
 
+      // 计算tweet序号信息
+      const allTweets =
+        tweetData?.nodes?.flatMap((group: any) => group.tweets) || [];
+      const totalTweets = allTweets.length;
+      const currentTweetIndex = allTweets.findIndex(
+        (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
+      );
+      const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
+
       // 获取当前tweet的图片URL
       const currentTweetImageUrl = currentTweetData?.image_url;
 
@@ -391,6 +400,13 @@ export function SectionRenderer({
           {isLoading && (
             <div className="absolute left-2 top-2">
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+            </div>
+          )}
+
+          {/* Tweet 序号显示 */}
+          {totalTweets > 0 && tweetNumber > 0 && (
+            <div className="text-[10px] text-black/60 font-medium">
+              ({tweetNumber}/{totalTweets})
             </div>
           )}
 
