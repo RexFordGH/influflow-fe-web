@@ -257,7 +257,7 @@ const EditableMindmapNode = ({
       />
 
       <div
-        className={getNodeStyle}
+        className={`${getNodeStyle} ${isEditing ? '!max-w-none !w-auto !min-w-fit' : ''}`}
         style={{
           pointerEvents: 'auto', // 确保可点击
         }}
@@ -272,10 +272,11 @@ const EditableMindmapNode = ({
             autoFocus
             size="sm"
             variant="flat"
-            className="min-w-[100px] border-none outline-none"
+            className="max-w-none border-none outline-none"
+            style={{ width: `${Math.max(editValue.length * 8, 100)}px` }}
             classNames={{
-              input: 'text-center bg-white/20 text-current',
-              inputWrapper: 'bg-white/20',
+              input: 'text-center bg-white/20 text-current whitespace-pre-wrap',
+              inputWrapper: 'bg-white/20 max-w-none',
             }}
           />
         ) : (
