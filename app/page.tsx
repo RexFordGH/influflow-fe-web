@@ -204,8 +204,6 @@ export default function Home() {
     setShowMarkdownEditor(false);
     setCurrentArticle(null);
     setCurrentTopic('');
-    // 返回首页时刷新侧边栏数据
-    // refetchTweetThreads();
   };
 
   // 页面 focus 时刷新数据

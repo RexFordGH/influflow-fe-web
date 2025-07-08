@@ -57,6 +57,7 @@ export default function Profile() {
           editingArticleId={editingArticleId}
           onStartEditArticleTitle={startEditArticleTitle}
           onSaveArticleTitle={saveArticleTitle}
+          onAddNewClick={handleBackToHome}
         />
       </AnimatePresence>
 
