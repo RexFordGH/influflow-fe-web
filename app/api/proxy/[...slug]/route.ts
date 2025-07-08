@@ -20,11 +20,25 @@ async function handler(
   const targetUrl = `${TARGET_API_BASE_URL}/${path}${searchParams}`;
 
   try {
+    // Forward client headers to target API
+    const forwardHeaders = new Headers();
+    
+    // Copy all relevant headers from the original request
+    req.headers.forEach((value, key) => {
+      // Skip headers that shouldn't be forwarded
+      if (!['host', 'content-length'].includes(key.toLowerCase())) {
+        forwardHeaders.set(key, value);
+      }
+    });
+    
+    // Ensure Content-Type is set for non-GET requests
+    if (req.method !== 'GET' && req.method !== 'HEAD' && !forwardHeaders.has('content-type')) {
+      forwardHeaders.set('Content-Type', 'application/json');
+    }
+
     const response = await fetch(targetUrl, {
       method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: forwardHeaders,
       body: body, // Pass the consumed body.
     });
 
