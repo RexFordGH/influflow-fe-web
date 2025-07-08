@@ -36,11 +36,6 @@ export default function Profile() {
     router.push('/');
   };
 
-  if (!isAuthenticated) {
-    router.push('/');
-    return null;
-  }
-
   return (
     <div className="flex h-screen bg-gray-50">
       <AnimatePresence>
