@@ -188,16 +188,13 @@ export function EnhancedContentGeneration({
     // 准备请求数据，包含用户个性化信息
     const requestData = {
       user_input: topic.trim(),
-      ...(user &&
-        user.account_name &&
-        user.tone && {
-          personalization: {
-            account_name: user.account_name,
-            tone: user.tone,
-            bio: user.bio,
-            tweet_examples: user.tweet_examples,
-          },
-        }),
+      ...(user && {
+        personalization: {
+          tone: user.tone,
+          bio: user.bio,
+          tweet_examples: user.tweet_examples,
+        },
+      }),
     };
 
     // 调用API
@@ -664,7 +661,7 @@ export function EnhancedContentGeneration({
         <div className="flex w-1/2 flex-col bg-white">
           {/* Twitter Thread内容区域 */}
           <div className="flex-1 overflow-hidden">
-            {(rawAPIData) && (
+            {rawAPIData && (
               <EnhancedMarkdownRenderer
                 content={
                   regeneratedMarkdown ||
