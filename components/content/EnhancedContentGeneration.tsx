@@ -5,13 +5,13 @@ import { Button } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
+import { addToast } from '@/components/base/toast';
 import {
   getErrorMessage,
   useGenerateImage,
   useGenerateThread,
   useModifyOutline,
 } from '@/lib/api/services';
-import { addToast } from '@/components/base/toast';
 import {
   convertAPIDataToGeneratedContent,
   convertAPIDataToMarkdown,
@@ -76,9 +76,21 @@ export function EnhancedContentGeneration({
   const [generatingImageTweetId, setGeneratingImageTweetId] = useState<
     string | null
   >(null); // 正在生图的tweetId
+  const [scrollToSection, setScrollToSection] = useState<string | null>(null); // 滚动到指定section
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
+
+  // 清除滚动状态，防止重复滚动
+  useEffect(() => {
+    if (scrollToSection) {
+      // 在滚动执行后清除状态，延迟时间应该比EnhancedMarkdownRenderer中的延迟时间长
+      const timer = setTimeout(() => {
+        setScrollToSection(null);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [scrollToSection]);
 
   // 获取用户信息用于个性化设置
   const { user } = useAuthStore();
@@ -249,7 +261,7 @@ export function EnhancedContentGeneration({
         cleanup();
         console.error('API生成失败:', error);
         const errorMessage = getErrorMessage(error);
-        
+
         // 显示错误 toast
         addToast({
           title: 'Failed to generate content',
@@ -257,7 +269,7 @@ export function EnhancedContentGeneration({
           color: 'danger',
           timeout: 3000,
         });
-        
+
         // 返回首页
         onBack();
       },
@@ -281,12 +293,22 @@ export function EnhancedContentGeneration({
       if (nodeId && currentNodes) {
         const node = currentNodes.find((n) => n.id === nodeId);
         if (node && node.data?.tweetId) {
-          setHoveredTweetId(node.data.tweetId.toString());
+          const tweetId = node.data.tweetId.toString();
+          setHoveredTweetId(tweetId);
+          // 设置滚动目标为tweetId
+          setScrollToSection(tweetId);
+        } else if (node && node.data?.groupIndex !== undefined) {
+          // 如果是group节点，滚动到group
+          const groupId = `group-${node.data.groupIndex}`;
+          setHoveredTweetId(groupId);
+          setScrollToSection(groupId);
         } else {
           setHoveredTweetId(null);
+          setScrollToSection(null);
         }
       } else {
         setHoveredTweetId(null);
+        setScrollToSection(null);
       }
     },
     [currentNodes],
@@ -608,7 +630,8 @@ export function EnhancedContentGeneration({
 
           // 更新生成的内容
           if (generatedContent) {
-            const updatedContent = convertAPIDataToGeneratedContent(syncedOutline);
+            const updatedContent =
+              convertAPIDataToGeneratedContent(syncedOutline);
             setGeneratedContent({
               ...generatedContent,
               ...updatedContent,
@@ -618,8 +641,11 @@ export function EnhancedContentGeneration({
           // 触发侧边栏数据刷新
           onDataUpdate?.();
         } catch (dbError) {
-          console.error('从 Supabase 拉取数据失败，使用 API 返回的数据:', dbError);
-          
+          console.error(
+            '从 Supabase 拉取数据失败，使用 API 返回的数据:',
+            dbError,
+          );
+
           // 如果数据库拉取失败，使用 API 返回的数据作为备选
           setRawAPIData(newOutline);
 
@@ -799,6 +825,7 @@ export function EnhancedContentGeneration({
                 tweetData={rawAPIData}
                 loadingTweetId={loadingTweetId}
                 generatingImageTweetId={generatingImageTweetId}
+                scrollToSection={scrollToSection}
               />
             )}
           </div>

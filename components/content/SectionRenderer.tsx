@@ -50,6 +50,7 @@ interface SectionRendererProps {
     caption?: string;
     prompt?: string;
   };
+  setSectionRef?: (sectionId: string, element: HTMLDivElement | null) => void;
 }
 
 export function SectionRenderer({
@@ -62,6 +63,7 @@ export function SectionRenderer({
   onTweetContentChange,
   tweetData,
   imageData,
+  setSectionRef,
 }: SectionRendererProps) {
   // 状态来跟踪编辑器的当前内容（仅用于 tweet 类型）
   const [currentEditorContent, setCurrentEditorContent] = useState('');
@@ -172,6 +174,7 @@ export function SectionRenderer({
       return (
         <div
           key={section.id}
+          ref={(el) => setSectionRef?.(section.id, el)}
           className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
@@ -197,6 +200,7 @@ export function SectionRenderer({
         return (
           <div
             key={section.id}
+            ref={(el) => setSectionRef?.(section.id, el)}
             className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
             onMouseEnter={handleEnter}
             onMouseLeave={handleLeave}
@@ -244,6 +248,7 @@ export function SectionRenderer({
       return (
         <div
           key={section.id}
+          ref={(el) => setSectionRef?.(section.id, el)}
           className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
@@ -269,6 +274,7 @@ export function SectionRenderer({
       return (
         <div
           key={section.id}
+          ref={(el) => setSectionRef?.(section.id, el)}
           className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
@@ -377,6 +383,7 @@ export function SectionRenderer({
       return (
         <div
           key={section.id}
+          ref={(el) => setSectionRef?.(section.id, el)}
           className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
@@ -493,6 +500,7 @@ export function SectionRenderer({
       return (
         <div
           key={section.id}
+          ref={(el) => setSectionRef?.(section.id, el)}
           className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}

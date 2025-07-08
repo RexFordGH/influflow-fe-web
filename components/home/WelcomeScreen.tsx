@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
-import { lazy, useEffect, useRef, useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
@@ -95,8 +95,8 @@ export const WelcomeScreen = ({
         <div className="flex size-full items-center justify-center bg-white">
           <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
             <h2 className="text-[24px] font-[600] text-black">
-              Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what would
-              you like to write about today?
+              Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what
+              would you like to write about today?
             </h2>
 
             <div className="relative">

@@ -170,7 +170,6 @@ export default function Home() {
     setShowLoginPage(false);
   };
 
-
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
     setPromptDismissed(); // 记录用户已关闭提示

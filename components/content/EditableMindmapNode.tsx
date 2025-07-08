@@ -257,7 +257,7 @@ const EditableMindmapNode = ({
       />
 
       <div
-        className={`${getNodeStyle} ${isEditing ? '!max-w-none !w-auto !min-w-fit' : ''}`}
+        className={`${getNodeStyle} ${isEditing ? '!w-auto !min-w-fit !max-w-none' : ''}`}
         style={{
           pointerEvents: 'auto', // 确保可点击
         }}

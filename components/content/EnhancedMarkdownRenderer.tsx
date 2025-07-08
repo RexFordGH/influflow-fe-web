@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
@@ -28,6 +28,7 @@ interface EnhancedMarkdownRendererProps {
     prompt?: string;
   };
   tweetData?: any; // 新增：tweet数据，用于获取image_url
+  scrollToSection?: string | null; // 新增：滚动到指定section的ID
 }
 
 interface MarkdownSection {
@@ -56,7 +57,34 @@ export function EnhancedMarkdownRenderer({
   generatingImageTweetId,
   imageData,
   tweetData,
+  scrollToSection,
 }: EnhancedMarkdownRendererProps) {
+  // 创建section ref的映射
+  const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // 设置section ref的回调函数
+  const setSectionRef = useCallback(
+    (sectionId: string, element: HTMLDivElement | null) => {
+      if (element) {
+        sectionRefs.current.set(sectionId, element);
+      } else {
+        sectionRefs.current.delete(sectionId);
+      }
+    },
+    [],
+  );
+
+  // 滚动到指定section的函数
+  const scrollToSectionById = useCallback((sectionId: string) => {
+    const element = sectionRefs.current.get(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, []);
+
   // 处理图片占位符 - 只有真实的图片URL才会被替换
   const processedContent = useMemo(() => {
     if (imageData?.url) {
@@ -299,6 +327,33 @@ export function EnhancedMarkdownRenderer({
     return sections;
   }, [processedContent]);
 
+  // 监听scrollToSection变化并执行滚动
+  useEffect(() => {
+    if (scrollToSection) {
+      // 查找匹配的section ID
+      const matchingSectionId = sections.find((section) => {
+        // 支持多种匹配方式
+        return (
+          section.id === scrollToSection ||
+          section.mappingId === scrollToSection ||
+          section.tweetId === scrollToSection ||
+          section.groupId === scrollToSection ||
+          (scrollToSection.startsWith('group-') &&
+            section.groupId === scrollToSection.replace('group-', '')) ||
+          (section.tweetId &&
+            section.tweetId.toString() === scrollToSection.toString()) ||
+          (section.groupId &&
+            section.groupId.toString() === scrollToSection.toString())
+        );
+      })?.id;
+
+      if (matchingSectionId) {
+        // 添加小延迟确保DOM已更新
+        setTimeout(() => scrollToSectionById(matchingSectionId), 100);
+      }
+    }
+  }, [scrollToSection, sections, scrollToSectionById]);
+
   // 渲染单个段落
   const renderSection = (section: MarkdownSection) => {
     // 检查是否应该高亮：增强匹配逻辑
@@ -359,6 +414,7 @@ export function EnhancedMarkdownRenderer({
         onTweetContentChange={onTweetContentChange}
         tweetData={tweetData}
         imageData={imageData}
+        setSectionRef={setSectionRef}
       />
     );
   };
