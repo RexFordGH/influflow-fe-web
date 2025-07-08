@@ -35,12 +35,14 @@ interface EnhancedContentGenerationProps {
   topic: string;
   onBack: () => void;
   initialData?: Outline;
+  onDataUpdate?: () => void; // 新增：数据更新回调
 }
 
 export function EnhancedContentGeneration({
   topic,
   onBack,
   initialData,
+  onDataUpdate,
 }: EnhancedContentGenerationProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] =
@@ -447,12 +449,15 @@ export function EnhancedContentGeneration({
           throw error;
         }
         console.log('Tweet content updated successfully in Supabase.');
+        
+        // 成功更新后，触发侧边栏数据刷新
+        onDataUpdate?.();
       } catch (error) {
         console.error('Error updating tweet content in Supabase:', error);
         // 可以在这里添加一些错误处理逻辑，比如 toast 通知
       }
     },
-    [rawAPIData],
+    [rawAPIData, onDataUpdate],
   );
 
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API

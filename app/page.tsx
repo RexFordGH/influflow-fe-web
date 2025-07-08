@@ -12,16 +12,14 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
+import { useContentStore } from '@/stores/contentStore';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
+import { Outline } from '@/types/outline';
 import {
   isPromptDismissed,
   needsProfileCompletion,
   setPromptDismissed,
 } from '@/utils/profileStorage';
-import { useContentStore } from '@/stores/contentStore';
-import { parseMarkdown } from '@/lib/markdown/parser';
-import { type TweetThread } from '@/hooks/useTweetThreads';
-import { Outline } from '@/types/outline';
 
 const EnhancedContentGeneration = dynamic(
   () =>
@@ -74,6 +72,7 @@ export default function Home() {
     saveArticleTitle,
     cancelEdit,
     handleWriteByMyself,
+    refetchTweetThreads,
   } = useArticleManagement();
 
   useEffect(() => {
@@ -167,11 +166,8 @@ export default function Home() {
     setShowLoginPage(false);
   };
 
-  const {
-    setMarkdown,
-    setMarkdownNodes,
-    syncMarkdownToFlow,
-  } = useContentStore();
+  const { setMarkdown, setMarkdownNodes, syncMarkdownToFlow } =
+    useContentStore();
 
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
@@ -205,7 +201,22 @@ export default function Home() {
     setShowMarkdownEditor(false);
     setCurrentArticle(null);
     setCurrentTopic('');
+    // 返回首页时刷新侧边栏数据
+    // refetchTweetThreads();
   };
+
+  // 页面 focus 时刷新数据
+  useEffect(() => {
+    const handleFocus = () => {
+      if (isAuthenticated && !showContentGeneration) {
+        // 只在用户已登录且在首页时刷新
+        refetchTweetThreads();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [isAuthenticated, showContentGeneration, refetchTweetThreads]);
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -237,6 +248,7 @@ export default function Home() {
             topic={currentTopic}
             onBack={handleBackToHome}
             initialData={initialData}
+            onDataUpdate={refetchTweetThreads}
           />
         </div>
       )}
