@@ -1,7 +1,6 @@
 'use client';
 
 import { Skeleton } from '@heroui/react';
-import { motion } from 'framer-motion';
 import { useState } from 'react';
 
 import { Button } from '@/components/base';
@@ -112,24 +111,21 @@ export function TrendingTopics({
                 ) : (
                   // 实际数据 - 根据Figma设计样式
                   trendingTopics.map((topic: any, index: number) => (
-                    <motion.button
+                    <button
                       key={`${topic.title}-${index}`}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
                       onClick={() => onTopicSelect(topic)}
-                      className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-all duration-200 hover:from-yellow-500 hover:to-yellow-300"
+                      className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
                       style={{
                         width: `${Math.max(432, 880 - index * 110)}px`,
                       }}
                     >
-                      <span className="text-lg font-medium text-black text-left">
+                      <span className="text-left text-lg font-medium text-black">
                         {topic.title}
                       </span>
                       <span className="text-lg font-medium text-gray-600">
                         {topic.value}
                       </span>
-                    </motion.button>
+                    </button>
                   ))
                 )}
               </div>
@@ -159,13 +155,10 @@ export function TrendingTopics({
                 ) : (
                   // 实际数据 - 根据Figma设计样式
                   suggestedTopics.map((topic: any, index: number) => (
-                    <motion.button
+                    <button
                       key={`${topic.topic}-${index}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
                       onClick={() => onTopicSelect(topic)}
-                      className={`w-full rounded-xl px-[24px] py-[10px] text-left transition-all duration-200 ${
+                      className={`w-full rounded-xl px-[24px] py-[10px] text-left transition-colors duration-150 ${
                         index === 0
                           ? 'border border-blue-400 bg-blue-50 hover:bg-blue-100'
                           : 'border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
@@ -176,7 +169,7 @@ export function TrendingTopics({
                           {topic.topic}
                         </span>
                       </div>
-                    </motion.button>
+                    </button>
                   ))
                 )}
               </div>

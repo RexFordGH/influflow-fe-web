@@ -836,9 +836,7 @@ export function EnhancedContentGeneration({
       {isImageEditModalOpen && editingImage && rawAPIData && (
         <ImageEditModal
           image={editingImage}
-          targetTweet={
-            editingTweetData?.content || ''
-          }
+          targetTweet={editingTweetData?.content || ''}
           tweetThread={rawAPIData.nodes
             .flatMap((group: any) => group.tweets)
             .map(

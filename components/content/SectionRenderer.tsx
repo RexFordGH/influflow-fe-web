@@ -405,7 +405,7 @@ export function SectionRenderer({
 
           {/* Tweet 序号显示 */}
           {totalTweets > 0 && tweetNumber > 0 && (
-            <div className="text-[10px] text-black/60 font-medium">
+            <div className="text-[10px] font-medium text-black/60">
               ({tweetNumber}/{totalTweets})
             </div>
           )}
@@ -423,7 +423,7 @@ export function SectionRenderer({
                   base: 'border-none bg-transparent',
                   editorWrapper: 'p-0',
                   editor:
-                    'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:p-[6px] [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:text-inherit',
+                    'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
                 }}
               />
             </div>
@@ -436,9 +436,7 @@ export function SectionRenderer({
                 src={tweetImageSrc || currentTweetImageUrl}
                 alt={tweetImageAlt || `${title}配图`}
                 className="w-full max-w-md cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                onClick={() =>
-                  onTweetImageEdit?.(currentTweetData)
-                }
+                onClick={() => onTweetImageEdit?.(currentTweetData)}
               />
             </div>
           )}

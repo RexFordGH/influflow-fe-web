@@ -165,7 +165,7 @@ export default function Home() {
       // TrendingTopic 使用 title 字段，SuggestedTopic 使用 topic 字段
       const topicText = 'title' in topic ? topic.title : topic.topic;
       setTopicInput(topicText);
-    }, 400);
+    }, 350);
   };
 
   const handleBackToMainPage = () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
-import { lazy, useEffect, useState } from 'react';
+import { lazy } from 'react';
 import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
@@ -60,20 +60,12 @@ export const WelcomeScreen = ({
   onWriteByMyself,
 }: WelcomeScreenProps) => {
   const { user, isAuthenticated } = useAuthStore();
-  const [currentPage, setCurrentPage] = useState(0);
 
-  // 同步外部状态和内部页面状态
-  useEffect(() => {
-    if (showTrendingTopics && currentPage === 0) {
-      setCurrentPage(1);
-    } else if (!showTrendingTopics && currentPage === 1) {
-      setCurrentPage(0);
-    }
-  }, [showTrendingTopics, currentPage]);
+  // 直接使用外部状态，不需要内部同步
+  const currentPage = showTrendingTopics ? 1 : 0;
 
   // 处理页面切换
   const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
     if (pageNumber === 0) {
       onBackFromTrending();
     } else if (pageNumber === 1) {
@@ -87,7 +79,7 @@ export const WelcomeScreen = ({
         pageOnChange={handlePageChange}
         customPageNumber={currentPage}
         animationTimer={600}
-        transitionTimingFunction="ease-in-out"
+        transitionTimingFunction="ease-out"
         containerHeight="100vh"
         containerWidth="100%"
       >
