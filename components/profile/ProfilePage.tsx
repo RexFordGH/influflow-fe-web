@@ -193,7 +193,6 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       addToast({
         title: 'Saved Successfully',
         color: 'success',
-        timeout: 2000,
       });
 
       // onBack();

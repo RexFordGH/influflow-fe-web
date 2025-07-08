@@ -578,7 +578,6 @@ function CopyButton({
         console.log('copied:', contentToCopy);
         addToast({
           title: 'Copied Successfully',
-          description: 'The tweet content has been copied to your clipboard',
           color: 'success',
         });
       }}
