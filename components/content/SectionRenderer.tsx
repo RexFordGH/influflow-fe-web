@@ -437,12 +437,7 @@ export function SectionRenderer({
                 alt={tweetImageAlt || `${title}配图`}
                 className="w-full max-w-md cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                 onClick={() =>
-                  onImageClick?.({
-                    url: tweetImageSrc || currentTweetImageUrl || '',
-                    alt: tweetImageAlt || `${title}配图`,
-                    caption: title,
-                    prompt: title,
-                  })
+                  onTweetImageEdit?.(currentTweetData)
                 }
               />
             </div>

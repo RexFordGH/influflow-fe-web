@@ -293,7 +293,8 @@ export function ImageEditModal({
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-[48px]">
+        {/* 图片编辑按钮，预留，等后端上了图片编辑，再打开 */}
+        {/* <div className="p-[48px]">
           <div className="flex items-center justify-between gap-[10px]">
             <div className="flex-1">
               <textarea
@@ -307,7 +308,7 @@ export function ImageEditModal({
               />
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* 右半边空白区域，不再有关闭功能 */}

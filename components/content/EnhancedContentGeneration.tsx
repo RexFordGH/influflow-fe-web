@@ -397,7 +397,7 @@ export function EnhancedContentGeneration({
     setEditingImage({
       url: tweetData.image_url || '', // 如果没有图片URL，则传递空字符串
       alt: tweetData.content || tweetData.title || '',
-      caption: tweetData.title,
+      caption: tweetData.content,
       prompt: tweetData.content || tweetData.title,
     });
     // 设置正在生图的 tweetId，用于高亮显示
@@ -837,7 +837,7 @@ export function EnhancedContentGeneration({
         <ImageEditModal
           image={editingImage}
           targetTweet={
-            editingTweetData?.content || editingTweetData?.title || ''
+            editingTweetData?.content || ''
           }
           tweetThread={rawAPIData.nodes
             .flatMap((group: any) => group.tweets)
