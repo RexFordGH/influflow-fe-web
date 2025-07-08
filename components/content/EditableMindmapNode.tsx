@@ -297,8 +297,8 @@ const EditableMindmapNode = ({
         )}
       </div>
 
-      {/* 添加子节点按钮 - hover 时显示 */}
-      {isHovered && (
+      {/* 添加子节点按钮 - hover 时显示，且当前节点深度小于4层 */}
+      {isHovered && level < 4 && (
         <button
           onClick={(e) => {
             e.stopPropagation();

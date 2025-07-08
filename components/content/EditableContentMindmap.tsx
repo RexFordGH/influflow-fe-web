@@ -390,8 +390,8 @@ export function EditableContentMindmap({
         newNodeId = `tweet-${rootOutlineIndex}-${newTweetId}-L${newLevel}`;
         newNodeData = {
           tweetId: newTweetId,
-          content: '新节点',
-          title: '新节点',
+          content: 'New Tweet',
+          title: 'New Node',
           groupIndex: rootOutlineIndex,
           tweetIndex: newTweetIndex,
           level: newLevel, // 记录层级信息
@@ -401,7 +401,7 @@ export function EditableContentMindmap({
 
       const newNode: MindmapNodeData = {
         id: newNodeId,
-        label: '新节点',
+        label: 'New Node',
         level: newLevel,
         type: newType,
         data: newNodeData,

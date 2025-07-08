@@ -261,7 +261,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
       type: 'mindmapNode',
       position: newPosition,
       data: {
-        label: '新节点',
+        label: 'New Node',
         level: newLevel,
       },
       style: {
@@ -478,7 +478,7 @@ const convertFlowNodesToHierarchy = (
     const mindmapNode: MindmapNode = {
       id: node.id,
       level: node.data?.level || 1,
-      title: node.data?.label || `节点 ${index + 1}`,
+      title: node.data?.label || `Node ${index + 1}`,
       content: node.data?.content || '',
       children: [],
       position: {
