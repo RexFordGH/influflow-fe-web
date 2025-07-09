@@ -925,14 +925,23 @@ export function EnhancedContentGeneration({
         delay_seconds: 1, // 推文间隔1秒
       };
 
-      // 4. 发布到Twitter
-      const response = await postToTwitterMutation.mutateAsync(postRequest);
+      // 后端暂时不用，发请求用于后端打 log
+      postToTwitterMutation.mutateAsync(postRequest);
 
       addToast({
-        title: '发布成功！',
-        description: `成功发布 ${response.successful_tweets}/${response.total_tweets} 条推文`,
-        color: 'success',
+        title: 'One-click tweet coming soon!',
+        color: 'warning',
+        timeout: 5000,
       });
+
+      // 4. 发布到Twitter
+      // const response = await postToTwitterMutation.mutateAsync(postRequest);
+
+      // addToast({
+      //   title: '发布成功！',
+      //   description: `成功发布 ${response.successful_tweets}/${response.total_tweets} 条推文`,
+      //   color: 'success',
+      // });
     } catch (error) {
       console.error('Twitter发布失败:', error);
       addToast({
