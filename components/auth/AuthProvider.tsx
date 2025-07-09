@@ -41,7 +41,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             session.user.user_metadata?.avatar_url ||
             session.user.user_metadata?.picture,
         };
-        setSession(user, session.access_token);
+        // 传递token信息到缓存
+        setSession(
+          user,
+          session.access_token,
+          session.expires_at ? session.expires_at * 1000 : undefined
+        );
         await syncProfileFromSupabase();
       }
 
@@ -63,12 +68,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
             : null;
 
           if (event === 'SIGNED_OUT') {
-            setSession(null, null);
+            setSession(null);
           } else if (event === 'TOKEN_REFRESHED' && session) {
             console.log('Token refreshed successfully');
-            setSession(user, session.access_token);
+            setSession(
+              user,
+              session.access_token,
+              session.expires_at ? session.expires_at * 1000 : undefined
+            );
           } else if (event === 'SIGNED_IN' && session) {
-            setSession(user, session.access_token);
+            setSession(
+              user,
+              session.access_token,
+              session.expires_at ? session.expires_at * 1000 : undefined
+            );
             // Fetch profile if not already authenticated
             if (!isAuthenticated) {
               try {

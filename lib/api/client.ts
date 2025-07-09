@@ -27,7 +27,8 @@ export async function apiRequest<T>(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  const accessToken = useAuthStore.getState().accessToken;
+  // 每次请求时动态获取 accessToken，而不是从 localStorage 读取
+  const accessToken = await useAuthStore.getState().getAccessToken();
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -47,13 +48,18 @@ export async function apiRequest<T>(
     if (!response.ok) {
       if (response.status === 401 && !isRetry) {
         try {
+          // 使用 Supabase 的 refreshSession 来更新 token
           const {
             data: { session },
             error,
           } = await supabase.auth.refreshSession();
+          
           if (error || !session) {
+            console.error('Token refresh failed:', error);
             throw new Error('Failed to refresh token');
           }
+
+          // 更新 AuthStore 中的用户信息，并更新token缓存
           useAuthStore.getState().setSession(
             {
               id: session.user.id,
@@ -67,9 +73,14 @@ export async function apiRequest<T>(
                 session.user.user_metadata?.picture,
             },
             session.access_token,
+            session.expires_at ? session.expires_at * 1000 : undefined
           );
+
+          // 重试原始请求
           return apiRequest<T>(endpoint, options, timeoutMs, true);
         } catch (refreshError) {
+          console.error('Token refresh failed, logging out:', refreshError);
+          // 清除认证状态并重定向到登录页面
           useAuthStore.getState().logout();
           throw new ApiError('Session expired, please log in again.', 401);
         }
