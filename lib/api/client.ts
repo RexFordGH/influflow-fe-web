@@ -19,7 +19,7 @@ export class ApiError extends Error {
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
-  timeoutMs: number = 10000,
+  timeoutMs: number = 30000,
   isRetry: boolean = false,
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
