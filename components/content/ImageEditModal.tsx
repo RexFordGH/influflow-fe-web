@@ -3,6 +3,7 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Image, Tooltip } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { track } from '@vercel/analytics';
 
 import { useGenerateImage } from '@/lib/api/services';
 import {
@@ -223,6 +224,12 @@ export function ImageEditModal({
             : item,
         ),
       );
+
+      // 埋点：图片生成成功事件
+      track('image_generated', {
+        tweet_index: tweetIndex,
+        generation_type: currentPrompt === defaultPrompt ? 'auto' : 'manual'
+      });
     } catch (error) {
       console.error('生成图片失败:', error);
       setConversation((prev) => prev.filter((item) => item.id !== newItemId));

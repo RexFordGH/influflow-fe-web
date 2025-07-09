@@ -2,6 +2,7 @@
 
 import { Skeleton } from '@heroui/react';
 import { useState } from 'react';
+import { track } from '@vercel/analytics';
 
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
@@ -157,7 +158,15 @@ export function TrendingTopics({
                   suggestedTopics.map((topic: any, index: number) => (
                     <button
                       key={`${topic.topic}-${index}`}
-                      onClick={() => onTopicSelect(topic)}
+                      onClick={() => {
+                        // 埋点：选题推荐点击事件
+                        track('topic_selected', {
+                          source: 'suggested',
+                          category: selectedCategory,
+                          topic: topic.topic
+                        });
+                        onTopicSelect(topic);
+                      }}
                       className={`w-full rounded-xl px-[24px] py-[10px] text-left transition-colors duration-150 ${
                         index === 0
                           ? 'border border-blue-400 bg-blue-50 hover:bg-blue-100'

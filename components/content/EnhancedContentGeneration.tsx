@@ -4,6 +4,7 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
+import { track } from '@vercel/analytics';
 
 import { addToast } from '@/components/base/toast';
 import {
@@ -245,6 +246,14 @@ export function EnhancedContentGeneration({
           setCurrentEdges(content.mindmap.edges);
           setIsGenerating(false);
           setGenerationStep(generationSteps.length - 1);
+
+          // 埋点：内容生成成功事件
+          track('content_generated', {
+            source: topic && topic.startsWith('trending:') ? 'trending' : 
+                   topic && topic.startsWith('suggested:') ? 'suggested' : 'manual',
+            thread_length: response.outline?.length || 0,
+            has_images: response.outline?.some((tweet: any) => tweet.images && tweet.images.length > 0) || false
+          });
         };
 
         completeSteps();
@@ -581,6 +590,16 @@ export function EnhancedContentGeneration({
 
         // 成功更新后，触发侧边栏数据刷新
         onDataUpdate?.();
+
+        // 埋点：内容发布事件（当用户编辑内容时视为发布行为）
+        track('content_published', {
+          thread_length: updatedRawAPIData.nodes?.length || 0,
+          has_images: updatedRawAPIData.nodes?.some((group: any) => 
+            group.tweets?.some((tweet: any) => tweet.images && tweet.images.length > 0)
+          ) || false,
+          generation_source: topic && topic.startsWith('trending:') ? 'trending' : 
+                            topic && topic.startsWith('suggested:') ? 'suggested' : 'manual'
+        });
       } catch (error) {
         console.error('Error updating tweet content in Supabase:', error);
         // 可以在这里添加一些错误处理逻辑，比如 toast 通知
