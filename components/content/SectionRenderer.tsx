@@ -8,6 +8,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { createClient } from '../../lib/supabase/client';
 import { addToast } from '../base/toast';
 import EditorPro from '../editorPro/index';
+import { ImageLoadingAnimation } from '../ui/ImageLoadingAnimation';
 
 import {
   getBaseClasses,
@@ -44,7 +45,7 @@ interface SectionRendererProps {
   onTweetImageEdit?: (tweetData: any) => void;
   onTweetContentChange?: (tweetId: string, newContent: string) => void;
   onDirectGenerate?: (tweetData: any) => void;
-  generatingImageTweetId?: string | null;
+  generatingImageTweetIds?: string[];
   tweetData?: any;
   imageData?: {
     url: string;
@@ -64,7 +65,7 @@ export function SectionRenderer({
   onTweetImageEdit,
   onTweetContentChange,
   onDirectGenerate,
-  generatingImageTweetId,
+  generatingImageTweetIds,
   tweetData,
   imageData,
   setSectionRef,
@@ -393,6 +394,9 @@ export function SectionRenderer({
         isEmpty: !textContent.trim(),
       });
 
+      const isGeneratingImage =
+        generatingImageTweetIds?.includes(section.tweetId || '') || false;
+
       return (
         <div
           key={section.id}
@@ -433,20 +437,29 @@ export function SectionRenderer({
             </div>
           )}
 
+          {/* 图片生成中的 Lottie 动画 */}
+          {isGeneratingImage && (
+            <div className="my-4 flex justify-center rounded-[12px] overflow-hidden">
+              <ImageLoadingAnimation size={400} />
+            </div>
+          )}
+
           {/* Tweet 图片 */}
-          {(tweetImageSrc || currentTweetImageUrl) && (
-            <div className="my-4">
-              <img
+          {(tweetImageSrc || currentTweetImageUrl) && !isGeneratingImage && (
+            <div className="my-4 flex justify-center">
+              <Image
                 src={tweetImageSrc || currentTweetImageUrl}
                 alt={tweetImageAlt || `${title}配图`}
-                className="w-full max-w-md cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                onClick={() => {
-                  if (onDirectGenerate && currentTweetData) {
-                    onDirectGenerate(currentTweetData);
-                  } else if (onTweetImageEdit && currentTweetData) {
-                    onTweetImageEdit(currentTweetData);
-                  }
-                }}
+                width={400}
+                height={400}
+                className="w-full cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                // onClick={() => {
+                //   if (onDirectGenerate && currentTweetData) {
+                //     onDirectGenerate(currentTweetData);
+                //   } else if (onTweetImageEdit && currentTweetData) {
+                //     onTweetImageEdit(currentTweetData);
+                //   }
+                // }}
               />
             </div>
           )}
@@ -456,7 +469,7 @@ export function SectionRenderer({
             <TweetImageButton
               currentTweetData={currentTweetData}
               onTweetImageEdit={onTweetImageEdit}
-              isGeneratingImage={generatingImageTweetId === section.tweetId}
+              isGeneratingImage={isGeneratingImage}
               onDirectGenerate={onDirectGenerate}
             />
             <CopyButton
@@ -570,10 +583,7 @@ function TweetImageButton({
       isIconOnly
       size="sm"
       variant="light"
-      className={cn(
-        markdownStyles.source.button,
-        isGeneratingImage && 'opacity-70',
-      )}
+      className={cn(markdownStyles.source.button)}
       onPress={handleImageAction}
       isLoading={isGeneratingImage}
     >

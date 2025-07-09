@@ -114,7 +114,7 @@ export function TrendingTopics({
                     <button
                       key={`${topic.title}-${index}`}
                       // onClick={() => onTopicSelect(topic)}
-                      className="cursor-auto flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
+                      className="flex cursor-auto items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
                       style={{
                         width: `${Math.max(432, 880 - index * 110)}px`,
                       }}

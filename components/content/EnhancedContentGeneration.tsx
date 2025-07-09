@@ -73,10 +73,30 @@ export function EnhancedContentGeneration({
     null,
   ); // 重新生成的markdown
   const [loadingTweetId, setLoadingTweetId] = useState<string | null>(null); // markdown loading状态
-  const [generatingImageTweetId, setGeneratingImageTweetId] = useState<
-    string | null
-  >(null); // 正在生图的tweetId
+  const [generatingImageTweetIds, setGeneratingImageTweetIds] = useState<
+    string[]
+  >([]); // 正在生图的tweetId数组
   const [scrollToSection, setScrollToSection] = useState<string | null>(null); // 滚动到指定section
+
+  // 辅助函数：添加正在生图的 tweetId
+  const addGeneratingImageTweetId = useCallback((tweetId: string) => {
+    setGeneratingImageTweetIds(prev => [...prev.filter(id => id !== tweetId), tweetId]);
+  }, []);
+
+  // 辅助函数：移除正在生图的 tweetId
+  const removeGeneratingImageTweetId = useCallback((tweetId: string) => {
+    setGeneratingImageTweetIds(prev => prev.filter(id => id !== tweetId));
+  }, []);
+
+  // 辅助函数：清空所有正在生图的 tweetId
+  const clearGeneratingImageTweetIds = useCallback(() => {
+    setGeneratingImageTweetIds([]);
+  }, []);
+
+  // 辅助函数：检查是否正在生图
+  const isGeneratingImage = useCallback((tweetId: string | null | undefined) => {
+    return tweetId ? generatingImageTweetIds.includes(tweetId) : false;
+  }, [generatingImageTweetIds]);
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
@@ -403,9 +423,12 @@ export function EnhancedContentGeneration({
       prompt: tweetData.content || tweetData.title,
     });
     // 设置正在生图的 tweetId，用于高亮显示
-    setGeneratingImageTweetId(tweetData.tweet_number?.toString() || null);
+    const tweetId = tweetData.tweet_number?.toString();
+    if (tweetId) {
+      addGeneratingImageTweetId(tweetId);
+    }
     setIsImageEditModalOpen(true);
-  }, []);
+  }, [addGeneratingImageTweetId]);
 
   // 新逻辑: 精确地将选中的图片URL更新到Markdown中
   const handleImageUpdate = useCallback(
@@ -430,23 +453,16 @@ export function EnhancedContentGeneration({
 
       const { tweet_number, content: tweetText, title } = targetTweetData;
 
-      const currentMarkdown =
-        regeneratedMarkdown ||
-        (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '');
+      // 使用 useState 的函数式更新来避免竞态条件
+      // 这样每次更新都基于最新的状态，而不是闭包中的旧状态
+      
+      let latestRawAPIData: any = null;
 
-      // 1. 更新Markdown内容
-      const updatedMarkdown = updateTweetImageInContent(
-        currentMarkdown,
-        tweet_number.toString(),
-        newImage.url,
-        newImage.alt || tweetText || title, // 优先使用 newImage 的 alt
-      );
-
-      setRegeneratedMarkdown(updatedMarkdown);
-
-      // 2. 更新 rawAPIData 中的图片URL，以保持数据同步
-      if (rawAPIData) {
-        const updatedNodes = rawAPIData.nodes.map((group: any) => ({
+      // 1. 更新 rawAPIData 中的图片URL（使用函数式更新）
+      setRawAPIData(prevRawAPIData => {
+        if (!prevRawAPIData) return prevRawAPIData;
+        
+        const updatedNodes = prevRawAPIData.nodes.map((group: any) => ({
           ...group,
           tweets: group.tweets.map((tweet: any) =>
             tweet.tweet_number === tweet_number
@@ -454,30 +470,44 @@ export function EnhancedContentGeneration({
               : tweet,
           ),
         }));
-        const updatedRawAPIData = { ...rawAPIData, nodes: updatedNodes };
+        
+        latestRawAPIData = { ...prevRawAPIData, nodes: updatedNodes };
+        return latestRawAPIData;
+      });
 
-        setRawAPIData(updatedRawAPIData);
+      // 2. 更新Markdown内容（使用函数式更新）
+      setRegeneratedMarkdown(prevMarkdown => {
+        const currentMarkdown = prevMarkdown || 
+          (latestRawAPIData ? convertAPIDataToMarkdown(latestRawAPIData) : '');
+        
+        const updatedMarkdown = updateTweetImageInContent(
+          currentMarkdown,
+          tweet_number.toString(),
+          newImage.url,
+          newImage.alt || tweetText || title,
+        );
+        
+        return updatedMarkdown;
+      });
 
-        // 3. 更新 Supabase 数据库
-        if (rawAPIData.id) {
-          try {
-            const supabase = createClient();
-            const { error } = await supabase
-              .from('tweet_thread')
-              .update({ tweets: updatedRawAPIData.nodes })
-              .eq('id', rawAPIData.id);
+      // 3. 更新 Supabase 数据库（使用最新的数据）
+      if (latestRawAPIData && latestRawAPIData.id) {
+        try {
+          const supabase = createClient();
+          const { error } = await supabase
+            .from('tweet_thread')
+            .update({ tweets: latestRawAPIData.nodes })
+            .eq('id', latestRawAPIData.id);
 
-            if (error) {
-              throw error;
-            }
-            console.log('Tweet image updated successfully in Supabase.');
-
-            // 成功更新后，触发侧边栏数据刷新
-            onDataUpdate?.();
-          } catch (error) {
-            console.error('Error updating tweet image in Supabase:', error);
-            // 可以在这里添加一些错误处理逻辑，比如 toast 通知
+          if (error) {
+            throw error;
           }
+          console.log('Tweet image updated successfully in Supabase.');
+
+          // 成功更新后，触发侧边栏数据刷新
+          onDataUpdate?.();
+        } catch (error) {
+          console.error('Error updating tweet image in Supabase:', error);
         }
       }
 
@@ -491,9 +521,13 @@ export function EnhancedContentGeneration({
         setEditingTweetData(null);
       }
 
-      setGeneratingImageTweetId(null); // 清除生图高亮状态
+      // 清除生图高亮状态（使用正确的 tweetData）
+      const currentTweetId = (tweetData || editingTweetData)?.tweet_number?.toString();
+      if (currentTweetId) {
+        removeGeneratingImageTweetId(currentTweetId);
+      }
     },
-    [editingTweetData, rawAPIData, regeneratedMarkdown, onDataUpdate],
+    [editingTweetData, onDataUpdate, removeGeneratingImageTweetId],
   );
 
   const handleDirectGenerate = useCallback(
@@ -503,7 +537,7 @@ export function EnhancedContentGeneration({
       const tweetId = tweetData.tweet_number?.toString();
       if (!tweetId) return;
 
-      setGeneratingImageTweetId(tweetId);
+      addGeneratingImageTweetId(tweetId);
 
       try {
         const imageUrl = await generateImageMutation.mutateAsync({
@@ -542,11 +576,11 @@ export function EnhancedContentGeneration({
         });
       } finally {
         // 清除loading状态
-        setGeneratingImageTweetId(null);
+        removeGeneratingImageTweetId(tweetId);
         // 注意：不在这里清除editingTweetData，因为handleImageUpdate会清除
       }
     },
-    [rawAPIData, generateImageMutation, handleImageUpdate],
+    [rawAPIData, generateImageMutation, handleImageUpdate, addGeneratingImageTweetId, removeGeneratingImageTweetId],
   );
 
   const handleTweetContentChange = useCallback(
@@ -902,7 +936,7 @@ export function EnhancedContentGeneration({
                 imageData={generatedContent?.image}
                 tweetData={rawAPIData}
                 loadingTweetId={loadingTweetId}
-                generatingImageTweetId={generatingImageTweetId}
+                generatingImageTweetIds={generatingImageTweetIds}
                 scrollToSection={scrollToSection}
               />
             )}
@@ -927,7 +961,7 @@ export function EnhancedContentGeneration({
             setIsImageEditModalOpen(false);
             setEditingImage(null);
             setEditingTweetData(null);
-            setGeneratingImageTweetId(null); // 清除生图高亮状态
+            clearGeneratingImageTweetIds(); // 清除生图高亮状态
           }}
         />
       )}
