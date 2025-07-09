@@ -261,6 +261,7 @@ const EditableMindmapNode = ({
           border: '2px solid #fff',
           left: '0',
           opacity: 0,
+          pointerEvents: 'none', // 禁用鼠标事件，避免光标变化
         }}
       />
 
@@ -329,6 +330,7 @@ const EditableMindmapNode = ({
           border: '2px solid #fff',
           right: '0',
           opacity: 0,
+          pointerEvents: 'none', // 禁用鼠标事件，避免光标变化
         }}
       />
     </div>

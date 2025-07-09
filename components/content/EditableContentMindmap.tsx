@@ -6,8 +6,6 @@ import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
-  Connection,
-  ConnectionMode,
   Controls,
   Edge,
   Node,
@@ -558,21 +556,7 @@ export function EditableContentMindmap({
     };
   }, [selectedNodeForAI, nodes]);
 
-  // 处理连接创建
-  const onConnect = useCallback(
-    (params: Connection) => {
-      if (params.source && params.target) {
-        const newEdge: MindmapEdgeData = {
-          id: `edge-${params.source}-${params.target}`,
-          source: params.source,
-          target: params.target,
-          type: 'default',
-        };
-        onEdgesChange?.([...mindmapEdges, newEdge]);
-      }
-    },
-    [mindmapEdges, onEdgesChange],
-  );
+  // 连接功能已移除
 
   // 处理边删除
   const handleEdgesChange = useCallback(
@@ -795,14 +779,12 @@ export function EditableContentMindmap({
         edges={edges}
         onNodesChange={onNodesChangeInternal}
         onEdgesChange={handleEdgesChange}
-        onConnect={onConnect}
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
-        connectionMode={ConnectionMode.Loose}
         fitView
         className="bg-gray-50"
         nodesDraggable={true}
-        nodesConnectable={true}
+        nodesConnectable={false}
         elementsSelectable={true}
         selectNodesOnDrag={true}
         multiSelectionKeyCode={null}
