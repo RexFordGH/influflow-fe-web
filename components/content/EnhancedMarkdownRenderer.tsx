@@ -381,10 +381,11 @@ export function EnhancedMarkdownRenderer({
       // 生图状态高亮 - 新增
       (generatingImageTweetIds &&
         section.tweetId &&
-        generatingImageTweetIds.some(id => 
-          section.tweetId === id ||
-          section.tweetId?.toString() === id.toString() ||
-          Number(section.tweetId) === Number(id)
+        generatingImageTweetIds.some(
+          (id) =>
+            section.tweetId === id ||
+            section.tweetId?.toString() === id.toString() ||
+            Number(section.tweetId) === Number(id),
         )) ||
       // 选中状态高亮 - 新增
       (selectedNodeId &&

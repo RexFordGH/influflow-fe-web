@@ -110,22 +110,22 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
         <ModalBody>
           <div className="rounded-2xl bg-white p-8">
             {/* 品牌Logo区域 */}
-            <div className="mb-8 text-center">
-              <h1 className="mb-2 text-3xl font-bold text-gray-900">
+            <div className="mb-8 text-left">
+              <p className="text-[20px] font-bold text-black/60">
                 Welcome to Influxy
-              </h1>
+              </p>
+              <p className="text-[24px] font-bold text-black">
+                {showExistingUserLogin
+                  ? 'Transform your ideas into posts, In seconds.'
+                  : 'Please enter your invitation code'}
+              </p>
             </div>
 
             {!showExistingUserLogin ? (
               /* 新用户邀请码登录 */
               <div className="space-y-6">
                 {/* 邀请码输入区域 */}
-                <div className="space-y-4 flex flex-col items-center">
-                  <div className="text-center">
-                    <p className="mb-3 text-[16px] font-[500] text-gray-700">
-                      Please enter your invitation code
-                    </p>
-                  </div>
+                <div className="flex flex-col items-center space-y-4">
                   <InputOtp
                     length={6}
                     value={invitationCode}
@@ -168,7 +168,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
 
                   <div className="text-center">
                     <Link
-                      className="cursor-pointer text-sm text-blue-600 opacity-50 hover:opacity-100 hover:underline"
+                      className="cursor-pointer text-sm text-blue-600 opacity-50 hover:underline hover:opacity-100"
                       onPress={() => setShowExistingUserLogin(true)}
                     >
                       Already have an account? Login
@@ -196,7 +196,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
 
                 <div className="text-center">
                   <Link
-                    className="cursor-pointer text-sm text-blue-600 opacity-50 hover:opacity-100 hover:underline"
+                    className="cursor-pointer text-sm text-blue-600 opacity-50 hover:underline hover:opacity-100"
                     onPress={() => setShowExistingUserLogin(false)}
                   >
                     Register a new account

@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 
+import { LoginModal } from '@/components/auth/LoginModal';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
-import { LoginModal } from '@/components/auth/LoginModal';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -115,9 +115,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <>
       {children}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={closeLoginModal} 
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={closeLoginModal}
         authError={authError}
       />
     </>

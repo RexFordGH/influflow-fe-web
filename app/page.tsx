@@ -4,7 +4,7 @@ import { cn } from '@heroui/react';
 import { AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { MainContent } from '@/components/home/MainContent';
 import { AppSidebar } from '@/components/layout/AppSidebar';
@@ -30,8 +30,14 @@ const EnhancedContentGeneration = dynamic(
 );
 
 function HomeContent() {
-  const { user, isAuthenticated, checkAuthStatus, syncProfileFromSupabase, openLoginModal, setAuthError } =
-    useAuthStore();
+  const {
+    user,
+    isAuthenticated,
+    checkAuthStatus,
+    syncProfileFromSupabase,
+    openLoginModal,
+    setAuthError,
+  } = useAuthStore();
   const searchParams = useSearchParams();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
@@ -181,7 +187,6 @@ function HomeContent() {
     }, 350);
   };
 
-
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
     setPromptDismissed(); // 记录用户已关闭提示
@@ -237,7 +242,6 @@ function HomeContent() {
         onClose={handleCloseProfileCompletePrompt}
       />
 
-
       {/* Content Generation */}
       {hasCreatedContentGeneration && (
         <div
@@ -262,7 +266,6 @@ function HomeContent() {
           showContentGeneration && currentTopic ? 'hidden' : 'flex',
         )}
       >
-
         <AnimatePresence>
           <AppSidebar
             collapsed={sidebarCollapsed}

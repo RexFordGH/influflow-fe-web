@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { createClient } from '@/lib/supabase/server';
 import { API_BASE_URL } from '@/constants/env';
+import { createClient } from '@/lib/supabase/server';
 
 async function validateInvitationCode(code: string): Promise<boolean> {
   try {
@@ -43,7 +43,7 @@ async function markInvitationCodeAsUsed(code: string): Promise<boolean> {
 async function userProfileExists(userId: string): Promise<boolean> {
   try {
     const supabase = await createClient();
-    
+
     // 查询用户个性化数据表检查用户是否已存在
     const { data, error } = await supabase
       .from('user_personalization')
@@ -64,24 +64,26 @@ async function userProfileExists(userId: string): Promise<boolean> {
   }
 }
 
-
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const invitationCode = searchParams.get('invitation_code');
-  
+
   let next = searchParams.get('next') ?? '/';
   if (!next.startsWith('/')) {
     next = '/';
   }
 
   const redirectToError = (error: string) => {
-    return NextResponse.redirect(`${origin}/?error=${encodeURIComponent(error)}`);
+    return NextResponse.redirect(
+      `${origin}/?error=${encodeURIComponent(error)}`,
+    );
   };
 
   if (code) {
     const supabase = await createClient();
-    const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: sessionData, error: exchangeError } =
+      await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError) {
       console.error('Error exchanging code for session:', exchangeError);
@@ -90,7 +92,7 @@ export async function GET(request: Request) {
 
     if (sessionData?.user) {
       const user = sessionData.user;
-      
+
       // Check if the user is a new user by looking for an existing profile.
       const isExistingUser = await userProfileExists(user.id);
 
@@ -99,13 +101,19 @@ export async function GET(request: Request) {
         console.log(`Existing user logged in: ${user.id}`);
       } else {
         // This is a new user, an invitation code is required.
-        console.log(`New user detected: ${user.id}. Checking for invitation code.`);
+        console.log(
+          `New user detected: ${user.id}. Checking for invitation code.`,
+        );
         if (!invitationCode) {
-          console.error('New user tried to sign up without an invitation code.');
+          console.error(
+            'New user tried to sign up without an invitation code.',
+          );
           // IMPORTANT: Clean up the newly created Supabase user to prevent orphans.
           // const adminClient = createAdminClient(); // You need a Supabase admin client for this
           // await adminClient.auth.admin.deleteUser(user.id);
-          return redirectToError('An invitation code is required for new users.');
+          return redirectToError(
+            'An invitation code is required for new users.',
+          );
         }
 
         const isCodeValid = await validateInvitationCode(invitationCode);
@@ -115,14 +123,16 @@ export async function GET(request: Request) {
           // await adminClient.auth.admin.deleteUser(user.id);
           return redirectToError('The provided invitation code is invalid.');
         }
-        
+
         // Code is valid, proceed with creating the user profile and marking code as used
-        console.log(`Invitation code ${invitationCode} is valid. Creating profile for new user ${user.id}.`);
-        
+        console.log(
+          `Invitation code ${invitationCode} is valid. Creating profile for new user ${user.id}.`,
+        );
+
         try {
           // 在数据库事务中完成用户创建和邀请码标记
           const supabase = await createClient();
-          
+
           // 创建用户个性化记录
           const { error: insertError } = await supabase
             .from('user_personalization')
@@ -144,10 +154,12 @@ export async function GET(request: Request) {
           // 标记邀请码为已使用
           const markSuccess = await markInvitationCodeAsUsed(invitationCode);
           if (!markSuccess) {
-            console.error('Failed to mark invitation code as used:', invitationCode);
+            console.error(
+              'Failed to mark invitation code as used:',
+              invitationCode,
+            );
             // 不返回错误，因为用户已经创建成功
           }
-          
         } catch (error) {
           console.error('Error in user creation process:', error);
           return redirectToError('Failed to complete user registration.');
@@ -157,8 +169,10 @@ export async function GET(request: Request) {
       // If all checks pass, redirect the user.
       const forwardedHost = request.headers.get('x-forwarded-host');
       const isLocalEnv = process.env.NODE_ENV === 'development';
-      const redirectUrl = isLocalEnv ? `${origin}${next}` : `https://${forwardedHost || origin.split('//')[1]}${next}`;
-      
+      const redirectUrl = isLocalEnv
+        ? `${origin}${next}`
+        : `https://${forwardedHost || origin.split('//')[1]}${next}`;
+
       return NextResponse.redirect(redirectUrl);
     }
   }

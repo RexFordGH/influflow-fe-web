@@ -22,7 +22,7 @@ async function handler(
   try {
     // Forward client headers to target API
     const forwardHeaders = new Headers();
-    
+
     // Copy all relevant headers from the original request
     req.headers.forEach((value, key) => {
       // Skip headers that shouldn't be forwarded
@@ -30,9 +30,13 @@ async function handler(
         forwardHeaders.set(key, value);
       }
     });
-    
+
     // Ensure Content-Type is set for non-GET requests
-    if (req.method !== 'GET' && req.method !== 'HEAD' && !forwardHeaders.has('content-type')) {
+    if (
+      req.method !== 'GET' &&
+      req.method !== 'HEAD' &&
+      !forwardHeaders.has('content-type')
+    ) {
       forwardHeaders.set('Content-Type', 'application/json');
     }
 

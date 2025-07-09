@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Lottie, { LottieComponentProps } from "lottie-react";
-import { FC } from "react";
+import Lottie, { LottieComponentProps } from 'lottie-react';
+import { FC } from 'react';
 
 interface LottiePlayerProps extends LottieComponentProps {
   animationData: any;

@@ -53,7 +53,7 @@ export async function apiRequest<T>(
             data: { session },
             error,
           } = await supabase.auth.refreshSession();
-          
+
           if (error || !session) {
             console.error('Token refresh failed:', error);
             throw new Error('Failed to refresh token');
@@ -73,7 +73,7 @@ export async function apiRequest<T>(
                 session.user.user_metadata?.picture,
             },
             session.access_token,
-            session.expires_at ? session.expires_at * 1000 : undefined
+            session.expires_at ? session.expires_at * 1000 : undefined,
           );
 
           // 重试原始请求

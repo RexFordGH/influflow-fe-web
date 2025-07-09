@@ -23,7 +23,11 @@ interface AuthState {
   authError: string | null;
 
   // Actions
-  setSession: (user: User | null, accessToken?: string | null, expiresAt?: number) => void;
+  setSession: (
+    user: User | null,
+    accessToken?: string | null,
+    expiresAt?: number,
+  ) => void;
   updateUser: (userData: Partial<User>) => void;
   syncProfileFromSupabase: () => Promise<void>;
   logout: () => Promise<void>;
@@ -66,7 +70,9 @@ export const useAuthStore = create<AuthState>()(
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
               tokenCache.accessToken = session.access_token;
-              tokenCache.expiresAt = session.expires_at ? session.expires_at * 1000 : null;
+              tokenCache.expiresAt = session.expires_at
+                ? session.expires_at * 1000
+                : null;
             }
           });
         } else {
@@ -184,7 +190,7 @@ export const useAuthStore = create<AuthState>()(
           if (tokenCache.accessToken && tokenCache.expiresAt) {
             const now = Date.now();
             const bufferTime = 5 * 60 * 1000; // 5分钟缓冲时间
-            
+
             // 如果token还没过期（留5分钟缓冲时间），直接返回缓存的token
             if (tokenCache.expiresAt > now + bufferTime) {
               return tokenCache.accessToken;
@@ -207,7 +213,9 @@ export const useAuthStore = create<AuthState>()(
 
           // 更新缓存
           tokenCache.accessToken = session.access_token;
-          tokenCache.expiresAt = session.expires_at ? session.expires_at * 1000 : null;
+          tokenCache.expiresAt = session.expires_at
+            ? session.expires_at * 1000
+            : null;
 
           return session.access_token;
         } catch (error) {
