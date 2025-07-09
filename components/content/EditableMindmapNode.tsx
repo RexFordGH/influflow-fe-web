@@ -45,8 +45,11 @@ const EditableMindmapNode = ({
       levelColors[level as keyof typeof levelColors] || levelColors[6];
 
     // 使用 React Flow 原生的选中状态 - 优先级高于 hover
+    // 根节点(level 1)选中时保持暗色系，其他节点显示蓝色
     const selectedStyle = selected
-      ? 'ring-1 ring-blue-400 ring-offset-1 !bg-[#DDE9FF]'
+      ? level === 1
+        ? 'ring-1 ring-gray-400 ring-offset-1 !bg-[#333333]' // 根节点：暗色系
+        : 'ring-1 ring-blue-400 ring-offset-1 !bg-[#DDE9FF]' // 其他节点：蓝色
       : '';
 
     // Debug: 输出选中状态 - 临时注释
@@ -86,7 +89,12 @@ const EditableMindmapNode = ({
     //   });
     // }
     // 应用 hover 样式（未选中时）或强化选中样式
-    const hoverStyle = isHovered && !selected ? '!bg-[#DDE9FF]' : '';
+    // 根节点(level 1)悬停时保持暗色系，其他节点显示蓝色
+    const hoverStyle = isHovered && !selected 
+      ? level === 1 
+        ? '!bg-[#333333]' // 根节点：暗色系悬停
+        : '!bg-[#DDE9FF]' // 其他节点：蓝色悬停
+      : '';
 
     // 添加调试样式检查
     const finalStyle = `${baseStyle} ${alignmentStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
