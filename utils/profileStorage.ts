@@ -1,4 +1,4 @@
-export type ITone = 'Expert' | 'Humorous' | 'Motivational' | 'Customize';
+export type ITone = 'Expert' | 'Humorous' | 'Motivational' | 'Customized';
 
 export interface ProfileData {
   account_name?: string;

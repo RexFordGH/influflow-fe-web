@@ -33,7 +33,7 @@ const STYLE_OPTIONS = [
     label: 'Inspirational',
   },
   {
-    value: 'Customize',
+    value: 'Customized',
     label: 'Customize',
   },
 ] as const;
@@ -72,7 +72,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           if (user.tone) {
             setSelectedStyle(user.tone);
           } else if (user.tweet_examples && user.tweet_examples.length > 0) {
-            setSelectedStyle('Customize');
+            setSelectedStyle('Customized');
             setCustomLinks([...user.tweet_examples, '', ''].slice(0, 3));
           }
 
@@ -93,7 +93,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               savedProfile.tweet_examples &&
               savedProfile.tweet_examples.length > 0
             ) {
-              setSelectedStyle('Customize');
+              setSelectedStyle('Customized');
               setCustomLinks(
                 [...savedProfile.tweet_examples, '', ''].slice(0, 3),
               );
@@ -118,7 +118,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               supabaseProfile.tweet_examples &&
               supabaseProfile.tweet_examples.length > 0
             ) {
-              setSelectedStyle('Customize');
+              setSelectedStyle('Customized');
               setCustomLinks(
                 [...supabaseProfile.tweet_examples, '', ''].slice(0, 3),
               );
@@ -165,11 +165,11 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         account_name: accountName,
         bio: personalIntro,
         tone:
-          selectedStyle === 'Customize' || selectedStyle === null
+          selectedStyle === 'Customized' || selectedStyle === null
             ? undefined
             : selectedStyle,
         tweet_examples:
-          selectedStyle === 'Customize'
+          selectedStyle === 'Customized'
             ? customLinks.filter((link) => link.trim() !== '')
             : [],
       };
@@ -193,7 +193,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         account_name: accountName,
       };
 
-      if (selectedStyle === 'Customize') {
+      if (selectedStyle === 'Customized') {
         updateData.tweet_examples = customLinks.filter(
           (link) => link.trim() !== '',
         );
@@ -232,11 +232,11 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       setCustomLinks(['', '', '']);
     } else {
       setSelectedStyle(style);
-      // 如果不是 Customize，清空自定义链接
-      if (style !== 'Customize') {
+      // 如果不是 Customized，清空自定义链接
+      if (style !== 'Customized') {
         setCustomLinks(['', '', '']);
       } else {
-        // 如果是 Customize，设置默认链接
+        // 如果是 Customized，设置默认链接
         setCustomLinks(['https://x.com/influxy.ai...', '', '']);
       }
     }
@@ -295,7 +295,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                   selectedStyle === option.value
                     ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
                     : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                } ${option.value === 'Customize' ? 'underline' : ''}`}
+                } ${option.value === 'Customized' ? 'underline' : ''}`}
                 onPress={() => handleStyleSelect(option.value)}
               >
                 {option.label}
@@ -303,8 +303,8 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             ))}
           </div>
 
-          {/* Custom Style Links - 只在选择 Customize 时显示 */}
-          {selectedStyle === 'Customize' && (
+          {/* Custom Style Links - 只在选择 Customized 时显示 */}
+          {selectedStyle === 'Customized' && (
             <div className="mb-6">
               <h3 className="mb-2 text-lg font-medium text-gray-900">
                 Examples of Customized Style

@@ -6,16 +6,19 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
 interface ProfilePromptProps {
-  onCustomize: () => void;
+  onCustomized: () => void;
   onClose: () => void;
 }
 
-export const ProfilePrompt = ({ onCustomize, onClose }: ProfilePromptProps) => {
+export const ProfilePrompt = ({
+  onCustomized,
+  onClose,
+}: ProfilePromptProps) => {
   const router = useRouter();
 
-  const handleCustomize = () => {
+  const handleCustomized = () => {
     router.push('/profile');
-    onCustomize();
+    onCustomized();
   };
 
   return (
@@ -35,7 +38,7 @@ export const ProfilePrompt = ({ onCustomize, onClose }: ProfilePromptProps) => {
         size="sm"
         variant="solid"
         className="bg-white font-medium text-blue-500"
-        onPress={handleCustomize}
+        onPress={handleCustomized}
       >
         立即填写
       </Button>
