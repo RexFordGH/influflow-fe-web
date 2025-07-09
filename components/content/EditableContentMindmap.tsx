@@ -415,7 +415,7 @@ export function EditableContentMindmap({
         newNodeId = `tweet-${rootOutlineIndex}-${newTweetId}-L${newLevel}`;
         newNodeData = {
           tweetId: newTweetId,
-          content: 'New Tweet',
+          content: '',
           title: 'New Node',
           groupIndex: rootOutlineIndex,
           tweetIndex: newTweetIndex,
@@ -690,7 +690,6 @@ export function EditableContentMindmap({
       // 检查是否有当前outline数据
       if (!currentOutline) {
         console.error('缺少原始outline数据，无法进行AI编辑');
-        alert('缺少原始数据，无法进行AI编辑');
         setIsAIProcessing(false);
         return;
       }
@@ -701,7 +700,6 @@ export function EditableContentMindmap({
       );
       if (!targetNode || !targetNode.data?.tweetId) {
         console.error('未找到目标节点或缺少tweetId:', selectedNodeForAI);
-        alert('无法确定要编辑的内容');
         setIsAIProcessing(false);
         return;
       }
@@ -739,7 +737,6 @@ export function EditableContentMindmap({
 
         if (!tweetFound) {
           console.error('未找到对应的tweet_number:', tweetNumber);
-          alert('更新失败：未找到对应的内容');
           return;
         }
 
@@ -774,7 +771,6 @@ export function EditableContentMindmap({
       }
     } catch (error) {
       console.error('AI编辑失败:', error);
-      // alert(`编辑失败: ${getErrorMessage(error)}`);
     } finally {
       setIsAIProcessing(false);
       setShowAIEditModal(false);

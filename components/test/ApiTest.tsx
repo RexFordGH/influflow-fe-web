@@ -34,11 +34,9 @@ export function ApiTest() {
       {
         onSuccess: (data) => {
           console.log('生成成功:', data);
-          alert(`生成成功！共生成${data.total_tweets}条推文`);
         },
         onError: (error) => {
           console.error('生成失败:', error);
-          alert(`生成失败: ${getErrorMessage(error)}`);
         },
       },
     );

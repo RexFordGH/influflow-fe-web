@@ -92,7 +92,6 @@ const LinkInput = ({ editor, isOpen }: { editor: any; isOpen: boolean }) => {
 
     const { empty, from, to } = editor.state.selection;
     if (empty) {
-      alert('Please select the text you want to link');
       return;
     }
 

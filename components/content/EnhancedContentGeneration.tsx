@@ -658,7 +658,6 @@ export function EnhancedContentGeneration({
 
     if (!rawAPIData) {
       console.error('缺少原始数据，无法重新生成');
-      alert('缺少原始数据，无法重新生成');
       return;
     }
 
@@ -704,11 +703,30 @@ export function EnhancedContentGeneration({
                 (t) => t.tweet_number === tweetNode.data?.tweetId,
               ) || {};
 
-            return {
+            // 检查标题是否发生变化
+            const originalTitle = (originalTweet as any).title;
+            const currentTitle = tweetNode.label;
+            const titleChanged = currentTitle !== originalTitle;
+            
+            console.log('🔍 标题变化检测:', {
+              tweetId: tweetNode.data?.tweetId,
+              originalTitle,
+              currentTitle,
+              titleChanged,
+              originalTweet,
+            });
+            
+            const result = {
               ...(originalTweet as TweetContentItem),
               title: tweetNode.label, // 使用编辑后的标题
               tweet_number: tweetNode.data?.tweetId || 0,
+              // 如果标题变化了，清空 content，让后端重新生成
+              ...(titleChanged && { content: '' }),
             };
+            
+            console.log('🔍 构建的推文数据:', result);
+            
+            return result;
           });
 
         return {
@@ -807,7 +825,6 @@ export function EnhancedContentGeneration({
       }
     } catch (error) {
       console.error('Regenerate 失败:', error);
-      alert(`重新生成失败: ${getErrorMessage(error)}`);
     } finally {
       setIsRegenerating(false);
     }
