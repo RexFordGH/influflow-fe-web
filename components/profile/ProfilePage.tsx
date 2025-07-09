@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
-import { Button, Input, Textarea } from '@heroui/react';
+import { Button, Textarea } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -45,11 +45,7 @@ interface ProfilePageProps {
 export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   const { user, updateUser } = useAuthStore();
   const [selectedStyle, setSelectedStyle] = useState<ITone | null>(null);
-  const [customLinks, setCustomLinks] = useState([
-    'https://x.com/influxy.ai...',
-    'https://x.com/influxy.ai...',
-    '',
-  ]);
+  const [customContent, setCustomContent] = useState(['', '', '']);
   const [personalIntro, setPersonalIntro] = useState(user?.bio || '');
   const [accountName, setAccountName] = useState(
     user?.account_name || user?.name || '',
@@ -73,7 +69,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             setSelectedStyle(user.tone);
           } else if (user.tweet_examples && user.tweet_examples.length > 0) {
             setSelectedStyle('Customized');
-            setCustomLinks([...user.tweet_examples, '', ''].slice(0, 3));
+            setCustomContent([...user.tweet_examples, '', ''].slice(0, 3));
           }
 
           if (user.bio) {
@@ -94,7 +90,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               savedProfile.tweet_examples.length > 0
             ) {
               setSelectedStyle('Customized');
-              setCustomLinks(
+              setCustomContent(
                 [...savedProfile.tweet_examples, '', ''].slice(0, 3),
               );
             }
@@ -119,7 +115,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               supabaseProfile.tweet_examples.length > 0
             ) {
               setSelectedStyle('Customized');
-              setCustomLinks(
+              setCustomContent(
                 [...supabaseProfile.tweet_examples, '', ''].slice(0, 3),
               );
             }
@@ -170,7 +166,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             : selectedStyle,
         tweet_examples:
           selectedStyle === 'Customized'
-            ? customLinks.filter((link) => link.trim() !== '')
+            ? customContent.filter((link) => link.trim() !== '')
             : [],
       };
 
@@ -194,7 +190,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       };
 
       if (selectedStyle === 'Customized') {
-        updateData.tweet_examples = customLinks.filter(
+        updateData.tweet_examples = customContent.filter(
           (link) => link.trim() !== '',
         );
         updateData.tone = undefined;
@@ -229,23 +225,23 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     // 如果已经选中了这个风格，则取消选择
     if (selectedStyle === style) {
       setSelectedStyle(null);
-      setCustomLinks(['', '', '']);
+      setCustomContent(['', '', '']);
     } else {
       setSelectedStyle(style);
       // 如果不是 Customized，清空自定义链接
       if (style !== 'Customized') {
-        setCustomLinks(['', '', '']);
+        setCustomContent(['', '', '']);
       } else {
         // 如果是 Customized，设置默认链接
-        setCustomLinks(['https://x.com/influxy.ai...', '', '']);
+        setCustomContent(['', '', '']);
       }
     }
   };
 
   const handleLinkChange = (index: number, value: string) => {
-    const newLinks = [...customLinks];
+    const newLinks = [...customContent];
     newLinks[index] = value;
-    setCustomLinks(newLinks);
+    setCustomContent(newLinks);
   };
 
   const handleIntroChange = (value: string) => {
@@ -310,18 +306,18 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                 Examples of Customized Style
               </h3>
               <p className="mb-4 text-gray-500">
-                Paste the link to the posts you'd like to use as style
-                references.
+                Type in the content you'd like to use as style references.
               </p>
               <div className="space-y-3">
-                {customLinks.map((link, index) => (
-                  <Input
+                {customContent.map((content, index) => (
+                  <Textarea
                     key={index}
-                    value={link}
+                    value={content}
                     onChange={(e) => handleLinkChange(index, e.target.value)}
-                    placeholder="https://x.com/influxy.ai..."
+                    placeholder=""
                     variant="bordered"
                     className="w-full"
+                    rows={2}
                   />
                 ))}
               </div>
