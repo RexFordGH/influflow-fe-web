@@ -475,6 +475,8 @@ export function SectionRenderer({
             <CopyButton
               currentTweetData={currentTweetData}
               currentContent={currentEditorContent}
+              tweetNumber={tweetNumber}
+              totalTweets={totalTweets}
             />
           </div>
         </div>
@@ -593,7 +595,7 @@ function TweetImageButton({
 }
 
 // 将内容转换为 Twitter 兼容格式
-function convertToTwitterFormat(content: string): string {
+function convertToTwitterFormat(content: string, tweetNumber?: number, totalTweets?: number): string {
   if (!content) return '';
 
   let twitterContent = content;
@@ -621,6 +623,11 @@ function convertToTwitterFormat(content: string): string {
   twitterContent = twitterContent.replace(/\n{3,}/g, '\n\n');
   twitterContent = twitterContent.trim();
 
+  // 添加序号信息
+  if (tweetNumber && totalTweets && totalTweets > 1) {
+    twitterContent = `(${tweetNumber}/${totalTweets})\n\n${twitterContent}`;
+  }
+
   return twitterContent;
 }
 
@@ -628,8 +635,10 @@ function convertToTwitterFormat(content: string): string {
 async function copyTwitterContent(
   content: string,
   imageUrl?: string,
+  tweetNumber?: number,
+  totalTweets?: number,
 ): Promise<void> {
-  const twitterFormattedContent = convertToTwitterFormat(content);
+  const twitterFormattedContent = convertToTwitterFormat(content, tweetNumber, totalTweets);
 
   try {
     if (imageUrl) {
@@ -699,9 +708,13 @@ async function copyTwitterContent(
 function CopyButton({
   currentTweetData,
   currentContent,
+  tweetNumber,
+  totalTweets,
 }: {
   currentTweetData?: any;
   currentContent?: string;
+  tweetNumber?: number;
+  totalTweets?: number;
 }) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -715,11 +728,13 @@ function CopyButton({
     console.log('=== Copy Button Clicked ===');
     console.log('Content to copy:', contentToCopy);
     console.log('Image URL:', imageUrl);
+    console.log('Tweet number:', tweetNumber);
+    console.log('Total tweets:', totalTweets);
     console.log('Current tweet data:', currentTweetData);
 
     setIsLoading(true);
     try {
-      await copyTwitterContent(contentToCopy, imageUrl);
+      await copyTwitterContent(contentToCopy, imageUrl, tweetNumber, totalTweets);
     } finally {
       setIsLoading(false);
     }
