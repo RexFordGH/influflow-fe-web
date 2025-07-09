@@ -33,12 +33,12 @@ const EditableMindmapNode = ({
     const alignmentStyle = level === 1 ? 'text-center' : 'text-left';
 
     const levelColors = {
-      1: '!bg-[#000000] !text-white !hover:bg-[rgba(0,0,0,0.6)] max-w-[300px] min-h-[40px]',
-      2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[250px] min-h-[35px]',
-      3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
-      4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
-      5: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
-      6: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[30px]',
+      1: '!bg-[#000000] !text-white !hover:bg-[rgba(0,0,0,0.6)] max-w-[250px] min-h-[40px]',
+      2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[35px]',
+      3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
+      4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
+      5: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
+      6: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
     };
 
     const levelStyle =
