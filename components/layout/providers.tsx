@@ -1,6 +1,7 @@
 'use client';
 import { HeroUIProvider, ToastProvider } from '@heroui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Analytics } from '@vercel/analytics/next';
 import { useRouter } from 'next/navigation';
 
 import { AuthProvider } from '@/components/auth/AuthProvider';
@@ -31,7 +32,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
             },
           }}
         />
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <Analytics />
+        </AuthProvider>
       </QueryClientProvider>
     </HeroUIProvider>
   );
