@@ -20,6 +20,9 @@ const config: Config = {
         'primary-foreground': 'var(--primary-foreground)',
         danger: '#D75454',
       },
+      fontFamily: {
+        poppins: ['var(--font-poppins)'],
+      },
     },
   },
   plugins: [heroui()],

@@ -99,9 +99,7 @@ export default [
         {
           config: {
             classNameContradictions: {
-              'font-mona': [],
-              'font-saira': [],
-              'font-sans': [],
+              'font-poppins': [],
             },
           },
         },
@@ -110,9 +108,7 @@ export default [
         'warn',
         {
           whitelist: [
-            'font-mona',
-            'font-saira',
-            'font-sans',
+            'font-poppins',
             'scrollbar-hide',
             'text-danger',
           ],

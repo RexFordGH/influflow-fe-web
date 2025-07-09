@@ -190,8 +190,8 @@ export function EditableContentMindmap({
       animated: false,
       deletable: true,
       style: {
-        stroke: '#000000',
-        strokeWidth: 1,
+        stroke: '#374151',
+        strokeWidth: 1.5,
       },
     }));
 
@@ -218,9 +218,9 @@ export function EditableContentMindmap({
         layoutOptions: {
           'elk.algorithm': 'mrtree',
           'elk.direction': 'RIGHT',
-          // 基本间距控制 - 大幅减少水平距离
+          // 基本间距控制 - 适中的水平距离
           'elk.spacing.nodeNode': '15',
-          'elk.spacing.nodeNodeBetweenLayers': '25', // 减少层级间距
+          'elk.spacing.nodeNodeBetweenLayers': '35', // 适中的层级间距
           'elk.padding': '[left=20,top=20,right=20,bottom=20]',
           // 树形算法特定设置
           'elk.mrtree.weighting': 'UNIFORM', // 改为UNIFORM避免按子节点数量重排
@@ -234,14 +234,14 @@ export function EditableContentMindmap({
           const level = node.data?.level || 1;
           const text = node.data?.label || '';
 
-          // 设置固定最大宽度（与CSS保持一致）
+          // 设置固定最大宽度（适中的宽度）
           let maxWidth;
           if (level === 1) {
-            maxWidth = 300;
-          } else if (level === 2) {
             maxWidth = 250;
-          } else {
+          } else if (level === 2) {
             maxWidth = 200;
+          } else {
+            maxWidth = 180;
           }
 
           // 动态计算高度以适应换行文本
@@ -249,7 +249,7 @@ export function EditableContentMindmap({
           const otherCharCount = text.length - chineseCharCount;
           const estimatedTextWidth = chineseCharCount * 14 + otherCharCount * 8;
 
-          const padding = 20; // 减少padding
+          const padding = 16; // 进一步减少padding
           const availableTextWidth = maxWidth - padding;
           const estimatedLines = Math.max(
             1,
@@ -436,7 +436,7 @@ export function EditableContentMindmap({
         id: `edge-${parentId}-${newNodeId}`,
         source: parentId,
         target: newNodeId,
-        type: 'smoothstep',
+        type: 'default',
       };
 
       // 更新数据
@@ -556,7 +556,7 @@ export function EditableContentMindmap({
           id: `edge-${params.source}-${params.target}`,
           source: params.source,
           target: params.target,
-          type: 'smoothstep',
+          type: 'default',
         };
         onEdgesChange?.([...mindmapEdges, newEdge]);
       }
@@ -814,7 +814,7 @@ export function EditableContentMindmap({
         }} // 点击空白区域取消选择
         defaultEdgeOptions={{
           type: 'default',
-          style: { strokeWidth: 1, stroke: '#6B7280' },
+          style: { strokeWidth: 1.5, stroke: '#374151' },
           animated: false,
         }}
       >

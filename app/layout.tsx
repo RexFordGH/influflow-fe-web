@@ -10,7 +10,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans">
+      <body className="font-poppins">
         <Providers>
           <MainLayout>{children}</MainLayout>
         </Providers>
