@@ -122,23 +122,21 @@ export const WelcomeScreen = ({
               </Button>
             </div>
           </div>
-          {isAuthenticated && (
-            <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
-              <div className="flex flex-col items-center">
-                <div className="animate-bounce">
-                  <Image
-                    src="/icons/scroll.svg"
-                    alt="swipe-up"
-                    width={24}
-                    height={24}
-                  />
-                </div>
-                <span className="text-[18px] font-[500] text-[#448AFF]">
-                  Scroll down to explore trending topics
-                </span>
+          <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
+            <div className="flex flex-col items-center">
+              <div className="animate-bounce">
+                <Image
+                  src="/icons/scroll.svg"
+                  alt="swipe-up"
+                  width={24}
+                  height={24}
+                />
               </div>
+              <span className="text-[18px] font-[500] text-[#448AFF]">
+                Scroll down to explore trending topics
+              </span>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Trending Topics 页面 */}
