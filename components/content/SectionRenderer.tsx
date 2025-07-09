@@ -3,7 +3,6 @@
 import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { createClient } from '../../lib/supabase/client';
 import { addToast } from '../base/toast';
@@ -593,6 +592,109 @@ function TweetImageButton({
   );
 }
 
+// 将内容转换为 Twitter 兼容格式
+function convertToTwitterFormat(content: string): string {
+  if (!content) return '';
+
+  let twitterContent = content;
+
+  // 处理列表 - 转换为 Twitter 兼容格式
+  // 处理无序列表 (- 或 *)
+  twitterContent = twitterContent.replace(/^[-*]\s+(.+)$/gm, '• $1');
+
+  // 处理有序列表
+  twitterContent = twitterContent.replace(/^\d+\.\s+(.+)$/gm, '• $1');
+
+  // 移除 Markdown 格式标记但保留内容
+  twitterContent = twitterContent.replace(/\*\*(.+?)\*\*/g, '$1'); // 粗体
+  twitterContent = twitterContent.replace(/\*(.+?)\*/g, '$1'); // 斜体
+  twitterContent = twitterContent.replace(/!\[.*?\]\(.*?\)/g, ''); // 图片链接
+
+  // 处理换行 - 先将所有双换行替换为单换行（列表项之间不应该有空行）
+  twitterContent = twitterContent.replace(/\n\n/g, '\n');
+
+  // 但是在非列表段落之间保留空行
+  // 识别列表结束后的段落，在其前面加上空行
+  twitterContent = twitterContent.replace(/(\n• .+)(\n[^•])/g, '$1\n$2');
+
+  // 清理多余的空行
+  twitterContent = twitterContent.replace(/\n{3,}/g, '\n\n');
+  twitterContent = twitterContent.trim();
+
+  return twitterContent;
+}
+
+// 复制内容和图片到剪贴板
+async function copyTwitterContent(
+  content: string,
+  imageUrl?: string,
+): Promise<void> {
+  const twitterFormattedContent = convertToTwitterFormat(content);
+
+  try {
+    if (imageUrl) {
+      console.log('Attempting to copy content with image:', imageUrl);
+
+      // 获取图片blob
+      const response = await fetch(imageUrl, {
+        mode: 'cors',
+        credentials: 'same-origin',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      console.log('Image blob type:', blob.type, 'size:', blob.size);
+
+      // 检查是否是有效的图片类型
+      if (!blob.type.startsWith('image/')) {
+        throw new Error(`Invalid image type: ${blob.type}`);
+      }
+
+      // 同时复制文本和图片
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob,
+          'text/plain': new Blob([twitterFormattedContent], {
+            type: 'text/plain',
+          }),
+        }),
+      ]);
+
+      console.log('Image and text copied successfully');
+      addToast({
+        title: 'Copied Successfully',
+        color: 'success',
+      });
+    } else {
+      // 只复制文本
+      await navigator.clipboard.writeText(twitterFormattedContent);
+      addToast({
+        title: 'Copied Successfully',
+        color: 'success',
+      });
+    }
+  } catch (error) {
+    console.error('Failed to copy content:', error);
+    // 降级处理：只复制文本
+    try {
+      await navigator.clipboard.writeText(twitterFormattedContent);
+      addToast({
+        title: 'Copied text (image copy failed)',
+        color: 'warning',
+      });
+    } catch (textError) {
+      console.error('Failed to copy text:', textError);
+      addToast({
+        title: 'Copy failed',
+        color: 'danger',
+      });
+    }
+  }
+}
+
 // 复制按钮组件
 function CopyButton({
   currentTweetData,
@@ -601,28 +703,39 @@ function CopyButton({
   currentTweetData?: any;
   currentContent?: string;
 }) {
+  const [isLoading, setIsLoading] = useState(false);
+
   // 优先使用编辑器中的当前内容，如果没有则回退到原始数据
   const contentToCopy = currentContent || currentTweetData?.content || '';
+  const imageUrl = currentTweetData?.image_url;
+
+  const handleCopy = async () => {
+    if (isLoading) return; // 防止重复点击
+
+    console.log('=== Copy Button Clicked ===');
+    console.log('Content to copy:', contentToCopy);
+    console.log('Image URL:', imageUrl);
+    console.log('Current tweet data:', currentTweetData);
+
+    setIsLoading(true);
+    try {
+      await copyTwitterContent(contentToCopy, imageUrl);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <CopyToClipboard
-      text={contentToCopy}
-      onCopy={() => {
-        console.log('copied:', contentToCopy);
-        addToast({
-          title: 'Copied Successfully',
-          color: 'success',
-        });
-      }}
+    <Button
+      isIconOnly
+      size="sm"
+      variant="light"
+      className={markdownStyles.source.button}
+      onPress={handleCopy}
+      isLoading={isLoading}
+      disabled={isLoading}
     >
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className={markdownStyles.source.button}
-      >
-        <CopyIcon size={20} />
-      </Button>
-    </CopyToClipboard>
+      <CopyIcon size={20} />
+    </Button>
   );
 }

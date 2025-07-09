@@ -707,7 +707,7 @@ export function EnhancedContentGeneration({
             const originalTitle = (originalTweet as any).title;
             const currentTitle = tweetNode.label;
             const titleChanged = currentTitle !== originalTitle;
-            
+
             console.log('🔍 标题变化检测:', {
               tweetId: tweetNode.data?.tweetId,
               originalTitle,
@@ -715,7 +715,7 @@ export function EnhancedContentGeneration({
               titleChanged,
               originalTweet,
             });
-            
+
             const result = {
               ...(originalTweet as TweetContentItem),
               title: tweetNode.label, // 使用编辑后的标题
@@ -723,9 +723,9 @@ export function EnhancedContentGeneration({
               // 如果标题变化了，清空 content，让后端重新生成
               ...(titleChanged && { content: '' }),
             };
-            
+
             console.log('🔍 构建的推文数据:', result);
-            
+
             return result;
           });
 
@@ -887,6 +887,12 @@ export function EnhancedContentGeneration({
 
   // Twitter发布逻辑
   const handlePostToTwitter = useCallback(async () => {
+    addToast({
+      title: 'One-click tweet coming soon!',
+      color: 'warning',
+      timeout: 5000,
+    });
+
     if (!rawAPIData) {
       addToast({
         title: '没有可发布的内容',
@@ -944,12 +950,6 @@ export function EnhancedContentGeneration({
 
       // 后端暂时不用，发请求用于后端打 log
       postToTwitterMutation.mutateAsync(postRequest);
-
-      addToast({
-        title: 'One-click tweet coming soon!',
-        color: 'warning',
-        timeout: 5000,
-      });
 
       // 4. 发布到Twitter
       // const response = await postToTwitterMutation.mutateAsync(postRequest);
