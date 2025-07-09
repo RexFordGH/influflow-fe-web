@@ -594,6 +594,39 @@ function TweetImageButton({
   );
 }
 
+// 将图片转换为PNG格式（剪贴板API支持的格式）
+async function convertImageToPNG(imageBlob: Blob): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new window.Image();
+
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to convert image to PNG'));
+          }
+        }, 'image/png');
+      } else {
+        reject(new Error('Failed to get canvas context'));
+      }
+    };
+
+    img.onerror = () => {
+      reject(new Error('Failed to load image'));
+    };
+
+    img.src = URL.createObjectURL(imageBlob);
+  });
+}
+
 // 将内容转换为 Twitter 兼容格式
 function convertToTwitterFormat(content: string, tweetNumber?: number, totalTweets?: number): string {
   if (!content) return '';
@@ -662,10 +695,14 @@ async function copyTwitterContent(
         throw new Error(`Invalid image type: ${blob.type}`);
       }
 
+      // 将图片转换为PNG格式（剪贴板API支持的格式）
+      const convertedBlob = await convertImageToPNG(blob);
+      console.log('Converted image blob type:', convertedBlob.type, 'size:', convertedBlob.size);
+
       // 同时复制文本和图片
       await navigator.clipboard.write([
         new ClipboardItem({
-          [blob.type]: blob,
+          [convertedBlob.type]: convertedBlob,
           'text/plain': new Blob([twitterFormattedContent], {
             type: 'text/plain',
           }),
