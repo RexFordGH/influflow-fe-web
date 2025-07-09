@@ -604,7 +604,7 @@ async function convertImageToPNG(imageBlob: Blob): Promise<Blob> {
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
-      
+
       if (ctx) {
         ctx.drawImage(img, 0, 0);
         canvas.toBlob((blob) => {
@@ -628,7 +628,11 @@ async function convertImageToPNG(imageBlob: Blob): Promise<Blob> {
 }
 
 // 将内容转换为 Twitter 兼容格式
-function convertToTwitterFormat(content: string, tweetNumber?: number, totalTweets?: number): string {
+function convertToTwitterFormat(
+  content: string,
+  tweetNumber?: number,
+  totalTweets?: number,
+): string {
   if (!content) return '';
 
   let twitterContent = content;
@@ -658,7 +662,7 @@ function convertToTwitterFormat(content: string, tweetNumber?: number, totalTwee
 
   // 添加序号信息
   if (tweetNumber && totalTweets && totalTweets > 1) {
-    twitterContent = `(${tweetNumber}/${totalTweets})\n\n${twitterContent}`;
+    twitterContent = `(${tweetNumber}/${totalTweets})\n${twitterContent}`;
   }
 
   return twitterContent;
@@ -671,7 +675,11 @@ async function copyTwitterContent(
   tweetNumber?: number,
   totalTweets?: number,
 ): Promise<void> {
-  const twitterFormattedContent = convertToTwitterFormat(content, tweetNumber, totalTweets);
+  const twitterFormattedContent = convertToTwitterFormat(
+    content,
+    tweetNumber,
+    totalTweets,
+  );
 
   try {
     if (imageUrl) {
@@ -697,7 +705,12 @@ async function copyTwitterContent(
 
       // 将图片转换为PNG格式（剪贴板API支持的格式）
       const convertedBlob = await convertImageToPNG(blob);
-      console.log('Converted image blob type:', convertedBlob.type, 'size:', convertedBlob.size);
+      console.log(
+        'Converted image blob type:',
+        convertedBlob.type,
+        'size:',
+        convertedBlob.size,
+      );
 
       // 同时复制文本和图片
       await navigator.clipboard.write([
@@ -771,7 +784,12 @@ function CopyButton({
 
     setIsLoading(true);
     try {
-      await copyTwitterContent(contentToCopy, imageUrl, tweetNumber, totalTweets);
+      await copyTwitterContent(
+        contentToCopy,
+        imageUrl,
+        tweetNumber,
+        totalTweets,
+      );
     } finally {
       setIsLoading(false);
     }
