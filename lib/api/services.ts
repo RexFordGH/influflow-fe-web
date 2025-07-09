@@ -44,8 +44,6 @@ export function useHealth() {
 
 // 生成 Twitter Thread
 export function useGenerateThread() {
-  const _queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (data: GenerateThreadRequest): Promise<Outline> => {
       // 检查是否使用本地数据
@@ -69,8 +67,6 @@ export function useGenerateThread() {
 
 // 修改单个 Tweet
 export function useModifyTweet() {
-  const _queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (data: ModifyTweetRequest): Promise<ModifyTweetData> => {
       // 检查是否使用本地数据
@@ -102,8 +98,6 @@ export function useModifyTweet() {
 
 // 修改大纲
 export function useModifyOutline() {
-  const _queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (
       data: ModifyOutlineRequest,
@@ -204,6 +198,82 @@ export function useTopicTypes() {
     },
     staleTime: 60 * 60 * 1000, // 1小时内数据视为新鲜
     gcTime: 2 * 60 * 60 * 1000, // 2小时缓存
+  });
+}
+
+// ========================
+// Twitter 发布相关
+// ========================
+
+// Twitter 授权状态响应类型
+export interface TwitterAuthStatusResponse {
+  authorized: boolean;
+}
+
+// Twitter 授权链接响应类型
+export interface TwitterAuthUrlResponse {
+  authorization_url: string;
+}
+
+// Twitter 推文数据类型
+export interface TwitterTweetData {
+  text: string;
+  image_url?: string;
+}
+
+// Twitter 发布请求类型
+export interface TwitterPostRequest {
+  tweets: TwitterTweetData[];
+  delay_seconds?: number;
+}
+
+// Twitter 发布响应类型
+export interface TwitterPostResponse {
+  total_tweets: number;
+  successful_tweets: number;
+  failed_tweets: number;
+  first_tweet_id: string;
+  thread_results: {
+    tweet_number: number;
+    text: string;
+    image_url?: string;
+    success: boolean;
+    tweet_id?: string;
+    error?: string;
+  }[];
+}
+
+// 检查当前登录用户的 Twitter 授权状态
+export function useCheckTwitterAuthStatus() {
+  return useQuery({
+    queryKey: ['twitter', 'auth-status'],
+    queryFn: async (): Promise<TwitterAuthStatusResponse> => {
+      return apiGet<TwitterAuthStatusResponse>('/auth/twitter/status');
+    },
+    staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
+    gcTime: 10 * 60 * 1000, // 10分钟缓存
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+}
+
+// 获取 Twitter 授权链接
+export async function getTwitterAuthUrl(): Promise<TwitterAuthUrlResponse> {
+  return apiGet<TwitterAuthUrlResponse>('/auth/twitter');
+}
+
+// 发布推文到 Twitter
+export function usePostToTwitter() {
+  return useMutation({
+    mutationFn: async (requestData: TwitterPostRequest): Promise<TwitterPostResponse> => {
+      return apiPost<TwitterPostResponse>('/api/twitter/post-thread', requestData);
+    },
+    onSuccess: (data) => {
+      console.log('Post to Twitter successful:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to post to Twitter:', error);
+    },
   });
 }
 

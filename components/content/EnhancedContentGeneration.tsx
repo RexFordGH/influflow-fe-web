@@ -8,9 +8,14 @@ import { ReactFlowProvider } from 'reactflow';
 import { addToast } from '@/components/base/toast';
 import {
   getErrorMessage,
+  getTwitterAuthUrl,
+  useCheckTwitterAuthStatus,
   useGenerateImage,
   useGenerateThread,
   useModifyOutline,
+  usePostToTwitter,
+  type TwitterPostRequest,
+  type TwitterTweetData,
 } from '@/lib/api/services';
 import {
   convertAPIDataToGeneratedContent,
@@ -77,15 +82,19 @@ export function EnhancedContentGeneration({
     string[]
   >([]); // 正在生图的tweetId数组
   const [scrollToSection, setScrollToSection] = useState<string | null>(null); // 滚动到指定section
+  const [isPostingToTwitter, setIsPostingToTwitter] = useState(false); // Twitter发布loading状态
 
   // 辅助函数：添加正在生图的 tweetId
   const addGeneratingImageTweetId = useCallback((tweetId: string) => {
-    setGeneratingImageTweetIds(prev => [...prev.filter(id => id !== tweetId), tweetId]);
+    setGeneratingImageTweetIds((prev) => [
+      ...prev.filter((id) => id !== tweetId),
+      tweetId,
+    ]);
   }, []);
 
   // 辅助函数：移除正在生图的 tweetId
   const removeGeneratingImageTweetId = useCallback((tweetId: string) => {
-    setGeneratingImageTweetIds(prev => prev.filter(id => id !== tweetId));
+    setGeneratingImageTweetIds((prev) => prev.filter((id) => id !== tweetId));
   }, []);
 
   // 辅助函数：清空所有正在生图的 tweetId
@@ -94,9 +103,12 @@ export function EnhancedContentGeneration({
   }, []);
 
   // 辅助函数：检查是否正在生图
-  const isGeneratingImage = useCallback((tweetId: string | null | undefined) => {
-    return tweetId ? generatingImageTweetIds.includes(tweetId) : false;
-  }, [generatingImageTweetIds]);
+  const isGeneratingImage = useCallback(
+    (tweetId: string | null | undefined) => {
+      return tweetId ? generatingImageTweetIds.includes(tweetId) : false;
+    },
+    [generatingImageTweetIds],
+  );
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
@@ -120,6 +132,9 @@ export function EnhancedContentGeneration({
     useGenerateThread();
   const modifyOutlineMutation = useModifyOutline();
   const generateImageMutation = useGenerateImage();
+  const postToTwitterMutation = usePostToTwitter();
+  const { data: twitterAuthStatus, refetch: refetchTwitterAuthStatus } =
+    useCheckTwitterAuthStatus();
 
   // 生成思维过程步骤
   const generationSteps = [
@@ -414,21 +429,24 @@ export function EnhancedContentGeneration({
   };
 
   // 新逻辑: 点击后不再自动生成图片，而是直接打开模态框
-  const handleTweetImageEdit = useCallback((tweetData: any) => {
-    setEditingTweetData(tweetData);
-    setEditingImage({
-      url: tweetData.image_url || '', // 如果没有图片URL，则传递空字符串
-      alt: tweetData.content || tweetData.title || '',
-      caption: tweetData.content,
-      prompt: tweetData.content || tweetData.title,
-    });
-    // 设置正在生图的 tweetId，用于高亮显示
-    const tweetId = tweetData.tweet_number?.toString();
-    if (tweetId) {
-      addGeneratingImageTweetId(tweetId);
-    }
-    setIsImageEditModalOpen(true);
-  }, [addGeneratingImageTweetId]);
+  const handleTweetImageEdit = useCallback(
+    (tweetData: any) => {
+      setEditingTweetData(tweetData);
+      setEditingImage({
+        url: tweetData.image_url || '', // 如果没有图片URL，则传递空字符串
+        alt: tweetData.content || tweetData.title || '',
+        caption: tweetData.content,
+        prompt: tweetData.content || tweetData.title,
+      });
+      // 设置正在生图的 tweetId，用于高亮显示
+      const tweetId = tweetData.tweet_number?.toString();
+      if (tweetId) {
+        addGeneratingImageTweetId(tweetId);
+      }
+      setIsImageEditModalOpen(true);
+    },
+    [addGeneratingImageTweetId],
+  );
 
   // 新逻辑: 精确地将选中的图片URL更新到Markdown中
   const handleImageUpdate = useCallback(
@@ -455,13 +473,13 @@ export function EnhancedContentGeneration({
 
       // 使用 useState 的函数式更新来避免竞态条件
       // 这样每次更新都基于最新的状态，而不是闭包中的旧状态
-      
+
       let latestRawAPIData: any = null;
 
       // 1. 更新 rawAPIData 中的图片URL（使用函数式更新）
-      setRawAPIData(prevRawAPIData => {
+      setRawAPIData((prevRawAPIData) => {
         if (!prevRawAPIData) return prevRawAPIData;
-        
+
         const updatedNodes = prevRawAPIData.nodes.map((group: any) => ({
           ...group,
           tweets: group.tweets.map((tweet: any) =>
@@ -470,23 +488,24 @@ export function EnhancedContentGeneration({
               : tweet,
           ),
         }));
-        
+
         latestRawAPIData = { ...prevRawAPIData, nodes: updatedNodes };
         return latestRawAPIData;
       });
 
       // 2. 更新Markdown内容（使用函数式更新）
-      setRegeneratedMarkdown(prevMarkdown => {
-        const currentMarkdown = prevMarkdown || 
+      setRegeneratedMarkdown((prevMarkdown) => {
+        const currentMarkdown =
+          prevMarkdown ||
           (latestRawAPIData ? convertAPIDataToMarkdown(latestRawAPIData) : '');
-        
+
         const updatedMarkdown = updateTweetImageInContent(
           currentMarkdown,
           tweet_number.toString(),
           newImage.url,
           newImage.alt || tweetText || title,
         );
-        
+
         return updatedMarkdown;
       });
 
@@ -522,7 +541,9 @@ export function EnhancedContentGeneration({
       }
 
       // 清除生图高亮状态（使用正确的 tweetData）
-      const currentTweetId = (tweetData || editingTweetData)?.tweet_number?.toString();
+      const currentTweetId = (
+        tweetData || editingTweetData
+      )?.tweet_number?.toString();
       if (currentTweetId) {
         removeGeneratingImageTweetId(currentTweetId);
       }
@@ -580,7 +601,13 @@ export function EnhancedContentGeneration({
         // 注意：不在这里清除editingTweetData，因为handleImageUpdate会清除
       }
     },
-    [rawAPIData, generateImageMutation, handleImageUpdate, addGeneratingImageTweetId, removeGeneratingImageTweetId],
+    [
+      rawAPIData,
+      generateImageMutation,
+      handleImageUpdate,
+      addGeneratingImageTweetId,
+      removeGeneratingImageTweetId,
+    ],
   );
 
   const handleTweetContentChange = useCallback(
@@ -841,6 +868,83 @@ export function EnhancedContentGeneration({
     }, 2000);
   }, []);
 
+  // Twitter发布逻辑
+  const handlePostToTwitter = useCallback(async () => {
+    if (!rawAPIData) {
+      addToast({
+        title: '没有可发布的内容',
+        color: 'warning',
+      });
+      return;
+    }
+
+    setIsPostingToTwitter(true);
+
+    try {
+      // 1. 检查Twitter授权状态
+      const authStatus = await refetchTwitterAuthStatus();
+
+      if (!authStatus.data?.authorized) {
+        // 2. 用户未授权，获取授权链接并打开新窗口
+        const authUrlResponse = await getTwitterAuthUrl();
+        window.open(authUrlResponse.authorization_url, '_blank');
+
+        addToast({
+          title: 'Twitter授权',
+          description: '请在新窗口中完成Twitter授权，然后回到此页面重试发布',
+          color: 'warning',
+          timeout: 5000,
+        });
+        return;
+      }
+
+      // 3. 用户已授权，构建推文数据
+      const tweets: TwitterTweetData[] = rawAPIData.nodes
+        .flatMap((group: any) => group.tweets)
+        .map((tweet: any, index: number) => {
+          const totalTweets = rawAPIData.nodes.reduce(
+            (total: number, g: any) => total + g.tweets.length,
+            0,
+          );
+          const tweetNumber = index + 1;
+          const content = tweet.content || tweet.title || '';
+          const text = `${tweetNumber}/${totalTweets}\n\n${content}`;
+
+          const tweetData: TwitterTweetData = { text };
+
+          // 如果推文有图片，添加图片URL
+          if (tweet.image_url) {
+            tweetData.image_url = tweet.image_url;
+          }
+
+          return tweetData;
+        });
+
+      const postRequest: TwitterPostRequest = {
+        tweets,
+        delay_seconds: 1, // 推文间隔1秒
+      };
+
+      // 4. 发布到Twitter
+      const response = await postToTwitterMutation.mutateAsync(postRequest);
+
+      addToast({
+        title: '发布成功！',
+        description: `成功发布 ${response.successful_tweets}/${response.total_tweets} 条推文`,
+        color: 'success',
+      });
+    } catch (error) {
+      console.error('Twitter发布失败:', error);
+      addToast({
+        title: '发布失败',
+        description: getErrorMessage(error),
+        color: 'danger',
+      });
+    } finally {
+      setIsPostingToTwitter(false);
+    }
+  }, [rawAPIData, postToTwitterMutation, refetchTwitterAuthStatus]);
+
   // 调试状态
   // console.log('Render 条件检查:', {
   //   isGenerating,
@@ -887,6 +991,18 @@ export function EnhancedContentGeneration({
               startContent={<ChevronLeftIcon className="size-4" />}
             >
               Back
+            </Button>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button
+              size="sm"
+              color="primary"
+              onPress={handlePostToTwitter}
+              isLoading={isPostingToTwitter}
+              className="bg-[#1DA1F2] text-white hover:bg-[#1991DB]"
+              // startContent={!isPostingToTwitter && <Image src="/icons/twitter.svg" alt="Twitter" width={16} height={16} />}
+            >
+              {isPostingToTwitter ? 'Posting...' : 'Post to Twitter'}
             </Button>
           </div>
         </div>
