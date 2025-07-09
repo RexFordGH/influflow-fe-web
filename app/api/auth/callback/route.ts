@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { API_BASE_URL } from '@/constants/env';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 async function validateInvitationCode(code: string): Promise<boolean> {
   try {
@@ -106,11 +106,11 @@ export async function GET(request: Request) {
         );
         if (!invitationCode) {
           console.error(
-            'New user tried to sign up without an invitation code.',
+            'New user tried to sign up without an invitation code. Deleting orphan user.',
           );
           // IMPORTANT: Clean up the newly created Supabase user to prevent orphans.
-          // const adminClient = createAdminClient(); // You need a Supabase admin client for this
-          // await adminClient.auth.admin.deleteUser(user.id);
+          const adminClient = createAdminClient();
+          await adminClient.auth.admin.deleteUser(user.id);
           return redirectToError(
             'An invitation code is required for new users.',
           );
@@ -118,9 +118,12 @@ export async function GET(request: Request) {
 
         const isCodeValid = await validateInvitationCode(invitationCode);
         if (!isCodeValid) {
-          console.error(`Invalid invitation code used: ${invitationCode}`);
+          console.error(
+            `Invalid invitation code used: ${invitationCode}. Deleting orphan user.`,
+          );
           // IMPORTANT: Clean up the newly created Supabase user.
-          // await adminClient.auth.admin.deleteUser(user.id);
+          const adminClient = createAdminClient();
+          await adminClient.auth.admin.deleteUser(user.id);
           return redirectToError('The provided invitation code is invalid.');
         }
 
