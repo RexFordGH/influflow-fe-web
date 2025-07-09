@@ -78,6 +78,16 @@ export interface GenerateImageData {
 
 export type GenerateImageResponse = BaseResponse<GenerateImageData>;
 
+// 邀请码验证相关类型
+export interface VerifyInvitationCodeRequest {
+  code: string;
+}
+
+export interface VerifyInvitationCodeResponse {
+  valid: boolean;
+  error?: string;
+}
+
 // API 错误响应类型
 export interface ApiErrorResponse {
   detail:

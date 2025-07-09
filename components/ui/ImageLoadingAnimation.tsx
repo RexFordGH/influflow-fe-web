@@ -13,7 +13,7 @@ export function ImageLoadingAnimation({
 }: ImageLoadingAnimationProps) {
   return (
     <div
-      className={`flex items-center justify-center rounded-[12px] overflow-hidden ${className}`}
+      className={`flex items-center justify-center overflow-hidden rounded-[12px] ${className}`}
     >
       <DynamicLottiePlayer
         animationData={imageLoadingAnimationData}

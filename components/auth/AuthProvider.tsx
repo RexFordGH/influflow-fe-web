@@ -4,8 +4,7 @@ import { useEffect } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
-
-import { LoginModal } from './LoginModal';
+import { LoginModal } from '@/components/auth/LoginModal';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -18,6 +17,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setSession,
     syncProfileFromSupabase,
     isAuthenticated,
+    authError,
   } = useAuthStore();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setSession(
           user,
           session.access_token,
-          session.expires_at ? session.expires_at * 1000 : undefined
+          session.expires_at ? session.expires_at * 1000 : undefined,
         );
         await syncProfileFromSupabase();
       }
@@ -74,13 +74,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setSession(
               user,
               session.access_token,
-              session.expires_at ? session.expires_at * 1000 : undefined
+              session.expires_at ? session.expires_at * 1000 : undefined,
             );
           } else if (event === 'SIGNED_IN' && session) {
             setSession(
               user,
               session.access_token,
-              session.expires_at ? session.expires_at * 1000 : undefined
+              session.expires_at ? session.expires_at * 1000 : undefined,
             );
             // Fetch profile if not already authenticated
             if (!isAuthenticated) {
@@ -115,7 +115,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <>
       {children}
-      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={closeLoginModal} 
+        authError={authError}
+      />
     </>
   );
 }

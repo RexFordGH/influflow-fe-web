@@ -20,17 +20,19 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoginModalOpen: boolean;
+  authError: string | null;
 
   // Actions
   setSession: (user: User | null, accessToken?: string | null, expiresAt?: number) => void;
   updateUser: (userData: Partial<User>) => void;
   syncProfileFromSupabase: () => Promise<void>;
   logout: () => Promise<void>;
-  openLoginModal: () => void;
+  openLoginModal: (error?: string) => void;
   closeLoginModal: () => void;
   checkAuthStatus: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
   clearTokenCache: () => void;
+  setAuthError: (error: string | null) => void;
 }
 
 // 内存中的token缓存，不会被持久化到localStorage
@@ -51,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isLoginModalOpen: false,
+      authError: null,
 
       setSession: (user, accessToken, expiresAt) => {
         // 更新内存中的token缓存
@@ -122,14 +125,21 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      openLoginModal: () =>
+      openLoginModal: (error?: string) =>
         set({
           isLoginModalOpen: true,
+          authError: error || null,
         }),
 
       closeLoginModal: () =>
         set({
           isLoginModalOpen: false,
+          authError: null,
+        }),
+
+      setAuthError: (error: string | null) =>
+        set({
+          authError: error,
         }),
 
       checkAuthStatus: async () => {

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
   type GenerateImageRequest,
@@ -9,6 +9,8 @@ import {
   type ModifyTweetData,
   type ModifyTweetRequest,
   type TrendingTopicsResponse,
+  type VerifyInvitationCodeRequest,
+  type VerifyInvitationCodeResponse,
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 
@@ -26,6 +28,7 @@ export const QUERY_KEYS = {
   TWITTER_MODIFY_OUTLINE: ['twitter', 'modify-outline'] as const,
   TWITTER_GENERATE_IMAGE: ['twitter', 'generate-image'] as const,
   TRENDING_TOPICS: ['trending', 'topics'] as const,
+  VERIFY_INVITATION_CODE: ['verify', 'invitation-code'] as const,
 } as const;
 
 export function useHealth() {
@@ -259,14 +262,22 @@ export function useCheckTwitterAuthStatus() {
 
 // 获取 Twitter 授权链接
 export async function getTwitterAuthUrl(): Promise<TwitterAuthUrlResponse> {
-  return apiGet<TwitterAuthUrlResponse>('/auth/twitter');
+  const currentUrl = window.location.href;
+  return apiGet<TwitterAuthUrlResponse>(
+    `/auth/twitter?redirect_url=${encodeURIComponent(currentUrl)}`,
+  );
 }
 
 // 发布推文到 Twitter
 export function usePostToTwitter() {
   return useMutation({
-    mutationFn: async (requestData: TwitterPostRequest): Promise<TwitterPostResponse> => {
-      return apiPost<TwitterPostResponse>('/api/twitter/post-thread', requestData);
+    mutationFn: async (
+      requestData: TwitterPostRequest,
+    ): Promise<TwitterPostResponse> => {
+      return apiPost<TwitterPostResponse>(
+        '/api/twitter/post-thread',
+        requestData,
+      );
     },
     onSuccess: (data) => {
       console.log('Post to Twitter successful:', data);
@@ -274,6 +285,38 @@ export function usePostToTwitter() {
     onError: (error) => {
       console.error('Failed to post to Twitter:', error);
     },
+  });
+}
+
+// ========================
+// 邀请码验证相关
+// ========================
+
+// 验证邀请码
+export function useVerifyInvitationCode() {
+  return useMutation({
+    mutationFn: async (
+      data: VerifyInvitationCodeRequest,
+    ): Promise<VerifyInvitationCodeResponse> => {
+      return apiPost<VerifyInvitationCodeResponse>(
+        '/verify-invitation-code',
+        data,
+      );
+    },
+    onSuccess: (data) => {
+      console.log('Invitation code verification result:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to verify invitation code:', error);
+    },
+  });
+}
+
+export async function verifyInvitationCode(
+  code: string,
+): Promise<VerifyInvitationCodeResponse> {
+  return apiPost<VerifyInvitationCodeResponse>('/api/verify-invitation-code', {
+    code: code.trim(),
   });
 }
 

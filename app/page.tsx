@@ -3,11 +3,10 @@
 import { cn } from '@heroui/react';
 import { AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 
-import { LoginPage } from '@/components/home/LoginPage';
 import { MainContent } from '@/components/home/MainContent';
-import { UnauthenticatedNavbar } from '@/components/home/UnauthenticatedNavbar';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
@@ -30,14 +29,14 @@ const EnhancedContentGeneration = dynamic(
   },
 );
 
-export default function Home() {
-  const { user, isAuthenticated, checkAuthStatus, syncProfileFromSupabase } =
+function HomeContent() {
+  const { user, isAuthenticated, checkAuthStatus, syncProfileFromSupabase, openLoginModal, setAuthError } =
     useAuthStore();
+  const searchParams = useSearchParams();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
   const [topicInput, setTopicInput] = useState('');
   const [showTrendingTopics, setShowTrendingTopics] = useState(false);
-  const [showLoginPage, setShowLoginPage] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hasCreatedContentGeneration, setHasCreatedContentGeneration] =
     useState(false);
@@ -77,6 +76,20 @@ export default function Home() {
   useEffect(() => {
     checkAuthStatus();
   }, [checkAuthStatus]);
+
+  // 检查URL中的错误参数
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      const decodedError = decodeURIComponent(error);
+      setAuthError(decodedError);
+      openLoginModal(decodedError);
+      // 清理URL中的错误参数
+      const url = new URL(window.location.href);
+      url.searchParams.delete('error');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, setAuthError, openLoginModal]);
 
   // 重置 profile 检查状态当认证状态变化时
   useEffect(() => {
@@ -129,7 +142,7 @@ export default function Home() {
 
   const handleTopicSubmit = () => {
     if (!isAuthenticated) {
-      setShowLoginPage(true);
+      openLoginModal();
       return;
     }
 
@@ -168,9 +181,6 @@ export default function Home() {
     }, 350);
   };
 
-  const handleBackToMainPage = () => {
-    setShowLoginPage(false);
-  };
 
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
@@ -227,15 +237,6 @@ export default function Home() {
         onClose={handleCloseProfileCompletePrompt}
       />
 
-      {/* Login Page */}
-      <div
-        className={cn(
-          'absolute inset-0 z-50',
-          showLoginPage ? 'block' : 'hidden',
-        )}
-      >
-        <LoginPage onBack={handleBackToMainPage} />
-      </div>
 
       {/* Content Generation */}
       {hasCreatedContentGeneration && (
@@ -258,14 +259,9 @@ export default function Home() {
       <div
         className={cn(
           'flex h-screen overflow-hidden bg-gray-50',
-          (showContentGeneration && currentTopic) || showLoginPage
-            ? 'hidden'
-            : 'flex',
+          showContentGeneration && currentTopic ? 'hidden' : 'flex',
         )}
       >
-        {!isAuthenticated && (
-          <UnauthenticatedNavbar onLogin={() => setShowLoginPage(true)} />
-        )}
 
         <AnimatePresence>
           <AppSidebar
@@ -314,5 +310,13 @@ export default function Home() {
         />
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
