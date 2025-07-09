@@ -393,7 +393,7 @@ export function SseLoading({
             ref={scrollContainerRef}
             className="max-h-[calc(100vh-300px)] overflow-y-auto rounded-lg  p-8"
           >
-            <h2 className="mb-[24px] text-2xl text-center font-semibold text-gray-800">
+            <h2 className="mb-[24px] text-center text-2xl font-semibold text-gray-800">
               {topic}
             </h2>
 

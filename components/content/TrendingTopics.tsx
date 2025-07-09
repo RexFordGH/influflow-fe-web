@@ -2,8 +2,10 @@
 
 import { Skeleton } from '@heroui/react';
 import { useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { Button } from '@/components/base';
+import { addToast } from '@/components/base/toast';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 
@@ -111,21 +113,30 @@ export function TrendingTopics({
                 ) : (
                   // 实际数据 - 根据Figma设计样式
                   trendingTopics.map((topic: any, index: number) => (
-                    <button
+                    <CopyToClipboard
                       key={`${topic.title}-${index}`}
-                      // onClick={() => onTopicSelect(topic)}
-                      className="flex cursor-auto items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
-                      style={{
-                        width: `${Math.max(432, 880 - index * 110)}px`,
+                      text={topic.title}
+                      onCopy={() => {
+                        addToast({
+                          title: 'Copied Successfully',
+                          color: 'success',
+                        });
                       }}
                     >
-                      <span className="text-left text-lg font-medium text-black">
-                        {topic.title}
-                      </span>
-                      <span className="text-lg font-medium text-gray-600">
-                        {topic.value}
-                      </span>
-                    </button>
+                      <button
+                        className="flex cursor-pointer items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
+                        style={{
+                          width: `${Math.max(432, 880 - index * 110)}px`,
+                        }}
+                      >
+                        <span className="text-left text-lg font-medium text-black">
+                          {topic.title}
+                        </span>
+                        <span className="text-lg font-medium text-gray-600">
+                          {topic.value}
+                        </span>
+                      </button>
+                    </CopyToClipboard>
                   ))
                 )}
               </div>
