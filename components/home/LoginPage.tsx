@@ -39,7 +39,7 @@ export const LoginPage = ({ onBack }: { onBack: () => void }) => {
               className="flex w-full items-center justify-start gap-2 rounded-[12px] border border-gray-300 bg-white p-[24px] hover:bg-gray-50"
               onPress={handleTwitterLogin}
             >
-              <Image src="/icons/x.svg" alt="X" width={24} height={24} />
+              <Image src="/icons/twitter.svg" alt="X" width={24} height={24} />
               <span className="text-[18px] font-[500] text-[#8C8C8C]">
                 Continue with X
               </span>
