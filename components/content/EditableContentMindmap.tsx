@@ -218,17 +218,17 @@ export function EditableContentMindmap({
         layoutOptions: {
           'elk.algorithm': 'mrtree',
           'elk.direction': 'RIGHT',
-          // 基本间距控制 - 适中的水平距离
-          'elk.spacing.nodeNode': '15',
-          'elk.spacing.nodeNodeBetweenLayers': '35', // 适中的层级间距
+          // 基本间距控制 - 减少水平和垂直距离
+          'elk.spacing.nodeNode': '10',
+          'elk.spacing.nodeNodeBetweenLayers': '25', // 适中的层级间距
           'elk.padding': '[left=20,top=20,right=20,bottom=20]',
           // 树形算法特定设置
-          'elk.mrtree.weighting': 'UNIFORM', // 改为UNIFORM避免按子节点数量重排
+          'elk.mrtree.weighting': 'UNIFORM',
           'elk.mrtree.searchOrder': 'DFS',
           // 强制保持节点原始顺序
           'elk.separateConnectedComponents': 'false',
           'elk.partitioning.activate': 'false',
-          'elk.mrtree.orderChildren': 'true', // 强制保持子节点顺序
+          'elk.mrtree.orderChildren': 'true'
         },
         children: nodes.map((node: any, index: number) => {
           const level = node.data?.level || 1;
@@ -237,7 +237,17 @@ export function EditableContentMindmap({
           // 设置固定最大宽度（适中的宽度）
           let maxWidth;
           if (level === 1) {
-            maxWidth = 250;
+            // 根节点：根据文本长度调整，但保持合理范围
+            const textLength = text.length;
+            if (textLength <= 15) {
+              maxWidth = 160;
+            } else if (textLength <= 25) {
+              maxWidth = 220;
+            } else if (textLength <= 35) {
+              maxWidth = 260;
+            } else {
+              maxWidth = 300;
+            }
           } else if (level === 2) {
             maxWidth = 200;
           } else {
@@ -329,10 +339,10 @@ export function EditableContentMindmap({
     setTimeout(() => {
       fitView({
         duration: 600,
-        padding: 0.3, // 适当边距，让内容居中但不过度拉伸
+        padding: 0.1, // 减少边距，让内容更紧凑
         includeHiddenNodes: true,
-        minZoom: 1.0, // 保持原始大小或稍大，不强制缩放
-        maxZoom: 3, // 提高最大缩放支持更大显示
+        minZoom: 0.8, // 允许稍微缩小，避免过度拉伸
+        maxZoom: 2.5, // 减少最大缩放
       });
     }, 500); // 增加延迟确保布局完成
   }, [
@@ -472,10 +482,10 @@ export function EditableContentMindmap({
           setTimeout(() => {
             fitView({
               duration: 600,
-              padding: 0.3, // 适当边距，让内容居中但不过度拉伸
+              padding: 0.1, // 减少边距，让内容更紧凑
               includeHiddenNodes: true,
-              minZoom: 1.0, // 保持原始大小或稍大，不强制缩放
-              maxZoom: 3, // 提高最大缩放支持更大显示
+              minZoom: 0.8, // 允许稍微缩小，避免过度拉伸
+              maxZoom: 2.5, // 减少最大缩放
             });
           }, 300);
         }
