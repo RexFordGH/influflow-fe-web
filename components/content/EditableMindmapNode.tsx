@@ -27,7 +27,7 @@ const EditableMindmapNode = ({
   const getNodeStyle = useMemo(() => {
     // 优化文本换行和显示 - 确保长文本能正确换行
     const baseStyle =
-      'min-w-[80px] min-h-[30px] px-[12px] py-[8px] rounded-[8px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[12px] font-[500] leading-[1.4]';
+      'min-w-[80px] min-h-[30px] px-[12px] py-[8px] rounded-[8px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[10px] font-[400] leading-[1.4]';
 
     // 根据层级决定对齐方式 - 所有节点都使用左对齐
     const alignmentStyle = 'text-left';
@@ -35,14 +35,14 @@ const EditableMindmapNode = ({
     const levelColors = {
       1: '!bg-[#000000] !text-white !hover:bg-[rgba(0,0,0,0.6)] max-w-[160px] min-h-[40px]',
       2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[35px]',
-      3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
-      4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
-      5: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
-      6: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
+      3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[300px] min-h-[30px]',
+      // 4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
+      // 5: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
+      // 6: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
     };
 
     const levelStyle =
-      levelColors[level as keyof typeof levelColors] || levelColors[6];
+      levelColors[level as keyof typeof levelColors] || levelColors[3];
 
     // 使用 React Flow 原生的选中状态 - 优先级高于 hover
     // 根节点(level 1)选中时保持暗色系，其他节点显示蓝色
@@ -90,11 +90,12 @@ const EditableMindmapNode = ({
     // }
     // 应用 hover 样式（未选中时）或强化选中样式
     // 根节点(level 1)悬停时保持暗色系，其他节点显示蓝色
-    const hoverStyle = isHovered && !selected 
-      ? level === 1 
-        ? '!bg-[#333333]' // 根节点：暗色系悬停
-        : '!bg-[#DDE9FF]' // 其他节点：蓝色悬停
-      : '';
+    const hoverStyle =
+      isHovered && !selected
+        ? level === 1
+          ? '!bg-[#333333]' // 根节点：暗色系悬停
+          : '!bg-[#DDE9FF]' // 其他节点：蓝色悬停
+        : '';
 
     // 添加调试样式检查
     const finalStyle = `${baseStyle} ${alignmentStyle} ${levelStyle} ${hoverStyle} ${selectedStyle}`;
@@ -293,12 +294,17 @@ const EditableMindmapNode = ({
             onClick={handleNodeClick}
             onDoubleClick={handleDoubleClick}
             title="双击编辑"
-            className="size-full whitespace-normal break-words"
+            className={`size-full whitespace-normal break-words ${
+              level === 1 && !isHovered ? 'overflow-hidden text-ellipsis' : ''
+            }`}
             style={{
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
               hyphens: 'auto',
-              display: 'block',
+              display: level === 1 && !isHovered ? '-webkit-box' : 'block',
+              WebkitLineClamp: level === 1 && !isHovered ? 2 : 'none',
+              WebkitBoxOrient:
+                level === 1 && !isHovered ? 'vertical' : 'initial',
             }}
           >
             {pendingValue || label}

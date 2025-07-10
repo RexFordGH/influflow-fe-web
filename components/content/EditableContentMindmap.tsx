@@ -217,8 +217,8 @@ export function EditableContentMindmap({
           'elk.algorithm': 'mrtree',
           'elk.direction': 'RIGHT',
           // 基本间距控制 - 减少水平和垂直距离
-          'elk.spacing.nodeNode': '10',
-          'elk.spacing.nodeNodeBetweenLayers': '25', // 适中的层级间距
+          'elk.spacing.nodeNode': '20',
+          'elk.spacing.nodeNodeBetweenLayers': '50', // 适中的层级间距
           'elk.padding': '[left=20,top=20,right=20,bottom=20]',
           // 树形算法特定设置
           'elk.mrtree.weighting': 'UNIFORM',
@@ -250,7 +250,7 @@ export function EditableContentMindmap({
           } else if (level === 2) {
             maxWidth = 200;
           } else {
-            maxWidth = 180;
+            maxWidth = 300;
           }
 
           // 动态计算高度以适应换行文本
