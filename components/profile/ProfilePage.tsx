@@ -287,7 +287,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           onPress={onLogout}
           className="text-gray-600"
         >
-          Logout
+          Log Out
         </Button>
       </div>
 
