@@ -11,6 +11,7 @@ import {
   getTwitterAuthUrl,
   useCheckTwitterAuthStatus,
   useGenerateImage,
+  useGenerateThread,
   useModifyOutline,
   usePostToTwitter,
   type TwitterPostRequest,
@@ -23,6 +24,7 @@ import {
   convertThreadDataToMindmap,
 } from '@/lib/data/converters';
 import { createClient } from '@/lib/supabase/client';
+import { useAuthStore } from '@/stores/authStore';
 import {
   GeneratedContent,
   MindmapEdgeData,
@@ -30,10 +32,10 @@ import {
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
 
+import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
 import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
 import { ImageEditModal } from './ImageEditModal';
-import { SseLoading } from './SseLoading';
 
 interface EnhancedContentGenerationProps {
   topic: string;
@@ -60,7 +62,7 @@ export function EnhancedContentGeneration({
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
   const [currentEdges, setCurrentEdges] = useState<MindmapEdgeData[]>([]);
   const [apiError, setApiError] = useState<string | null>(null);
-  // 重复请求防止逻辑已迁移到 SseLoading 组件
+  const [hasStartedGeneration, setHasStartedGeneration] = useState(false); // 防止重复请求
   const [rawAPIData, setRawAPIData] = useState<Outline | null>(null); // 存储原始API数据
   const [hoveredTweetId, setHoveredTweetId] = useState<string | null>(null); // hover状态
   const [isImageEditModalOpen, setIsImageEditModalOpen] = useState(false);
@@ -75,7 +77,7 @@ export function EnhancedContentGeneration({
   const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
     null,
   ); // 重新生成的markdown
-  const [loadingTweetId] = useState<string | null>(null); // markdown loading状态
+  const [loadingTweetId, setLoadingTweetId] = useState<string | null>(null); // markdown loading状态
   const [generatingImageTweetIds, setGeneratingImageTweetIds] = useState<
     string[]
   >([]); // 正在生图的tweetId数组
@@ -122,14 +124,27 @@ export function EnhancedContentGeneration({
     }
   }, [scrollToSection]);
 
-  // 用户信息和API调用已迁移到 SseLoading 组件
+  // 获取用户信息用于个性化设置
+  const { user } = useAuthStore();
+
+  // API调用hook
+  const { mutate: generateThread, isPending: isGeneratingAPI } =
+    useGenerateThread();
   const modifyOutlineMutation = useModifyOutline();
   const generateImageMutation = useGenerateImage();
   const postToTwitterMutation = usePostToTwitter();
   const { data: twitterAuthStatus, refetch: refetchTwitterAuthStatus } =
     useCheckTwitterAuthStatus();
 
-  // 生成步骤已迁移到 SseLoading 组件
+  // 生成思维过程步骤
+  const generationSteps = [
+    'Analyzing topic content and related background',
+    'Building mind map structure framework',
+    'Generating structured article content',
+    'Creating topic-related illustrations',
+    'Establishing relationships between content',
+    'Refining details and optimizing layout',
+  ];
 
   // 当topic变化时重置状态并启动生成
   useEffect(() => {
@@ -138,7 +153,7 @@ export function EnhancedContentGeneration({
       setGeneratedContent(null);
       setRawAPIData(null);
       setApiError(null);
-      // setHasStartedGeneration(false);
+      setHasStartedGeneration(false);
       setGenerationStep(0);
       setIsRegenerating(false);
       requestIdRef.current = null;
@@ -161,7 +176,149 @@ export function EnhancedContentGeneration({
     }
   }, [initialData]);
 
-  // AI生成过程已迁移到 SseLoading 组件
+  // AI生成过程 - 使用真实API
+  useEffect(() => {
+    // 防止重复请求：如果已经开始生成或者不在生成状态，直接返回
+    if (!isGenerating || hasStartedGeneration) return;
+
+    // 生成唯一的请求ID
+    const currentRequestId = `${topic}-${Date.now()}`;
+
+    // 如果当前请求ID与ref中的相同，说明是重复执行，直接返回
+    if (requestIdRef.current === currentRequestId) return;
+
+    console.log('开始API生成，topic:', topic, 'requestId:', currentRequestId);
+    requestIdRef.current = currentRequestId;
+    setHasStartedGeneration(true);
+    setApiError(null);
+    setGenerationStep(0);
+
+    // 启动智能UI进度动画
+    const stepTimeouts: NodeJS.Timeout[] = [];
+    let isAPICompleted = false;
+
+    // 步骤时间配置：前4个步骤按固定时间推进，最后2个步骤等待API
+    const stepTimings = [
+      { step: 1, delay: 2000 }, // 2秒后推进到第2个步骤
+      { step: 2, delay: 4000 }, // 4秒后推进到第3个步骤
+      { step: 3, delay: 6500 }, // 6.5秒后推进到第4个步骤
+      // 后面的步骤会等待API返回
+    ];
+
+    // 安排前几个步骤的推进
+    stepTimings.forEach(({ step, delay }) => {
+      const timeout = setTimeout(() => {
+        if (!isAPICompleted) {
+          setGenerationStep(step);
+        }
+      }, delay);
+      stepTimeouts.push(timeout);
+    });
+
+    // 8秒后开始最后两个步骤的等待状态
+    const waitingStepTimeout = setTimeout(() => {
+      if (!isAPICompleted) {
+        setGenerationStep(4); // 开始第5个步骤
+
+        // 12秒后进入最后一个步骤
+        const finalStepTimeout = setTimeout(() => {
+          if (!isAPICompleted) {
+            setGenerationStep(5); // 最后一个步骤，等待API返回
+          }
+        }, 4000);
+        stepTimeouts.push(finalStepTimeout);
+      }
+    }, 8000);
+    stepTimeouts.push(waitingStepTimeout);
+
+    // 清理函数
+    const cleanup = () => {
+      stepTimeouts.forEach((timeout) => clearTimeout(timeout));
+    };
+
+    // 准备请求数据，包含用户个性化信息
+    const requestData = {
+      user_input: topic.trim(),
+      ...(user && {
+        personalization: {
+          tone: user.tone,
+          bio: user.bio,
+          tweet_examples: user.tweet_examples,
+        },
+      }),
+    };
+
+    // 调用API
+    generateThread(requestData, {
+      onSuccess: (response) => {
+        // 检查请求是否还是当前请求（避免竞态条件）
+        if (requestIdRef.current !== currentRequestId) {
+          console.log('忽略过期的API响应');
+          cleanup();
+          return;
+        }
+
+        isAPICompleted = true;
+        cleanup();
+        console.log('API生成成功:', response);
+
+        // 快速完成所有步骤
+        const completeSteps = async () => {
+          // 快速推进到最后几个步骤
+          for (let i = 4; i < generationSteps.length; i++) {
+            setGenerationStep(i);
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 快速推进
+          }
+
+          // 存储原始API数据，确保包含 id
+          setRawAPIData(response);
+
+          // 转换API数据为组件所需格式
+          const content = convertAPIDataToGeneratedContent(response);
+          setGeneratedContent(content);
+          setCurrentNodes(content.mindmap.nodes);
+          setCurrentEdges(content.mindmap.edges);
+          setIsGenerating(false);
+          setGenerationStep(generationSteps.length - 1);
+        };
+
+        completeSteps();
+      },
+      onError: (error) => {
+        // 检查请求是否还是当前请求
+        if (requestIdRef.current !== currentRequestId) {
+          console.log('忽略过期的API错误');
+          cleanup();
+          return;
+        }
+
+        isAPICompleted = true;
+        cleanup();
+        console.error('API生成失败:', error);
+        const errorMessage = getErrorMessage(error);
+
+        // 显示错误 toast
+        addToast({
+          title: 'Failed to generate content',
+          description: errorMessage,
+          color: 'danger',
+          timeout: 3000,
+        });
+
+        // 返回首页
+        onBack();
+      },
+    });
+
+    return cleanup;
+  }, [
+    topic,
+    isGenerating,
+    hasStartedGeneration,
+    generateThread,
+    generationSteps.length,
+    onBack,
+  ]);
 
   const handleNodeSelect = useCallback(
     (nodeId: string | null) => {
@@ -206,7 +363,10 @@ export function EnhancedContentGeneration({
     setHoveredTweetId(tweetId);
   }, []);
 
-  // loading 状态处理已迁移到 SseLoading 组件
+  // 处理 loading 状态变化
+  const handleLoadingStateChange = useCallback((tweetId: string | null) => {
+    setLoadingTweetId(tweetId);
+  }, []);
 
   // 处理图片点击事件
   const handleImageClick = useCallback(
@@ -709,7 +869,21 @@ export function EnhancedContentGeneration({
     [currentNodes, currentEdges],
   );
 
-  // 重新生成逻辑已迁移到 SseLoading 组件
+  const handleRegenerate = useCallback(async () => {
+    setIsRegenerating(true);
+    setIsGenerating(true);
+    setGeneratedContent(null);
+    setGenerationStep(0);
+    setSelectedNodeId(null);
+    setHighlightedSection(null);
+    setHasStartedGeneration(false); // 重置请求状态，允许重新请求
+    requestIdRef.current = null; // 清除请求ID
+
+    // 模拟重新生成过程
+    setTimeout(() => {
+      setIsRegenerating(false);
+    }, 2000);
+  }, []);
 
   // Twitter发布逻辑
   const handlePostToTwitter = useCallback(async () => {
@@ -797,80 +971,34 @@ export function EnhancedContentGeneration({
     }
   }, [rawAPIData, postToTwitterMutation, refetchTwitterAuthStatus]);
 
-    const onSseComplete = useCallback((data: any) => {
-      console.log('SSE 生成完成:', data);
-      setRawAPIData(data);
-      const content = convertAPIDataToGeneratedContent(data);
-      setGeneratedContent(content);
-      setCurrentNodes(content.mindmap.nodes);
-      setCurrentEdges(content.mindmap.edges);
-      setIsGenerating(false);
-    }, []);
-
-  const onSseError = useCallback((error: any) => {
-    console.error('SSE 生成失败:', error);
-    setApiError(error);
-    setIsGenerating(false);
-  }, []);
+  // 调试状态
+  // console.log('Render 条件检查:', {
+  //   isGenerating,
+  //   generatedContent: !!generatedContent,
+  //   apiError,
+  //   shouldShowLoading: isGenerating || (!generatedContent && apiError),
+  // });
 
   if (isGenerating || (!generatedContent && !rawAPIData && !initialData)) {
     const hasError = !isGenerating && !!apiError;
 
-    // 如果有错误，使用原来的逻辑处理
-    if (hasError) {
-      return (
-        <div className="flex h-screen flex-col bg-[#FAFAFA]">
-          <div className="flex flex-1 items-center justify-center p-6">
-            <div className="flex w-full max-w-[600px] flex-col items-center gap-6 text-center">
-              <div className="flex size-16 items-center justify-center rounded-full bg-red-100">
-                <svg
-                  className="size-8 text-red-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-gray-800">生成失败</h2>
-              <p className="max-w-md text-gray-600">{apiError}</p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setApiError(null);
-                    // setHasStartedGeneration(false);
-                    requestIdRef.current = null;
-                    setIsGenerating(true);
-                  }}
-                  className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
-                >
-                  重试
-                </button>
-                <button
-                  onClick={onBack}
-                  className="rounded-lg bg-gray-200 px-6 py-2 text-gray-700 transition-colors hover:bg-gray-300"
-                >
-                  返回
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // 使用新的 SseLoading 组件
     return (
-      <SseLoading
+      <ContentGenerationLoading
         topic={topic}
-        onComplete={onSseComplete}
-        onError={onSseError}
         onBack={onBack}
+        isError={hasError}
+        errorMessage={apiError || undefined}
+        generationSteps={generationSteps}
+        onRetry={
+          hasError
+            ? () => {
+                setApiError(null);
+                setHasStartedGeneration(false);
+                requestIdRef.current = null;
+                setIsGenerating(true);
+              }
+            : undefined
+        }
       />
     );
   }
