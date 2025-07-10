@@ -47,6 +47,12 @@ export async function apiRequest<T>(
 
     if (!response.ok) {
       if (response.status === 401 && !isRetry) {
+        // 检查用户是否已经登出，如果已经登出就不要尝试刷新token
+        const authState = useAuthStore.getState();
+        if (!authState.isAuthenticated) {
+          throw new ApiError('User has been logged out', 401);
+        }
+        
         try {
           // 使用 Supabase 的 refreshSession 来更新 token
           const {
