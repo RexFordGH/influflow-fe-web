@@ -120,16 +120,24 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
+          // 先设置登出状态，防止并发的API请求继续尝试刷新token
+          // set({ user: null, isAuthenticated: false });
+          
           const supabase = createClient();
+          
+          // 等待supabase完成登出操作
           await supabase.auth.signOut();
+          
+          // 确保supabase登出完成后再清理本地数据
+          await new Promise(resolve => setTimeout(resolve, 100));
           
           // 清空内存中的token缓存
           tokenCache.accessToken = null;
           tokenCache.expiresAt = null;
           
           // 清空localStorage中的profile数据
-          const { clearProfileFromLocalStorage } = await import('@/utils/profileStorage');
-          clearProfileFromLocalStorage();
+          // const { clearProfileFromLocalStorage } = await import('@/utils/profileStorage');
+          // clearProfileFromLocalStorage();
           
           // 清空其他可能的localStorage数据
           localStorage.removeItem('influflow_profile_prompt_dismissed');
@@ -137,10 +145,13 @@ export const useAuthStore = create<AuthState>()(
           // 清空zustand的持久化数据
           localStorage.removeItem('auth-storage');
           
-          // 更新状态
-          set({ user: null, isAuthenticated: false });
         } catch (error) {
           console.error('Logout error:', error);
+          // 即使登出失败，也要清理本地状态
+          set({ user: null, isAuthenticated: false });
+          tokenCache.accessToken = null;
+          tokenCache.expiresAt = null;
+          localStorage.removeItem('auth-storage');
         }
       },
 
