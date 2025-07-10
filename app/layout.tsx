@@ -2,6 +2,8 @@ import '../styles/globals.css';
 
 import { MainLayout } from '@/components/layout/mainLayout';
 import { Providers } from '@/components/layout/providers';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export default function RootLayout({
   children,
@@ -14,6 +16,8 @@ export default function RootLayout({
         <Providers>
           <MainLayout>{children}</MainLayout>
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
