@@ -4,6 +4,7 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button, Textarea } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -43,7 +44,8 @@ interface ProfilePageProps {
 }
 
 export const ProfilePage = ({ onBack }: ProfilePageProps) => {
-  const { user, updateUser } = useAuthStore();
+  const { user, updateUser, logout } = useAuthStore();
+  const router = useRouter();
   const [selectedStyle, setSelectedStyle] = useState<ITone | null>(null);
   const [customContent, setCustomContent] = useState(['', '', '']);
   const [personalIntro, setPersonalIntro] = useState(user?.bio || '');
@@ -248,6 +250,15 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     setPersonalIntro(value);
   };
 
+  const onLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -269,6 +280,15 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             Back
           </Button>
         </div>
+        {/* 加一个 logout 按钮 */}
+        <Button
+          size="sm"
+          variant="light"
+          onPress={onLogout}
+          className="text-gray-600"
+        >
+          Logout
+        </Button>
       </div>
 
       {/* Main Content */}

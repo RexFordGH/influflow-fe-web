@@ -122,9 +122,22 @@ export const useAuthStore = create<AuthState>()(
         try {
           const supabase = createClient();
           await supabase.auth.signOut();
+          
           // 清空内存中的token缓存
           tokenCache.accessToken = null;
           tokenCache.expiresAt = null;
+          
+          // 清空localStorage中的profile数据
+          const { clearProfileFromLocalStorage } = await import('@/utils/profileStorage');
+          clearProfileFromLocalStorage();
+          
+          // 清空其他可能的localStorage数据
+          localStorage.removeItem('influflow_profile_prompt_dismissed');
+          
+          // 清空zustand的持久化数据
+          localStorage.removeItem('auth-storage');
+          
+          // 更新状态
           set({ user: null, isAuthenticated: false });
         } catch (error) {
           console.error('Logout error:', error);
