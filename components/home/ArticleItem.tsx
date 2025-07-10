@@ -76,6 +76,7 @@ export const ArticleItem = ({
               className={`flex-1 truncate text-left text-sm text-gray-700 hover:text-gray-900 ${
                 categoryId === 'welcome' ? 'cursor-default' : ''
               }`}
+              title={article.title}
             >
               {article.title}
             </button>

@@ -190,7 +190,7 @@ export const AppSidebar = ({
                         />
                       ) : (
                         <h3
-                          className={`text-sm font-medium text-gray-900 ${
+                          className={`text-sm font-medium text-gray-900 truncate max-w-[250px] ${
                             category.id !== 'welcome' &&
                             !category.id.startsWith('tweet-')
                               ? 'cursor-pointer'
@@ -206,6 +206,7 @@ export const AppSidebar = ({
                           onDoubleClick={() =>
                             onStartEditCategoryTitle(category.id)
                           }
+                          title={category.title}
                         >
                           {category.title}
                         </h3>
