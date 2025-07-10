@@ -29,11 +29,11 @@ const EditableMindmapNode = ({
     const baseStyle =
       'min-w-[80px] min-h-[30px] px-[12px] py-[8px] rounded-[8px] transition-all duration-200 cursor-pointer relative group border-none outline-none text-[12px] font-[500] leading-[1.4]';
 
-    // 根据层级决定对齐方式 - 移除flex相关类，让文本自然换行
-    const alignmentStyle = level === 1 ? 'text-center' : 'text-left';
+    // 根据层级决定对齐方式 - 所有节点都使用左对齐
+    const alignmentStyle = 'text-left';
 
     const levelColors = {
-      1: '!bg-[#000000] !text-white !hover:bg-[rgba(0,0,0,0.6)] max-w-[250px] min-h-[40px]',
+      1: '!bg-[#000000] !text-white !hover:bg-[rgba(0,0,0,0.6)] max-w-[160px] min-h-[40px]',
       2: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[200px] min-h-[35px]',
       3: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
       4: 'bg-[#E3E3E3] text-black hover:bg-[#DDE9FF] max-w-[180px] min-h-[30px]',
@@ -284,7 +284,7 @@ const EditableMindmapNode = ({
             className="max-w-none border-none outline-none"
             style={{ width: `${Math.max(editValue.length * 8, 100)}px` }}
             classNames={{
-              input: 'text-center bg-white/20 text-current whitespace-pre-wrap',
+              input: 'text-left bg-white/20 text-current whitespace-pre-wrap',
               inputWrapper: 'bg-white/20 max-w-none',
             }}
           />

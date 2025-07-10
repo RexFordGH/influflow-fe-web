@@ -226,7 +226,7 @@ export function EditableContentMindmap({
           // 强制保持节点原始顺序
           'elk.separateConnectedComponents': 'false',
           'elk.partitioning.activate': 'false',
-          'elk.mrtree.orderChildren': 'true'
+          'elk.mrtree.orderChildren': 'true',
         },
         children: nodes.map((node: any, index: number) => {
           const level = node.data?.level || 1;
@@ -235,17 +235,18 @@ export function EditableContentMindmap({
           // 设置固定最大宽度（适中的宽度）
           let maxWidth;
           if (level === 1) {
+            maxWidth = 160;
             // 根节点：根据文本长度调整，但保持合理范围
-            const textLength = text.length;
-            if (textLength <= 15) {
-              maxWidth = 160;
-            } else if (textLength <= 25) {
-              maxWidth = 220;
-            } else if (textLength <= 35) {
-              maxWidth = 260;
-            } else {
-              maxWidth = 300;
-            }
+            // const textLength = text.length;
+            // if (textLength <= 15) {
+            //   maxWidth = 160;
+            // } else if (textLength <= 25) {
+            //   maxWidth = 220;
+            // } else if (textLength <= 35) {
+            //   maxWidth = 260;
+            // } else {
+            //   maxWidth = 300;
+            // }
           } else if (level === 2) {
             maxWidth = 200;
           } else {
