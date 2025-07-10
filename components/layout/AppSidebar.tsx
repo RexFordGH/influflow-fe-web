@@ -84,7 +84,8 @@ export const AppSidebar = ({
       onTweetThreadClick
     ) {
       // 点击 tweet 分类时，打开思维导图和 MD 区域
-      onTweetThreadClick(category.tweetData);
+      // 确保使用最新的 tweetData
+      onTweetThreadClick({ ...category.tweetData, timestamp: Date.now() });
     } else {
       // 普通分类的展开/收起
       onToggleCategoryExpanded(category.id);
@@ -152,7 +153,10 @@ export const AppSidebar = ({
           ) : (
             <>
               {categories.map((category) => (
-                <div key={category.id} className="">
+                <div 
+                  key={`${category.id}-${category.tweetData?.updated_at || category.tweetData?.created_at || category.id}`} 
+                  className=""
+                >
                   <div className="group flex min-h-[37px] items-center justify-between rounded-[8px] hover:bg-[#E8E8E8]">
                     <div className="flex items-center space-x-2">
                       {/* 使用不同图标区分普通分类和tweet内容 */}
@@ -230,7 +234,7 @@ export const AppSidebar = ({
                     <div className="ml-2 space-y-1">
                       {category.articles.map((article) => (
                         <ArticleItem
-                          key={article.id}
+                          key={`${article.id}-${article.createdAt.getTime()}`}
                           article={article}
                           categoryId={category.id}
                           onToggleExpanded={onToggleArticleExpanded}

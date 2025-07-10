@@ -60,7 +60,11 @@ export const useArticleManagement = () => {
         title: thread.topic || 'Untitled Thread',
         expanded: false,
         articles: [], // 不展示子文章，只显示 topic
-        tweetData: thread, // 保存原始 tweet 数据
+        tweetData: { 
+          ...thread, 
+          // 添加数据版本号用于强制重新渲染
+          dataVersion: `${thread.id}-${thread.updated_at || thread.created_at}`
+        },
       }));
 
       // 合并默认分类和 tweet 分类
@@ -69,9 +73,14 @@ export const useArticleManagement = () => {
         const nonTweetCategories = prevCategories.filter(
           (cat) => !cat.id.startsWith('tweet-'),
         );
-        // 添加新的 tweet 分类
+        // 添加新的 tweet 分类，确保数据更新时组件重新渲染
         return [...nonTweetCategories, ...tweetCategories];
       });
+    } else {
+      // 当没有 tweet 数据时，只保留非 tweet 分类
+      setCategories((prevCategories) => 
+        prevCategories.filter((cat) => !cat.id.startsWith('tweet-'))
+      );
     }
   }, [tweetThreads]);
 

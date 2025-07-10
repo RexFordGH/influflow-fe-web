@@ -95,7 +95,7 @@ export const ArticleItem = ({
         <div className="ml-4">
           {article.children.map((child) => (
             <ArticleItem
-              key={child.id}
+              key={`${child.id}-${child.createdAt.getTime()}`}
               article={child}
               categoryId={categoryId}
               level={level + 1}
