@@ -96,12 +96,12 @@ export const WelcomeScreen = ({
                 placeholder="You can start with a topic or an opinion."
                 value={topicInput}
                 onChange={(e) => onTopicInputChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    onTopicSubmit();
-                  }
-                }}
+                // onKeyDown={(e) => {
+                //   if (e.key === 'Enter' && !e.shiftKey) {
+                //     e.preventDefault();
+                //     onTopicSubmit();
+                //   }
+                // }}
                 className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 rows={4}
               />
