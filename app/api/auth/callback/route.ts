@@ -169,12 +169,12 @@ export async function GET(request: Request) {
         }
       }
 
-      // If all checks pass, redirect the user.
-      const forwardedHost = request.headers.get('x-forwarded-host');
-      const isLocalEnv = process.env.NODE_ENV === 'development';
-      const redirectUrl = isLocalEnv
-        ? `${origin}${next}`
-        : `https://${forwardedHost || origin.split('//')[1]}${next}`;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://influxy.xyz';
+      console.log('siteUrl + next', siteUrl, next);
+      if (!siteUrl) {
+        return redirectToError('Configuration error: Site URL is not defined.');
+      }
+      const redirectUrl = `${siteUrl}${next}`;
 
       return NextResponse.redirect(redirectUrl);
     }

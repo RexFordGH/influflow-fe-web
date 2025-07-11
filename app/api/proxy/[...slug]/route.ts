@@ -19,6 +19,8 @@ async function handler(
   const searchParams = url.search;
   const targetUrl = `${API_HOST}/${path}${searchParams}`;
 
+  console.log('api proxy targetUrl', targetUrl);
+
   try {
     // Forward client headers to target API
     const forwardHeaders = new Headers();
