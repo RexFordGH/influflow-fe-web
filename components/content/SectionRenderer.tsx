@@ -4,10 +4,10 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createClient } from '../../lib/supabase/client';
 import { addToast } from '../base/toast';
 import EditorPro from '../editorPro/index';
 import { ImageLoadingAnimation } from '../ui/ImageLoadingAnimation';
+import { LocalImageUploader } from './LocalImageUploader';
 
 import {
   getBaseClasses,
@@ -43,8 +43,17 @@ interface SectionRendererProps {
   }) => void;
   onTweetImageEdit?: (tweetData: any) => void;
   onTweetContentChange?: (tweetId: string, newContent: string) => void;
+  onLocalImageUploadSuccess: (
+    result: { url: string; alt: string },
+    tweetData: any,
+  ) => void;
+  onImageSelect?: (
+    result: { localUrl: string; file: File },
+    tweetData: any,
+  ) => void;
   onDirectGenerate?: (tweetData: any) => void;
   generatingImageTweetIds?: string[];
+  localImageUrls?: Record<string, string>;
   tweetData?: any;
   imageData?: {
     url: string;
@@ -63,34 +72,29 @@ export function SectionRenderer({
   onImageClick,
   onTweetImageEdit,
   onTweetContentChange,
+  onLocalImageUploadSuccess,
+  onImageSelect,
   onDirectGenerate,
   generatingImageTweetIds,
+  localImageUrls,
   tweetData,
   imageData,
   setSectionRef,
 }: SectionRendererProps) {
-  // 状态来跟踪编辑器的当前内容（仅用于 tweet 类型）
   const [currentEditorContent, setCurrentEditorContent] = useState('');
 
-  const supabase = createClient();
-
-  // 处理编辑器内容变化的回调
   const handleEditorChange = useCallback(
     (newValue: string) => {
       try {
         const parsed = JSON.parse(newValue);
-        // 将HTML内容转换为纯文本用于复制
         const plainText = parsed.content
-          .replace(/<br\s*\/?>/g, '\n')
+          .replace(/<br\s*\/?\s*>/g, '\n')
           .replace(/<[^>]+>/g, '')
           .replace(/&nbsp;/g, ' ')
           .trim();
         setCurrentEditorContent(plainText);
 
-        // 如果是 tweet 类型，则更新数据库
-        // 由于 EditorPro 现在已经有防抖了，这里直接调用
         if (section.type === 'tweet' && section.tweetId) {
-          console.log('handleEditorChange', section.tweetId, plainText);
           onTweetContentChange?.(section.tweetId!, plainText);
         }
       } catch (e) {
@@ -100,7 +104,6 @@ export function SectionRenderer({
     [section.type, section.tweetId, onTweetContentChange],
   );
 
-  // 为 tweet 类型初始化编辑器内容
   useEffect(() => {
     if (section.type === 'tweet') {
       const lines = section.content.split('\n\n');
@@ -120,7 +123,7 @@ export function SectionRenderer({
       setCurrentEditorContent(textContent);
     }
   }, [section]);
-  // 创建鼠标事件处理器
+
   const createMouseHandlers = useCallback(() => {
     const shouldInteract = shouldEnableInteraction(section);
 
@@ -128,10 +131,8 @@ export function SectionRenderer({
       if (!shouldInteract) return;
 
       if (section.type === 'tweet' && section.tweetId) {
-        console.log('Section renderer hover tweet:', section.tweetId);
         onSectionHover?.(section.tweetId);
       } else if (section.type === 'group' && section.groupId) {
-        console.log('Section renderer hover group:', section.groupId);
         onSectionHover?.(`group-${section.groupId}`);
       } else {
         const targetId = section.mappingId || section.id;
@@ -147,21 +148,16 @@ export function SectionRenderer({
     return { handleEnter, handleLeave };
   }, [section, onSectionHover]);
 
-  // 渲染表情符号
   const renderEmoji = useCallback((text: string) => {
     return text.replace(/[🧵📊💡🔧🚀✨]/gu, (match) =>
       markdownStyles.formatting.emoji.replace('$1', match),
     );
   }, []);
 
-  // 判断是否需要交互效果
   const shouldInteract = shouldEnableInteraction(section);
-
   const baseClasses = getBaseClasses(shouldInteract);
   const highlightClasses = getHighlightClasses(isHighlighted, shouldInteract);
   const loadingClasses = isLoading ? markdownStyles.states.loading : '';
-
-  // 创建鼠标事件处理器
   const { handleEnter, handleLeave } = createMouseHandlers();
 
   switch (section.type) {
@@ -196,7 +192,6 @@ export function SectionRenderer({
       );
 
     case 'paragraph':
-      // 检查是否是图片markdown语法
       const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
 
       if (imageMatch) {
@@ -243,7 +238,6 @@ export function SectionRenderer({
         );
       }
 
-      // 处理普通段落
       const processedParagraphContent = (section.content || '')
         .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
         .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
@@ -326,12 +320,10 @@ export function SectionRenderer({
       );
 
     case 'tweet':
-      // 改进的标题和内容分离逻辑
       const lines = section.content.split('\n\n');
       let title = '';
       let contentLines = [];
 
-      // 查找标题
       const titleLine = lines.find((line) => line.startsWith('#'));
       if (titleLine) {
         title = titleLine.replace(/^#+\s*/, '').trim();
@@ -344,8 +336,6 @@ export function SectionRenderer({
       }
 
       const content = contentLines.join('\n\n');
-
-      // 检查内容中是否包含图片语法
       const contentImageMatch = content.match(/!\[(.*?)\]\((.*?)\)/);
       let textContent = content;
       let tweetImageSrc = null;
@@ -357,14 +347,12 @@ export function SectionRenderer({
         tweetImageAlt = contentImageMatch[1];
       }
 
-      // 获取当前tweet的完整数据
       const currentTweetData = tweetData?.nodes
         ?.flatMap((group: any) => group.tweets)
         ?.find(
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
 
-      // 计算tweet序号信息
       const allTweets =
         tweetData?.nodes?.flatMap((group: any) => group.tweets) || [];
       const totalTweets = allTweets.length;
@@ -372,14 +360,13 @@ export function SectionRenderer({
         (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
       );
       const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
-
-      // 获取当前tweet的图片URL
       const currentTweetImageUrl = currentTweetData?.image_url;
+      const localImageUrl = localImageUrls?.[section.tweetId || ''];
+      const imageToDisplay = localImageUrl || currentTweetImageUrl;
 
-      // 准备 EditorPro 的数据格式
       const editorValue = JSON.stringify({
         content: textContent
-          .replace(/\n\n/g, '<br>') // 转换换行为HTML
+          .replace(/\n\n/g, '<br>')
           .replace(
             /\*\*(.*?)\*\*/g,
             '<strong class="font-semibold text-gray-900">$1</strong>',
@@ -410,14 +397,12 @@ export function SectionRenderer({
             </div>
           )}
 
-          {/* Tweet 序号显示 */}
           {totalTweets > 0 && tweetNumber > 0 && (
             <div className="text-[10px] font-medium text-black/60">
               ({tweetNumber}/{totalTweets})
             </div>
           )}
 
-          {/* Tweet 内容使用 EditorPro 渲染 */}
           {textContent && textContent.trim() && (
             <div className="text-[14px] leading-[1.6] text-black">
               <EditorPro
@@ -436,7 +421,6 @@ export function SectionRenderer({
             </div>
           )}
 
-          {/* 图片生成中的 Lottie 动画 */}
           {isGeneratingImage && (
             <div className="my-4 flex flex-col items-center justify-center gap-[5px]">
               <ImageLoadingAnimation size={160} />
@@ -444,28 +428,24 @@ export function SectionRenderer({
             </div>
           )}
 
-          {/* Tweet 图片 */}
-          {(tweetImageSrc || currentTweetImageUrl) && !isGeneratingImage && (
+          {(tweetImageSrc || imageToDisplay) && !isGeneratingImage && (
             <div className="my-4 flex justify-center">
               <Image
-                src={tweetImageSrc || currentTweetImageUrl}
+                src={tweetImageSrc || imageToDisplay}
                 alt={tweetImageAlt || `${title}配图`}
-                width={400}
+                width={0}
                 height={400}
-                className="w-full cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                // onClick={() => {
-                //   if (onDirectGenerate && currentTweetData) {
-                //     onDirectGenerate(currentTweetData);
-                //   } else if (onTweetImageEdit && currentTweetData) {
-                //     onTweetImageEdit(currentTweetData);
-                //   }
-                // }}
+                className="w-auto max-h-[400px] object-cover cursor-pointer rounded-lg shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
               />
             </div>
           )}
 
-          {/* 功能按钮 */}
-          <div className="absolute right-[4px] top-[4px] flex items-center justify-end">
+          <div className="absolute right-[4px] top-[4px] flex items-center justify-end gap-1">
+            <LocalImageUploader
+              tweetData={currentTweetData}
+              onUploadSuccess={onLocalImageUploadSuccess}
+              onImageSelect={onImageSelect}
+            />
             <TweetImageButton
               currentTweetData={currentTweetData}
               onTweetImageEdit={onTweetImageEdit}
@@ -483,7 +463,6 @@ export function SectionRenderer({
       );
 
     case 'group':
-      // 分组处理逻辑
       const groupLines = section.content.split('\n\n');
       let groupTitle = '';
       let groupContent = '';
@@ -499,7 +478,6 @@ export function SectionRenderer({
         groupTitle = section.content;
       }
 
-      // 根据原始level设置标题样式
       const groupTitleLevel = section.level || 2;
       const getGroupTitleComponent = () => {
         const titleClasses = {
@@ -560,7 +538,6 @@ export function SectionRenderer({
   }
 }
 
-// Tweet图片编辑按钮组件
 function TweetImageButton({
   currentTweetData,
   onTweetImageEdit,
@@ -594,7 +571,6 @@ function TweetImageButton({
   );
 }
 
-// 将图片转换为PNG格式（剪贴板API支持的格式）
 async function convertImageToPNG(imageBlob: Blob): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
@@ -627,7 +603,6 @@ async function convertImageToPNG(imageBlob: Blob): Promise<Blob> {
   });
 }
 
-// 将内容转换为 Twitter 兼容格式
 function convertToTwitterFormat(
   content: string,
   tweetNumber?: number,
@@ -637,30 +612,16 @@ function convertToTwitterFormat(
 
   let twitterContent = content;
 
-  // 处理列表 - 转换为 Twitter 兼容格式
-  // 处理无序列表 (- 或 *)
   twitterContent = twitterContent.replace(/^[-*]\s+(.+)$/gm, '• $1');
-
-  // 处理有序列表
   twitterContent = twitterContent.replace(/^\d+\.\s+(.+)$/gm, '• $1');
-
-  // 移除 Markdown 格式标记但保留内容
-  twitterContent = twitterContent.replace(/\*\*(.+?)\*\*/g, '$1'); // 粗体
-  twitterContent = twitterContent.replace(/\*(.+?)\*/g, '$1'); // 斜体
-  twitterContent = twitterContent.replace(/!\[.*?\]\(.*?\)/g, ''); // 图片链接
-
-  // 处理换行 - 先将所有双换行替换为单换行（列表项之间不应该有空行）
+  twitterContent = twitterContent.replace(/\*\*(.+?)\*\*/g, '$1');
+  twitterContent = twitterContent.replace(/\*(.+?)\*/g, '$1');
+  twitterContent = twitterContent.replace(/!\[.*?\]\(.*?\)/g, '');
   twitterContent = twitterContent.replace(/\n\n/g, '\n');
-
-  // 但是在非列表段落之间保留空行
-  // 识别列表结束后的段落，在其前面加上空行
   twitterContent = twitterContent.replace(/(\n• .+)(\n[^•])/g, '$1\n$2');
-
-  // 清理多余的空行
   twitterContent = twitterContent.replace(/\n{3,}/g, '\n\n');
   twitterContent = twitterContent.trim();
 
-  // 添加序号信息
   if (tweetNumber && totalTweets && totalTweets > 1) {
     twitterContent = `(${tweetNumber}/${totalTweets})\n${twitterContent}`;
   }
@@ -668,7 +629,6 @@ function convertToTwitterFormat(
   return twitterContent;
 }
 
-// 复制内容和图片到剪贴板
 async function copyTwitterContent(
   content: string,
   imageUrl?: string,
@@ -683,9 +643,6 @@ async function copyTwitterContent(
 
   try {
     if (imageUrl) {
-      console.log('Attempting to copy content with image:', imageUrl);
-
-      // 获取图片blob
       const response = await fetch(imageUrl, {
         mode: 'cors',
         credentials: 'same-origin',
@@ -696,23 +653,13 @@ async function copyTwitterContent(
       }
 
       const blob = await response.blob();
-      console.log('Image blob type:', blob.type, 'size:', blob.size);
 
-      // 检查是否是有效的图片类型
       if (!blob.type.startsWith('image/')) {
         throw new Error(`Invalid image type: ${blob.type}`);
       }
 
-      // 将图片转换为PNG格式（剪贴板API支持的格式）
       const convertedBlob = await convertImageToPNG(blob);
-      console.log(
-        'Converted image blob type:',
-        convertedBlob.type,
-        'size:',
-        convertedBlob.size,
-      );
 
-      // 同时复制文本和图片
       await navigator.clipboard.write([
         new ClipboardItem({
           [convertedBlob.type]: convertedBlob,
@@ -722,13 +669,11 @@ async function copyTwitterContent(
         }),
       ]);
 
-      console.log('Image and text copied successfully');
       addToast({
         title: 'Copied Successfully',
         color: 'success',
       });
     } else {
-      // 只复制文本
       await navigator.clipboard.writeText(twitterFormattedContent);
       addToast({
         title: 'Copied Successfully',
@@ -737,7 +682,6 @@ async function copyTwitterContent(
     }
   } catch (error) {
     console.error('Failed to copy content:', error);
-    // 降级处理：只复制文本
     try {
       await navigator.clipboard.writeText(twitterFormattedContent);
       addToast({
@@ -754,7 +698,6 @@ async function copyTwitterContent(
   }
 }
 
-// 复制按钮组件
 function CopyButton({
   currentTweetData,
   currentContent,
@@ -768,19 +711,11 @@ function CopyButton({
 }) {
   const [isLoading, setIsLoading] = useState(false);
 
-  // 优先使用编辑器中的当前内容，如果没有则回退到原始数据
   const contentToCopy = currentContent || currentTweetData?.content || '';
   const imageUrl = currentTweetData?.image_url;
 
   const handleCopy = async () => {
-    if (isLoading) return; // 防止重复点击
-
-    console.log('=== Copy Button Clicked ===');
-    console.log('Content to copy:', contentToCopy);
-    console.log('Image URL:', imageUrl);
-    console.log('Tweet number:', tweetNumber);
-    console.log('Total tweets:', totalTweets);
-    console.log('Current tweet data:', currentTweetData);
+    if (isLoading) return;
 
     setIsLoading(true);
     try {

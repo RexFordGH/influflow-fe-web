@@ -83,6 +83,7 @@ export function EnhancedContentGeneration({
   >([]); // 正在生图的tweetId数组
   const [scrollToSection, setScrollToSection] = useState<string | null>(null); // 滚动到指定section
   const [isPostingToTwitter, setIsPostingToTwitter] = useState(false); // Twitter发布loading状态
+  const [localImageUrls, setLocalImageUrls] = useState<Record<string, string>>({});
 
   // 辅助函数：添加正在生图的 tweetId
   const addGeneratingImageTweetId = useCallback((tweetId: string) => {
@@ -547,8 +548,42 @@ export function EnhancedContentGeneration({
       if (currentTweetId) {
         removeGeneratingImageTweetId(currentTweetId);
       }
+
+      // 新增：清理本地预览URL
+      const localUrl = localImageUrls[targetTweetData.tweet_number];
+      if (localUrl) {
+        URL.revokeObjectURL(localUrl);
+        setLocalImageUrls((prev) => {
+          const newUrls = { ...prev };
+          delete newUrls[targetTweetData.tweet_number];
+          return newUrls;
+        });
+      }
     },
-    [editingTweetData, onDataUpdate, removeGeneratingImageTweetId],
+    [editingTweetData, onDataUpdate, removeGeneratingImageTweetId, localImageUrls],
+  );
+
+  // 新增：处理本地图片选择，立即显示预览
+  const handleImageSelect = useCallback(
+    (result: { localUrl: string; file: File }, tweetData: any) => {
+      setLocalImageUrls((prev) => ({
+        ...prev,
+        [tweetData.tweet_number]: result.localUrl,
+      }));
+    },
+    [],
+  );
+
+  // For local image uploads, this function will be called
+  const handleLocalImageUpload = useCallback(
+    (
+      result: { url: string; alt: string },
+      tweetData: any,
+    ) => {
+      // Directly use the existing image update logic
+      handleImageUpdate(result, tweetData);
+    },
+    [handleImageUpdate],
   );
 
   const handleDirectGenerate = useCallback(
@@ -649,6 +684,8 @@ export function EnhancedContentGeneration({
     },
     [rawAPIData, onDataUpdate],
   );
+
+  
 
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
   const handleRegenerateClick = useCallback(async () => {
@@ -1071,6 +1108,8 @@ export function EnhancedContentGeneration({
                 onImageClick={handleImageClick}
                 onTweetImageEdit={handleTweetImageEdit}
                 onTweetContentChange={handleTweetContentChange}
+                onLocalImageUploadSuccess={handleLocalImageUpload}
+                onImageSelect={handleImageSelect} // 新增
                 onDirectGenerate={handleDirectGenerate}
                 highlightedSection={hoveredTweetId}
                 hoveredTweetId={hoveredTweetId}
@@ -1079,6 +1118,7 @@ export function EnhancedContentGeneration({
                 tweetData={rawAPIData}
                 loadingTweetId={loadingTweetId}
                 generatingImageTweetIds={generatingImageTweetIds}
+                localImageUrls={localImageUrls} // 新增
                 scrollToSection={scrollToSection}
               />
             )}
