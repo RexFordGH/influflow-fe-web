@@ -12,7 +12,7 @@ interface LocalImageUploaderProps {
     result: { localUrl: string; file: File },
     tweetData: any,
   ) => void;
-  onUploadSuccess: (result: { imageUrl: string }, tweetData: any) => void;
+  onUploadSuccess: (result: { url: string; alt: string }, tweetData: any) => void;
   tweetData: any;
 }
 
@@ -49,7 +49,7 @@ export const LocalImageUploader: React.FC<LocalImageUploaderProps> = ({
         }
 
         const result = await response.json();
-        onUploadSuccess(result, tweetData);
+        onUploadSuccess({ url: result.imageUrl, alt: file.name }, tweetData);
         addToast({ title: 'Image uploaded successfully', color: 'success' });
       } catch (error) {
         console.error('Upload error:', error);
