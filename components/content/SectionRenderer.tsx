@@ -85,42 +85,28 @@ export function SectionRenderer({
   const [imageUri, setImageUri] = useState<string | undefined>();
 
   useEffect(() => {
-    // This effect synchronizes the imageUri state based on props for the current section.
     if (section.type !== 'tweet') {
-      setImageUri(undefined); // Clean up state for non-tweet sections
+      setImageUri(undefined);
       return;
     }
 
+    // Always prioritize the local image URL if it exists for the current tweet.
+    const localImageUrl = localImageUrls?.[section.tweetId || ''];
+    if (localImageUrl) {
+      setImageUri(localImageUrl);
+      return;
+    }
+
+    // If no local image, fall back to the remote URL from the tweet data.
     const currentTweetData = tweetData?.nodes
       ?.flatMap((group: any) => group.tweets)
       ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
     const currentTweetImageUrl = currentTweetData?.image_url;
-    const localImageUrl = localImageUrls?.[section.tweetId || ''];
 
-    // Priority 1: A new local image is selected.
-    if (localImageUrl) {
-      if (imageUri !== localImageUrl) {
-        setImageUri(localImageUrl);
-      }
-      return;
-    }
-
-    // Priority 2: Seamless switch from local blob to remote URL.
-    if (imageUri?.startsWith('blob:') && currentTweetImageUrl) {
-      const preloader = new window.Image();
-      preloader.src = currentTweetImageUrl;
-      preloader.onload = () => {
-        setImageUri(currentTweetImageUrl);
-      };
-      return;
-    }
-
-    // Priority 3 (Fallback): Sync with remote URL if no local interaction is pending.
-    // This also handles the initial setting of the image URI.
-    if (!imageUri?.startsWith('blob:') && imageUri !== currentTweetImageUrl) {
-      setImageUri(currentTweetImageUrl);
-    }
-  }, [section, localImageUrls, tweetData, imageUri]);
+    // Set the image URI to the remote URL, which will be undefined if it doesn't exist,
+    // correctly clearing the image.
+    setImageUri(currentTweetImageUrl);
+  }, [section.type, section.tweetId, localImageUrls, tweetData]);
 
   const handleEditorChange = useCallback(
     (newValue: string) => {

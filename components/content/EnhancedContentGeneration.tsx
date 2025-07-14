@@ -159,6 +159,9 @@ export function EnhancedContentGeneration({
       setIsRegenerating(false);
       requestIdRef.current = null;
 
+      // 关键：当 topic 变化时，重置本地图片URL状态
+      setLocalImageUrls({});
+
       // 启动生成过程
       setIsGenerating(true);
     }
@@ -174,6 +177,9 @@ export function EnhancedContentGeneration({
       setCurrentNodes(content.mindmap.nodes);
       setCurrentEdges(content.mindmap.edges);
       setIsGenerating(false);
+
+      // 关键：当 initialData 变化时，重置本地图片URL状态
+      setLocalImageUrls({});
     }
   }, [initialData]);
 
