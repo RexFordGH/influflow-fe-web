@@ -82,6 +82,45 @@ export function SectionRenderer({
   setSectionRef,
 }: SectionRendererProps) {
   const [currentEditorContent, setCurrentEditorContent] = useState('');
+  const [imageUri, setImageUri] = useState<string | undefined>();
+
+  useEffect(() => {
+    // This effect synchronizes the imageUri state based on props for the current section.
+    if (section.type !== 'tweet') {
+      setImageUri(undefined); // Clean up state for non-tweet sections
+      return;
+    }
+
+    const currentTweetData = tweetData?.nodes
+      ?.flatMap((group: any) => group.tweets)
+      ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
+    const currentTweetImageUrl = currentTweetData?.image_url;
+    const localImageUrl = localImageUrls?.[section.tweetId || ''];
+
+    // Priority 1: A new local image is selected.
+    if (localImageUrl) {
+      if (imageUri !== localImageUrl) {
+        setImageUri(localImageUrl);
+      }
+      return;
+    }
+
+    // Priority 2: Seamless switch from local blob to remote URL.
+    if (imageUri?.startsWith('blob:') && currentTweetImageUrl) {
+      const preloader = new window.Image();
+      preloader.src = currentTweetImageUrl;
+      preloader.onload = () => {
+        setImageUri(currentTweetImageUrl);
+      };
+      return;
+    }
+
+    // Priority 3 (Fallback): Sync with remote URL if no local interaction is pending.
+    // This also handles the initial setting of the image URI.
+    if (!imageUri?.startsWith('blob:') && imageUri !== currentTweetImageUrl) {
+      setImageUri(currentTweetImageUrl);
+    }
+  }, [section, localImageUrls, tweetData, imageUri]);
 
   const handleEditorChange = useCallback(
     (newValue: string) => {
@@ -361,48 +400,6 @@ export function SectionRenderer({
       );
       const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
       const currentTweetImageUrl = currentTweetData?.image_url;
-      const localImageUrl = localImageUrls?.[section.tweetId || ''];
-
-      const [imageUri, setImageUri] = useState(
-        localImageUrl || currentTweetImageUrl,
-      );
-
-      useEffect(() => {
-        // Unified logic to determine the correct image URI to display.
-
-        // Priority 1: A new local image is selected by the user.
-        // Display it immediately for the best user experience.
-        if (localImageUrl) {
-          if (imageUri !== localImageUrl) {
-            setImageUri(localImageUrl);
-          }
-          return; // Local image takes precedence.
-        }
-
-        // Priority 2: A local-to-remote transition is needed.
-        // This happens when we are currently showing a local 'blob:' URI,
-        // but the final remote URL has just become available.
-        if (imageUri?.startsWith('blob:') && currentTweetImageUrl) {
-          // Preload the remote image in the background to ensure it's cached.
-          const preloader = new window.Image();
-          preloader.src = currentTweetImageUrl;
-          preloader.onload = () => {
-            // Once loaded, perform the seamless switch.
-            requestAnimationFrame(() => {
-              setImageUri(currentTweetImageUrl);
-            });
-          };
-          return; // The preloading logic handles the update.
-        }
-
-        // Priority 3 (Fallback): Sync with the remote URL from props.
-        // This covers initial load (when there's no local image) and
-        // any other external changes to the remote URL.
-        if (imageUri !== currentTweetImageUrl) {
-          setImageUri(currentTweetImageUrl);
-        }
-      }, [localImageUrl, currentTweetImageUrl, imageUri]);
-
       const imageToDisplay = imageUri;
 
       const editorValue = JSON.stringify({
