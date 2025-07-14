@@ -362,7 +362,48 @@ export function SectionRenderer({
       const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
       const currentTweetImageUrl = currentTweetData?.image_url;
       const localImageUrl = localImageUrls?.[section.tweetId || ''];
-      const imageToDisplay = localImageUrl || currentTweetImageUrl;
+
+      const [imageUri, setImageUri] = useState(
+        localImageUrl || currentTweetImageUrl,
+      );
+
+      useEffect(() => {
+        // Unified logic to determine the correct image URI to display.
+
+        // Priority 1: A new local image is selected by the user.
+        // Display it immediately for the best user experience.
+        if (localImageUrl) {
+          if (imageUri !== localImageUrl) {
+            setImageUri(localImageUrl);
+          }
+          return; // Local image takes precedence.
+        }
+
+        // Priority 2: A local-to-remote transition is needed.
+        // This happens when we are currently showing a local 'blob:' URI,
+        // but the final remote URL has just become available.
+        if (imageUri?.startsWith('blob:') && currentTweetImageUrl) {
+          // Preload the remote image in the background to ensure it's cached.
+          const preloader = new window.Image();
+          preloader.src = currentTweetImageUrl;
+          preloader.onload = () => {
+            // Once loaded, perform the seamless switch.
+            requestAnimationFrame(() => {
+              setImageUri(currentTweetImageUrl);
+            });
+          };
+          return; // The preloading logic handles the update.
+        }
+
+        // Priority 3 (Fallback): Sync with the remote URL from props.
+        // This covers initial load (when there's no local image) and
+        // any other external changes to the remote URL.
+        if (imageUri !== currentTweetImageUrl) {
+          setImageUri(currentTweetImageUrl);
+        }
+      }, [localImageUrl, currentTweetImageUrl, imageUri]);
+
+      const imageToDisplay = imageUri;
 
       const editorValue = JSON.stringify({
         content: textContent
