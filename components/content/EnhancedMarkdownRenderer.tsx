@@ -17,12 +17,21 @@ interface EnhancedMarkdownRendererProps {
   }) => void;
   onTweetImageEdit?: (tweetData: any) => void; // 新增：tweet图片编辑回调
   onTweetContentChange?: (tweetId: string, newContent: string) => void;
+  onLocalImageUploadSuccess: (
+    result: { url: string; alt: string },
+    tweetData: any,
+  ) => void; // 新增回调
+  onImageSelect?: (
+    result: { localUrl: string; file: File },
+    tweetData: any,
+  ) => void; // 新增：图片选择回调
   onDirectGenerate?: (tweetData: any) => void; // 新增：直接生图回调
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   selectedNodeId?: string | null; // 新增：从思维导图选中传递的NodeId
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
   generatingImageTweetIds?: string[]; // 新增：正在生图的tweetId数组
+  localImageUrls?: Record<string, string>; // 新增：本地图片预览URL
   imageData?: {
     url: string;
     alt: string;
@@ -53,12 +62,15 @@ export function EnhancedMarkdownRenderer({
   onImageClick,
   onTweetImageEdit,
   onTweetContentChange,
+  onLocalImageUploadSuccess,
+  onImageSelect,
   onDirectGenerate,
   highlightedSection,
   hoveredTweetId,
   selectedNodeId,
   loadingTweetId,
   generatingImageTweetIds,
+  localImageUrls,
   imageData,
   tweetData,
   scrollToSection,
@@ -425,8 +437,11 @@ export function EnhancedMarkdownRenderer({
         onImageClick={onImageClick}
         onTweetImageEdit={onTweetImageEdit}
         onTweetContentChange={onTweetContentChange}
+        onLocalImageUploadSuccess={onLocalImageUploadSuccess}
+        onImageSelect={onImageSelect}
         onDirectGenerate={onDirectGenerate}
         generatingImageTweetIds={generatingImageTweetIds}
+        localImageUrls={localImageUrls}
         tweetData={tweetData}
         imageData={imageData}
         setSectionRef={setSectionRef}
