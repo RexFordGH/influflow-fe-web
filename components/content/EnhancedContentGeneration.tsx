@@ -33,7 +33,7 @@ import {
   MindmapNodeData,
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
-import { convertToTwitterFormat } from '@/utils/twitter';
+import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
 
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
@@ -161,7 +161,9 @@ export function EnhancedContentGeneration({
   const [processedMarkdown, setProcessedMarkdown] = useState<string>('');
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [imageToDelete, setImageToDelete] = useState<CollectedImage | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<CollectedImage | null>(
+    null,
+  );
   const [isDeletingImage, setIsDeletingImage] = useState(false);
 
   // 辅助函数：添加正在生图的 tweetId
@@ -1204,70 +1206,56 @@ export function EnhancedContentGeneration({
 
   // 处理复制全文内容
   const handleCopyFullContent = useCallback(async () => {
-    if (!rawAPIData || !contentFormat) return;
+    if (!rawAPIData) return;
 
     setIsCopyingFullContent(true);
 
     try {
-      // 提取全文内容
-      let fullContent = '';
-
-      // 添加主标题
+      // 1. Format each part individually and collect them
+      const contentParts: string[] = [];
       if (rawAPIData.topic) {
-        fullContent += `${rawAPIData.topic}\n\n`;
+        contentParts.push(convertToTwitterFormat(rawAPIData.topic));
       }
-
-      // 遍历所有节点和推文
-      rawAPIData.nodes.forEach((group: any, groupIndex: number) => {
-        // 添加组标题（如果有）
+      rawAPIData.nodes.forEach((group: any) => {
         if (group.title) {
-          fullContent += `## ${group.title}\n\n`;
+          contentParts.push(convertToTwitterFormat(group.title));
         }
-
-        // 添加组内的推文
-        group.tweets.forEach((tweet: any, tweetIndex: number) => {
-          const tweetNumber =
-            rawAPIData.nodes
-              .slice(0, groupIndex)
-              .reduce((total: number, g: any) => total + g.tweets.length, 0) +
-            tweetIndex +
-            1;
-
-          // 添加推文内容
+        group.tweets.forEach((tweet: any) => {
           if (tweet.content || tweet.title) {
-            const tweetContent = tweet.content || tweet.title;
-            fullContent += `${tweetContent}\n\n`;
+            contentParts.push(
+              convertToTwitterFormat(tweet.content || tweet.title),
+            );
           }
-
-          // 如果有图片，添加图片链接
-          if (tweet.image_url) {
-            fullContent += `${tweet.image_url}\n\n`;
-          }
-
-          fullContent += '\n';
         });
       });
 
-      // 使用 Twitter 格式化函数
-      const formattedContent = convertToTwitterFormat(fullContent.trim());
+      // 2. Join the pre-formatted parts.
+      const fullContent = contentParts.join('\n\n\n');
 
-      // 复制到剪贴板
-      await navigator.clipboard.writeText(formattedContent);
+      // 3. Get the first image URL, if any.
+      const firstImageUrl =
+        collectedImages.length > 0 ? collectedImages[0].src : undefined;
 
-      addToast({
-        title: 'Full content copied successfully',
-        color: 'success',
-      });
+      // 4. Call the existing, verified copyTwitterContent function.
+      // This function handles text formatting, image fetching, PNG conversion, and clipboard writing.
+      await copyTwitterContent(fullContent, firstImageUrl);
+
+      // 5. (Optional) Show a specific toast if multiple images were present.
+      // if (firstImageUrl && collectedImages.length > 1) {
+      //   addToast({
+      //     title: 'Note',
+      //     description:
+      //       'Text and the first image were copied. Multiple images are not supported.',
+      //     timeout: 5000,
+      //   });
+      // }
     } catch (error) {
-      console.error('Failed to copy full content:', error);
-      addToast({
-        title: 'Failed to copy content',
-        color: 'danger',
-      });
+      // Errors are handled by copyTwitterContent, but we can log here.
+      console.error('Error during copy operation:', error);
     } finally {
       setIsCopyingFullContent(false);
     }
-  }, [rawAPIData, contentFormat]);
+  }, [rawAPIData, collectedImages]);
 
   // 调试状态
   // console.log('Render 条件检查:', {
