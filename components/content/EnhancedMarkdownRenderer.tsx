@@ -469,6 +469,7 @@ export function EnhancedMarkdownRenderer({
         tweetData={tweetData}
         imageData={imageData}
         setSectionRef={setSectionRef}
+        onDeleteImage={onDeleteImage}
       />
     );
   };

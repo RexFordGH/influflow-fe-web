@@ -53,6 +53,7 @@ export interface SectionRendererProps {
     tweetData: any,
   ) => void;
   onDirectGenerate?: (tweetData: any) => void;
+  onDeleteImage?: (image: any) => void;
   generatingImageTweetIds?: string[];
   localImageUrls?: Record<string, string>;
   tweetData?: any;
@@ -76,6 +77,7 @@ export function SectionRenderer({
   onLocalImageUploadSuccess,
   onImageSelect,
   onDirectGenerate,
+  onDeleteImage,
   generatingImageTweetIds,
   localImageUrls,
   tweetData,
@@ -454,7 +456,7 @@ export function SectionRenderer({
           )}
 
           {(tweetImageSrc || imageToDisplay) && !isGeneratingImage && (
-            <div className="my-4 flex justify-center">
+            <div className="group relative my-4 flex justify-center">
               <Image
                 src={tweetImageSrc || imageToDisplay}
                 alt={tweetImageAlt || `${title}配图`}
@@ -462,6 +464,39 @@ export function SectionRenderer({
                 height={400}
                 className="max-h-[400px] w-auto cursor-pointer rounded-lg object-cover shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
               />
+              <div className="absolute right-2 top-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+                <Button
+                  isIconOnly
+                  onPress={() => {
+                    if (onDeleteImage && currentTweetData) {
+                      onDeleteImage({
+                        src: currentTweetData.image_url,
+                        alt:
+                          currentTweetData.content ||
+                          currentTweetData.title ||
+                          'Image',
+                        originalSectionId: `tweet-${currentTweetData.tweet_number}`,
+                        tweetId: currentTweetData.tweet_number.toString(),
+                      });
+                    }
+                  }}
+                  className="justify-center items-center hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
+                  aria-label="Delete image"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="size-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </Button>
+              </div>
             </div>
           )}
 
