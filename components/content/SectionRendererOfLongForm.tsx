@@ -367,7 +367,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${loadingClasses} border-none pt-[24px]`}
+          className={`${baseClasses} ${loadingClasses} border-none pt-[24px] !mt-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -415,7 +415,7 @@ export function SectionRendererOfLongForm({
                 alt={tweetImageAlt || `${title}配图`}
                 width={0}
                 height={400}
-                className="max-h-[400px] w-auto cursor-pointer rounded-lg object-cover shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                className="max-h-[400px] w-auto rounded-lg object-cover shadow-md transition-all duration-200 hover:shadow-lg"
               />
             </div>
           )}

@@ -1,7 +1,6 @@
 'use client';
 
-import { Button, cn } from '@heroui/react';
-import { UploadIcon } from '@phosphor-icons/react';
+import { Button, cn, Image, Tooltip } from '@heroui/react';
 import { useRef, useState } from 'react';
 
 import { addToast } from '@/components/base/toast';
@@ -76,17 +75,33 @@ export const LocalImageUploader: React.FC<LocalImageUploaderProps> = ({
         style={{ display: 'none' }}
         accept="image/png, image/jpeg, image/gif, image/webp"
       />
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className={cn(markdownStyles.source.button)}
-        onPress={handleUploadButtonClick}
-        isLoading={uploading}
-        disabled={uploading}
+      <Tooltip
+        content="Upload Image"
+        delay={50}
+        closeDelay={0}
+        placement="top"
+        classNames={{
+          content: 'bg-black text-white',
+          arrow: 'bg-black border-black',
+        }}
       >
-        <UploadIcon size={20} />
-      </Button>
+        <Button
+          isIconOnly
+          size="sm"
+          variant="light"
+          className={cn(markdownStyles.source.button)}
+          onPress={handleUploadButtonClick}
+          isLoading={uploading}
+          disabled={uploading}
+        >
+          <Image
+            src="/icons/uploadImage.svg"
+            alt="upload"
+            width={20}
+            height={20}
+          />
+        </Button>
+      </Tooltip>
     </>
   );
 };

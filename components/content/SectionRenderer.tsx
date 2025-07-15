@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, cn, Image } from '@heroui/react';
+import { Button, cn, Image, Tooltip } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -583,16 +583,27 @@ export function TweetImageButton({
   };
 
   return (
-    <Button
-      isIconOnly
-      size="sm"
-      variant="light"
-      className={cn(markdownStyles.source.button)}
-      onPress={handleImageAction}
-      isLoading={isGeneratingImage}
+    <Tooltip
+      content="Generate Image"
+      delay={50}
+      closeDelay={0}
+      placement="top"
+      classNames={{
+        content: 'bg-black text-white',
+        arrow: 'bg-black border-black',
+      }}
     >
-      <Image src="/icons/image.svg" alt="edit" width={20} height={20} />
-    </Button>
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        className={cn(markdownStyles.source.button)}
+        onPress={handleImageAction}
+        isLoading={isGeneratingImage}
+      >
+        <Image src="/icons/genImage.svg" alt="edit" width={20} height={20} />
+      </Button>
+    </Tooltip>
   );
 }
 
@@ -629,16 +640,27 @@ export function CopyButton({
   };
 
   return (
-    <Button
-      isIconOnly
-      size="sm"
-      variant="light"
-      className={markdownStyles.source.button}
-      onPress={handleCopy}
-      isLoading={isLoading}
-      disabled={isLoading}
+    <Tooltip
+      content="Copy"
+      delay={50}
+      closeDelay={0}
+      placement="top"
+      classNames={{
+        content: 'bg-black text-white',
+        arrow: 'bg-black border-black',
+      }}
     >
-      <CopyIcon size={20} />
-    </Button>
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        className={markdownStyles.source.button}
+        onPress={handleCopy}
+        isLoading={isLoading}
+        disabled={isLoading}
+      >
+        <CopyIcon size={20} />
+      </Button>
+    </Tooltip>
   );
 }

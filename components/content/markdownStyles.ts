@@ -88,7 +88,7 @@ export const markdownStyles = {
   source: {
     button:
       'opacity-0 transition-opacity hover:bg-blue-50 group-hover:opacity-100',
-    icon: 'size-4 text-blue-600',
+    icon: 'size-5 text-blue-600',
   },
 
   // 格式化处理的样式
