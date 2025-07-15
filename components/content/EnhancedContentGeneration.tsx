@@ -239,6 +239,8 @@ export function EnhancedContentGeneration({
       setGenerationStep(0);
       setIsRegenerating(false);
       requestIdRef.current = null;
+      // 关键修复：在这里启动生成流程
+      setIsGenerating(true);
 
       // 关键：当 topic 变化时，重置本地图片URL状态
       setLocalImageUrls({});
