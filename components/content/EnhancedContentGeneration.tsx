@@ -48,6 +48,68 @@ interface EnhancedContentGenerationProps {
   onDataUpdate?: () => void; // 新增：数据更新回调
 }
 
+interface CollectedImage {
+  src: string;
+  alt: string;
+  originalSectionId: string;
+  tweetId?: string;
+}
+
+function DeleteConfirmModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  isLoading,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isLoading: boolean;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-4">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Delete Image ?
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Are you sure you want to delete this image?
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button
+            onPress={onClose}
+            className="bg-gray-200 rounded-full"
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="danger"
+            className="rounded-full"
+            onPress={onConfirm}
+            isLoading={isLoading}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function EnhancedContentGeneration({
   topic,
   contentFormat,
@@ -92,6 +154,15 @@ export function EnhancedContentGeneration({
     {},
   );
   const [isCopyingFullContent, setIsCopyingFullContent] = useState(false); // Copy full content loading状态
+
+  // 从 longform 内容中提取的图片
+  const [collectedImages, setCollectedImages] = useState<CollectedImage[]>([]);
+  // 经过图片移除处理后的 Markdown 内容
+  const [processedMarkdown, setProcessedMarkdown] = useState<string>('');
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<CollectedImage | null>(null);
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
 
   // 辅助函数：添加正在生图的 tweetId
   const addGeneratingImageTweetId = useCallback((tweetId: string) => {
@@ -169,9 +240,6 @@ export function EnhancedContentGeneration({
 
       // 关键：当 topic 变化时，重置本地图片URL状态
       setLocalImageUrls({});
-
-      // 启动生成过程
-      setIsGenerating(true);
     }
   }, [topic, initialData]);
 
@@ -357,9 +425,6 @@ export function EnhancedContentGeneration({
           setHoveredTweetId(null);
           setScrollToSection(null);
         }
-      } else {
-        setHoveredTweetId(null);
-        setScrollToSection(null);
       }
     },
     [currentNodes],
@@ -702,18 +767,131 @@ export function EnhancedContentGeneration({
     [rawAPIData, onDataUpdate],
   );
 
+  // 当 rawAPIData 或 regeneratedMarkdown 更新时，预处理内容，提取图片
+  useEffect(() => {
+    if (contentFormat !== 'longform' || !rawAPIData) {
+      setCollectedImages([]);
+      setProcessedMarkdown('');
+      return;
+    }
+
+    const images: CollectedImage[] = [];
+    // 直接从 rawAPIData 遍历以可靠地提取图片信息
+    rawAPIData.nodes.forEach((group: any) => {
+      if (group.tweets && Array.isArray(group.tweets)) {
+        group.tweets.forEach((tweet: any) => {
+          if (tweet.image_url) {
+            images.push({
+              src: tweet.image_url,
+              alt: tweet.content || tweet.title || 'Image',
+              originalSectionId: `tweet-${tweet.tweet_number}`,
+              tweetId: tweet.tweet_number.toString(),
+            });
+          }
+        });
+      }
+    });
+    setCollectedImages(images);
+
+    // 生成完整的 Markdown
+    const fullMarkdown =
+      regeneratedMarkdown || convertAPIDataToMarkdown(rawAPIData);
+
+    // 从 Markdown 中移除所有图片标记，以进行渲染
+    const imageRegex = /!\[.*?\]\(https?:\/\/[^\s)]+\)/g;
+    const cleanedMarkdown = fullMarkdown.replace(imageRegex, '');
+
+    setProcessedMarkdown(cleanedMarkdown);
+  }, [rawAPIData, regeneratedMarkdown, contentFormat]);
+
+  const handleDeleteImage = useCallback(
+    (image: CollectedImage) => {
+      console.log('handleDeleteImage called in Generation. Image:', image);
+      if (!rawAPIData) {
+        console.error('Cannot delete image: rawAPIData is not available.');
+        addToast({
+          title: '无法删除图片',
+          description: '缺少必要的数据，请稍后重试。',
+          color: 'danger',
+        });
+        return;
+      }
+      setImageToDelete(image);
+      setIsDeleteModalOpen(true);
+    },
+    [rawAPIData],
+  );
+
+  useEffect(() => {
+    console.log('isDeleteModalOpen state changed:', isDeleteModalOpen);
+  }, [isDeleteModalOpen]);
+
+  const confirmDeleteImage = useCallback(async () => {
+    if (!imageToDelete) return;
+
+    setIsDeletingImage(true); // 开始删除，设置loading为true
+
+    const targetTweetId = imageToDelete.tweetId;
+    if (!rawAPIData || !rawAPIData.id || !targetTweetId) {
+      console.error('cannot delete image: missing necessary data');
+      setIsDeletingImage(false); // 结束loading
+      return;
+    }
+
+    // 1. 更新 rawAPIData
+    const updatedNodes = rawAPIData.nodes.map((group: any) => ({
+      ...group,
+      tweets: group.tweets.map((tweet: any) => {
+        if (tweet.tweet_number.toString() === targetTweetId) {
+          return { ...tweet, image_url: null };
+        }
+        return tweet;
+      }),
+    }));
+
+    const updatedRawAPIData = { ...rawAPIData, nodes: updatedNodes };
+    setRawAPIData(updatedRawAPIData);
+
+    // 2. 更新 Supabase
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('tweet_thread')
+        .update({ tweets: updatedRawAPIData.nodes })
+        .eq('id', rawAPIData.id);
+
+      if (error) throw error;
+
+      addToast({ title: 'Image deleted successfully', color: 'success' });
+      onDataUpdate?.();
+    } catch (error) {
+      console.error('Delete image failed:', error);
+      addToast({
+        title: 'Delete failed',
+        description: getErrorMessage(error),
+        color: 'danger',
+      });
+      setRawAPIData(rawAPIData); // 发生错误时回滚状态
+    } finally {
+      // 3. 关闭弹窗并重置状态
+      setIsDeleteModalOpen(false);
+      setImageToDelete(null);
+      setIsDeletingImage(false); // 结束删除，设置loading为false
+    }
+  }, [rawAPIData, imageToDelete, onDataUpdate]);
+
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
   const handleRegenerateClick = useCallback(async () => {
-    console.log('🔄 Regenerate 按钮被点击了！');
+    console.log('🔄 Regenerate button clicked!');
     console.log('rawAPIData:', rawAPIData);
     console.log('currentNodes:', currentNodes);
 
     if (!rawAPIData) {
-      console.error('缺少原始数据，无法重新生成');
+      console.error('cannot regenerate: missing necessary data');
       return;
     }
 
-    console.log('开始设置 loading 状态...');
+    console.log('start setting loading state...');
     setIsRegenerating(true);
 
     try {
@@ -1193,12 +1371,14 @@ export function EnhancedContentGeneration({
         {/* 右侧内容区域 */}
         <div className="flex w-1/2 flex-col bg-white">
           {/* Twitter Thread内容区域 */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
             {rawAPIData && (
               <EnhancedMarkdownRenderer
                 content={
-                  regeneratedMarkdown ||
-                  (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '')
+                  contentFormat === 'longform'
+                    ? processedMarkdown
+                    : regeneratedMarkdown ||
+                      (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '')
                 }
                 onSectionHover={handleMarkdownHover}
                 onSourceClick={handleSourceClick}
@@ -1217,6 +1397,8 @@ export function EnhancedContentGeneration({
                 generatingImageTweetIds={generatingImageTweetIds}
                 localImageUrls={localImageUrls} // 新增
                 scrollToSection={scrollToSection}
+                collectedImages={collectedImages}
+                onDeleteImage={handleDeleteImage}
               />
             )}
           </div>
@@ -1244,6 +1426,14 @@ export function EnhancedContentGeneration({
           }}
         />
       )}
+
+      {/* 删除确认弹窗 */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteImage}
+        isLoading={isDeletingImage}
+      />
     </div>
   );
 }

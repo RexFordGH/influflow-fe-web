@@ -1,10 +1,8 @@
 'use client';
 
-import { Image } from '@heroui/react';
 import { useCallback, useEffect, useState } from 'react';
 
 import EditorPro from '../editorPro/index';
-import { ImageLoadingAnimation } from '../ui/ImageLoadingAnimation';
 
 import { LocalImageUploader } from './LocalImageUploader';
 import {
@@ -21,44 +19,16 @@ export function SectionRendererOfLongForm({
   isHighlighted = false,
   isLoading = false,
   onSectionHover,
-  onImageClick,
   onTweetImageEdit,
   onTweetContentChange,
   onLocalImageUploadSuccess,
   onImageSelect,
   onDirectGenerate,
   generatingImageTweetIds,
-  localImageUrls,
   tweetData,
-  imageData,
   setSectionRef,
 }: SectionRendererProps) {
   const [currentEditorContent, setCurrentEditorContent] = useState('');
-  const [imageUri, setImageUri] = useState<string | undefined>();
-
-  useEffect(() => {
-    if (section.type !== 'tweet') {
-      setImageUri(undefined);
-      return;
-    }
-
-    // Always prioritize the local image URL if it exists for the current tweet.
-    const localImageUrl = localImageUrls?.[section.tweetId || ''];
-    if (localImageUrl) {
-      setImageUri(localImageUrl);
-      return;
-    }
-
-    // If no local image, fall back to the remote URL from the tweet data.
-    const currentTweetData = tweetData?.nodes
-      ?.flatMap((group: any) => group.tweets)
-      ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
-    const currentTweetImageUrl = currentTweetData?.image_url;
-
-    // Set the image URI to the remote URL, which will be undefined if it doesn't exist,
-    // correctly clearing the image.
-    setImageUri(currentTweetImageUrl);
-  }, [section.type, section.tweetId, localImageUrls, tweetData]);
 
   const handleEditorChange = useCallback(
     (newValue: string) => {
@@ -96,8 +66,8 @@ export function SectionRendererOfLongForm({
       }
 
       const content = contentLines.join('\n\n');
-      const textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
-      setCurrentEditorContent(textContent);
+      // The parent component has already cleaned the content, so we just set it.
+      setCurrentEditorContent(content.trim());
     }
   }, [section]);
 
@@ -169,52 +139,7 @@ export function SectionRendererOfLongForm({
       );
 
     case 'paragraph':
-      const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
-
-      if (imageMatch) {
-        const [, altText, imageSrc] = imageMatch;
-        return (
-          <div
-            key={section.id}
-            ref={(el) => setSectionRef?.(section.id, el)}
-            className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
-            onMouseEnter={handleEnter}
-            onMouseLeave={handleLeave}
-          >
-            {isLoading && (
-              <div className={markdownStyles.loading.zIndex}>
-                <div className={markdownStyles.loading.spinner}></div>
-              </div>
-            )}
-            <div className="relative cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-              <img
-                src={imageSrc}
-                alt={altText}
-                className={markdownStyles.image.image}
-                onClick={() =>
-                  onImageClick?.({
-                    url: imageSrc,
-                    alt: altText,
-                    caption: imageData?.caption,
-                    prompt: imageData?.prompt,
-                  })
-                }
-              />
-              {imageData?.caption && (
-                <div className={markdownStyles.image.overlay}>
-                  <p className={markdownStyles.image.caption}>
-                    {imageData.caption}
-                  </p>
-                </div>
-              )}
-              <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs text-white opacity-0 transition-opacity hover:opacity-100">
-                点击编辑图片
-              </div>
-            </div>
-          </div>
-        );
-      }
-
+      // Image rendering logic is removed as it's handled by the parent.
       const processedParagraphContent = (section.content || '')
         .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
         .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
@@ -298,47 +223,24 @@ export function SectionRendererOfLongForm({
 
     case 'tweet':
       const lines = section.content.split('\n\n');
-      let title = '';
       let contentLines = [];
 
       const titleLine = lines.find((line) => line.startsWith('#'));
       if (titleLine) {
-        title = titleLine.replace(/^#+\s*/, '').trim();
         contentLines = lines.filter(
           (line) => !line.startsWith('#') && line.trim() !== '',
         );
       } else {
-        title = lines[0] || section.content;
         contentLines = lines.slice(1).filter((line) => line.trim() !== '');
       }
 
-      const content = contentLines.join('\n\n');
-      const contentImageMatch = content.match(/!\[(.*?)\]\((.*?)\)/);
-      let textContent = content;
-      let tweetImageSrc = null;
-      let tweetImageAlt = null;
-
-      if (contentImageMatch) {
-        textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
-        tweetImageSrc = contentImageMatch[2];
-        tweetImageAlt = contentImageMatch[1];
-      }
+      const textContent = contentLines.join('\n\n');
 
       const currentTweetData = tweetData?.nodes
         ?.flatMap((group: any) => group.tweets)
         ?.find(
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
-
-      const allTweets =
-        tweetData?.nodes?.flatMap((group: any) => group.tweets) || [];
-      const totalTweets = allTweets.length;
-      const currentTweetIndex = allTweets.findIndex(
-        (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
-      );
-      const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
-      const currentTweetImageUrl = currentTweetData?.image_url;
-      const imageToDisplay = imageUri;
 
       const editorValue = JSON.stringify({
         content: textContent
@@ -372,12 +274,6 @@ export function SectionRendererOfLongForm({
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
             </div>
           )}
-          {/* TODO: 长推不需要序号 */}
-          {/* {totalTweets > 0 && tweetNumber > 0 && (
-            <div className="text-[10px] font-medium text-black/60">
-              ({tweetNumber}/{totalTweets})
-            </div>
-          )} */}
 
           {textContent && textContent.trim() && (
             <div className="text-[14px] leading-[1.6] text-black">
@@ -397,24 +293,14 @@ export function SectionRendererOfLongForm({
             </div>
           )}
 
-          {isGeneratingImage && (
+          {/* {isGeneratingImage && (
             <div className="my-4 flex flex-col items-center justify-center gap-[5px]">
               <ImageLoadingAnimation size={160} />
               <span className="text-sm text-gray-500">Generating image...</span>
             </div>
-          )}
+          )} */}
 
-          {(tweetImageSrc || imageToDisplay) && !isGeneratingImage && (
-            <div className="my-4 flex justify-center">
-              <Image
-                src={tweetImageSrc || imageToDisplay}
-                alt={tweetImageAlt || `${title}配图`}
-                width={0}
-                height={400}
-                className="max-h-[400px] w-auto rounded-lg object-cover shadow-md transition-all duration-200 hover:shadow-lg"
-              />
-            </div>
-          )}
+          {/* Image rendering is removed from here */}
 
           <div className="absolute right-[4px] top-[0px] flex items-center justify-end gap-1">
             <LocalImageUploader
@@ -428,12 +314,6 @@ export function SectionRendererOfLongForm({
               isGeneratingImage={isGeneratingImage}
               onDirectGenerate={onDirectGenerate}
             />
-            {/* <CopyButton
-              currentTweetData={currentTweetData}
-              currentContent={currentEditorContent}
-              tweetNumber={tweetNumber}
-              totalTweets={totalTweets}
-            /> */}
           </div>
         </div>
       );

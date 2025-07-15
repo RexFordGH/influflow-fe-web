@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, Image } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { markdownStyles } from './markdownStyles';
@@ -41,6 +42,15 @@ interface EnhancedMarkdownRendererProps {
   };
   tweetData?: any; // 新增：tweet数据，用于获取image_url
   scrollToSection?: string | null; // 新增：滚动到指定section的ID
+  collectedImages?: any[]; // 新增：收集到的图片
+  onDeleteImage?: (image: any) => void; // 新增：删除图片回调
+}
+
+interface CollectedImage {
+  src: string;
+  alt: string;
+  originalSectionId: string;
+  tweetId?: string;
 }
 
 interface MarkdownSection {
@@ -75,6 +85,8 @@ export function EnhancedMarkdownRenderer({
   imageData,
   tweetData,
   scrollToSection,
+  collectedImages = [],
+  onDeleteImage,
 }: EnhancedMarkdownRendererProps) {
   // 创建section ref的映射
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -429,9 +441,10 @@ export function EnhancedMarkdownRenderer({
     );
 
     // 根据 content_format 选择渲染器
-    const RendererSectionComponent = tweetData?.content_format === 'longform' 
-      ? SectionRendererOfLongForm 
-      : SectionRenderer;
+    const RendererSectionComponent =
+      tweetData?.content_format === 'longform'
+        ? SectionRendererOfLongForm
+        : SectionRenderer;
 
     return (
       <RendererSectionComponent
@@ -461,6 +474,46 @@ export function EnhancedMarkdownRenderer({
         <div className={markdownStyles.container.sections}>
           {sections.map((section) => renderSection(section))}
         </div>
+
+        {/* 图片画廊 - 仅在 longform 模式下显示 */}
+        {tweetData?.content_format === 'longform' &&
+          collectedImages.length > 0 && (
+            <div className="mt-[48px] flex flex-col  justify-center gap-[16px]">
+              {collectedImages.map((image, index) => (
+                <div
+                  key={index}
+                  className="h-[400px] flex justify-center group relative aspect-video"
+                >
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    className="h-[400px] w-auto rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
+                  />
+                  <Button
+                    isIconOnly
+                    onPress={() => {
+                      onDeleteImage?.(image);
+                    }}
+                    className="justify-center items-center absolute z-20 right-1.5 top-1.5 hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
+                    aria-label="Delete image"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="size-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
       </div>
     </div>
   );
