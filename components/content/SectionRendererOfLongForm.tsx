@@ -363,7 +363,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${loadingClasses} border-none !p-[8px] !mt-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border-none px-[8px] pt-[24px] pb-[0px] !mt-0 !scale-[1]`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -416,7 +416,7 @@ export function SectionRendererOfLongForm({
             </div>
           )}
 
-          <div className="absolute right-[4px] top-[-12px] flex items-center justify-end gap-1">
+          <div className="absolute right-[4px] top-[0px] flex items-center justify-end gap-1">
             <LocalImageUploader
               tweetData={currentTweetData}
               onUploadSuccess={onLocalImageUploadSuccess}
