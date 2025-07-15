@@ -54,7 +54,7 @@ export const ProfileCompletePrompt = ({
             </Button>
 
             {/* 关闭按钮 */}
-            <Button
+            {/* <Button
               isIconOnly
               size="sm"
               variant="light"
@@ -62,7 +62,7 @@ export const ProfileCompletePrompt = ({
               onPress={onClose}
             >
               <XMarkIcon className="size-4" />
-            </Button>
+            </Button> */}
           </div>
         </motion.div>
       )}
