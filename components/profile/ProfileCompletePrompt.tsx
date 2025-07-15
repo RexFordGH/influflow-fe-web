@@ -40,7 +40,7 @@ export const ProfileCompletePrompt = ({
             {/* 内容区域 */}
             <div className="flex-1">
               <p className="text-sm font-medium">
-                Complete your profile to improve content quality.
+                Set your tone and style—so every post sounds 100% you.
               </p>
             </div>
 
