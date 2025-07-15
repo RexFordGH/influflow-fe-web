@@ -367,7 +367,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
+          className={`${baseClasses} ${loadingClasses} border-none pt-[24px]`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -376,12 +376,12 @@ export function SectionRendererOfLongForm({
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
             </div>
           )}
-
-          {totalTweets > 0 && tweetNumber > 0 && (
+          {/* TODO: 长推不需要序号 */}
+          {/* {totalTweets > 0 && tweetNumber > 0 && (
             <div className="text-[10px] font-medium text-black/60">
               ({tweetNumber}/{totalTweets})
             </div>
-          )}
+          )} */}
 
           {textContent && textContent.trim() && (
             <div className="text-[14px] leading-[1.6] text-black">

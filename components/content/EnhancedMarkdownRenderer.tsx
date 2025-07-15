@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
+import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
 
 interface EnhancedMarkdownRendererProps {
   content: string;
@@ -427,8 +428,13 @@ export function EnhancedMarkdownRenderer({
           loadingTweetId === section.id),
     );
 
+    // 根据 content_format 选择渲染器
+    const RendererSectionComponent = tweetData?.content_format === 'longform' 
+      ? SectionRendererOfLongForm 
+      : SectionRenderer;
+
     return (
-      <SectionRenderer
+      <RendererSectionComponent
         key={section.id}
         section={section}
         isHighlighted={isHighlighted}
