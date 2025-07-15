@@ -2,6 +2,7 @@
 
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
+import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
@@ -32,6 +33,7 @@ import {
   MindmapNodeData,
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
+import { convertToTwitterFormat } from '@/utils/twitter';
 
 import { ContentGenerationLoading } from './ContentGenerationLoading';
 import EditableContentMindmap from './EditableContentMindmap';
@@ -86,7 +88,10 @@ export function EnhancedContentGeneration({
   >([]); // 正在生图的tweetId数组
   const [scrollToSection, setScrollToSection] = useState<string | null>(null); // 滚动到指定section
   const [isPostingToTwitter, setIsPostingToTwitter] = useState(false); // Twitter发布loading状态
-  const [localImageUrls, setLocalImageUrls] = useState<Record<string, string>>({});
+  const [localImageUrls, setLocalImageUrls] = useState<Record<string, string>>(
+    {},
+  );
+  const [isCopyingFullContent, setIsCopyingFullContent] = useState(false); // Copy full content loading状态
 
   // 辅助函数：添加正在生图的 tweetId
   const addGeneratingImageTweetId = useCallback((tweetId: string) => {
@@ -570,7 +575,12 @@ export function EnhancedContentGeneration({
         });
       }
     },
-    [editingTweetData, onDataUpdate, removeGeneratingImageTweetId, localImageUrls],
+    [
+      editingTweetData,
+      onDataUpdate,
+      removeGeneratingImageTweetId,
+      localImageUrls,
+    ],
   );
 
   // 新增：处理本地图片选择，立即显示预览
@@ -586,10 +596,7 @@ export function EnhancedContentGeneration({
 
   // For local image uploads, this function will be called
   const handleLocalImageUpload = useCallback(
-    (
-      result: { url: string; alt: string },
-      tweetData: any,
-    ) => {
+    (result: { url: string; alt: string }, tweetData: any) => {
       // Directly use the existing image update logic
       handleImageUpdate(result, tweetData);
     },
@@ -695,8 +702,6 @@ export function EnhancedContentGeneration({
     [rawAPIData, onDataUpdate],
   );
 
-  
-
   // 处理 Regenerate 按钮点击 - 调用 modify-outline API
   const handleRegenerateClick = useCallback(async () => {
     console.log('🔄 Regenerate 按钮被点击了！');
@@ -716,7 +721,7 @@ export function EnhancedContentGeneration({
       const currentOutlineFromMindmap = {
         id: rawAPIData.id,
         topic: rawAPIData.topic,
-        content_format: rawAPIData.content_format || 'longform' as const,
+        content_format: rawAPIData.content_format || ('longform' as const),
         nodes: rawAPIData.nodes, // 使用原始结构，但会被思维导图的更改覆盖
         total_tweets: rawAPIData.total_tweets,
       };
@@ -1019,6 +1024,73 @@ export function EnhancedContentGeneration({
     }
   }, [rawAPIData, postToTwitterMutation, refetchTwitterAuthStatus]);
 
+  // 处理复制全文内容
+  const handleCopyFullContent = useCallback(async () => {
+    if (!rawAPIData || !contentFormat) return;
+
+    setIsCopyingFullContent(true);
+
+    try {
+      // 提取全文内容
+      let fullContent = '';
+
+      // 添加主标题
+      if (rawAPIData.topic) {
+        fullContent += `${rawAPIData.topic}\n\n`;
+      }
+
+      // 遍历所有节点和推文
+      rawAPIData.nodes.forEach((group: any, groupIndex: number) => {
+        // 添加组标题（如果有）
+        if (group.title) {
+          fullContent += `## ${group.title}\n\n`;
+        }
+
+        // 添加组内的推文
+        group.tweets.forEach((tweet: any, tweetIndex: number) => {
+          const tweetNumber =
+            rawAPIData.nodes
+              .slice(0, groupIndex)
+              .reduce((total: number, g: any) => total + g.tweets.length, 0) +
+            tweetIndex +
+            1;
+
+          // 添加推文内容
+          if (tweet.content || tweet.title) {
+            const tweetContent = tweet.content || tweet.title;
+            fullContent += `${tweetContent}\n\n`;
+          }
+
+          // 如果有图片，添加图片链接
+          if (tweet.image_url) {
+            fullContent += `${tweet.image_url}\n\n`;
+          }
+
+          fullContent += '\n';
+        });
+      });
+
+      // 使用 Twitter 格式化函数
+      const formattedContent = convertToTwitterFormat(fullContent.trim());
+
+      // 复制到剪贴板
+      await navigator.clipboard.writeText(formattedContent);
+
+      addToast({
+        title: 'Full content copied successfully',
+        color: 'success',
+      });
+    } catch (error) {
+      console.error('Failed to copy full content:', error);
+      addToast({
+        title: 'Failed to copy content',
+        color: 'danger',
+      });
+    } finally {
+      setIsCopyingFullContent(false);
+    }
+  }, [rawAPIData, contentFormat]);
+
   // 调试状态
   // console.log('Render 条件检查:', {
   //   isGenerating,
@@ -1068,6 +1140,20 @@ export function EnhancedContentGeneration({
             </Button>
           </div>
           <div className="flex items-center space-x-4">
+            {/* 如果是 longform 模式，显示复制全文按钮 */}
+            {contentFormat === 'longform' && (
+              <Button
+                size="sm"
+                variant="light"
+                onPress={handleCopyFullContent}
+                isLoading={isCopyingFullContent}
+                disabled={isCopyingFullContent}
+                className="bg-[#1DA1F2] text-white hover:bg-[#1991DB]"
+                startContent={!isCopyingFullContent && <CopyIcon size={16} />}
+              >
+                {isCopyingFullContent ? 'Copying...' : 'Copy All'}
+              </Button>
+            )}
             <Button
               size="sm"
               color="primary"
