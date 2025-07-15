@@ -1,11 +1,14 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
+
+import { copyImageToClipboard } from '@/utils/twitter';
+import { CopyIcon } from '@phosphor-icons/react';
 
 interface EnhancedMarkdownRendererProps {
   content: string;
@@ -88,6 +91,8 @@ export function EnhancedMarkdownRenderer({
   collectedImages = [],
   onDeleteImage,
 }: EnhancedMarkdownRendererProps) {
+  const [copyingImage, setCopyingImage] = useState<string | null>(null);
+
   // 创建section ref的映射
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -489,27 +494,43 @@ export function EnhancedMarkdownRenderer({
                     alt={image.alt}
                     className="h-[400px] w-auto rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
                   />
-                  <Button
-                    isIconOnly
-                    onPress={() => {
-                      onDeleteImage?.(image);
-                    }}
-                    className="justify-center items-center absolute z-20 right-1.5 top-1.5 hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
-                    aria-label="Delete image"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="size-4"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                  <div className="absolute z-20 right-1.5 top-1.5 flex justify-end items-center gap-1">
+                    <Button
+                      isIconOnly
+                      isLoading={copyingImage === image.src}
+                      disabled={!!copyingImage}
+                      onPress={async () => {
+                        setCopyingImage(image.src);
+                        await copyImageToClipboard(image.src);
+                        setCopyingImage(null);
+                      }}
+                      className="justify-center items-center hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-blue-500 hover:opacity-100 group-hover:flex"
+                      aria-label="Copy image"
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </Button>
+                      <CopyIcon size={16} weight="bold" />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      onPress={() => {
+                        onDeleteImage?.(image);
+                      }}
+                      className="justify-center items-center hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
+                      aria-label="Delete image"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="size-4"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

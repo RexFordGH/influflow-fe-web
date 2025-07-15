@@ -126,3 +126,39 @@ export async function copyTwitterContent(
     }
   }
 }
+
+export async function copyImageToClipboard(imageUrl: string): Promise<void> {
+  try {
+    const response = await fetch(imageUrl, {
+      mode: 'cors',
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+
+    if (!blob.type.startsWith('image/')) {
+      throw new Error(`Invalid image type: ${blob.type}`);
+    }
+
+    const convertedBlob = await convertImageToPNG(blob);
+
+    await navigator.clipboard.write([
+      new ClipboardItem({ [convertedBlob.type]: convertedBlob }),
+    ]);
+
+    addToast({
+      title: 'Image Copied Successfully',
+      color: 'success',
+    });
+  } catch (error) {
+    console.error('Failed to copy image:', error);
+    addToast({
+      title: 'Image Copy Failed',
+      color: 'danger',
+    });
+  }
+}

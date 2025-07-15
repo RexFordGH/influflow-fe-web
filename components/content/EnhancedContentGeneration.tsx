@@ -1238,7 +1238,8 @@ export function EnhancedContentGeneration({
 
       // 4. Call the existing, verified copyTwitterContent function.
       // This function handles text formatting, image fetching, PNG conversion, and clipboard writing.
-      await copyTwitterContent(fullContent, firstImageUrl);
+      // TODO: 这里需要优化，如果图片有多个，需要把图片也复制到剪贴板，暂时先不复制图片
+      await copyTwitterContent(fullContent);
 
       // 5. (Optional) Show a specific toast if multiple images were present.
       // if (firstImageUrl && collectedImages.length > 1) {
