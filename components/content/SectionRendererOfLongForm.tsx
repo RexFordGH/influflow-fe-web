@@ -14,11 +14,7 @@ import {
   markdownStyles,
   shouldEnableInteraction,
 } from './markdownStyles';
-import {
-  CopyButton,
-  SectionRendererProps,
-  TweetImageButton,
-} from './SectionRenderer';
+import { SectionRendererProps, TweetImageButton } from './SectionRenderer';
 
 export function SectionRendererOfLongForm({
   section,
@@ -367,7 +363,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${loadingClasses} border-none pt-[24px] !mt-0`}
+          className={`${baseClasses} ${loadingClasses} border-none !p-[8px] !mt-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -420,7 +416,7 @@ export function SectionRendererOfLongForm({
             </div>
           )}
 
-          <div className="absolute right-[4px] top-[4px] flex items-center justify-end gap-1">
+          <div className="absolute right-[4px] top-[-12px] flex items-center justify-end gap-1">
             <LocalImageUploader
               tweetData={currentTweetData}
               onUploadSuccess={onLocalImageUploadSuccess}
@@ -432,12 +428,12 @@ export function SectionRendererOfLongForm({
               isGeneratingImage={isGeneratingImage}
               onDirectGenerate={onDirectGenerate}
             />
-            <CopyButton
+            {/* <CopyButton
               currentTweetData={currentTweetData}
               currentContent={currentEditorContent}
               tweetNumber={tweetNumber}
               totalTweets={totalTweets}
-            />
+            /> */}
           </div>
         </div>
       );
@@ -495,7 +491,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
+          className={`${baseClasses} ${loadingClasses} mb-6`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
