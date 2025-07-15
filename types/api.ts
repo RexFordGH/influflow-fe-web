@@ -16,8 +16,11 @@ export interface HealthData {
 
 export type HealthResponse = BaseResponse<HealthData>;
 
+export type ContentFormat = 'longform' | 'thread'
+
 export interface GenerateThreadRequest {
   user_input: string;
+  content_format: ContentFormat;
   personalization?: Pick<
     User,
     'account_name' | 'tone' | 'bio' | 'tweet_examples'

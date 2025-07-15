@@ -1,3 +1,5 @@
+import { ContentFormat } from "./api";
+
 export interface TweetContentItem {
   tweet_number: number;
   content: string;
@@ -12,6 +14,7 @@ export interface Tweet {
 
 export interface Outline {
   id: string;
+  content_format: ContentFormat;
   nodes: Tweet[];
   topic: string;
   total_tweets: number;

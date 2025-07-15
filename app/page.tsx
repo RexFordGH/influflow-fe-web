@@ -11,7 +11,7 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
-import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
+import { type SuggestedTopic, type TrendingTopic, type ContentFormat } from '@/types/api';
 import { Outline } from '@/types/outline';
 import {
   isPromptDismissed,
@@ -52,6 +52,7 @@ function HomeContent() {
   const [initialData, setInitialData] = useState<Outline | undefined>(
     undefined,
   );
+  const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
 
   const {
     categories,
@@ -146,7 +147,7 @@ function HomeContent() {
     return () => clearTimeout(timer);
   }, [isAuthenticated, syncProfileFromSupabase, hasCheckedProfile]);
 
-  const handleTopicSubmit = () => {
+  const handleTopicSubmit = (selectedContentFormat: ContentFormat) => {
     if (!isAuthenticated) {
       openLoginModal();
       return;
@@ -155,6 +156,7 @@ function HomeContent() {
     if (topicInput.trim()) {
       // 清除之前选择的笔记数据，确保重新生成新内容
       setInitialData(undefined);
+      setContentFormat(selectedContentFormat);
       setCurrentTopic(topicInput);
       setShowContentGeneration(true);
       setHasCreatedContentGeneration(true);
@@ -196,6 +198,7 @@ function HomeContent() {
     // 1. 将 TweetThread 格式转换为 Outline 格式
     const outlineData: Outline = {
       topic: tweetData.topic,
+      content_format: tweetData.content_format || 'longform',
       nodes: tweetData.tweets, // 将 'tweets' 映射到 'nodes'
       total_tweets: tweetData.tweets.reduce(
         (acc: number, group: any) => acc + (group.tweets?.length || 0),
@@ -206,6 +209,7 @@ function HomeContent() {
 
     // 2. 设置 initialData 和 topic
     setInitialData(outlineData);
+    setContentFormat(outlineData.content_format);
     setCurrentTopic(outlineData.topic || 'Tweet Thread');
 
     // 3. 切换视图
@@ -252,6 +256,7 @@ function HomeContent() {
         >
           <EnhancedContentGeneration
             topic={currentTopic}
+            contentFormat={contentFormat}
             onBack={handleBackToHome}
             initialData={initialData}
             onDataUpdate={refetchTweetThreads}

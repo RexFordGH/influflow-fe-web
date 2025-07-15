@@ -25,6 +25,7 @@ import {
 } from '@/lib/data/converters';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
+import { ContentFormat } from '@/types/api';
 import {
   GeneratedContent,
   MindmapEdgeData,
@@ -39,6 +40,7 @@ import { ImageEditModal } from './ImageEditModal';
 
 interface EnhancedContentGenerationProps {
   topic: string;
+  contentFormat: ContentFormat;
   onBack: () => void;
   initialData?: Outline;
   onDataUpdate?: () => void; // 新增：数据更新回调
@@ -46,6 +48,7 @@ interface EnhancedContentGenerationProps {
 
 export function EnhancedContentGeneration({
   topic,
+  contentFormat,
   onBack,
   initialData,
   onDataUpdate,
@@ -246,6 +249,7 @@ export function EnhancedContentGeneration({
     // 准备请求数据，包含用户个性化信息
     const requestData = {
       user_input: topic.trim(),
+      content_format: contentFormat,
       ...(user && {
         personalization: {
           tone: user.tone,
@@ -712,6 +716,7 @@ export function EnhancedContentGeneration({
       const currentOutlineFromMindmap = {
         id: rawAPIData.id,
         topic: rawAPIData.topic,
+        content_format: rawAPIData.content_format || 'longform' as const,
         nodes: rawAPIData.nodes, // 使用原始结构，但会被思维导图的更改覆盖
         total_tweets: rawAPIData.total_tweets,
       };

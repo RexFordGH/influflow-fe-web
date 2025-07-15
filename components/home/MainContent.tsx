@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Suspense, lazy } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
-import { SuggestedTopic, TrendingTopic } from '@/types/api';
+import { SuggestedTopic, TrendingTopic, ContentFormat } from '@/types/api';
 import { Article, Category } from '@/types/content';
 
 import { WelcomeScreen } from './WelcomeScreen';
@@ -46,7 +46,7 @@ export const MainContent = ({
   onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
-  onTopicSubmit: () => void;
+  onTopicSubmit: (contentFormat: ContentFormat) => void;
   onWriteByMyself: () => void;
 }) => {
   const { user, isAuthenticated } = useAuthStore();

@@ -4,6 +4,7 @@ import type { Outline } from '@/types/outline';
 export const localGenerateThreadResponse: Outline = {
   id: '123',
   topic: "What's AI?",
+  content_format: 'longform',
   nodes: [
     {
       title:
@@ -146,6 +147,7 @@ export const createLocalModifyOutlineResponse = (
   return {
     updated_outline: {
       id: originalOutline.id,
+      content_format: originalOutline.content_format || 'longform',
       nodes: enhancedNodes,
       topic: `${newOutlineStructure.topic}（AI优化版）`,
       total_tweets: enhancedNodes.length,
