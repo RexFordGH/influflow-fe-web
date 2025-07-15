@@ -40,3 +40,6 @@ stories/
 docs/
 lib/db/migrations/
 .claude
+
+
+/public/

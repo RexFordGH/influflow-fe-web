@@ -1,10 +1,7 @@
 'use client';
 
-import { Button, cn, Image } from '@heroui/react';
-import { CopyIcon } from '@phosphor-icons/react';
+import { Image } from '@heroui/react';
 import { useCallback, useEffect, useState } from 'react';
-
-import { copyTwitterContent } from '@/utils/twitter';
 
 import EditorPro from '../editorPro/index';
 import { ImageLoadingAnimation } from '../ui/ImageLoadingAnimation';
@@ -17,55 +14,13 @@ import {
   markdownStyles,
   shouldEnableInteraction,
 } from './markdownStyles';
+import {
+  CopyButton,
+  SectionRendererProps,
+  TweetImageButton,
+} from './SectionRenderer';
 
-export interface MarkdownSection {
-  id: string;
-  type: 'heading' | 'paragraph' | 'list' | 'tweet' | 'group';
-  level?: number;
-  content: string;
-  rawContent: string;
-  mappingId?: string;
-  tweetId?: string;
-  groupIndex?: number;
-  tweetIndex?: number;
-  groupId?: string;
-}
-
-export interface SectionRendererProps {
-  section: MarkdownSection;
-  isHighlighted?: boolean;
-  isLoading?: boolean;
-  onSectionHover?: (sectionId: string | null) => void;
-  onImageClick?: (image: {
-    url: string;
-    alt: string;
-    caption?: string;
-    prompt?: string;
-  }) => void;
-  onTweetImageEdit?: (tweetData: any) => void;
-  onTweetContentChange?: (tweetId: string, newContent: string) => void;
-  onLocalImageUploadSuccess: (
-    result: { url: string; alt: string },
-    tweetData: any,
-  ) => void;
-  onImageSelect?: (
-    result: { localUrl: string; file: File },
-    tweetData: any,
-  ) => void;
-  onDirectGenerate?: (tweetData: any) => void;
-  generatingImageTweetIds?: string[];
-  localImageUrls?: Record<string, string>;
-  tweetData?: any;
-  imageData?: {
-    url: string;
-    alt: string;
-    caption?: string;
-    prompt?: string;
-  };
-  setSectionRef?: (sectionId: string, element: HTMLDivElement | null) => void;
-}
-
-export function SectionRenderer({
+export function SectionRendererOfLongForm({
   section,
   isHighlighted = false,
   isLoading = false,
@@ -561,84 +516,4 @@ export function SectionRenderer({
     default:
       return null;
   }
-}
-
-export function TweetImageButton({
-  currentTweetData,
-  onTweetImageEdit,
-  isGeneratingImage,
-  onDirectGenerate,
-}: {
-  currentTweetData?: any;
-  onTweetImageEdit?: (tweetData: any) => void;
-  isGeneratingImage?: boolean;
-  onDirectGenerate?: (tweetData: any) => void;
-}) {
-  const handleImageAction = () => {
-    if (onDirectGenerate && currentTweetData) {
-      onDirectGenerate(currentTweetData);
-    } else if (onTweetImageEdit && currentTweetData) {
-      onTweetImageEdit(currentTweetData);
-    }
-  };
-
-  return (
-    <Button
-      isIconOnly
-      size="sm"
-      variant="light"
-      className={cn(markdownStyles.source.button)}
-      onPress={handleImageAction}
-      isLoading={isGeneratingImage}
-    >
-      <Image src="/icons/image.svg" alt="edit" width={20} height={20} />
-    </Button>
-  );
-}
-
-export function CopyButton({
-  currentTweetData,
-  currentContent,
-  tweetNumber,
-  totalTweets,
-}: {
-  currentTweetData?: any;
-  currentContent?: string;
-  tweetNumber?: number;
-  totalTweets?: number;
-}) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const contentToCopy = currentContent || currentTweetData?.content || '';
-  const imageUrl = currentTweetData?.image_url;
-
-  const handleCopy = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    try {
-      await copyTwitterContent(
-        contentToCopy,
-        imageUrl,
-        tweetNumber,
-        totalTweets,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Button
-      isIconOnly
-      size="sm"
-      variant="light"
-      className={markdownStyles.source.button}
-      onPress={handleCopy}
-      isLoading={isLoading}
-      disabled={isLoading}
-    >
-      <CopyIcon size={20} />
-    </Button>
-  );
 }
