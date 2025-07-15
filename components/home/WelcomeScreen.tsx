@@ -167,12 +167,7 @@ export const WelcomeScreen = ({
                     }}
                   >
                     {contentFormatOptions.map((option) => (
-                      <DropdownItem
-                        key={option.key}
-                        startContent={
-                          <span className="text-sm">{option.icon}</span>
-                        }
-                      >
+                      <DropdownItem key={option.key}>
                         {option.label}
                       </DropdownItem>
                     ))}
