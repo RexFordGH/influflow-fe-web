@@ -21,6 +21,7 @@ export function SectionRendererOfLongForm({
   onSectionHover,
   onTweetImageEdit,
   onTweetContentChange,
+  onGroupTitleChange,
   onLocalImageUploadSuccess,
   onImageSelect,
   onDirectGenerate,
@@ -43,12 +44,14 @@ export function SectionRendererOfLongForm({
 
         if (section.type === 'tweet' && section.tweetId) {
           onTweetContentChange?.(section.tweetId!, plainText);
+        } else if (section.type === 'group' && section.groupId) {
+          onGroupTitleChange?.(section.groupId, plainText);
         }
       } catch (e) {
         console.error('Failed to parse editor content:', e);
       }
     },
-    [section.type, section.tweetId, onTweetContentChange],
+    [section, onTweetContentChange, onGroupTitleChange],
   );
 
   useEffect(() => {
@@ -207,7 +210,7 @@ export function SectionRendererOfLongForm({
                   <span
                     dangerouslySetInnerHTML={{
                       __html: item
-                        .replace(/^[-*]\s*/, '')
+                        .replace(/^[\-*]\s*/, '')
                         .replace(
                           /\*\*(.*?)\*\*/g,
                           '<strong class="font-semibold text-gray-900">$1</strong>',
@@ -322,7 +325,6 @@ export function SectionRendererOfLongForm({
       const groupLines = section.content.split('\n\n');
       let groupTitle = '';
       let groupContent = '';
-
       const groupTitleLine = groupLines.find((line) => line.startsWith('#'));
       if (groupTitleLine) {
         groupTitle = groupTitleLine.replace(/^#+\s*/, '').trim();
@@ -333,45 +335,16 @@ export function SectionRendererOfLongForm({
       } else {
         groupTitle = section.content;
       }
-
-      const groupTitleLevel = section.level || 2;
-      const getGroupTitleComponent = () => {
-        const titleClasses = {
-          1: 'text-2xl font-bold text-gray-900',
-          2: 'text-xl font-bold text-gray-800',
-          3: 'text-lg font-semibold text-gray-800',
-          4: 'text-base font-semibold text-gray-700',
-          5: 'text-sm font-semibold text-gray-700',
-          6: 'text-sm font-medium text-gray-600',
-        };
-
-        const titleClass =
-          titleClasses[groupTitleLevel as keyof typeof titleClasses] ||
-          titleClasses[2];
-
-        switch (groupTitleLevel) {
-          case 1:
-            return <h1 className={titleClass}>{groupTitle}</h1>;
-          case 2:
-            return <h2 className={titleClass}>{groupTitle}</h2>;
-          case 3:
-            return <h3 className={titleClass}>{groupTitle}</h3>;
-          case 4:
-            return <h4 className={titleClass}>{groupTitle}</h4>;
-          case 5:
-            return <h5 className={titleClass}>{groupTitle}</h5>;
-          case 6:
-            return <h6 className={titleClass}>{groupTitle}</h6>;
-          default:
-            return <h2 className={titleClass}>{groupTitle}</h2>;
-        }
-      };
-
+      const groupTitleEditorValue = JSON.stringify({
+        content: `<h3>${groupTitle}</h3>`,
+        type: 'doc',
+        isEmpty: !groupTitle.trim(),
+      });
       return (
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${loadingClasses} mb-6`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} pb-0 mb-[-10px]`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -380,12 +353,24 @@ export function SectionRendererOfLongForm({
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
             </div>
           )}
-          {getGroupTitleComponent()}
+          <EditorPro
+            value={groupTitleEditorValue}
+            onChange={handleEditorChange}
+            isEdit={true}
+            hideMenuBar={true}
+            debounceMs={1000}
+            className={{
+              base: 'border-none bg-transparent',
+              editorWrapper: 'p-0',
+              editor: `prose max-w-none bg-transparent [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit [&_h3]:text-black`,
+            }}
+          />{' '}
           {groupContent && (
             <div className="mt-2 text-sm leading-relaxed text-gray-700">
-              {groupContent}
+              {' '}
+              {groupContent}{' '}
             </div>
-          )}
+          )}{' '}
         </div>
       );
 

@@ -771,6 +771,39 @@ export function EnhancedContentGeneration({
     [rawAPIData, onDataUpdate],
   );
 
+  const handleGroupTitleChange = useCallback(
+    async (groupId: string, newTitle: string) => {
+      if (!rawAPIData || !rawAPIData.id) return;
+
+      const updatedNodes = rawAPIData.nodes.map((group: any, index: number) => {
+        if (group.group_id === groupId || index.toString() === groupId) {
+          return { ...group, title: newTitle };
+        }
+        return group;
+      });
+
+      const updatedRawAPIData = { ...rawAPIData, nodes: updatedNodes };
+      setRawAPIData(updatedRawAPIData);
+
+      try {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from('tweet_thread')
+          .update({ tweets: updatedRawAPIData.nodes })
+          .eq('id', rawAPIData.id);
+
+        if (error) {
+          throw error;
+        }
+        console.log('Group title updated successfully in Supabase.');
+        onDataUpdate?.();
+      } catch (error) {
+        console.error('Error updating group title in Supabase:', error);
+      }
+    },
+    [rawAPIData, onDataUpdate],
+  );
+
   // 当 rawAPIData 或 regeneratedMarkdown 更新时，预处理内容，提取图片
   useEffect(() => {
     if (contentFormat !== 'longform' || !rawAPIData) {
@@ -884,9 +917,7 @@ export function EnhancedContentGeneration({
     }
   }, [rawAPIData, imageToDelete, onDataUpdate]);
 
-  // 处理 Regenerate 按钮点击 - 调用 modify-outline API
   const handleRegenerateClick = useCallback(async () => {
-    console.log('🔄 Regenerate button clicked!');
     console.log('rawAPIData:', rawAPIData);
     console.log('currentNodes:', currentNodes);
 
@@ -1375,6 +1406,7 @@ export function EnhancedContentGeneration({
                 onImageClick={handleImageClick}
                 onTweetImageEdit={handleTweetImageEdit}
                 onTweetContentChange={handleTweetContentChange}
+                onGroupTitleChange={handleGroupTitleChange}
                 onLocalImageUploadSuccess={handleLocalImageUpload}
                 onImageSelect={handleImageSelect} // 新增
                 onDirectGenerate={handleDirectGenerate}

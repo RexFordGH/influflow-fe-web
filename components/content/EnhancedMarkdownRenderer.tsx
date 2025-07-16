@@ -22,6 +22,7 @@ interface EnhancedMarkdownRendererProps {
   }) => void;
   onTweetImageEdit?: (tweetData: any) => void; // 新增：tweet图片编辑回调
   onTweetContentChange?: (tweetId: string, newContent: string) => void;
+  onGroupTitleChange?: (groupId: string, newTitle: string) => void; // 新增：group标题编辑回调
   onLocalImageUploadSuccess: (
     result: { url: string; alt: string },
     tweetData: any,
@@ -76,6 +77,7 @@ export function EnhancedMarkdownRenderer({
   onImageClick,
   onTweetImageEdit,
   onTweetContentChange,
+  onGroupTitleChange,
   onLocalImageUploadSuccess,
   onImageSelect,
   onDirectGenerate,
@@ -461,6 +463,7 @@ export function EnhancedMarkdownRenderer({
         onImageClick={onImageClick}
         onTweetImageEdit={onTweetImageEdit}
         onTweetContentChange={onTweetContentChange}
+        onGroupTitleChange={onGroupTitleChange}
         onLocalImageUploadSuccess={onLocalImageUploadSuccess}
         onImageSelect={onImageSelect}
         onDirectGenerate={onDirectGenerate}
