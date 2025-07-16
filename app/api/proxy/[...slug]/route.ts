@@ -1,7 +1,7 @@
+import { API_HOST } from '@/constants/env';
 import { NextRequest, NextResponse } from 'next/server';
 
-const TARGET_API_BASE_URL = 'https://influflow-api.up.railway.app';
-
+// 由于 next.config.ts 里的 rewrites 无法配置超时（后端 AI 接口需要 10～30s），所以这里改为用 API代理
 async function handler(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> },
@@ -17,7 +17,9 @@ async function handler(
   const path = awaitedParams.slug.join('/');
   const url = new URL(req.url);
   const searchParams = url.search;
-  const targetUrl = `${TARGET_API_BASE_URL}/${path}${searchParams}`;
+  const targetUrl = `${API_HOST}/${path}${searchParams}`;
+
+  console.log('api proxy targetUrl', targetUrl);
 
   try {
     // Forward client headers to target API

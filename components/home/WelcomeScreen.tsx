@@ -1,11 +1,18 @@
 'use client';
 
-import { Button, Image } from '@heroui/react';
-import { lazy } from 'react';
+import {
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Image,
+} from '@heroui/react';
+import { lazy, useState } from 'react';
 import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
-import { SuggestedTopic, TrendingTopic } from '@/types/api';
+import { ContentFormat, SuggestedTopic, TrendingTopic } from '@/types/api';
 
 // 动态导入TrendingTopics组件
 const TrendingTopics = lazy(() =>
@@ -45,7 +52,7 @@ interface WelcomeScreenProps {
   onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
-  onTopicSubmit: () => void;
+  onTopicSubmit: (contentFormat: ContentFormat) => void;
   onWriteByMyself: () => void;
 }
 
@@ -60,9 +67,21 @@ export const WelcomeScreen = ({
   onWriteByMyself,
 }: WelcomeScreenProps) => {
   const { user, isAuthenticated } = useAuthStore();
+  const [selectedContentFormat, setSelectedContentFormat] =
+    useState<ContentFormat>('longform');
 
   // 直接使用外部状态，不需要内部同步
   const currentPage = showTrendingTopics ? 1 : 0;
+
+  // 内容格式选项
+  const contentFormatOptions = [
+    { key: 'longform', label: 'Article', icon: '≣' },
+    { key: 'thread', label: 'Threads', icon: '≡' },
+  ];
+
+  const handleTopicSubmit = () => {
+    onTopicSubmit(selectedContentFormat);
+  };
 
   // 处理页面切换
   const handlePageChange = (pageNumber: number) => {
@@ -97,19 +116,70 @@ export const WelcomeScreen = ({
                 value={topicInput}
                 onChange={(e) => onTopicInputChange(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  if (
+                    e.key === 'Enter' &&
+                    !e.shiftKey &&
+                    !e.nativeEvent.isComposing
+                  ) {
                     e.preventDefault();
-                    onTopicSubmit();
+                    handleTopicSubmit();
                   }
                 }}
                 className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 rows={4}
               />
+              {/* Content Format Dropdown */}
+              <div className="absolute bottom-[12px] left-[12px]">
+                <Dropdown placement="bottom-end">
+                  <DropdownTrigger>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      className="bg-transparent rounded-full backdrop-blur-sm border-none min-w-[100px] px-[10px] py-[4px] text-gray-700 hover:bg-gray-50"
+                      endContent={
+                        <svg
+                          className="w-3 h-3 ml-1 opacity-60"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      }
+                    >
+                      {
+                        contentFormatOptions.find(
+                          (opt) => opt.key === selectedContentFormat,
+                        )?.label
+                      }
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    aria-label="Content format selection"
+                    selectedKeys={[selectedContentFormat]}
+                    selectionMode="single"
+                    onSelectionChange={(keys) => {
+                      const selectedKey = Array.from(keys)[0] as ContentFormat;
+                      setSelectedContentFormat(selectedKey);
+                    }}
+                  >
+                    {contentFormatOptions.map((option) => (
+                      <DropdownItem key={option.key}>
+                        {option.label}
+                      </DropdownItem>
+                    ))}
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
+
               <Button
                 isIconOnly
                 color="primary"
                 className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
-                onPress={onTopicSubmit}
+                onPress={handleTopicSubmit}
                 disabled={!topicInput.trim()}
               >
                 <Image

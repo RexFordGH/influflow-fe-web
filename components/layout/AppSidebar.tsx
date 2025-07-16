@@ -194,7 +194,7 @@ export const AppSidebar = ({
                         />
                       ) : (
                         <h3
-                          className={`text-sm font-medium text-gray-900 truncate max-w-[250px] ${
+                          className={`max-w-[250px] truncate text-sm font-medium text-gray-900 ${
                             category.id !== 'welcome' &&
                             !category.id.startsWith('tweet-')
                               ? 'cursor-pointer'

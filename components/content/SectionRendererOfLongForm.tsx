@@ -1,13 +1,8 @@
 'use client';
 
-import { Button, cn, Image, Tooltip } from '@heroui/react';
-import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 
-import { copyTwitterContent } from '@/utils/twitter';
-
 import EditorPro from '../editorPro/index';
-import { ImageLoadingAnimation } from '../ui/ImageLoadingAnimation';
 
 import { LocalImageUploader } from './LocalImageUploader';
 import {
@@ -17,101 +12,24 @@ import {
   markdownStyles,
   shouldEnableInteraction,
 } from './markdownStyles';
+import { SectionRendererProps, TweetImageButton } from './SectionRenderer';
 
-export interface MarkdownSection {
-  id: string;
-  type: 'heading' | 'paragraph' | 'list' | 'tweet' | 'group';
-  level?: number;
-  content: string;
-  rawContent: string;
-  mappingId?: string;
-  tweetId?: string;
-  groupIndex?: number;
-  tweetIndex?: number;
-  groupId?: string;
-}
-
-export interface SectionRendererProps {
-  section: MarkdownSection;
-  isHighlighted?: boolean;
-  isLoading?: boolean;
-  onSectionHover?: (sectionId: string | null) => void;
-  onImageClick?: (image: {
-    url: string;
-    alt: string;
-    caption?: string;
-    prompt?: string;
-  }) => void;
-  onTweetImageEdit?: (tweetData: any) => void;
-  onTweetContentChange?: (tweetId: string, newContent: string) => void;
-  onGroupTitleChange?: (groupId: string, newTitle: string) => void;
-  onLocalImageUploadSuccess: (
-    result: { url: string; alt: string },
-    tweetData: any,
-  ) => void;
-  onImageSelect?: (
-    result: { localUrl: string; file: File },
-    tweetData: any,
-  ) => void;
-  onDirectGenerate?: (tweetData: any) => void;
-  onDeleteImage?: (image: any) => void;
-  generatingImageTweetIds?: string[];
-  localImageUrls?: Record<string, string>;
-  tweetData?: any;
-  imageData?: {
-    url: string;
-    alt: string;
-    caption?: string;
-    prompt?: string;
-  };
-  setSectionRef?: (sectionId: string, element: HTMLDivElement | null) => void;
-}
-
-export function SectionRenderer({
+export function SectionRendererOfLongForm({
   section,
   isHighlighted = false,
   isLoading = false,
   onSectionHover,
-  onImageClick,
   onTweetImageEdit,
   onTweetContentChange,
   onGroupTitleChange,
   onLocalImageUploadSuccess,
   onImageSelect,
   onDirectGenerate,
-  onDeleteImage,
   generatingImageTweetIds,
-  localImageUrls,
   tweetData,
-  imageData,
   setSectionRef,
 }: SectionRendererProps) {
   const [currentEditorContent, setCurrentEditorContent] = useState('');
-  const [imageUri, setImageUri] = useState<string | undefined>();
-
-  useEffect(() => {
-    if (section.type !== 'tweet') {
-      setImageUri(undefined);
-      return;
-    }
-
-    // Always prioritize the local image URL if it exists for the current tweet.
-    const localImageUrl = localImageUrls?.[section.tweetId || ''];
-    if (localImageUrl) {
-      setImageUri(localImageUrl);
-      return;
-    }
-
-    // If no local image, fall back to the remote URL from the tweet data.
-    const currentTweetData = tweetData?.nodes
-      ?.flatMap((group: any) => group.tweets)
-      ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
-    const currentTweetImageUrl = currentTweetData?.image_url;
-
-    // Set the image URI to the remote URL, which will be undefined if it doesn't exist,
-    // correctly clearing the image.
-    setImageUri(currentTweetImageUrl);
-  }, [section.type, section.tweetId, localImageUrls, tweetData]);
 
   const handleEditorChange = useCallback(
     (newValue: string) => {
@@ -151,8 +69,8 @@ export function SectionRenderer({
       }
 
       const content = contentLines.join('\n\n');
-      const textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
-      setCurrentEditorContent(textContent);
+      // The parent component has already cleaned the content, so we just set it.
+      setCurrentEditorContent(content.trim());
     }
   }, [section]);
 
@@ -224,52 +142,7 @@ export function SectionRenderer({
       );
 
     case 'paragraph':
-      const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
-
-      if (imageMatch) {
-        const [, altText, imageSrc] = imageMatch;
-        return (
-          <div
-            key={section.id}
-            ref={(el) => setSectionRef?.(section.id, el)}
-            className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
-            onMouseEnter={handleEnter}
-            onMouseLeave={handleLeave}
-          >
-            {isLoading && (
-              <div className={markdownStyles.loading.zIndex}>
-                <div className={markdownStyles.loading.spinner}></div>
-              </div>
-            )}
-            <div className="relative cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-              <img
-                src={imageSrc}
-                alt={altText}
-                className={markdownStyles.image.image}
-                onClick={() =>
-                  onImageClick?.({
-                    url: imageSrc,
-                    alt: altText,
-                    caption: imageData?.caption,
-                    prompt: imageData?.prompt,
-                  })
-                }
-              />
-              {imageData?.caption && (
-                <div className={markdownStyles.image.overlay}>
-                  <p className={markdownStyles.image.caption}>
-                    {imageData.caption}
-                  </p>
-                </div>
-              )}
-              <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs text-white opacity-0 transition-opacity hover:opacity-100">
-                点击编辑图片
-              </div>
-            </div>
-          </div>
-        );
-      }
-
+      // Image rendering logic is removed as it's handled by the parent.
       const processedParagraphContent = (section.content || '')
         .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
         .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
@@ -337,7 +210,7 @@ export function SectionRenderer({
                   <span
                     dangerouslySetInnerHTML={{
                       __html: item
-                        .replace(/^[-*]\s*/, '')
+                        .replace(/^[\-*]\s*/, '')
                         .replace(
                           /\*\*(.*?)\*\*/g,
                           '<strong class="font-semibold text-gray-900">$1</strong>',
@@ -353,47 +226,24 @@ export function SectionRenderer({
 
     case 'tweet':
       const lines = section.content.split('\n\n');
-      let title = '';
       let contentLines = [];
 
       const titleLine = lines.find((line) => line.startsWith('#'));
       if (titleLine) {
-        title = titleLine.replace(/^#+\s*/, '').trim();
         contentLines = lines.filter(
           (line) => !line.startsWith('#') && line.trim() !== '',
         );
       } else {
-        title = lines[0] || section.content;
         contentLines = lines.slice(1).filter((line) => line.trim() !== '');
       }
 
-      const content = contentLines.join('\n\n');
-      const contentImageMatch = content.match(/!\[(.*?)\]\((.*?)\)/);
-      let textContent = content;
-      let tweetImageSrc = null;
-      let tweetImageAlt = null;
-
-      if (contentImageMatch) {
-        textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
-        tweetImageSrc = contentImageMatch[2];
-        tweetImageAlt = contentImageMatch[1];
-      }
+      const textContent = contentLines.join('\n\n');
 
       const currentTweetData = tweetData?.nodes
         ?.flatMap((group: any) => group.tweets)
         ?.find(
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
-
-      const allTweets =
-        tweetData?.nodes?.flatMap((group: any) => group.tweets) || [];
-      const totalTweets = allTweets.length;
-      const currentTweetIndex = allTweets.findIndex(
-        (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
-      );
-      const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
-      const currentTweetImageUrl = currentTweetData?.image_url;
-      const imageToDisplay = imageUri;
 
       const editorValue = JSON.stringify({
         content: textContent
@@ -418,19 +268,13 @@ export function SectionRenderer({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border-none px-[8px] pt-[24px] pb-[0px] !mt-0 !scale-[1]`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
           {isLoading && (
             <div className="absolute left-2 top-2">
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-            </div>
-          )}
-
-          {totalTweets > 0 && tweetNumber > 0 && (
-            <div className="text-[10px] font-medium text-black/60">
-              ({tweetNumber}/{totalTweets})
             </div>
           )}
 
@@ -452,59 +296,16 @@ export function SectionRenderer({
             </div>
           )}
 
-          {isGeneratingImage && (
+          {/* {isGeneratingImage && (
             <div className="my-4 flex flex-col items-center justify-center gap-[5px]">
               <ImageLoadingAnimation size={160} />
               <span className="text-sm text-gray-500">Generating image...</span>
             </div>
-          )}
+          )} */}
 
-          {(tweetImageSrc || imageToDisplay) && !isGeneratingImage && (
-            <div className="group relative my-4 flex justify-center">
-              <Image
-                src={tweetImageSrc || imageToDisplay}
-                alt={tweetImageAlt || `${title}配图`}
-                width={0}
-                height={400}
-                className="max-h-[400px] w-auto cursor-pointer rounded-lg object-cover shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-              />
-              <div className="absolute right-2 top-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
-                <Button
-                  isIconOnly
-                  onPress={() => {
-                    if (onDeleteImage && currentTweetData) {
-                      onDeleteImage({
-                        src: currentTweetData.image_url,
-                        alt:
-                          currentTweetData.content ||
-                          currentTweetData.title ||
-                          'Image',
-                        originalSectionId: `tweet-${currentTweetData.tweet_number}`,
-                        tweetId: currentTweetData.tweet_number.toString(),
-                      });
-                    }
-                  }}
-                  className="justify-center items-center hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
-                  aria-label="Delete image"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="size-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Image rendering is removed from here */}
 
-          <div className="absolute right-[4px] top-[4px] flex items-center justify-end gap-1">
+          <div className="absolute right-[4px] top-[0px] flex items-center justify-end gap-1">
             <LocalImageUploader
               tweetData={currentTweetData}
               onUploadSuccess={onLocalImageUploadSuccess}
@@ -516,12 +317,6 @@ export function SectionRenderer({
               isGeneratingImage={isGeneratingImage}
               onDirectGenerate={onDirectGenerate}
             />
-            <CopyButton
-              currentTweetData={currentTweetData}
-              currentContent={currentEditorContent}
-              tweetNumber={tweetNumber}
-              totalTweets={totalTweets}
-            />
           </div>
         </div>
       );
@@ -530,7 +325,6 @@ export function SectionRenderer({
       const groupLines = section.content.split('\n\n');
       let groupTitle = '';
       let groupContent = '';
-
       const groupTitleLine = groupLines.find((line) => line.startsWith('#'));
       if (groupTitleLine) {
         groupTitle = groupTitleLine.replace(/^#+\s*/, '').trim();
@@ -541,18 +335,16 @@ export function SectionRenderer({
       } else {
         groupTitle = section.content;
       }
-
       const groupTitleEditorValue = JSON.stringify({
         content: `<h3>${groupTitle}</h3>`,
         type: 'doc',
         isEmpty: !groupTitle.trim(),
       });
-
       return (
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} pb-0 mb-[-10px]`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -572,118 +364,17 @@ export function SectionRenderer({
               editorWrapper: 'p-0',
               editor: `prose max-w-none bg-transparent [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit [&_h3]:text-black`,
             }}
-          />
+          />{' '}
           {groupContent && (
             <div className="mt-2 text-sm leading-relaxed text-gray-700">
-              {groupContent}
+              {' '}
+              {groupContent}{' '}
             </div>
-          )}
+          )}{' '}
         </div>
       );
 
     default:
       return null;
   }
-}
-
-export function TweetImageButton({
-  currentTweetData,
-  onTweetImageEdit,
-  isGeneratingImage,
-  onDirectGenerate,
-}: {
-  currentTweetData?: any;
-  onTweetImageEdit?: (tweetData: any) => void;
-  isGeneratingImage?: boolean;
-  onDirectGenerate?: (tweetData: any) => void;
-}) {
-  const handleImageAction = () => {
-    if (onDirectGenerate && currentTweetData) {
-      onDirectGenerate(currentTweetData);
-    } else if (onTweetImageEdit && currentTweetData) {
-      onTweetImageEdit(currentTweetData);
-    }
-  };
-
-  return (
-    <Tooltip
-      content="Generate Image"
-      delay={50}
-      closeDelay={0}
-      placement="top"
-      classNames={{
-        content: 'bg-black text-white',
-        arrow: 'bg-black border-black',
-      }}
-    >
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className={cn(markdownStyles.source.button)}
-        onPress={handleImageAction}
-        isLoading={isGeneratingImage}
-      >
-        <Image src="/icons/genImage.svg" alt="edit" width={20} height={20} />
-      </Button>
-    </Tooltip>
-  );
-}
-
-export function CopyButton({
-  currentTweetData,
-  currentContent,
-  tweetNumber,
-  totalTweets,
-}: {
-  currentTweetData?: any;
-  currentContent?: string;
-  tweetNumber?: number;
-  totalTweets?: number;
-}) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const contentToCopy = currentContent || currentTweetData?.content || '';
-  const imageUrl = currentTweetData?.image_url;
-
-  const handleCopy = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    try {
-      await copyTwitterContent(
-        contentToCopy,
-        imageUrl,
-        tweetNumber,
-        totalTweets,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Tooltip
-      content="Copy"
-      delay={50}
-      closeDelay={0}
-      placement="top"
-      classNames={{
-        content: 'bg-black text-white',
-        arrow: 'bg-black border-black',
-      }}
-    >
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className={markdownStyles.source.button}
-        onPress={handleCopy}
-        isLoading={isLoading}
-        disabled={isLoading}
-      >
-        <CopyIcon size={20} />
-      </Button>
-    </Tooltip>
-  );
 }

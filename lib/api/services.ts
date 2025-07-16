@@ -177,7 +177,7 @@ export function useTrendingTopics(topicType: string = 'ai') {
     queryKey: [...QUERY_KEYS.TRENDING_TOPICS, topicType],
     queryFn: (): Promise<TrendingTopicsResponse> => {
       return apiDirectGet<TrendingTopicsResponse>(
-        `https://influflowai-production.up.railway.app/trends/?topic_type=${topicType}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/?topic_type=${topicType}`,
       );
     },
     staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜

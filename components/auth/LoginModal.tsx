@@ -62,7 +62,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'twitter',
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback?invitation_code=${encodeURIComponent(invitationCode.trim())}`,
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?invitation_code=${encodeURIComponent(invitationCode.trim())}`,
         },
       });
 
@@ -83,7 +83,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
       },
     });
 

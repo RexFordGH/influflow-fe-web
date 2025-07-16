@@ -670,9 +670,6 @@ export function EditableContentMindmap({
 
     // 更新思维导图显示
     onNodesChange?.(updatedNodes);
-
-    // 本地编辑不再更新 markdown，实现单向数据流
-    // 只有点击 Regenerate 按钮时才会更新 markdown
   };
 
   // 处理AI编辑指令提交 (Edit with AI 按钮)
@@ -847,7 +844,6 @@ export function EditableContentMindmap({
             isLoading={isRegenerating}
             isDisabled={isRegenerating}
             onPress={async () => {
-              console.log('🔄 Regenerate 按钮被点击 - 调用 API');
 
               // 调用父组件的 API 重生成回调
               if (onRegenerateClick) {
