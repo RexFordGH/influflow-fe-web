@@ -222,7 +222,7 @@ export function EnhancedContentGeneration({
     'Analyzing topic content and related background',
     'Building mind map structure framework',
     'Generating structured article content',
-    'Creating topic-related illustrations',
+    // 'Creating topic-related illustrations',
     'Establishing relationships between content',
     'Refining details and optimizing layout',
   ];
