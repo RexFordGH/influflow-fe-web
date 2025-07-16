@@ -2,7 +2,6 @@
 
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
-import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
@@ -1347,10 +1346,9 @@ export function EnhancedContentGeneration({
                 onPress={handleCopyFullContent}
                 isLoading={isCopyingFullContent}
                 disabled={isCopyingFullContent}
-                className="bg-[#1DA1F2] text-white hover:bg-[#1991DB]"
-                startContent={!isCopyingFullContent && <CopyIcon size={16} />}
+                className="bg-black/15"
               >
-                {isCopyingFullContent ? 'Copying...' : 'Copy All'}
+                {isCopyingFullContent ? 'Copying...' : 'Copy'}
               </Button>
             )}
             <Button
@@ -1361,7 +1359,7 @@ export function EnhancedContentGeneration({
               className="bg-[#1DA1F2] text-white hover:bg-[#1991DB]"
               // startContent={!isPostingToTwitter && <Image src="/icons/twitter.svg" alt="Twitter" width={16} height={16} />}
             >
-              {isPostingToTwitter ? 'Posting...' : 'Post to Twitter'}
+              {isPostingToTwitter ? 'Posting...' : 'Post'}
             </Button>
           </div>
         </div>
