@@ -142,6 +142,7 @@ export function EnhancedMarkdownRenderer({
     let currentGroupIndex: number | null = null;
     let currentTweetIndex: number | null = null;
     let currentGroupId: string | null = null;
+    let groupCounter = 0;
 
     lines.forEach((line) => {
       const trimmedLine = line.trim();
@@ -180,6 +181,7 @@ export function EnhancedMarkdownRenderer({
           content: '',
           rawContent: line,
           groupId: currentGroupId,
+          groupIndex: groupCounter++,
         };
         return;
       }

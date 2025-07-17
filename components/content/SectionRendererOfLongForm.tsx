@@ -104,6 +104,11 @@ export function SectionRendererOfLongForm({
     );
   }, []);
 
+  const getEmojiNumber = useCallback((index: number) => {
+    const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣4️⃣', '1️⃣5️⃣', '1️⃣6️⃣', '1️⃣7️⃣', '1️⃣8️⃣', '1️⃣9️⃣', '2️⃣0️⃣'];
+    return emojiNumbers[index] || `${index + 1}️⃣`;
+  }, []);
+
   const shouldInteract = shouldEnableInteraction(section);
   const baseClasses = getBaseClasses(shouldInteract);
   const highlightClasses = getHighlightClasses(isHighlighted, shouldInteract);
@@ -335,8 +340,13 @@ export function SectionRendererOfLongForm({
       } else {
         groupTitle = section.content;
       }
+      
+      // Add emoji number prefix to the title
+      const emojiNumber = getEmojiNumber(section.groupIndex || 0);
+      const titleWithEmoji = `${emojiNumber} ${groupTitle}`;
+      
       const groupTitleEditorValue = JSON.stringify({
-        content: `<h3>${groupTitle}</h3>`,
+        content: titleWithEmoji,
         type: 'doc',
         isEmpty: !groupTitle.trim(),
       });
@@ -353,24 +363,25 @@ export function SectionRendererOfLongForm({
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
             </div>
           )}
-          <EditorPro
-            value={groupTitleEditorValue}
-            onChange={handleEditorChange}
-            isEdit={true}
-            hideMenuBar={true}
-            debounceMs={1000}
-            className={{
-              base: 'border-none bg-transparent',
-              editorWrapper: 'p-0',
-              editor: `prose max-w-none bg-transparent [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit [&_h3]:text-black`,
-            }}
-          />{' '}
+          <div className="text-[14px] leading-[1.6] text-black font-medium">
+            <EditorPro
+              value={groupTitleEditorValue}
+              onChange={handleEditorChange}
+              isEdit={true}
+              hideMenuBar={true}
+              debounceMs={1000}
+              className={{
+                base: 'border-none bg-transparent',
+                editorWrapper: 'p-0',
+                editor: 'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
+              }}
+            />
+          </div>
           {groupContent && (
             <div className="mt-2 text-sm leading-relaxed text-gray-700">
-              {' '}
-              {groupContent}{' '}
+              {groupContent}
             </div>
-          )}{' '}
+          )}
         </div>
       );
 
