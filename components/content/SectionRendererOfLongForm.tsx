@@ -105,7 +105,28 @@ export function SectionRendererOfLongForm({
   }, []);
 
   const getEmojiNumber = useCallback((index: number) => {
-    const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣4️⃣', '1️⃣5️⃣', '1️⃣6️⃣', '1️⃣7️⃣', '1️⃣8️⃣', '1️⃣9️⃣', '2️⃣0️⃣'];
+    const emojiNumbers = [
+      '1️⃣',
+      '2️⃣',
+      '3️⃣',
+      '4️⃣',
+      '5️⃣',
+      '6️⃣',
+      '7️⃣',
+      '8️⃣',
+      '9️⃣',
+      '🔟',
+      '1️⃣1️⃣',
+      '1️⃣2️⃣',
+      '1️⃣3️⃣',
+      '1️⃣4️⃣',
+      '1️⃣5️⃣',
+      '1️⃣6️⃣',
+      '1️⃣7️⃣',
+      '1️⃣8️⃣',
+      '1️⃣9️⃣',
+      '2️⃣0️⃣',
+    ];
     return emojiNumbers[index] || `${index + 1}️⃣`;
   }, []);
 
@@ -273,7 +294,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border-none px-[8px] pt-[24px] pb-[0px] !mt-0 !scale-[1]`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border-none px-[8px] pt-[6px] pb-[0px] !mt-0 !scale-[1]`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -310,7 +331,7 @@ export function SectionRendererOfLongForm({
 
           {/* Image rendering is removed from here */}
 
-          <div className="absolute right-[4px] top-[0px] flex items-center justify-end gap-1">
+          <div className="absolute right-[4px] top-[-12px] flex items-center justify-end gap-1">
             <LocalImageUploader
               tweetData={currentTweetData}
               onUploadSuccess={onLocalImageUploadSuccess}
@@ -340,11 +361,11 @@ export function SectionRendererOfLongForm({
       } else {
         groupTitle = section.content;
       }
-      
+
       // Add emoji number prefix to the title
       const emojiNumber = getEmojiNumber(section.groupIndex || 0);
       const titleWithEmoji = `${emojiNumber} ${groupTitle}`;
-      
+
       const groupTitleEditorValue = JSON.stringify({
         content: titleWithEmoji,
         type: 'doc',
@@ -373,7 +394,8 @@ export function SectionRendererOfLongForm({
               className={{
                 base: 'border-none bg-transparent',
                 editorWrapper: 'p-0',
-                editor: 'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
+                editor:
+                  'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
               }}
             />
           </div>
