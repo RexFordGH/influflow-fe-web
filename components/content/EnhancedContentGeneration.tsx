@@ -1169,22 +1169,22 @@ export function EnhancedContentGeneration({
     setIsPostingToTwitter(true);
 
     try {
-      // 1. 检查Twitter授权状态
-      const authStatus = await refetchTwitterAuthStatus();
+      // // 1. 检查Twitter授权状态
+      // const authStatus = await refetchTwitterAuthStatus();
 
-      if (!authStatus.data?.authorized) {
-        // 2. 用户未授权，获取授权链接并打开新窗口
-        const authUrlResponse = await getTwitterAuthUrl();
-        window.open(authUrlResponse.authorization_url, '_blank');
+      // if (!authStatus.data?.authorized) {
+      //   // 2. 用户未授权，获取授权链接并打开新窗口
+      //   const authUrlResponse = await getTwitterAuthUrl();
+      //   window.open(authUrlResponse.authorization_url, '_blank');
 
-        addToast({
-          title: 'Twitter授权',
-          description: '请在新窗口中完成Twitter授权，然后回到此页面重试发布',
-          color: 'warning',
-          timeout: 5000,
-        });
-        return;
-      }
+      //   addToast({
+      //     title: 'Twitter授权',
+      //     description: '请在新窗口中完成Twitter授权，然后回到此页面重试发布',
+      //     color: 'warning',
+      //     timeout: 5000,
+      //   });
+      //   return;
+      // }
 
       // 3. 用户已授权，构建推文数据
       const tweets: TwitterTweetData[] = rawAPIData.nodes
