@@ -56,7 +56,7 @@ export function useGenerateThread() {
         return localGenerateThreadResponse;
       }
       // 生产环境调用真实接口
-      return apiPost<Outline>('/api/twitter/generate', data, 100000);
+      return apiPost<Outline>('/api/twitter/generate', data, 120000);
     },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
@@ -118,7 +118,7 @@ export function useModifyOutline() {
       return apiPost<ModifyOutlineData>(
         '/api/twitter/modify-outline',
         data,
-        100000,
+        120000,
       );
     },
     onSuccess: (data) => {
@@ -156,7 +156,7 @@ export function useGenerateImage() {
         return `https://picsum.photos/800/600?seed=${contentHash}&t=${timestamp}`;
       }
       // 生产环境调用真实接口
-      return generateImage(data.target_tweet, data.tweet_thread, 60000);
+      return generateImage(data.target_tweet, data.tweet_thread, 120000);
     },
     onSuccess: (imageUrl) => {
       console.log('Image generated successfully:', imageUrl);
