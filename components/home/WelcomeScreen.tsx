@@ -125,7 +125,11 @@ export const WelcomeScreen = ({
                     handleTopicSubmit();
                   }
                 }}
-                className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                onWheel={(e) => {
+                  // 阻止滚动事件冒泡到父级组件，避免触发页面切换
+                  e.stopPropagation();
+                }}
+                className="h-[120px] w-full pb-[36px] resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 rows={4}
               />
               {/* Content Format Dropdown */}
