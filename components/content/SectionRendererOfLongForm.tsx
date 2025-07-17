@@ -294,7 +294,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border-none px-[8px] pt-[6px] pb-[0px] !mt-0 !scale-[1]`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} relative border-none px-[8px] !py-[4px] pb-[0px] !mt-0 !scale-[1]`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -331,7 +331,7 @@ export function SectionRendererOfLongForm({
 
           {/* Image rendering is removed from here */}
 
-          <div className="absolute right-[4px] top-[-12px] flex items-center justify-end gap-1">
+          <div className="absolute right-[4px] top-[-28px] flex items-center justify-end gap-1">
             <LocalImageUploader
               tweetData={currentTweetData}
               onUploadSuccess={onLocalImageUploadSuccess}
@@ -375,7 +375,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} pb-0 mb-[-10px]`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} !mt-[32px] pt-0 pb-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
