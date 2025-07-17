@@ -64,7 +64,7 @@ export const markdownStyles = {
   // 分组样式
   group: {
     container: 'mb-6',
-    content: 'mt-2 text-sm leading-relaxed text-gray-700',
+    content: 'text-sm leading-relaxed text-gray-700',
   },
 
   // 图片样式

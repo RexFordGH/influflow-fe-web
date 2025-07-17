@@ -1169,22 +1169,22 @@ export function EnhancedContentGeneration({
     setIsPostingToTwitter(true);
 
     try {
-      // 1. 检查Twitter授权状态
-      const authStatus = await refetchTwitterAuthStatus();
+      // // 1. 检查Twitter授权状态
+      // const authStatus = await refetchTwitterAuthStatus();
 
-      if (!authStatus.data?.authorized) {
-        // 2. 用户未授权，获取授权链接并打开新窗口
-        const authUrlResponse = await getTwitterAuthUrl();
-        window.open(authUrlResponse.authorization_url, '_blank');
+      // if (!authStatus.data?.authorized) {
+      //   // 2. 用户未授权，获取授权链接并打开新窗口
+      //   const authUrlResponse = await getTwitterAuthUrl();
+      //   window.open(authUrlResponse.authorization_url, '_blank');
 
-        addToast({
-          title: 'Twitter授权',
-          description: '请在新窗口中完成Twitter授权，然后回到此页面重试发布',
-          color: 'warning',
-          timeout: 5000,
-        });
-        return;
-      }
+      //   addToast({
+      //     title: 'Twitter授权',
+      //     description: '请在新窗口中完成Twitter授权，然后回到此页面重试发布',
+      //     color: 'warning',
+      //     timeout: 5000,
+      //   });
+      //   return;
+      // }
 
       // 3. 用户已授权，构建推文数据
       const tweets: TwitterTweetData[] = rawAPIData.nodes
@@ -1236,21 +1236,29 @@ export function EnhancedContentGeneration({
     }
   }, [rawAPIData, postToTwitterMutation, refetchTwitterAuthStatus]);
 
-  // 处理复制全文内容
+  // Handle copying of full content
   const handleCopyFullContent = useCallback(async () => {
     if (!rawAPIData) return;
 
     setIsCopyingFullContent(true);
 
     try {
-      // 1. Format each part individually and collect them
+      // 1. Define a helper function for emoji numbers
+      const getEmojiNumber = (index: number) => {
+        const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+        return emojiNumbers[index] || `${index + 1}️⃣`;
+      };
+
+      // 2. Format each part individually and collect them
       const contentParts: string[] = [];
       if (rawAPIData.topic) {
         contentParts.push(convertToTwitterFormat(rawAPIData.topic));
       }
-      rawAPIData.nodes.forEach((group: any) => {
+      rawAPIData.nodes.forEach((group: any, groupIndex: number) => {
         if (group.title) {
-          contentParts.push(convertToTwitterFormat(group.title));
+          const emojiNumber = getEmojiNumber(groupIndex);
+          const titleWithEmoji = `${emojiNumber} ${group.title}`;
+          contentParts.push(convertToTwitterFormat(titleWithEmoji));
         }
         group.tweets.forEach((tweet: any) => {
           if (tweet.content || tweet.title) {
@@ -1261,28 +1269,19 @@ export function EnhancedContentGeneration({
         });
       });
 
-      // 2. Join the pre-formatted parts.
+      // 3. Join the pre-formatted parts
       const fullContent = contentParts.join('\n\n\n');
 
-      // 3. Get the first image URL, if any.
+      // 4. Get the URL of the first image, if any
       const firstImageUrl =
         collectedImages.length > 0 ? collectedImages[0].src : undefined;
 
-      // 4. Call the existing, verified copyTwitterContent function.
-      // This function handles text formatting, image fetching, PNG conversion, and clipboard writing.
+      // 5. Call the existing, verified copyTwitterContent function
+      // This function handles text formatting, image fetching, PNG conversion, and clipboard writing
       await copyTwitterContent(fullContent, firstImageUrl);
 
-      // 5. (Optional) Show a specific toast if multiple images were present.
-      // if (firstImageUrl && collectedImages.length > 1) {
-      //   addToast({
-      //     title: 'Note',
-      //     description:
-      //       'Text and the first image were copied. Multiple images are not supported.',
-      //     timeout: 5000,
-      //   });
-      // }
     } catch (error) {
-      // Errors are handled by copyTwitterContent, but we can log here.
+      // Errors are handled by copyTwitterContent, but we can log here
       console.error('Error during copy operation:', error);
     } finally {
       setIsCopyingFullContent(false);
