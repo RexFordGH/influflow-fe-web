@@ -242,6 +242,9 @@ export function EnhancedContentGeneration({
 
       // 关键：当 topic 变化时，重置本地图片URL状态
       setLocalImageUrls({});
+      
+      // 修复：重置 regeneratedMarkdown 状态，防止显示上一篇文章的内容
+      setRegeneratedMarkdown(null);
     }
   }, [topic, initialData]);
 
@@ -258,6 +261,9 @@ export function EnhancedContentGeneration({
 
       // 关键：当 initialData 变化时，重置本地图片URL状态
       setLocalImageUrls({});
+      
+      // 修复：重置 regeneratedMarkdown 状态，确保显示正确的文章内容
+      setRegeneratedMarkdown(null);
     }
   }, [initialData]);
 
