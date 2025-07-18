@@ -484,7 +484,7 @@ export function SectionRenderer({
                       });
                     }
                   }}
-                  className="justify-center items-center hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
+                  className="hidden items-center justify-center rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
                   aria-label="Delete image"
                 >
                   <svg

@@ -844,7 +844,6 @@ export function EditableContentMindmap({
             isLoading={isRegenerating}
             isDisabled={isRegenerating}
             onPress={async () => {
-
               // 调用父组件的 API 重生成回调
               if (onRegenerateClick) {
                 await onRegenerateClick();

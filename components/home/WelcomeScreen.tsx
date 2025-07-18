@@ -129,7 +129,7 @@ export const WelcomeScreen = ({
                   // 阻止滚动事件冒泡到父级组件，避免触发页面切换
                   e.stopPropagation();
                 }}
-                className="h-[120px] w-full pb-[36px] resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[36px] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 rows={4}
               />
               {/* Content Format Dropdown */}
@@ -139,10 +139,10 @@ export const WelcomeScreen = ({
                     <Button
                       size="sm"
                       variant="flat"
-                      className="bg-transparent rounded-full backdrop-blur-sm border-none min-w-[100px] px-[10px] py-[4px] text-gray-700 hover:bg-gray-50"
+                      className="min-w-[100px] rounded-full border-none bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50"
                       endContent={
                         <svg
-                          className="w-3 h-3 ml-1 opacity-60"
+                          className="ml-1 size-3 opacity-60"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >

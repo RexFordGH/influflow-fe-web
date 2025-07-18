@@ -3,8 +3,8 @@
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button, Textarea } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -130,7 +130,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               setAccountName(supabaseProfile.account_name);
             }
 
-            // 更新 authStore 和 localStorage
+            // 更新 authStore 和 localStorage - 但不触发重新渲染
             updateUser({
               bio: supabaseProfile.bio,
               tone: supabaseProfile.tone,
@@ -148,8 +148,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       }
     };
 
+    // 只在组件挂载时执行一次
     loadProfileData();
-  }, [user, updateUser]);
+  }, []); // 空依赖数组，只在组件挂载时执行一次
 
   const handleSubmit = async () => {
     setIsLoading(true);

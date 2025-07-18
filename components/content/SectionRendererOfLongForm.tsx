@@ -40,12 +40,12 @@ export function SectionRendererOfLongForm({
           .replace(/<[^>]+>/g, '')
           .replace(/&nbsp;/g, ' ')
           .trim();
-        
+
         // For group sections, remove emoji number prefix before saving
         if (section.type === 'group') {
           plainText = plainText.replace(/^[0-9️⃣🔟]+\s*/, '');
         }
-        
+
         setCurrentEditorContent(plainText);
 
         if (section.type === 'tweet' && section.tweetId) {
@@ -300,7 +300,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} relative border-none px-[8px] !py-[4px] pb-[0px] !mt-0 !scale-[1]`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} relative !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -381,7 +381,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} !mt-[32px] pt-0 pb-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} !mt-[32px] py-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -390,7 +390,7 @@ export function SectionRendererOfLongForm({
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
             </div>
           )}
-          <div className="text-[14px] leading-[1.6] text-black font-medium">
+          <div className="text-[14px] font-medium leading-[1.6] text-black">
             <EditorPro
               value={groupTitleEditorValue}
               onChange={handleEditorChange}

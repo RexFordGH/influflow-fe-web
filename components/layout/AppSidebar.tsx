@@ -153,8 +153,8 @@ export const AppSidebar = ({
           ) : (
             <>
               {categories.map((category) => (
-                <div 
-                  key={`${category.id}-${category.tweetData?.updated_at || category.tweetData?.created_at || category.id}`} 
+                <div
+                  key={`${category.id}-${category.tweetData?.updated_at || category.tweetData?.created_at || category.id}`}
                   className=""
                 >
                   <div className="group flex min-h-[37px] items-center justify-between rounded-[8px] hover:bg-[#E8E8E8]">

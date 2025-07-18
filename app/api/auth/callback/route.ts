@@ -3,43 +3,6 @@ import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/constants/env';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 
-async function validateInvitationCode(code: string): Promise<boolean> {
-  try {
-    // 调用Python后端验证邀请码
-    const response = await fetch(`${API_BASE_URL}/verify-invitation-code`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
-
-    if (!response.ok) {
-      return false;
-    }
-
-    const result = await response.json();
-    return result.valid === true;
-  } catch (error) {
-    console.error('Error validating invitation code:', error);
-    return false;
-  }
-}
-
-async function markInvitationCodeAsUsed(code: string): Promise<boolean> {
-  try {
-    // 调用Python后端标记邀请码为已使用
-    const response = await fetch(`${API_BASE_URL}/use-invitation-code`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error('Error marking invitation code as used:', error);
-    return false;
-  }
-}
-
 async function userProfileExists(userId: string): Promise<boolean> {
   try {
     const supabase = await createClient();
@@ -65,9 +28,16 @@ async function userProfileExists(userId: string): Promise<boolean> {
 }
 
 export async function GET(request: Request) {
+  // console.log('=== Auth Callback Route Called (Existing User) ===');
+  // console.log('Request URL:', request.url);
+  
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const invitationCode = searchParams.get('invitation_code');
+
+  console.log('URL params:', {
+    code: code ? 'present' : 'missing',
+    origin,
+  });
 
   let next = searchParams.get('next') ?? '/';
   if (!next.startsWith('/')) {
@@ -93,80 +63,23 @@ export async function GET(request: Request) {
     if (sessionData?.user) {
       const user = sessionData.user;
 
-      // Check if the user is a new user by looking for an existing profile.
+      // Check if the user is an existing user by looking for an existing profile.
       const isExistingUser = await userProfileExists(user.id);
 
       if (isExistingUser) {
         // This is an existing user, let them log in.
         console.log(`Existing user logged in: ${user.id}`);
       } else {
-        // This is a new user, an invitation code is required.
+        // This is a new user trying to use the existing user login flow
         console.log(
-          `New user detected: ${user.id}. Checking for invitation code.`,
+          `New user detected: ${user.id}. Redirecting to registration.`,
         );
-        if (!invitationCode) {
-          console.error(
-            'New user tried to sign up without an invitation code. Deleting orphan user.',
-          );
-          // IMPORTANT: Clean up the newly created Supabase user to prevent orphans.
-          const adminClient = createAdminClient();
-          await adminClient.auth.admin.deleteUser(user.id);
-          return redirectToError(
-            'An invitation code is required for new users.',
-          );
-        }
-
-        const isCodeValid = await validateInvitationCode(invitationCode);
-        if (!isCodeValid) {
-          console.error(
-            `Invalid invitation code used: ${invitationCode}. Deleting orphan user.`,
-          );
-          // IMPORTANT: Clean up the newly created Supabase user.
-          const adminClient = createAdminClient();
-          await adminClient.auth.admin.deleteUser(user.id);
-          return redirectToError('The provided invitation code is invalid.');
-        }
-
-        // Code is valid, proceed with creating the user profile and marking code as used
-        console.log(
-          `Invitation code ${invitationCode} is valid. Creating profile for new user ${user.id}.`,
+        // IMPORTANT: Clean up the newly created Supabase user to prevent orphans.
+        const adminClient = createAdminClient();
+        await adminClient.auth.admin.deleteUser(user.id);
+        return redirectToError(
+          'New users must register with an invitation code.',
         );
-
-        try {
-          // 在数据库事务中完成用户创建和邀请码标记
-          const supabase = await createClient();
-
-          // 创建用户个性化记录
-          const { error: insertError } = await supabase
-            .from('user_personalization')
-            .insert({
-              uid: user.id,
-              account_name: null,
-              tone: null,
-              bio: null,
-              tweet_examples: null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
-
-          if (insertError) {
-            console.error('Error creating user profile:', insertError);
-            return redirectToError('Failed to create user profile.');
-          }
-
-          // 标记邀请码为已使用
-          const markSuccess = await markInvitationCodeAsUsed(invitationCode);
-          if (!markSuccess) {
-            console.error(
-              'Failed to mark invitation code as used:',
-              invitationCode,
-            );
-            // 不返回错误，因为用户已经创建成功
-          }
-        } catch (error) {
-          console.error('Error in user creation process:', error);
-          return redirectToError('Failed to complete user registration.');
-        }
       }
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://influxy.xyz';

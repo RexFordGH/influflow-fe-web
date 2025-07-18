@@ -114,6 +114,7 @@ export default [
       'react/prop-types': 'off',
       'no-case-declarations': 'off',
       'no-useless-escape': 'off',
+      'no-misleading-character-class': 'off',
     },
   },
   {

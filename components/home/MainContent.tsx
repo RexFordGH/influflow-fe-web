@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Suspense, lazy } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
-import { SuggestedTopic, TrendingTopic, ContentFormat } from '@/types/api';
+import { ContentFormat, SuggestedTopic, TrendingTopic } from '@/types/api';
 import { Article, Category } from '@/types/content';
 
 import { WelcomeScreen } from './WelcomeScreen';

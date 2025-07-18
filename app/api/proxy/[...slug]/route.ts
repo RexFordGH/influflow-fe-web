@@ -1,5 +1,6 @@
-import { API_HOST } from '@/constants/env';
 import { NextRequest, NextResponse } from 'next/server';
+
+import { API_HOST } from '@/constants/env';
 
 // 由于 next.config.ts 里的 rewrites 无法配置超时（后端 AI 接口需要 10～30s），所以这里改为用 API代理
 async function handler(

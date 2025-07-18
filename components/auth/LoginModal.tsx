@@ -11,7 +11,7 @@ import {
 } from '@heroui/react';
 import { useCallback, useEffect, useState } from 'react';
 
-import { verifyInvitationCode } from '@/lib/api/services';
+import { checkInvitationCode } from '@/lib/api/services';
 import { createClient } from '@/lib/supabase/client';
 
 interface LoginModalProps {
@@ -49,7 +49,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
     setError('');
 
     try {
-      const result = await verifyInvitationCode(invitationCode);
+      const result = await checkInvitationCode(invitationCode);
 
       if (!result.valid) {
         setError(result.error || 'Invalid invitation code');
@@ -62,7 +62,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'twitter',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?invitation_code=${encodeURIComponent(invitationCode.trim())}`,
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback/${encodeURIComponent(invitationCode.trim())}`,
         },
       });
 

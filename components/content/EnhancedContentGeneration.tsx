@@ -8,7 +8,6 @@ import { ReactFlowProvider } from 'reactflow';
 import { addToast } from '@/components/base/toast';
 import {
   getErrorMessage,
-  getTwitterAuthUrl,
   useCheckTwitterAuthStatus,
   useGenerateImage,
   useGenerateThread,
@@ -89,7 +88,7 @@ function DeleteConfirmModal({
         <div className="mt-6 flex justify-end gap-3">
           <Button
             onPress={onClose}
-            className="bg-gray-200 rounded-full"
+            className="rounded-full bg-gray-200"
             disabled={isLoading}
           >
             Cancel
@@ -243,6 +242,9 @@ export function EnhancedContentGeneration({
 
       // 关键：当 topic 变化时，重置本地图片URL状态
       setLocalImageUrls({});
+      
+      // 修复：重置 regeneratedMarkdown 状态，防止显示上一篇文章的内容
+      setRegeneratedMarkdown(null);
     }
   }, [topic, initialData]);
 
@@ -259,6 +261,9 @@ export function EnhancedContentGeneration({
 
       // 关键：当 initialData 变化时，重置本地图片URL状态
       setLocalImageUrls({});
+      
+      // 修复：重置 regeneratedMarkdown 状态，确保显示正确的文章内容
+      setRegeneratedMarkdown(null);
     }
   }, [initialData]);
 
@@ -1017,40 +1022,41 @@ export function EnhancedContentGeneration({
 
         const newOutline = result.updated_outline;
 
-        // 从 Supabase 拉取最新数据确保同步
+        // 保存最新数据到 Supabase（不是拉取旧数据）
         try {
           const supabase = createClient();
-          const { data: latestData, error } = await supabase
+          const { error } = await supabase
             .from('tweet_thread')
-            .select('*')
-            .eq('id', rawAPIData.id)
-            .single();
+            .update({ 
+              tweets: newOutline.nodes,
+              topic: newOutline.topic,
+              content_format: newOutline.content_format,
+            })
+            .eq('id', rawAPIData.id);
 
           if (error) {
             throw error;
           }
 
-          // 使用从数据库拉取的最新数据
-          const syncedOutline = latestData || newOutline;
-          console.log('从 Supabase 拉取到的最新数据:', syncedOutline);
+          console.log('最新数据已保存到 Supabase');
 
           // 更新所有状态
-          setRawAPIData(syncedOutline);
+          setRawAPIData(newOutline);
 
           // 重新构建思维导图
           const { nodes: newNodes, edges: newEdges } =
-            convertThreadDataToMindmap(syncedOutline);
+            convertThreadDataToMindmap(newOutline);
           setCurrentNodes(newNodes);
           setCurrentEdges(newEdges);
 
           // 重新生成 markdown
-          const newMarkdown = convertAPIDataToMarkdown(syncedOutline);
+          const newMarkdown = convertAPIDataToMarkdown(newOutline);
           setRegeneratedMarkdown(newMarkdown);
 
           // 更新生成的内容
           if (generatedContent) {
             const updatedContent =
-              convertAPIDataToGeneratedContent(syncedOutline);
+              convertAPIDataToGeneratedContent(newOutline);
             setGeneratedContent({
               ...generatedContent,
               ...updatedContent,
@@ -1061,11 +1067,11 @@ export function EnhancedContentGeneration({
           onDataUpdate?.();
         } catch (dbError) {
           console.error(
-            '从 Supabase 拉取数据失败，使用 API 返回的数据:',
+            '保存数据到 Supabase 失败，但仍使用 API 返回的数据:',
             dbError,
           );
 
-          // 如果数据库拉取失败，使用 API 返回的数据作为备选
+          // 如果数据库保存失败，仍使用 API 返回的数据更新本地状态
           setRawAPIData(newOutline);
 
           // 重新构建思维导图
@@ -1245,7 +1251,18 @@ export function EnhancedContentGeneration({
     try {
       // 1. Define a helper function for emoji numbers
       const getEmojiNumber = (index: number) => {
-        const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+        const emojiNumbers = [
+          '1️⃣',
+          '2️⃣',
+          '3️⃣',
+          '4️⃣',
+          '5️⃣',
+          '6️⃣',
+          '7️⃣',
+          '8️⃣',
+          '9️⃣',
+          '🔟',
+        ];
         return emojiNumbers[index] || `${index + 1}️⃣`;
       };
 
@@ -1279,7 +1296,6 @@ export function EnhancedContentGeneration({
       // 5. Call the existing, verified copyTwitterContent function
       // This function handles text formatting, image fetching, PNG conversion, and clipboard writing
       await copyTwitterContent(fullContent, firstImageUrl);
-
     } catch (error) {
       // Errors are handled by copyTwitterContent, but we can log here
       console.error('Error during copy operation:', error);

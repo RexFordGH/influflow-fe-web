@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  type CheckInvitationCodeResponse,
   type GenerateImageRequest,
   type GenerateThreadRequest,
   type HealthData,
@@ -9,8 +10,6 @@ import {
   type ModifyTweetData,
   type ModifyTweetRequest,
   type TrendingTopicsResponse,
-  type VerifyInvitationCodeRequest,
-  type VerifyInvitationCodeResponse,
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 
@@ -292,32 +291,12 @@ export function usePostToTwitter() {
 // 邀请码验证相关
 // ========================
 
-// 验证邀请码
-export function useVerifyInvitationCode() {
-  return useMutation({
-    mutationFn: async (
-      data: VerifyInvitationCodeRequest,
-    ): Promise<VerifyInvitationCodeResponse> => {
-      return apiPost<VerifyInvitationCodeResponse>(
-        '/verify-invitation-code',
-        data,
-      );
-    },
-    onSuccess: (data) => {
-      console.log('Invitation code verification result:', data);
-    },
-    onError: (error) => {
-      console.error('Failed to verify invitation code:', error);
-    },
-  });
-}
-
-export async function verifyInvitationCode(
+export async function checkInvitationCode(
   code: string,
-): Promise<VerifyInvitationCodeResponse> {
-  return apiPost<VerifyInvitationCodeResponse>('/api/verify-invitation-code', {
-    code: code.trim(),
-  });
+): Promise<CheckInvitationCodeResponse> {
+  return apiGet<CheckInvitationCodeResponse>(
+    `/api/check-invitation-code?code=${code.trim()}`,
+  );
 }
 
 // ========================

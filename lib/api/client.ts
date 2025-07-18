@@ -52,7 +52,7 @@ export async function apiRequest<T>(
         if (!authState.isAuthenticated) {
           throw new ApiError('User has been logged out', 401);
         }
-        
+
         try {
           // 使用 Supabase 的 refreshSession 来更新 token
           const {
