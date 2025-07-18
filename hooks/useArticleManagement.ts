@@ -60,10 +60,10 @@ export const useArticleManagement = () => {
         title: thread.topic || 'Untitled Thread',
         expanded: false,
         articles: [], // 不展示子文章，只显示 topic
-        tweetData: { 
-          ...thread, 
+        tweetData: {
+          ...thread,
           // 添加数据版本号用于强制重新渲染
-          dataVersion: `${thread.id}-${thread.updated_at || thread.created_at}`
+          dataVersion: `${thread.id}-${thread.updated_at || thread.created_at}`,
         },
       }));
 
@@ -78,8 +78,8 @@ export const useArticleManagement = () => {
       });
     } else {
       // 当没有 tweet 数据时，只保留非 tweet 分类
-      setCategories((prevCategories) => 
-        prevCategories.filter((cat) => !cat.id.startsWith('tweet-'))
+      setCategories((prevCategories) =>
+        prevCategories.filter((cat) => !cat.id.startsWith('tweet-')),
       );
     }
   }, [tweetThreads]);

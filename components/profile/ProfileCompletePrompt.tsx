@@ -1,6 +1,5 @@
 'use client';
 
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';

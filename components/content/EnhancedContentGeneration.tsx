@@ -8,7 +8,6 @@ import { ReactFlowProvider } from 'reactflow';
 import { addToast } from '@/components/base/toast';
 import {
   getErrorMessage,
-  getTwitterAuthUrl,
   useCheckTwitterAuthStatus,
   useGenerateImage,
   useGenerateThread,
@@ -89,7 +88,7 @@ function DeleteConfirmModal({
         <div className="mt-6 flex justify-end gap-3">
           <Button
             onPress={onClose}
-            className="bg-gray-200 rounded-full"
+            className="rounded-full bg-gray-200"
             disabled={isLoading}
           >
             Cancel
@@ -1245,7 +1244,18 @@ export function EnhancedContentGeneration({
     try {
       // 1. Define a helper function for emoji numbers
       const getEmojiNumber = (index: number) => {
-        const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+        const emojiNumbers = [
+          '1️⃣',
+          '2️⃣',
+          '3️⃣',
+          '4️⃣',
+          '5️⃣',
+          '6️⃣',
+          '7️⃣',
+          '8️⃣',
+          '9️⃣',
+          '🔟',
+        ];
         return emojiNumbers[index] || `${index + 1}️⃣`;
       };
 
@@ -1279,7 +1289,6 @@ export function EnhancedContentGeneration({
       // 5. Call the existing, verified copyTwitterContent function
       // This function handles text formatting, image fetching, PNG conversion, and clipboard writing
       await copyTwitterContent(fullContent, firstImageUrl);
-
     } catch (error) {
       // Errors are handled by copyTwitterContent, but we can log here
       console.error('Error during copy operation:', error);

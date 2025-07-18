@@ -30,9 +30,9 @@ export function ApiTest() {
     if (!topic.trim()) return;
 
     generateThread(
-      { 
+      {
         user_input: topic.trim(),
-        content_format: 'longform' as const
+        content_format: 'longform' as const,
       },
       {
         onSuccess: (data) => {

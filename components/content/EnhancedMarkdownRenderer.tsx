@@ -1,14 +1,14 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
+import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { copyImageToClipboard } from '@/utils/twitter';
 
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
-
-import { copyImageToClipboard } from '@/utils/twitter';
-import { CopyIcon } from '@phosphor-icons/react';
 
 interface EnhancedMarkdownRendererProps {
   content: string;
@@ -493,14 +493,14 @@ export function EnhancedMarkdownRenderer({
               {collectedImages.map((image, index) => (
                 <div
                   key={index}
-                  className="h-[400px] flex justify-center group relative aspect-video"
+                  className="group relative flex aspect-video h-[400px] justify-center"
                 >
                   <Image
                     src={image.src}
                     alt={image.alt}
                     className="h-[400px] w-auto rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
                   />
-                  <div className="absolute z-20 right-1.5 top-1.5 flex justify-end items-center gap-1">
+                  <div className="absolute right-1.5 top-1.5 z-20 flex items-center justify-end gap-1">
                     <Button
                       isIconOnly
                       isLoading={copyingImage === image.src}
@@ -510,7 +510,7 @@ export function EnhancedMarkdownRenderer({
                         await copyImageToClipboard(image.src);
                         setCopyingImage(null);
                       }}
-                      className="justify-center items-center hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-blue-500 hover:opacity-100 group-hover:flex"
+                      className="hidden items-center justify-center rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-blue-500 hover:opacity-100 group-hover:flex"
                       aria-label="Copy image"
                     >
                       <CopyIcon size={16} weight="bold" />
@@ -520,7 +520,7 @@ export function EnhancedMarkdownRenderer({
                       onPress={() => {
                         onDeleteImage?.(image);
                       }}
-                      className="justify-center items-center hidden rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
+                      className="hidden items-center justify-center rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
                       aria-label="Delete image"
                     >
                       <svg

@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
-  type CheckInvitationCodeRequest,
   type CheckInvitationCodeResponse,
   type GenerateImageRequest,
   type GenerateThreadRequest,

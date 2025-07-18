@@ -1,4 +1,4 @@
-import { ContentFormat } from "./api";
+import { ContentFormat } from './api';
 
 export interface TweetContentItem {
   tweet_number: number;

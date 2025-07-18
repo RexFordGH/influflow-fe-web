@@ -11,7 +11,11 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
-import { type SuggestedTopic, type TrendingTopic, type ContentFormat } from '@/types/api';
+import {
+  type ContentFormat,
+  type SuggestedTopic,
+  type TrendingTopic,
+} from '@/types/api';
 import { Outline } from '@/types/outline';
 import {
   isPromptDismissed,
