@@ -35,11 +35,17 @@ export function SectionRendererOfLongForm({
     (newValue: string) => {
       try {
         const parsed = JSON.parse(newValue);
-        const plainText = parsed.content
+        let plainText = parsed.content
           .replace(/<br\s*\/?\s*>/g, '\n')
           .replace(/<[^>]+>/g, '')
           .replace(/&nbsp;/g, ' ')
           .trim();
+        
+        // For group sections, remove emoji number prefix before saving
+        if (section.type === 'group') {
+          plainText = plainText.replace(/^[0-9️⃣🔟]+\s*/, '');
+        }
+        
         setCurrentEditorContent(plainText);
 
         if (section.type === 'tweet' && section.tweetId) {
