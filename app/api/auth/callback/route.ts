@@ -6,18 +6,23 @@ import { createAdminClient, createClient } from '@/lib/supabase/server';
 async function validateInvitationCode(code: string): Promise<boolean> {
   try {
     // 调用Python后端验证邀请码
-    const response = await fetch(`${API_BASE_URL}/verify-invitation-code`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/consume-invitation-code`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      },
+    );
 
     if (!response.ok) {
       return false;
     }
 
     const result = await response.json();
-    return result.valid === true;
+
+    console.log('validateInvitationCode', code, result);
+    return result.success === true;
   } catch (error) {
     console.error('Error validating invitation code:', error);
     return false;
@@ -152,16 +157,6 @@ export async function GET(request: Request) {
           if (insertError) {
             console.error('Error creating user profile:', insertError);
             return redirectToError('Failed to create user profile.');
-          }
-
-          // 标记邀请码为已使用
-          const markSuccess = await markInvitationCodeAsUsed(invitationCode);
-          if (!markSuccess) {
-            console.error(
-              'Failed to mark invitation code as used:',
-              invitationCode,
-            );
-            // 不返回错误，因为用户已经创建成功
           }
         } catch (error) {
           console.error('Error in user creation process:', error);

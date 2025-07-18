@@ -16,7 +16,7 @@ export interface HealthData {
 
 export type HealthResponse = BaseResponse<HealthData>;
 
-export type ContentFormat = 'longform' | 'thread'
+export type ContentFormat = 'longform' | 'thread';
 
 export interface GenerateThreadRequest {
   user_input: string;
@@ -82,11 +82,11 @@ export interface GenerateImageData {
 export type GenerateImageResponse = BaseResponse<GenerateImageData>;
 
 // 邀请码验证相关类型
-export interface VerifyInvitationCodeRequest {
+export interface CheckInvitationCodeRequest {
   code: string;
 }
 
-export interface VerifyInvitationCodeResponse {
+export interface CheckInvitationCodeResponse {
   valid: boolean;
   error?: string;
 }
