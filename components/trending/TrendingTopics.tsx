@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@heroui/react';
+import { cn, Skeleton } from '@heroui/react';
 import { useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
@@ -8,6 +8,8 @@ import { Button } from '@/components/base';
 import { addToast } from '@/components/base/toast';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
+
+import { TrendingTopicTweets } from './TrendingTopicTweets';
 
 interface TrendingTopicsProps {
   isVisible: boolean;
@@ -33,6 +35,44 @@ const SuggestedTopicSkeleton = () => (
     <Skeleton className="mb-2 h-[18px] w-full rounded" />
   </div>
 );
+
+// Trending Topic Item 组件（带 hover 功能）
+const TrendingTopicItem = ({
+  topic,
+  index,
+  onCopy,
+}: {
+  topic: any;
+  index: number;
+  onCopy: () => void;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div onClick={() => setIsHovered((prev) => !prev)}>
+      <CopyToClipboard text={topic.title} onCopy={onCopy}>
+        <button
+          className="flex cursor-pointer items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
+          style={{
+            width: `${Math.max(432, 880 - index * 110)}px`,
+          }}
+        >
+          <span className="text-left text-lg font-medium text-black">
+            {topic.title}
+          </span>
+          <span className="text-lg font-medium text-gray-600">
+            {topic.value}
+          </span>
+        </button>
+      </CopyToClipboard>
+
+      {/* Trending Topic Tweets 展开区域 */}
+      <div className={cn('mt-3', isHovered ? 'block' : 'hidden')}>
+        <TrendingTopicTweets isVisible={true} />
+      </div>
+    </div>
+  );
+};
 
 export function TrendingTopics({
   isVisible,
@@ -93,7 +133,7 @@ export function TrendingTopics({
                 ))}
               </div>
 
-              {/* 热门话题列表 */}
+              {/* Trending Topics */}
               <div className="space-y-3">
                 {isLoading ? (
                   // 骨架屏
@@ -111,32 +151,18 @@ export function TrendingTopics({
                     </p>
                   </div>
                 ) : (
-                  // 实际数据 - 根据Figma设计样式
                   trendingTopics.map((topic: any, index: number) => (
-                    <CopyToClipboard
+                    <TrendingTopicItem
                       key={`${topic.title}-${index}`}
-                      text={topic.title}
+                      topic={topic}
+                      index={index}
                       onCopy={() => {
                         addToast({
                           title: 'Copied Successfully',
                           color: 'success',
                         });
                       }}
-                    >
-                      <button
-                        className="flex cursor-pointer items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
-                        style={{
-                          width: `${Math.max(432, 880 - index * 110)}px`,
-                        }}
-                      >
-                        <span className="text-left text-lg font-medium text-black">
-                          {topic.title}
-                        </span>
-                        <span className="text-lg font-medium text-gray-600">
-                          {topic.value}
-                        </span>
-                      </button>
-                    </CopyToClipboard>
+                    />
                   ))
                 )}
               </div>
@@ -187,29 +213,6 @@ export function TrendingTopics({
             </div>
           </div>
         </div>
-
-        {/* 返回首屏悬浮按钮 */}
-        {/* <Button
-          size="sm"
-          variant="solid"
-          onPress={_onBack}
-          className="fixed bottom-6 right-6 z-10 size-12 rounded-full bg-black text-white shadow-lg transition-all duration-200 hover:bg-gray-800"
-        >
-          <svg
-            className="size-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
-        </Button> */}
       </div>
     </div>
   );

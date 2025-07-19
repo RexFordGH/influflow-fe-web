@@ -1,0 +1,30 @@
+const MOCK_TWEETS = [
+  {
+    url: 'https://twitter.com/SMQKEDQG/status/1934666056838078555',
+    author_name: 'SMQKE',
+    author_url: 'https://twitter.com/SMQKEDQG',
+    html: '<blockquote class="twitter-tweet"><p lang="en" dir="ltr">‼️TETHER FIRED THEIR AUDITOR TO AVOID RESERVE TRANSPARENCY‼️<br><br>Under the proposed GENIUS Act, stablecoin issuers would be required to back 100% of their tokens with cash, U.S. Treasuries, and other low-risk cash equivalents.<br><br>Tether, on the other hand, openly holds:<br><br>• 5% in… <a href="https://t.co/LAChBvIUyB">pic.twitter.com/LAChBvIUyB</a></p>&mdash; SMQKE (@SMQKEDQG) <a href="https://twitter.com/SMQKEDQG/status/1934666056838078555?ref_src=twsrc%5Etfw">June 16, 2025</a></blockquote>',
+    width: 550,
+    height: null,
+    type: 'rich',
+    cache_age: '3153600000',
+    provider_name: 'Twitter',
+    provider_url: 'https://twitter.com',
+    version: '1.0',
+  },
+  {
+    url: 'https://twitter.com/SMQKEDQG/status/1934666056838078555',
+    author_name: 'SMQKE',
+    author_url: 'https://twitter.com/SMQKEDQG',
+    html: '\u003Cblockquote class="twitter-tweet"\u003E\u003Cp lang="en" dir="ltr"\u003E‼️TETHER FIRED THEIR AUDITOR TO AVOID RESERVE TRANSPARENCY‼️\u003Cbr\u003E\u003Cbr\u003EUnder the proposed GENIUS Act, stablecoin issuers would be required to back 100% of their tokens with cash, U.S. Treasuries, and other low-risk cash equivalents.\u003Cbr\u003E\u003Cbr\u003ETether, on the other hand, openly holds:\u003Cbr\u003E\u003Cbr\u003E• 5% in… \u003Ca href="https://t.co/LAChBvIUyB"\u003Epic.twitter.com/LAChBvIUyB\u003C/a\u003E\u003C/p\u003E&mdash; SMQKE (@SMQKEDQG) \u003Ca href="https://twitter.com/SMQKEDQG/status/1934666056838078555?ref_src=twsrc%5Etfw"\u003EJune 16, 2025\u003C/a\u003E\u003C/blockquote\u003E\n\u003Cscript async src="https://platform.twitter.com/widgets.js" charset="utf-8"\u003E\u003C/script\u003E\n\n',
+    width: 550,
+    height: null,
+    type: 'rich',
+    cache_age: '3153600000',
+    provider_name: 'Twitter',
+    provider_url: 'https://twitter.com',
+    version: '1.0',
+  },
+];
+
+export default MOCK_TWEETS;

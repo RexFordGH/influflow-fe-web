@@ -16,7 +16,7 @@ import { ContentFormat, SuggestedTopic, TrendingTopic } from '@/types/api';
 
 // 动态导入TrendingTopics组件
 const TrendingTopics = lazy(() =>
-  import('@/components/content/TrendingTopics').then((module) => ({
+  import('@/components/trending/TrendingTopics').then((module) => ({
     default: module.TrendingTopics,
   })),
 );
