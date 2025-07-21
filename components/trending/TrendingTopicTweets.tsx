@@ -98,7 +98,7 @@ export function TrendingTopicTweets({ isVisible }: TrendingTopicTweetsProps) {
         }}
       >
         <div className="grid grid-cols-3 gap-3">
-          <blockquote class="twitter-tweet">
+          {/* <blockquote class="twitter-tweet">
             <p lang="en" dir="ltr">
               At dawn from the gateway to Mars, the launch of Starship's second
               flight test
@@ -108,9 +108,9 @@ export function TrendingTopicTweets({ isVisible }: TrendingTopicTweetsProps) {
             <a href="https://twitter.com/SpaceX/status/1732824684683784516?ref_src=twsrc%5Etfw">
               December 7, 2023
             </a>
-          </blockquote>
+          </blockquote> */}
 
-          <blockquote class="twitter-tweet">
+          {/* <blockquote class="twitter-tweet">
             <p lang="en" dir="ltr">
               ‼️TETHER FIRED THEIR AUDITOR TO AVOID RESERVE TRANSPARENCY‼️
               <br />
@@ -126,8 +126,8 @@ export function TrendingTopicTweets({ isVisible }: TrendingTopicTweetsProps) {
             <a href="https://twitter.com/SMQKEDQG/status/1934666056838078555?ref_src=twsrc%5Etfw">
               June 16, 2025
             </a>
-          </blockquote>
-          <TwitterCard
+          </blockquote> */}
+          {/* <TwitterCard
             html={`<blockquote class="twitter-tweet">
               <p lang="en" dir="ltr">
                 At dawn from the gateway to Mars, the launch of Starship's
@@ -140,7 +140,7 @@ export function TrendingTopicTweets({ isVisible }: TrendingTopicTweetsProps) {
               </a>
             </blockquote>`}
             className="flex-1"
-          />
+          /> */}
           {MOCK_TWEETS.map((tweet, index) => (
             <TwitterCard key={index} html={tweet.html} className="flex-1" />
           ))}

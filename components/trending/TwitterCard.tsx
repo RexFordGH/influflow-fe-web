@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import {Image} from '@heroui/react';
 
 interface TwitterCardProps {
   html: string;
@@ -12,7 +13,11 @@ declare global {
   interface Window {
     twttr: {
       widgets: {
-        createTweet: (id: string, element: HTMLElement, options?: any) => Promise<HTMLElement>;
+        createTweet: (
+          id: string,
+          element: HTMLElement,
+          options?: any,
+        ) => Promise<HTMLElement>;
         load: (element?: HTMLElement) => void;
       };
     };
@@ -45,45 +50,51 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
 
     // 使用硬编码方式替换innerHTML
     const transformedHtml = transformTweetHtml(html);
-    
+
     // 清空容器并重新插入HTML
     containerRef.current.innerHTML = '';
-    
+
     // 创建一个临时div来解析HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = transformedHtml;
-    
+
     // 将解析后的元素添加到容器中
     while (tempDiv.firstChild) {
       containerRef.current.appendChild(tempDiv.firstChild);
     }
-    
+
     // 延迟触发Twitter widgets处理
     setTimeout(() => {
       if (containerRef.current && window.twttr?.widgets) {
-        console.log('Processing TwitterCard:', containerRef.current.innerHTML.substring(0, 100));
-        
+        console.log(
+          'Processing TwitterCard:',
+          containerRef.current.innerHTML.substring(0, 100),
+        );
+
         // 查找并处理blockquote
-        const blockquote = containerRef.current.querySelector('blockquote.twitter-tweet');
+        const blockquote = containerRef.current.querySelector(
+          'blockquote.twitter-tweet',
+        );
         if (blockquote) {
           // 确保没有已处理标记
           blockquote.removeAttribute('data-twitter-extracted');
-          
+
           // 直接对这个元素调用widgets.load
           window.twttr.widgets.load(containerRef.current);
-          
+
           console.log('Widget load called for:', blockquote);
         }
       }
-    }, 300); // 增加延迟时间
-
+    }, 50); // 增加延迟时间
   }, [html]);
 
   // 初始渲染时返回空容器
   return (
     <div
       ref={containerRef}
-      className={`tweet-embed-container ${className}`}
-    />
+      className={`tweet-embed-container relative ${className}`}
+    >
+      <Image src="/icons/check.svg" alt="Twitter Card" width={16} height={16} />
+    </div>
   );
 }
