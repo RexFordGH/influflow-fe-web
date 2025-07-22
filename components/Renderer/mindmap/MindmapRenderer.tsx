@@ -1,6 +1,5 @@
 'use client';
 
-import { PencilIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -21,7 +20,7 @@ import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import type { Outline } from '@/types/outline';
 
-import EditableMindmapNode from './EditableMindmapNode';
+import MindmapNode from './MindmapNode';
 
 interface EditableContentMindmapProps {
   nodes: MindmapNodeData[];
@@ -38,7 +37,7 @@ interface EditableContentMindmapProps {
   isRegenerating?: boolean; // 新增：regenerate loading 状态
 }
 
-export function EditableContentMindmap({
+export function MindmapRenderer({
   nodes: mindmapNodes,
   edges: mindmapEdges,
   originalOutline,
@@ -88,7 +87,7 @@ export function EditableContentMindmap({
     const { selected, data, id } = props;
     return (
       <div className="relative">
-        {selected && (
+        {/* {selected && (
           <div className="absolute left-1/2 top-[-45px] z-10 -translate-x-1/2">
             <Button
               size="sm"
@@ -99,8 +98,8 @@ export function EditableContentMindmap({
               Edit with AI
             </Button>
           </div>
-        )}
-        <EditableMindmapNode {...props} />
+        )} */}
+        <MindmapNode {...props} />
       </div>
     );
   }, []);
@@ -947,8 +946,6 @@ export function EditableContentMindmap({
 }
 
 // 包装组件，提供 ReactFlow 上下文
-export default function EditableContentMindmapWrapper(
-  props: EditableContentMindmapProps,
-) {
-  return <EditableContentMindmap {...props} />;
+export default function MindmapWrapper(props: EditableContentMindmapProps) {
+  return <MindmapRenderer {...props} />;
 }

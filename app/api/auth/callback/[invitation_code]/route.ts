@@ -53,7 +53,6 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ invitation_code: string }> },
 ) {
-
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const resolvedParams = await params;

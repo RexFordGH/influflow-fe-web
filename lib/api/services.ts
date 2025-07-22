@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  ITrendsRecommendTweet,
   type CheckInvitationCodeResponse,
   type GenerateImageRequest,
   type GenerateThreadRequest,
@@ -27,6 +28,7 @@ export const QUERY_KEYS = {
   TWITTER_MODIFY_OUTLINE: ['twitter', 'modify-outline'] as const,
   TWITTER_GENERATE_IMAGE: ['twitter', 'generate-image'] as const,
   TRENDING_TOPICS: ['trending', 'topics'] as const,
+  TRENDING_RECOMMEND: ['trending', 'recommend'] as const,
   VERIFY_INVITATION_CODE: ['verify', 'invitation-code'] as const,
 } as const;
 
@@ -183,6 +185,25 @@ export function useTrendingTopics(topicType: string = 'ai') {
     gcTime: 10 * 60 * 1000, // 10分钟缓存
     refetchOnWindowFocus: false,
     retry: 3,
+  });
+}
+
+export function useTrendingRecommend(id: string, enabled?: boolean) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, id],
+    queryFn: async () => {
+      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
+      );
+    },
+    select: (data) => {
+      return data.tweets;
+    },
+    enabled: enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Image } from '@heroui/react';
+import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -10,7 +10,7 @@ import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
 
-interface EnhancedMarkdownRendererProps {
+interface MarkdownRendererProps {
   content: string;
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
@@ -32,9 +32,11 @@ interface EnhancedMarkdownRendererProps {
     tweetData: any,
   ) => void; // 新增：图片选择回调
   onDirectGenerate?: (tweetData: any) => void; // 新增：直接生图回调
+  onEditWithAI?: (nodeId: string) => void; // 新增：Edit with AI 回调
   highlightedSection?: string | null;
   hoveredTweetId?: string | null; // 新增：从思维导图hover传递的tweetId
   selectedNodeId?: string | null; // 新增：从思维导图选中传递的NodeId
+  editingNodeId?: string | null; // 新增：正在编辑的节点ID
   loadingTweetId?: string | null; // 新增：loading状态的tweetId
   generatingImageTweetIds?: string[]; // 新增：正在生图的tweetId数组
   localImageUrls?: Record<string, string>; // 新增：本地图片预览URL
@@ -70,7 +72,7 @@ interface MarkdownSection {
   groupId?: string; // 用于group高亮
 }
 
-export function EnhancedMarkdownRenderer({
+export function MarkdownRenderer({
   content,
   onSectionHover,
   onSourceClick,
@@ -81,9 +83,11 @@ export function EnhancedMarkdownRenderer({
   onLocalImageUploadSuccess,
   onImageSelect,
   onDirectGenerate,
+  onEditWithAI,
   highlightedSection,
   hoveredTweetId,
   selectedNodeId,
+  editingNodeId,
   loadingTweetId,
   generatingImageTweetIds,
   localImageUrls,
@@ -92,7 +96,7 @@ export function EnhancedMarkdownRenderer({
   scrollToSection,
   collectedImages = [],
   onDeleteImage,
-}: EnhancedMarkdownRendererProps) {
+}: MarkdownRendererProps) {
   const [copyingImage, setCopyingImage] = useState<string | null>(null);
 
   // 创建section ref的映射
@@ -412,6 +416,20 @@ export function EnhancedMarkdownRenderer({
           section.groupId.toString() === hoveredTweetId.replace('group-', '') ||
           Number(section.groupId) ===
             Number(hoveredTweetId.replace('group-', '')))) ||
+      // 编辑状态高亮 - 新增：当section正在被编辑时保持高亮
+      (editingNodeId &&
+        ((section.tweetId &&
+          (section.tweetId === editingNodeId ||
+            section.tweetId.toString() === editingNodeId.toString() ||
+            Number(section.tweetId) === Number(editingNodeId))) ||
+          (editingNodeId.startsWith('group-') &&
+            section.groupId &&
+            (section.groupId === editingNodeId.replace('group-', '') ||
+              section.groupId.toString() ===
+                editingNodeId.replace('group-', '') ||
+              Number(section.groupId) ===
+                Number(editingNodeId.replace('group-', '')))) ||
+          editingNodeId === section.id)) ||
       // 生图状态高亮 - 新增
       (generatingImageTweetIds &&
         section.tweetId &&
@@ -469,6 +487,8 @@ export function EnhancedMarkdownRenderer({
         onLocalImageUploadSuccess={onLocalImageUploadSuccess}
         onImageSelect={onImageSelect}
         onDirectGenerate={onDirectGenerate}
+        onEditWithAI={onEditWithAI}
+        editingNodeId={editingNodeId}
         generatingImageTweetIds={generatingImageTweetIds}
         localImageUrls={localImageUrls}
         tweetData={tweetData}
@@ -480,7 +500,12 @@ export function EnhancedMarkdownRenderer({
   };
 
   return (
-    <div className={markdownStyles.container.main}>
+    <div
+      className={cn(
+        markdownStyles.container.main,
+        editingNodeId ? 'pb-[300px]' : '',
+      )}
+    >
       <div className={markdownStyles.container.content}>
         <div className={markdownStyles.container.sections}>
           {sections.map((section) => renderSection(section))}

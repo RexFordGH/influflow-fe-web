@@ -11,7 +11,7 @@ import { Article, Category } from '@/types/content';
 import { WelcomeScreen } from './WelcomeScreen';
 
 const WriteByMyselfPage = lazy(() =>
-  import('@/components/content/WriteByMyselfPage').then((module) => ({
+  import('@/components/home/WriteByMyselfPage').then((module) => ({
     default: module.WriteByMyselfPage,
   })),
 );
@@ -28,6 +28,9 @@ export const MainContent = ({
   onScrollToTrending,
   onBackFromTrending,
   onTrendingTopicSelect,
+  onTrendingTweetsSelect,
+  selectedTweets,
+  onRemoveSelectedTweet,
   topicInput,
   onTopicInputChange,
   onTopicSubmit,
@@ -44,6 +47,9 @@ export const MainContent = ({
   onScrollToTrending: () => void;
   onBackFromTrending: () => void;
   onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
+  selectedTweets?: any[];
+  onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
   onTopicSubmit: (contentFormat: ContentFormat) => void;
@@ -86,6 +92,9 @@ export const MainContent = ({
           onScrollToTrending={onScrollToTrending}
           onBackFromTrending={onBackFromTrending}
           onTrendingTopicSelect={onTrendingTopicSelect}
+          onTrendingTweetsSelect={onTrendingTweetsSelect}
+          selectedTweets={selectedTweets}
+          onRemoveSelectedTweet={onRemoveSelectedTweet}
           topicInput={topicInput}
           onTopicInputChange={onTopicInputChange}
           onTopicSubmit={onTopicSubmit}

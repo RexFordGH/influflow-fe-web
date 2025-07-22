@@ -4,7 +4,7 @@ import { Button, cn, Image, Tooltip } from '@heroui/react';
 import { useRef, useState } from 'react';
 
 import { addToast } from '@/components/base/toast';
-import { markdownStyles } from '@/components/content/markdownStyles';
+import { markdownStyles } from '@/components/Renderer/markdown/markdownStyles';
 
 interface LocalImageUploaderProps {
   onImageSelect?: (

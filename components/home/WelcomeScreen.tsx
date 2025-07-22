@@ -8,41 +8,16 @@ import {
   DropdownTrigger,
   Image,
 } from '@heroui/react';
-import { lazy, useState } from 'react';
+import { lazy, useEffect, useRef, useState } from 'react';
 import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
 import { ContentFormat, SuggestedTopic, TrendingTopic } from '@/types/api';
 
-// 动态导入TrendingTopics组件
-const TrendingTopics = lazy(() =>
-  import('@/components/content/TrendingTopics').then((module) => ({
-    default: module.TrendingTopics,
+const TrendingTopicsPage = lazy(() =>
+  import('@/components/trending/TrendingTopicsPage').then((module) => ({
+    default: module.TrendingTopicsPage,
   })),
-);
-
-// TrendingTopics加载时的骨架屏组件
-const TrendingTopicsLoadingFallback = () => (
-  <div className="absolute inset-0 flex items-center justify-center bg-white">
-    <div className="w-full max-w-4xl animate-pulse space-y-4 px-8">
-      <div className="h-6 w-48 rounded bg-gray-200"></div>
-      <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-12 rounded-xl bg-gradient-to-r from-yellow-200 to-yellow-100"
-            style={{ width: `${Math.max(432, 880 - i * 110)}px` }}
-          ></div>
-        ))}
-      </div>
-      <div className="mt-8 h-6 w-56 rounded bg-gray-200"></div>
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-16 rounded-xl border bg-gray-100"></div>
-        ))}
-      </div>
-    </div>
-  </div>
 );
 
 interface WelcomeScreenProps {
@@ -50,6 +25,9 @@ interface WelcomeScreenProps {
   onScrollToTrending: () => void;
   onBackFromTrending: () => void;
   onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
+  selectedTweets?: any[];
+  onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
   onTopicSubmit: (contentFormat: ContentFormat) => void;
@@ -61,6 +39,9 @@ export const WelcomeScreen = ({
   onScrollToTrending,
   onBackFromTrending,
   onTrendingTopicSelect,
+  onTrendingTweetsSelect,
+  selectedTweets,
+  onRemoveSelectedTweet,
   topicInput,
   onTopicInputChange,
   onTopicSubmit,
@@ -69,6 +50,7 @@ export const WelcomeScreen = ({
   const { user, isAuthenticated } = useAuthStore();
   const [selectedContentFormat, setSelectedContentFormat] =
     useState<ContentFormat>('longform');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 直接使用外部状态，不需要内部同步
   const currentPage = showTrendingTopics ? 1 : 0;
@@ -78,6 +60,27 @@ export const WelcomeScreen = ({
     { key: 'longform', label: 'Article', icon: '≣' },
     { key: 'thread', label: 'Threads', icon: '≡' },
   ];
+
+  // 自动调整textarea高度
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // 重置高度以获取正确的scrollHeight
+      textarea.style.height = 'auto';
+      // 设置最小高度为100px，最大高度为300px
+      const newHeight = Math.max(100, Math.min(300, textarea.scrollHeight));
+      textarea.style.height = `${newHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [topicInput]);
+
+  // 组件挂载时初始化高度
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, []);
 
   const handleTopicSubmit = () => {
     onTopicSubmit(selectedContentFormat);
@@ -93,7 +96,7 @@ export const WelcomeScreen = ({
   };
 
   return (
-    <div className="relative size-full">
+    <div className="relative size-full min-w-[1000px]">
       <ReactPageScroller
         pageOnChange={handlePageChange}
         customPageNumber={currentPage}
@@ -104,14 +107,15 @@ export const WelcomeScreen = ({
       >
         {/* 首页 */}
         <div className="flex size-full items-center justify-center bg-white">
-          <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
+          <div className="relative flex flex-col px-[24px] text-center">
             <h2 className="text-[24px] font-[600] text-black">
               Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what
               would you like to write about today?
             </h2>
 
-            <div className="relative">
+            <div className="relative mt-[24px]">
               <textarea
+                ref={textareaRef}
                 placeholder="You can start with a topic or an opinion."
                 value={topicInput}
                 onChange={(e) => onTopicInputChange(e.target.value)}
@@ -126,10 +130,14 @@ export const WelcomeScreen = ({
                   }
                 }}
                 onWheel={(e) => {
-                  // 阻止滚动事件冒泡到父级组件，避免触发页面切换
                   e.stopPropagation();
                 }}
-                className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[36px] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                onInput={adjustTextareaHeight}
+                className="w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[40px] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                style={{
+                  minHeight: '100px',
+                  maxHeight: '300px',
+                }}
                 rows={4}
               />
               {/* Content Format Dropdown */}
@@ -195,6 +203,50 @@ export const WelcomeScreen = ({
                 />
               </Button>
             </div>
+
+            {selectedTweets && selectedTweets.length > 0 && (
+              <div className="mt-[14px] grid max-w-[700px] grid-cols-3 gap-[8px]">
+                {selectedTweets.map((tweet, index) => (
+                  <div
+                    key={tweet.id}
+                    className="relative flex items-center gap-[8px] rounded-[12px] border border-gray-300 bg-white p-[6px] shadow-sm"
+                  >
+                    <Image
+                      src={'/icons/x-icon.svg'}
+                      width={32}
+                      height={32}
+                      className="shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-left text-[12px] font-[500] text-[#757575]">
+                        {tweet.author_name}
+                      </p>
+                      <p className="truncate text-[12px] text-[#8C8C8C]">
+                        {(() => {
+                          // 提取推文内容的前几个词作为预览
+                          const htmlContent = tweet.html;
+                          const textContent = htmlContent
+                            .replace(/<[^>]*>/g, '')
+                            .replace(/&[^;]+;/g, ' ');
+                          return textContent.length > 50
+                            ? textContent.substring(0, 50) + '...'
+                            : textContent;
+                        })()}
+                      </p>
+                    </div>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => onRemoveSelectedTweet?.(index)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <span className="text-[20px]">×</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
             <div className="flex flex-col items-center">
@@ -214,11 +266,16 @@ export const WelcomeScreen = ({
         </div>
 
         {/* Trending Topics 页面 */}
-        <div className="size-full">
-          <TrendingTopics
+        <div className="size-full ">
+          <TrendingTopicsPage
             isVisible={true}
             onBack={onBackFromTrending}
             onTopicSelect={onTrendingTopicSelect}
+            onTweetsSelect={(selectedTweets, topicTitle) => {
+              // 回到上一页并携带选中的推文数据
+              onBackFromTrending();
+              onTrendingTweetsSelect?.(selectedTweets, topicTitle);
+            }}
           />
         </div>
       </ReactPageScroller>

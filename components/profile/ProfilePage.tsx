@@ -4,7 +4,7 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button, Textarea } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
 import {

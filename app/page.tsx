@@ -23,10 +23,10 @@ import {
   setPromptDismissed,
 } from '@/utils/profileStorage';
 
-const EnhancedContentGeneration = dynamic(
+const ArticleRenderer = dynamic(
   () =>
-    import('@/components/content/EnhancedContentGeneration').then((mod) => ({
-      default: mod.EnhancedContentGeneration,
+    import('@/components/Renderer/ArticleRenderer').then((mod) => ({
+      default: mod.ArticleRenderer,
     })),
   {
     ssr: false,
@@ -57,6 +57,7 @@ function HomeContent() {
     undefined,
   );
   const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
+  const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
 
   const {
     categories,
@@ -161,10 +162,19 @@ function HomeContent() {
       // 清除之前选择的笔记数据，确保重新生成新内容
       setInitialData(undefined);
       setContentFormat(selectedContentFormat);
-      setCurrentTopic(topicInput);
+
+      // 如果有选中的推文，将其链接附加到topic中
+      let finalTopic = topicInput;
+      if (selectedTweets.length > 0) {
+        const tweetUrls = selectedTweets.map((tweet) => tweet.url).join(', ');
+        finalTopic = `${topicInput}. Reference these popular posts: ${tweetUrls}`;
+      }
+
+      setCurrentTopic(finalTopic);
       setShowContentGeneration(true);
       setHasCreatedContentGeneration(true);
       setTopicInput('');
+      setSelectedTweets([]); // 清除选中的推文
     }
   };
 
@@ -191,6 +201,19 @@ function HomeContent() {
       const topicText = 'title' in topic ? topic.title : topic.topic;
       setTopicInput(topicText);
     }, 350);
+  };
+
+  const handleTrendingTweetsSelect = (tweets: any[], topicTitle: string) => {
+    // 只将topic标题设置到输入框
+    setTopicInput(topicTitle);
+    // 单独管理选中的推文
+    setSelectedTweets(tweets);
+  };
+
+  const handleRemoveSelectedTweet = (indexToRemove: number) => {
+    setSelectedTweets((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   const handleCloseProfileCompletePrompt = () => {
@@ -258,7 +281,7 @@ function HomeContent() {
             showContentGeneration && currentTopic ? 'block' : 'hidden',
           )}
         >
-          <EnhancedContentGeneration
+          <ArticleRenderer
             topic={currentTopic}
             contentFormat={contentFormat}
             onBack={handleBackToHome}
@@ -315,6 +338,9 @@ function HomeContent() {
           onScrollToTrending={handleScrollToTrending}
           onBackFromTrending={handleBackFromTrending}
           onTrendingTopicSelect={handleTrendingTopicSelect}
+          onTrendingTweetsSelect={handleTrendingTweetsSelect}
+          selectedTweets={selectedTweets}
+          onRemoveSelectedTweet={handleRemoveSelectedTweet}
           topicInput={topicInput}
           onTopicInputChange={setTopicInput}
           onTopicSubmit={handleTopicSubmit}
