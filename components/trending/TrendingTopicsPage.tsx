@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
@@ -48,6 +49,7 @@ const TrendingTopicItem = ({
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(index === 0);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
@@ -63,7 +65,9 @@ const TrendingTopicItem = ({
 
         <button
           onClick={handleToggle}
-          className="flex cursor-pointer items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="group relative flex cursor-pointer items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
           style={{
             width: `${Math.max(432, 880 - index * 110)}px`,
           }}
@@ -71,9 +75,26 @@ const TrendingTopicItem = ({
           <span className="text-left text-lg font-medium text-black">
             {topic.title}
           </span>
-          <span className="text-lg font-medium text-gray-600">
-            {topic.value}
-          </span>
+          <div className="flex items-center gap-[10px]">
+            <span className="text-lg font-medium text-gray-600">
+              {topic.value}
+            </span>
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{
+                opacity: isHovered ? 1 : 0,
+                x: isHovered ? 0 : -10,
+              }}
+              transition={{ duration: 0.2 }}
+              className="text-gray-600"
+            >
+              {isOpen ? (
+                <ChevronDownIcon className="h-5 w-5" />
+              ) : (
+                <ChevronRightIcon className="h-5 w-5" />
+              )}
+            </motion.div>
+          </div>
         </button>
       </div>
       {/* </CopyToClipboard> */}
