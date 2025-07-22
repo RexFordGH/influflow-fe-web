@@ -23,10 +23,10 @@ import {
   setPromptDismissed,
 } from '@/utils/profileStorage';
 
-const EnhancedContentGeneration = dynamic(
+const ArticleRenderer = dynamic(
   () =>
-    import('@/components/content/EnhancedContentGeneration').then((mod) => ({
-      default: mod.EnhancedContentGeneration,
+    import('@/components/Renderer/ArticleRenderer').then((mod) => ({
+      default: mod.ArticleRenderer,
     })),
   {
     ssr: false,
@@ -258,7 +258,7 @@ function HomeContent() {
             showContentGeneration && currentTopic ? 'block' : 'hidden',
           )}
         >
-          <EnhancedContentGeneration
+          <ArticleRenderer
             topic={currentTopic}
             contentFormat={contentFormat}
             onBack={handleBackToHome}

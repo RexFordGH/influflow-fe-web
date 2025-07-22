@@ -7,7 +7,7 @@ import { Handle, Position } from 'reactflow';
 
 import 'reactflow/dist/style.css';
 
-const EditableMindmapNode = ({
+const MindmapNode = ({
   data,
   id,
   selected,
@@ -343,4 +343,4 @@ const EditableMindmapNode = ({
   );
 };
 
-export default EditableMindmapNode;
+export default MindmapNode;

@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { TrendingTopicTweets, TweetData } from '@/types/tweets';
-import { fetchTweetsForTopic } from '@/lib/mock/tweets';
+import { TweetData } from '@/types/tweets';
+import { useEffect, useRef, useState } from 'react';
 
 interface UseTweetHoverProps {
   topicTitle: string;
@@ -10,10 +9,10 @@ interface UseTweetHoverProps {
   leaveDelay?: number;
 }
 
-export function useTweetHover({ 
-  topicTitle, 
-  hoverDelay = 500, 
-  leaveDelay = 300 
+export function useTweetHover({
+  topicTitle,
+  hoverDelay = 500,
+  leaveDelay = 300,
 }: UseTweetHoverProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,7 +40,7 @@ export function useTweetHover({
     console.log('🔥 Mouse enter event triggered for:', topicTitle);
     clearTimeouts();
     setIsHovering(true);
-    
+
     // 延迟显示 modal
     hoverTimeoutRef.current = setTimeout(() => {
       console.log('⏰ Timeout reached, opening modal for:', topicTitle);
@@ -59,7 +58,7 @@ export function useTweetHover({
   const handleMouseLeave = () => {
     clearTimeouts();
     setIsHovering(false);
-    
+
     // 延迟关闭 modal
     leaveTimeoutRef.current = setTimeout(() => {
       setIsModalOpen(false);
@@ -79,17 +78,18 @@ export function useTweetHover({
   // 加载推文数据
   const loadTweets = async () => {
     if (!topicTitle) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const topicTweets = await fetchTweetsForTopic(topicTitle);
-      if (topicTweets) {
-        setTweets(topicTweets.tweets);
-      } else {
-        setError('No tweets found for this topic');
-      }
+      // TODO fetchTweetsForTopic
+      // const topicTweets = await fetchTweetsForTopic(topicTitle);
+      // if (topicTweets) {
+      //   setTweets(topicTweets.tweets);
+      // } else {
+      //   setError('No tweets found for this topic');
+      // }
     } catch (err) {
       setError('Failed to load tweets');
       console.error('Error loading tweets:', err);

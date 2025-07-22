@@ -5,10 +5,9 @@ import { Button, cn, Image, Tooltip } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 
+import EditorPro from '@/components/editorPro';
+import { ImageLoadingAnimation } from '@/components/ui/ImageLoadingAnimation';
 import { copyTwitterContent } from '@/utils/twitter';
-
-import EditorPro from '../editorPro/index';
-import { ImageLoadingAnimation } from '../ui/ImageLoadingAnimation';
 
 import { LocalImageUploader } from './LocalImageUploader';
 import {
@@ -423,7 +422,7 @@ export function SectionRenderer({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100 group`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group border border-gray-100`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -572,7 +571,7 @@ export function SectionRenderer({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6 relative group`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative mb-6`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >

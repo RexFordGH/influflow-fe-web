@@ -1,22 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import MOCK_TWEETS from './mock';
 import { TwitterCard } from './TwitterCard';
 
 interface TrendingTopicTweetsProps {
   isVisible: boolean;
-}
-
-// 声明全局的 twttr 对象
-declare global {
-  interface Window {
-    twttr: {
-      widgets: {
-        load: (element?: HTMLElement) => void;
-      };
-    };
-  }
 }
 
 export function TrendingTopicTweets({ isVisible }: TrendingTopicTweetsProps) {
@@ -81,10 +71,10 @@ export function TrendingTopicTweets({ isVisible }: TrendingTopicTweetsProps) {
   }
 
   return (
-    <div className="w-full bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
+    <div className="w-full rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
       {/* 标题部分 */}
       <div className="mb-4">
-        <h3 className="text-sm font-medium text-black mb-1">Viral Tweets</h3>
+        <h3 className="mb-1 text-sm font-medium text-black">Viral Tweets</h3>
         <p className="text-xs text-gray-600">
           Reference these popular posts to boost views and maximize engagement.
         </p>
@@ -98,49 +88,6 @@ export function TrendingTopicTweets({ isVisible }: TrendingTopicTweetsProps) {
         }}
       >
         <div className="grid grid-cols-3 gap-3">
-          {/* <blockquote class="twitter-tweet">
-            <p lang="en" dir="ltr">
-              At dawn from the gateway to Mars, the launch of Starship's second
-              flight test
-              <a href="https://t.co/ffKnsVKwG4">pic.twitter.com/ffKnsVKwG4</a>
-            </p>
-            &mdash; SpaceX (@SpaceX)
-            <a href="https://twitter.com/SpaceX/status/1732824684683784516?ref_src=twsrc%5Etfw">
-              December 7, 2023
-            </a>
-          </blockquote> */}
-
-          {/* <blockquote class="twitter-tweet">
-            <p lang="en" dir="ltr">
-              ‼️TETHER FIRED THEIR AUDITOR TO AVOID RESERVE TRANSPARENCY‼️
-              <br />
-              Under the proposed GENIUS Act, stablecoin issuers would be
-              required to back 100% of their tokens with cash, U.S. Treasuries,
-              and other low-risk cash equivalents.
-              <br />
-              Tether, on the other hand, openly holds:
-              <br />• 5% in…
-              <a href="https://t.co/LAChBvIUyB">pic.twitter.com/LAChBvIUyB</a>
-            </p>
-            &mdash; SMQKE (@SMQKEDQG)
-            <a href="https://twitter.com/SMQKEDQG/status/1934666056838078555?ref_src=twsrc%5Etfw">
-              June 16, 2025
-            </a>
-          </blockquote> */}
-          {/* <TwitterCard
-            html={`<blockquote class="twitter-tweet">
-              <p lang="en" dir="ltr">
-                At dawn from the gateway to Mars, the launch of Starship's
-                second flight test 
-                <a href="https://t.co/ffKnsVKwG4">pic.twitter.com/ffKnsVKwG4</a>
-              </p>
-              &mdash; SpaceX (@SpaceX) 
-              <a href="https://twitter.com/SpaceX/status/1732824684683784516?ref_src=twsrc%5Etfw">
-                December 7, 2023
-              </a>
-            </blockquote>`}
-            className="flex-1"
-          /> */}
           {MOCK_TWEETS.map((tweet, index) => (
             <TwitterCard key={index} html={tweet.html} className="flex-1" />
           ))}

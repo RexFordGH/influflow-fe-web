@@ -34,12 +34,12 @@ import {
 import { Outline, TweetContentItem } from '@/types/outline';
 import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
 
-import { ContentGenerationLoading } from './ContentGenerationLoading';
-import EditableContentMindmap from './EditableContentMindmap';
-import { EnhancedMarkdownRenderer } from './EnhancedMarkdownRenderer';
-import { ImageEditModal } from './ImageEditModal';
+import { CreateArticleLoading } from './CreateLoading';
+import { ImageEditModal } from './markdown/ImageEditModal';
+import { MarkdownRenderer } from './markdown/MarkdownRenderer';
+import EditableContentMindmap from './mindmap/MindmapRenderer';
 
-interface EnhancedContentGenerationProps {
+interface ArticleRendererProps {
   topic: string;
   contentFormat: ContentFormat;
   onBack: () => void;
@@ -109,13 +109,13 @@ function DeleteConfirmModal({
   );
 }
 
-export function EnhancedContentGeneration({
+export function ArticleRenderer({
   topic,
   contentFormat,
   onBack,
   initialData,
   onDataUpdate,
-}: EnhancedContentGenerationProps) {
+}: ArticleRendererProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] =
     useState<GeneratedContent | null>(null);
@@ -1458,7 +1458,7 @@ export function EnhancedContentGeneration({
     const hasError = !isGenerating && !!apiError;
 
     return (
-      <ContentGenerationLoading
+      <CreateArticleLoading
         topic={topic}
         onBack={onBack}
         isError={hasError}
@@ -1548,7 +1548,7 @@ export function EnhancedContentGeneration({
           {/* Twitter Thread内容区域 */}
           <div className="flex-1 overflow-y-auto">
             {rawAPIData && (
-              <EnhancedMarkdownRenderer
+              <MarkdownRenderer
                 content={
                   contentFormat === 'longform'
                     ? processedMarkdown
@@ -1585,9 +1585,9 @@ export function EnhancedContentGeneration({
 
       {/* AI 编辑对话框 - 固定在右侧 */}
       {showAIEditModal && (
-        <div className="fixed right-0 top-0 bottom-0 z-50 w-[50vw]">
+        <div className="fixed inset-y-0 right-0 z-50 w-[50vw]">
           <div className="flex h-full items-end ">
-            <div className="flex flex-col w-full bg-[#F5F6F7] p-[20px] ">
+            <div className="flex w-full flex-col bg-[#F5F6F7] p-[20px] ">
               <div className="mb-[24px]">
                 <h3 className="text-xl font-semibold">
                   How would you like to enhance this part?

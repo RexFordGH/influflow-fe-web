@@ -10,7 +10,7 @@ import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
 
-interface EnhancedMarkdownRendererProps {
+interface MarkdownRendererProps {
   content: string;
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
@@ -72,7 +72,7 @@ interface MarkdownSection {
   groupId?: string; // 用于group高亮
 }
 
-export function EnhancedMarkdownRenderer({
+export function MarkdownRenderer({
   content,
   onSectionHover,
   onSourceClick,
@@ -96,7 +96,7 @@ export function EnhancedMarkdownRenderer({
   scrollToSection,
   collectedImages = [],
   onDeleteImage,
-}: EnhancedMarkdownRendererProps) {
+}: MarkdownRendererProps) {
   const [copyingImage, setCopyingImage] = useState<string | null>(null);
 
   // 创建section ref的映射
@@ -425,7 +425,8 @@ export function EnhancedMarkdownRenderer({
           (editingNodeId.startsWith('group-') &&
             section.groupId &&
             (section.groupId === editingNodeId.replace('group-', '') ||
-              section.groupId.toString() === editingNodeId.replace('group-', '') ||
+              section.groupId.toString() ===
+                editingNodeId.replace('group-', '') ||
               Number(section.groupId) ===
                 Number(editingNodeId.replace('group-', '')))) ||
           editingNodeId === section.id)) ||
@@ -499,8 +500,13 @@ export function EnhancedMarkdownRenderer({
   };
 
   return (
-    <div className={cn(markdownStyles.container.main, !!editingNodeId ? 'pb-[300px]' : '')}>
-     <div className={markdownStyles.container.content}>
+    <div
+      className={cn(
+        markdownStyles.container.main,
+        editingNodeId ? 'pb-[300px]' : '',
+      )}
+    >
+      <div className={markdownStyles.container.content}>
         <div className={markdownStyles.container.sections}>
           {sections.map((section) => renderSection(section))}
         </div>

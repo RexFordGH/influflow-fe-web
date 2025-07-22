@@ -11,7 +11,7 @@ import { Article, Category } from '@/types/content';
 import { WelcomeScreen } from './WelcomeScreen';
 
 const WriteByMyselfPage = lazy(() =>
-  import('@/components/content/WriteByMyselfPage').then((module) => ({
+  import('@/components/home/WriteByMyselfPage').then((module) => ({
     default: module.WriteByMyselfPage,
   })),
 );

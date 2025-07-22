@@ -4,7 +4,7 @@ import { Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
-interface ContentGenerationLoadingProps {
+interface CreateArticleLoadingProps {
   topic: string;
   onBack: () => void;
   isError?: boolean;
@@ -47,7 +47,7 @@ const LoadingSpinner = () => (
   />
 );
 
-export function ContentGenerationLoading({
+export function CreateArticleLoading({
   topic,
   onBack,
   isError = false,
@@ -57,7 +57,7 @@ export function ContentGenerationLoading({
   duration = 15000, // 默认初始总时长为15秒
   isFinished = false,
   onAnimationComplete,
-}: ContentGenerationLoadingProps) {
+}: CreateArticleLoadingProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
   // 效果1: 处理初始的、缓慢的模拟加载过程

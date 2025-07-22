@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import EditorPro from '../editorPro/index';
+import EditorPro from '../../editorPro/index';
 
 import { LocalImageUploader } from './LocalImageUploader';
 import {
@@ -306,7 +306,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} relative !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0 group`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -402,7 +402,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} !mt-[32px] py-0 relative group`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[32px] py-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >

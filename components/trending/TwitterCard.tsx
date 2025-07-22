@@ -1,7 +1,7 @@
 'use client';
 
+import { Image } from '@heroui/react';
 import { useEffect, useRef } from 'react';
-import {Image} from '@heroui/react';
 
 interface TwitterCardProps {
   html: string;

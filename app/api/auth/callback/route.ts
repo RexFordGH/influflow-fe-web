@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { API_BASE_URL } from '@/constants/env';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 async function userProfileExists(userId: string): Promise<boolean> {
@@ -30,7 +29,7 @@ async function userProfileExists(userId: string): Promise<boolean> {
 export async function GET(request: Request) {
   // console.log('=== Auth Callback Route Called (Existing User) ===');
   // console.log('Request URL:', request.url);
-  
+
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
 
