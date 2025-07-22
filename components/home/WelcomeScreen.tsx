@@ -96,7 +96,7 @@ export const WelcomeScreen = ({
   };
 
   return (
-    <div className="relative size-full">
+    <div className="relative size-full min-w-[1000px]">
       <ReactPageScroller
         pageOnChange={handlePageChange}
         customPageNumber={currentPage}
@@ -266,7 +266,7 @@ export const WelcomeScreen = ({
         </div>
 
         {/* Trending Topics 页面 */}
-        <div className="size-full">
+        <div className="size-full ">
           <TrendingTopicsPage
             isVisible={true}
             onBack={onBackFromTrending}
