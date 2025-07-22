@@ -74,17 +74,15 @@ const TrendingTopicItem = ({
   );
 };
 
-export function TrendingTopics({
+export function TrendingTopicsPage({
   isVisible,
   onBack: _onBack,
   onTopicSelect,
 }: TrendingTopicsProps) {
   const [selectedCategory, setSelectedCategory] = useState('ai');
 
-  // 获取可用的话题类型
   const { data: topicTypes } = useTopicTypes();
 
-  // 根据选中的分类获取trending topics数据
   const {
     data: trendingData,
     isLoading,
@@ -103,17 +101,14 @@ export function TrendingTopics({
   return (
     <div className="size-full overflow-y-auto bg-white">
       <div className="flex min-h-full flex-col">
-        {/* 内容区域 */}
         <div className="flex-1 px-[30px] py-14">
           <div className="mx-auto w-full max-w-4xl">
-            {/* Trending Topics 部分 */}
             <div className="mb-10">
-              {/* 标题 */}
               <h2 className="mb-4 text-lg font-medium text-black">
                 Trending Topics
               </h2>
 
-              {/* 分类筛选 */}
+              {/* type */}
               <div className="mb-4 flex gap-3">
                 {categories?.map((category: { id: string; label: string }) => (
                   <Button
@@ -136,20 +131,9 @@ export function TrendingTopics({
               {/* Trending Topics */}
               <div className="space-y-3">
                 {isLoading ? (
-                  // 骨架屏
-                  Array.from({ length: 5 }).map((_, index) => (
-                    <TrendingTopicSkeleton key={index} index={index} />
-                  ))
+                  <TrendingTopicSkeletons />
                 ) : error ? (
-                  // 错误状态
-                  <div className="py-8 text-center">
-                    <p className="mb-2 text-gray-500">
-                      Unable to load trending topics at the moment
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      Please try again later
-                    </p>
-                  </div>
+                  <TrendingTopicError />
                 ) : (
                   trendingTopics.map((topic: any, index: number) => (
                     <TrendingTopicItem
@@ -168,29 +152,17 @@ export function TrendingTopics({
               </div>
             </div>
 
-            {/* Suggested Topics 部分 */}
+            {/* Suggested Topics */}
             <div className="mb-8">
               <h3 className="mb-4 text-lg font-medium text-black">
                 Suggested Topics
               </h3>
               <div className="space-y-3">
                 {isLoading ? (
-                  // 骨架屏
-                  Array.from({ length: 5 }).map((_, index) => (
-                    <SuggestedTopicSkeleton key={index} />
-                  ))
+                  <SuggestTopicSkeletons />
                 ) : error ? (
-                  // 错误状态
-                  <div className="py-8 text-center">
-                    <p className="mb-2 text-gray-500">
-                      Unable to load suggested topics at the moment
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      Please try again later
-                    </p>
-                  </div>
+                  <SuggestTopicError />
                 ) : (
-                  // 实际数据 - 根据Figma设计样式
                   suggestedTopics.map((topic: any, index: number) => (
                     <button
                       key={`${topic.topic}-${index}`}
@@ -217,3 +189,37 @@ export function TrendingTopics({
     </div>
   );
 }
+
+const TrendingTopicSkeletons = () => {
+  return Array.from({ length: 5 }).map((_, index) => (
+    <TrendingTopicSkeleton key={index} index={index} />
+  ));
+};
+
+const TrendingTopicError = () => {
+  return (
+    <div className="py-8 text-center">
+      <p className="mb-2 text-gray-500">
+        Unable to load trending topics at the moment
+      </p>
+      <p className="text-sm text-gray-400">Please try again later</p>
+    </div>
+  );
+};
+
+const SuggestTopicSkeletons = () => {
+  return Array.from({ length: 5 }).map((_, index) => (
+    <SuggestedTopicSkeleton key={index} />
+  ));
+};
+
+const SuggestTopicError = () => {
+  return (
+    <div className="py-8 text-center">
+      <p className="mb-2 text-gray-500">
+        Unable to load suggested topics at the moment
+      </p>
+      <p className="text-sm text-gray-400">Please try again later</p>
+    </div>
+  );
+};

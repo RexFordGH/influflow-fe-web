@@ -14,35 +14,10 @@ import ReactPageScroller from 'react-page-scroller';
 import { useAuthStore } from '@/stores/authStore';
 import { ContentFormat, SuggestedTopic, TrendingTopic } from '@/types/api';
 
-// 动态导入TrendingTopics组件
-const TrendingTopics = lazy(() =>
-  import('@/components/trending/TrendingTopics').then((module) => ({
-    default: module.TrendingTopics,
+const TrendingTopicsPage = lazy(() =>
+  import('@/components/trending/TrendingTopicsPage').then((module) => ({
+    default: module.TrendingTopicsPage,
   })),
-);
-
-// TrendingTopics加载时的骨架屏组件
-const TrendingTopicsLoadingFallback = () => (
-  <div className="absolute inset-0 flex items-center justify-center bg-white">
-    <div className="w-full max-w-4xl animate-pulse space-y-4 px-8">
-      <div className="h-6 w-48 rounded bg-gray-200"></div>
-      <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-12 rounded-xl bg-gradient-to-r from-yellow-200 to-yellow-100"
-            style={{ width: `${Math.max(432, 880 - i * 110)}px` }}
-          ></div>
-        ))}
-      </div>
-      <div className="mt-8 h-6 w-56 rounded bg-gray-200"></div>
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-16 rounded-xl border bg-gray-100"></div>
-        ))}
-      </div>
-    </div>
-  </div>
 );
 
 interface WelcomeScreenProps {
@@ -215,7 +190,7 @@ export const WelcomeScreen = ({
 
         {/* Trending Topics 页面 */}
         <div className="size-full">
-          <TrendingTopics
+          <TrendingTopicsPage
             isVisible={true}
             onBack={onBackFromTrending}
             onTopicSelect={onTrendingTopicSelect}
