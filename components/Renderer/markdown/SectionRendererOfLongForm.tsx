@@ -283,10 +283,16 @@ export function SectionRendererOfLongForm({
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
 
+      // Special handling for list items - convert double breaks between list items to single breaks
+      const processedContent = textContent
+        .replace(/\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break before list item -> single break
+        .replace(/(?<=[•\-\*]\s+[^\n]*)\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break between list items -> single break
+        .replace(/\n\n/g, '||DOUBLE_BR||')
+        .replace(/\n/g, '<br>')
+        .replace(/\|\|DOUBLE_BR\|\|/g, '<br><br>');
+
       const editorValue = JSON.stringify({
-        content: textContent
-          .replace(/\n\n/g, '<br><br>')
-          .replace(/\n/g, '<br>')
+        content: processedContent
           .replace(
             /\*\*(.*?)\*\*/g,
             '<strong class="font-semibold text-gray-900">$1</strong>',
