@@ -12,7 +12,11 @@ import {
   markdownStyles,
   shouldEnableInteraction,
 } from './markdownStyles';
-import { SectionRendererProps, TweetImageButton } from './SectionRenderer';
+import {
+  EditWithAIButton,
+  SectionRendererProps,
+  TweetImageButton,
+} from './SectionRenderer';
 
 export function SectionRendererOfLongForm({
   section,
@@ -25,6 +29,8 @@ export function SectionRendererOfLongForm({
   onLocalImageUploadSuccess,
   onImageSelect,
   onDirectGenerate,
+  onEditWithAI,
+  editingNodeId,
   generatingImageTweetIds,
   tweetData,
   setSectionRef,
@@ -300,7 +306,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} relative !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} relative !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0 group`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -337,7 +343,22 @@ export function SectionRendererOfLongForm({
 
           {/* Image rendering is removed from here */}
 
-          <div className="absolute right-[4px] top-[-28px] flex items-center justify-end gap-1">
+          <div
+            className={`absolute right-[4px] top-[-28px] flex items-center justify-end gap-1 transition-opacity ${
+              // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
+              editingNodeId &&
+              ((section.tweetId &&
+                (section.tweetId === editingNodeId ||
+                  section.tweetId.toString() === editingNodeId.toString())) ||
+                editingNodeId === section.id)
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-100'
+            }`}
+          >
+            <EditWithAIButton
+              nodeId={section.tweetId || section.id}
+              onEditWithAI={onEditWithAI}
+            />
             <LocalImageUploader
               tweetData={currentTweetData}
               onUploadSuccess={onLocalImageUploadSuccess}
@@ -381,7 +402,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} !mt-[32px] py-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} !mt-[32px] py-0 relative group`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -390,6 +411,7 @@ export function SectionRendererOfLongForm({
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
             </div>
           )}
+
           <div className="text-[14px] font-medium leading-[1.6] text-black">
             <EditorPro
               value={groupTitleEditorValue}

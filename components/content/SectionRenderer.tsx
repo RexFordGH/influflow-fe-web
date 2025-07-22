@@ -1,5 +1,6 @@
 'use client';
 
+import { PencilIcon } from '@heroicons/react/24/outline';
 import { Button, cn, Image, Tooltip } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
@@ -55,6 +56,8 @@ export interface SectionRendererProps {
   ) => void;
   onDirectGenerate?: (tweetData: any) => void;
   onDeleteImage?: (image: any) => void;
+  onEditWithAI?: (nodeId: string) => void; // 新增：Edit with AI 回调
+  editingNodeId?: string | null; // 新增：正在编辑的节点ID
   generatingImageTweetIds?: string[];
   localImageUrls?: Record<string, string>;
   tweetData?: any;
@@ -80,6 +83,8 @@ export function SectionRenderer({
   onImageSelect,
   onDirectGenerate,
   onDeleteImage,
+  onEditWithAI,
+  editingNodeId,
   generatingImageTweetIds,
   localImageUrls,
   tweetData,
@@ -418,7 +423,7 @@ export function SectionRenderer({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} border border-gray-100 group`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -504,7 +509,22 @@ export function SectionRenderer({
             </div>
           )}
 
-          <div className="absolute right-[4px] top-[4px] flex items-center justify-end gap-1">
+          <div
+            className={`absolute right-[4px] top-[4px] flex items-center justify-end gap-1 transition-opacity ${
+              // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
+              editingNodeId &&
+              ((section.tweetId &&
+                (section.tweetId === editingNodeId ||
+                  section.tweetId.toString() === editingNodeId.toString())) ||
+                editingNodeId === section.id)
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-100'
+            }`}
+          >
+            <EditWithAIButton
+              nodeId={section.tweetId || section.id}
+              onEditWithAI={onEditWithAI}
+            />
             <LocalImageUploader
               tweetData={currentTweetData}
               onUploadSuccess={onLocalImageUploadSuccess}
@@ -552,7 +572,7 @@ export function SectionRenderer({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6 relative group`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -561,6 +581,7 @@ export function SectionRenderer({
               <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
             </div>
           )}
+
           <EditorPro
             value={groupTitleEditorValue}
             onChange={handleEditorChange}
@@ -584,6 +605,37 @@ export function SectionRenderer({
     default:
       return null;
   }
+}
+
+export function EditWithAIButton({
+  nodeId,
+  onEditWithAI,
+}: {
+  nodeId: string;
+  onEditWithAI?: (nodeId: string) => void;
+}) {
+  return (
+    <Tooltip
+      content="Edit with AI"
+      delay={50}
+      closeDelay={0}
+      placement="top"
+      classNames={{
+        content: 'bg-black text-white',
+        arrow: 'bg-black border-black',
+      }}
+    >
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        className={markdownStyles.source.button}
+        onPress={() => onEditWithAI?.(nodeId)}
+      >
+        <PencilIcon className="size-3" />
+      </Button>
+    </Tooltip>
+  );
 }
 
 export function TweetImageButton({

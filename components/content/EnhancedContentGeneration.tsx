@@ -12,6 +12,7 @@ import {
   useGenerateImage,
   useGenerateThread,
   useModifyOutline,
+  useModifyTweet,
   usePostToTwitter,
   type TwitterPostRequest,
   type TwitterTweetData,
@@ -164,6 +165,14 @@ export function EnhancedContentGeneration({
   );
   const [isDeletingImage, setIsDeletingImage] = useState(false);
 
+  // AI 编辑相关状态
+  const [selectedNodeForAI, setSelectedNodeForAI] = useState<string | null>(
+    null,
+  );
+  const [showAIEditModal, setShowAIEditModal] = useState(false);
+  const [aiEditInstruction, setAiEditInstruction] = useState('');
+  const [isAIProcessing, setIsAIProcessing] = useState(false);
+
   // 辅助函数：添加正在生图的 tweetId
   const addGeneratingImageTweetId = useCallback((tweetId: string) => {
     setGeneratingImageTweetIds((prev) => [
@@ -211,6 +220,7 @@ export function EnhancedContentGeneration({
   const { mutate: generateThread, isPending: isGeneratingAPI } =
     useGenerateThread();
   const modifyOutlineMutation = useModifyOutline();
+  const modifyTweetMutation = useModifyTweet();
   const generateImageMutation = useGenerateImage();
   const postToTwitterMutation = usePostToTwitter();
   const { data: twitterAuthStatus, refetch: refetchTwitterAuthStatus } =
@@ -242,7 +252,7 @@ export function EnhancedContentGeneration({
 
       // 关键：当 topic 变化时，重置本地图片URL状态
       setLocalImageUrls({});
-      
+
       // 修复：重置 regeneratedMarkdown 状态，防止显示上一篇文章的内容
       setRegeneratedMarkdown(null);
     }
@@ -261,7 +271,7 @@ export function EnhancedContentGeneration({
 
       // 关键：当 initialData 变化时，重置本地图片URL状态
       setLocalImageUrls({});
-      
+
       // 修复：重置 regeneratedMarkdown 状态，确保显示正确的文章内容
       setRegeneratedMarkdown(null);
     }
@@ -451,6 +461,139 @@ export function EnhancedContentGeneration({
   const handleMarkdownHover = useCallback((tweetId: string | null) => {
     setHoveredTweetId(tweetId);
   }, []);
+
+  // 处理 Edit with AI 按钮点击
+  const handleEditWithAI = useCallback((nodeId: string) => {
+    setSelectedNodeForAI(nodeId);
+    setShowAIEditModal(true);
+  }, []);
+
+  // 处理 AI 编辑指令提交
+  const handleAIEditSubmit = async () => {
+    if (!selectedNodeForAI || !aiEditInstruction.trim()) return;
+
+    setIsAIProcessing(true);
+
+    try {
+      // 检查是否有当前outline数据
+      if (!rawAPIData) {
+        console.error('缺少原始outline数据，无法进行AI编辑');
+        setIsAIProcessing(false);
+        return;
+      }
+
+      // 找到要编辑的节点，获取对应的tweet_number
+      const targetNode = currentNodes.find((node) => {
+        // 支持多种ID格式匹配
+        if (node.id === selectedNodeForAI) return true;
+        if (node.data?.tweetId?.toString() === selectedNodeForAI) return true;
+        if (
+          selectedNodeForAI.startsWith('group-') &&
+          node.id === selectedNodeForAI
+        )
+          return true;
+        return false;
+      });
+
+      if (!targetNode || !targetNode.data?.tweetId) {
+        console.error('未找到目标节点或缺少tweetId:', selectedNodeForAI);
+        setIsAIProcessing(false);
+        return;
+      }
+
+      const tweetNumber = targetNode.data.tweetId;
+
+      // 调用 useModifyTweet API
+      const result = await modifyTweetMutation.mutateAsync({
+        outline: rawAPIData,
+        tweet_number: tweetNumber,
+        modification_prompt: aiEditInstruction,
+      });
+
+      // API只返回更新的tweet内容，需要局部更新
+      if (result.updated_tweet_content) {
+        console.log('AI编辑成功，返回的数据:', result);
+
+        // 1. 更新rawAPIData中对应的tweet内容
+        const updatedOutline = JSON.parse(
+          JSON.stringify(rawAPIData),
+        ) as Outline;
+        let tweetFound = false;
+
+        for (const outlineNode of updatedOutline.nodes) {
+          const tweetToUpdate = outlineNode.tweets.find(
+            (tweet) => tweet.tweet_number === tweetNumber,
+          );
+          if (tweetToUpdate) {
+            tweetToUpdate.content = result.updated_tweet_content;
+            tweetFound = true;
+            break;
+          }
+        }
+
+        if (!tweetFound) {
+          console.error('未找到对应的tweet_number:', tweetNumber);
+          return;
+        }
+
+        // 2. 更新rawAPIData状态
+        setRawAPIData(updatedOutline);
+
+        // 3. 保存到 Supabase
+        try {
+          const supabase = createClient();
+          const { error } = await supabase
+            .from('tweet_thread')
+            .update({ tweets: updatedOutline.nodes })
+            .eq('id', rawAPIData.id);
+
+          if (error) {
+            throw error;
+          }
+          console.log('AI edited content saved successfully to Supabase.');
+
+          // 成功保存后，触发侧边栏数据刷新
+          onDataUpdate?.();
+        } catch (saveError) {
+          console.error(
+            'Error saving AI edited content to Supabase:',
+            saveError,
+          );
+          addToast({
+            title: 'Warning',
+            description: 'Content updated locally but failed to save to server',
+          });
+        }
+
+        // 4. 重新生成内容
+        const content = convertAPIDataToGeneratedContent(updatedOutline);
+        setGeneratedContent(content);
+        setCurrentNodes(content.mindmap.nodes);
+        setCurrentEdges(content.mindmap.edges);
+
+        // 5. 重新生成markdown
+        const newMarkdown = convertAPIDataToMarkdown(updatedOutline);
+        setRegeneratedMarkdown(newMarkdown);
+
+        addToast({
+          title: 'Success',
+          description: 'Content updated successfully',
+        });
+        // 清理对应的状态
+      }
+    } catch (error) {
+      console.error('AI编辑失败:', error);
+      addToast({
+        title: 'Error',
+        description: 'Failed to update content',
+      });
+    } finally {
+      setIsAIProcessing(false);
+      setShowAIEditModal(false);
+      setAiEditInstruction('');
+      setSelectedNodeForAI(null);
+    }
+  };
 
   // 处理 loading 状态变化
   const handleLoadingStateChange = useCallback((tweetId: string | null) => {
@@ -1027,7 +1170,7 @@ export function EnhancedContentGeneration({
           const supabase = createClient();
           const { error } = await supabase
             .from('tweet_thread')
-            .update({ 
+            .update({
               tweets: newOutline.nodes,
               topic: newOutline.topic,
               content_format: newOutline.content_format,
@@ -1055,8 +1198,7 @@ export function EnhancedContentGeneration({
 
           // 更新生成的内容
           if (generatedContent) {
-            const updatedContent =
-              convertAPIDataToGeneratedContent(newOutline);
+            const updatedContent = convertAPIDataToGeneratedContent(newOutline);
             setGeneratedContent({
               ...generatedContent,
               ...updatedContent,
@@ -1393,7 +1535,6 @@ export function EnhancedContentGeneration({
               onNodeHover={handleNodeHover}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
-              onRegenerate={regenerateFromMindmap}
               onRegenerateClick={handleRegenerateClick} // 传入 API 重生成回调
               highlightedNodeId={selectedNodeId}
               hoveredTweetId={hoveredTweetId}
@@ -1423,9 +1564,11 @@ export function EnhancedContentGeneration({
                 onLocalImageUploadSuccess={handleLocalImageUpload}
                 onImageSelect={handleImageSelect} // 新增
                 onDirectGenerate={handleDirectGenerate}
+                onEditWithAI={handleEditWithAI}
                 highlightedSection={hoveredTweetId}
                 hoveredTweetId={hoveredTweetId}
                 selectedNodeId={selectedNodeId}
+                editingNodeId={selectedNodeForAI}
                 imageData={generatedContent?.image}
                 tweetData={rawAPIData}
                 loadingTweetId={loadingTweetId}
@@ -1439,6 +1582,54 @@ export function EnhancedContentGeneration({
           </div>
         </div>
       </div>
+
+      {/* AI 编辑对话框 - 固定在右侧 */}
+      {showAIEditModal && (
+        <div className="fixed right-0 top-0 bottom-0 z-50 w-[50vw]">
+          <div className="flex h-full items-end ">
+            <div className="flex flex-col w-full bg-[#F5F6F7] p-[20px] ">
+              <div className="mb-[24px]">
+                <h3 className="text-xl font-semibold">
+                  How would you like to enhance this part?
+                </h3>
+              </div>
+              <div className="flex-1">
+                <textarea
+                  value={aiEditInstruction}
+                  onChange={(e) => setAiEditInstruction(e.target.value)}
+                  placeholder="Please limit to 300 words."
+                  maxLength={300}
+                  className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                  rows={8}
+                  autoFocus
+                />
+                <div className="mt-[12px] flex justify-end gap-3">
+                  <Button
+                    variant="flat"
+                    onPress={() => {
+                      setShowAIEditModal(false);
+                      setAiEditInstruction('');
+                      setSelectedNodeForAI(null);
+                    }}
+                    className="px-6"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    color="primary"
+                    onPress={handleAIEditSubmit}
+                    isLoading={isAIProcessing}
+                    disabled={!aiEditInstruction.trim()}
+                    className="bg-[#4285F4] px-6 text-white hover:bg-[#3367D6]"
+                  >
+                    {isAIProcessing ? 'Generating...' : 'Submit'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 图片编辑模态框 */}
       {isImageEditModalOpen && editingImage && rawAPIData && (
