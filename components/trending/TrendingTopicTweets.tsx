@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useTrendingRecommend } from '@/lib/api/services';
 import { Image } from '@heroui/react';
@@ -11,13 +11,43 @@ import { TwitterCard } from './TwitterCard';
 interface TrendingTopicTweetsProps {
   id: number;
   isVisible: boolean;
+  onConfirm?: (selectedTweets: typeof MOCK_TWEETS) => void;
 }
 
 export function TrendingTopicTweets({
   isVisible,
   id,
+  onConfirm,
 }: TrendingTopicTweetsProps) {
   const { data: tweetData, isLoading } = useTrendingRecommend(id, isVisible);
+  const [selectedTweetIndices, setSelectedTweetIndices] = useState<Set<number>>(
+    new Set(),
+  );
+
+  // 切换推文选中状态
+  const toggleTweetSelection = (index: number) => {
+    setSelectedTweetIndices((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  // 处理确认按钮点击
+  const handleConfirm = () => {
+    if (selectedTweetIndices.size === 0) {
+      return; // 没有选中任何推文，不执行任何操作
+    }
+
+    const selectedTweets = Array.from(selectedTweetIndices).map(
+      (index) => MOCK_TWEETS[index],
+    );
+    onConfirm?.(selectedTweets);
+  };
 
   // 当组件变为可见时，手动触发Twitter widgets加载
   useEffect(() => {
@@ -85,7 +115,18 @@ export function TrendingTopicTweets({
             engagement.
           </p>
         </div>
-        <Button className="rounded-full">Confirm</Button>
+        <Button
+          className={`rounded-full ${
+            selectedTweetIndices.size > 0 
+              ? 'bg-black text-white hover:bg-gray-800' 
+              : ''
+          }`}
+          onClick={handleConfirm}
+          isDisabled={selectedTweetIndices.size === 0}
+        >
+          Confirm{' '}
+          {selectedTweetIndices.size > 0 && `(${selectedTweetIndices.size})`}
+        </Button>
       </div>
 
       {/* Tweets 网格 */}
@@ -96,23 +137,27 @@ export function TrendingTopicTweets({
         }}
       >
         <div className="grid grid-cols-3 gap-3">
-          {MOCK_TWEETS.map((tweet, index) => (
-            <div key={index} className="relative">
-              <TwitterCard html={tweet.html} className="flex-1" />
+          {MOCK_TWEETS.map((tweet, index) => {
+            const isSelected = selectedTweetIndices.has(index);
+            return (
+              <div key={index} className="relative">
+                <TwitterCard html={tweet.html} className="flex-1" />
 
-              <Button
-                isIconOnly
-                className="absolute top-[15px] right-[8px] bg-white hover:bg-[#E8E8E8] hover:opacity-100 "
-              >
-                <Image
-                  src="/icons/check.svg"
-                  alt="Twitter Card"
-                  width={24}
-                  height={24}
-                />
-              </Button>
-            </div>
-          ))}
+                <div
+                  onClick={() => toggleTweetSelection(index)}
+                  className={`absolute top-[14px] right-[8px] rounded-[8px] transition-colors p-[8px] bg-white cursor-pointer hover:bg-[#E8E8E8]`}
+                >
+                  <Image
+                    src="/icons/check.svg"
+                    alt="Select Tweet"
+                    width={24}
+                    height={24}
+                    className={isSelected ? 'invert' : ''}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

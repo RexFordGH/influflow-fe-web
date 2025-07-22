@@ -15,6 +15,7 @@ interface TrendingTopicsProps {
   isVisible: boolean;
   onBack: () => void;
   onTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }
 
 const TrendingTopicSkeleton = ({ index }: { index: number }) => (
@@ -41,11 +42,13 @@ const TrendingTopicItem = ({
   topic,
   index,
   onCopy,
+  onTweetsSelect,
 }: {
   id: number;
   topic: any;
   index: number;
   onCopy: () => void;
+  onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const debouncedSetIsOpen = useDebouncedCallback(setIsOpen, 300);
@@ -89,7 +92,13 @@ const TrendingTopicItem = ({
         onMouseEnter={handleOpen}
         onMouseLeave={handleClose}
       >
-        <TrendingTopicTweets isVisible={isOpen} id={id} />
+        <TrendingTopicTweets 
+          isVisible={isOpen} 
+          id={id} 
+          onConfirm={(selectedTweets) => {
+            onTweetsSelect?.(selectedTweets, topic.title);
+          }}
+        />
       </div>
     </div>
   );
@@ -99,6 +108,7 @@ export function TrendingTopicsPage({
   isVisible,
   onBack: _onBack,
   onTopicSelect,
+  onTweetsSelect,
 }: TrendingTopicsProps) {
   const [selectedCategory, setSelectedCategory] = useState('ai');
 
@@ -168,6 +178,7 @@ export function TrendingTopicsPage({
                           color: 'success',
                         });
                       }}
+                      onTweetsSelect={onTweetsSelect}
                     />
                   ))
                 )}

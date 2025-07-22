@@ -25,6 +25,9 @@ interface WelcomeScreenProps {
   onScrollToTrending: () => void;
   onBackFromTrending: () => void;
   onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
+  selectedTweets?: any[];
+  onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
   onTopicSubmit: (contentFormat: ContentFormat) => void;
@@ -36,6 +39,9 @@ export const WelcomeScreen = ({
   onScrollToTrending,
   onBackFromTrending,
   onTrendingTopicSelect,
+  onTrendingTweetsSelect,
+  selectedTweets,
+  onRemoveSelectedTweet,
   topicInput,
   onTopicInputChange,
   onTopicSubmit,
@@ -101,10 +107,9 @@ export const WelcomeScreen = ({
                   }
                 }}
                 onWheel={(e) => {
-                  // 阻止滚动事件冒泡到父级组件，避免触发页面切换
                   e.stopPropagation();
                 }}
-                className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[36px] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                className="min-h-[100px] w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[60dpx] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 rows={4}
               />
               {/* Content Format Dropdown */}
@@ -170,6 +175,50 @@ export const WelcomeScreen = ({
                 />
               </Button>
             </div>
+
+            {selectedTweets && selectedTweets.length > 0 && (
+              <div className="mt-[16px] grid grid-cols-3 gap-[8px] max-w-[700px]">
+                {selectedTweets.map((tweet, index) => (
+                  <div
+                    key={tweet.id}
+                    className="relative flex items-center gap-[8px] rounded-[12px] border border-gray-300 bg-white p-[6px] shadow-sm"
+                  >
+                    <Image
+                      src={'/icons/x-icon.svg'}
+                      width={32}
+                      height={32}
+                      className="flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] text-[#757575] text-left font-[500]">
+                        {tweet.author_name}
+                      </p>
+                      <p className="text-[12px] text-[#8C8C8C] truncate">
+                        {(() => {
+                          // 提取推文内容的前几个词作为预览
+                          const htmlContent = tweet.html;
+                          const textContent = htmlContent
+                            .replace(/<[^>]*>/g, '')
+                            .replace(/&[^;]+;/g, ' ');
+                          return textContent.length > 50
+                            ? textContent.substring(0, 50) + '...'
+                            : textContent;
+                        })()}
+                      </p>
+                    </div>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => onRemoveSelectedTweet?.(index)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <span className="text-[20px]">×</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
             <div className="flex flex-col items-center">
@@ -194,6 +243,11 @@ export const WelcomeScreen = ({
             isVisible={true}
             onBack={onBackFromTrending}
             onTopicSelect={onTrendingTopicSelect}
+            onTweetsSelect={(selectedTweets, topicTitle) => {
+              // 回到上一页并携带选中的推文数据
+              onBackFromTrending();
+              onTrendingTweetsSelect?.(selectedTweets, topicTitle);
+            }}
           />
         </div>
       </ReactPageScroller>

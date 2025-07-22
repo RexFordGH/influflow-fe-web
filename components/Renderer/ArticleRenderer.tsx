@@ -337,9 +337,27 @@ export function ArticleRenderer({
       stepTimeouts.forEach((timeout) => clearTimeout(timeout));
     };
 
+    // 解析topic中的参考推文
+    let userInput = topic.trim();
+    let referenceUrls: string[] = [];
+    
+    // 检查是否包含参考推文的格式
+    const referenceMatch = userInput.match(/\.\s*Reference these popular posts:\s*(.+)$/);
+    if (referenceMatch) {
+      // 提取纯净的topic（不包含参考推文部分）
+      userInput = userInput.replace(referenceMatch[0], '').trim();
+      // 提取参考推文URL列表
+      referenceUrls = referenceMatch[1].split(',').map(url => url.trim());
+    }
+    
+    // 重新组装user_input，使用正确的格式
+    if (referenceUrls.length > 0) {
+      userInput = `${userInput} reference twitter urls: ${referenceUrls.join(',')}`;
+    }
+    
     // 准备请求数据，包含用户个性化信息
     const requestData = {
-      user_input: topic.trim(),
+      user_input: userInput,
       content_format: contentFormat,
       ...(user && {
         personalization: {
