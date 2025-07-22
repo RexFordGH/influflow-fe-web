@@ -37,7 +37,6 @@ function transformTweetHtml(html: string): string {
   return decodedHtml.trim();
 }
 
-
 export function TwitterCard({ html, className = '' }: TwitterCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,11 +65,11 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
     setTimeout(() => {
       if (containerRef.current && window.twttr?.widgets) {
         window.twttr.widgets.load(containerRef.current);
-        
+
         // 等待Twitter widgets处理完成，1.5秒后显示内容
         setTimeout(() => {
           setIsLoading(false);
-        }, 1500);
+        }, 5000);
       } else {
         // 如果没有Twitter widgets，直接显示
         setTimeout(() => {
@@ -93,14 +92,14 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
               <Skeleton className="h-3 w-16 rounded" />
             </div>
           </div>
-          
+
           {/* 内容 */}
           <div className="space-y-2">
             <Skeleton className="h-4 w-full rounded" />
             <Skeleton className="h-4 w-4/5 rounded" />
             <Skeleton className="h-4 w-3/5 rounded" />
           </div>
-          
+
           {/* 底部交互 */}
           <div className="mt-4 flex items-center gap-6">
             <Skeleton className="h-4 w-12 rounded" />
@@ -109,7 +108,7 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
           </div>
         </div>
       )}
-      
+
       {/* 实际的Twitter内容 */}
       <div
         ref={containerRef}
