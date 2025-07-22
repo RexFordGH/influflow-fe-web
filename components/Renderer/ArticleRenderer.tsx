@@ -354,7 +354,7 @@ export function ArticleRenderer({
 
     // 重新组装user_input，使用正确的格式
     if (referenceUrls.length > 0) {
-      userInput = `${userInput}。 Reference twitter urls: ${referenceUrls.join(',')}`;
+      userInput = `${userInput}. Reference Tweets: ${referenceUrls.join(',')}`;
     }
 
     // 准备请求数据，包含用户个性化信息
