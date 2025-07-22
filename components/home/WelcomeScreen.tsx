@@ -77,6 +77,11 @@ export const WelcomeScreen = ({
     adjustTextareaHeight();
   }, [topicInput]);
 
+  // 组件挂载时初始化高度
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, []);
+
   const handleTopicSubmit = () => {
     onTopicSubmit(selectedContentFormat);
   };
@@ -132,7 +137,6 @@ export const WelcomeScreen = ({
                 style={{
                   minHeight: '100px',
                   maxHeight: '300px',
-                  height: '100px',
                 }}
                 rows={4}
               />
