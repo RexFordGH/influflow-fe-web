@@ -3,7 +3,7 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
@@ -41,18 +41,21 @@ const TrendingTopicItem = ({
   id,
   topic,
   index,
+  isOpen,
+  onToggle,
   onTweetsSelect,
 }: {
   id: string;
   topic: any;
   index: number;
+  isOpen: boolean;
+  onToggle: () => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }) => {
-  const [isOpen, setIsOpen] = useState(index === 0);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleToggle = () => {
-    setIsOpen(!isOpen);
+    onToggle();
   };
 
   return (
@@ -132,6 +135,7 @@ export function TrendingTopicsPage({
   onTweetsSelect,
 }: TrendingTopicsProps) {
   const [selectedCategory, setSelectedCategory] = useState('ai');
+  const [expandedTopicIndex, setExpandedTopicIndex] = useState<number | null>(0); // 默认展开第一个
 
   const { data: topicTypes } = useTopicTypes();
 
@@ -149,6 +153,16 @@ export function TrendingTopicsPage({
     id: type.id,
     label: type.label,
   }));
+
+  // 处理话题展开/收起的逻辑
+  const handleTopicToggle = (index: number) => {
+    setExpandedTopicIndex(expandedTopicIndex === index ? null : index);
+  };
+
+  // 当切换分类时，重置展开状态到第一个
+  useEffect(() => {
+    setExpandedTopicIndex(0);
+  }, [selectedCategory]);
 
   return (
     <div className="size-full overflow-y-auto bg-white">
@@ -193,6 +207,8 @@ export function TrendingTopicsPage({
                       topic={topic}
                       index={index}
                       id={topic.id}
+                      isOpen={expandedTopicIndex === index}
+                      onToggle={() => handleTopicToggle(index)}
                       onTweetsSelect={onTweetsSelect}
                     />
                   ))
