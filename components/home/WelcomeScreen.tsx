@@ -113,7 +113,7 @@ export const WelcomeScreen = ({
               would you like to write about today?
             </h2>
 
-            <div className="mt-[24px] relative">
+            <div className="relative mt-[24px]">
               <textarea
                 ref={textareaRef}
                 placeholder="You can start with a topic or an opinion."

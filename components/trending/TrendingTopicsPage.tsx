@@ -89,9 +89,9 @@ const TrendingTopicItem = ({
               className="text-gray-600"
             >
               {isOpen ? (
-                <ChevronDownIcon className="h-5 w-5" />
+                <ChevronDownIcon className="size-5" />
               ) : (
-                <ChevronRightIcon className="h-5 w-5" />
+                <ChevronRightIcon className="size-5" />
               )}
             </motion.div>
           </div>
