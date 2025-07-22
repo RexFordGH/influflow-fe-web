@@ -285,7 +285,8 @@ export function SectionRendererOfLongForm({
 
       const editorValue = JSON.stringify({
         content: textContent
-          .replace(/\n\n/g, '<br>')
+          .replace(/\n\n/g, '<br><br>')
+          .replace(/\n/g, '<br>')
           .replace(
             /\*\*(.*?)\*\*/g,
             '<strong class="font-semibold text-gray-900">$1</strong>',
