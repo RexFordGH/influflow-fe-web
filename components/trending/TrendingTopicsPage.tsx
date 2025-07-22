@@ -1,11 +1,10 @@
 'use client';
 
-import { cn, Skeleton } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
 
 import { Button } from '@/components/base';
-import { addToast } from '@/components/base/toast';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 
@@ -36,34 +35,26 @@ const SuggestedTopicSkeleton = () => (
   </div>
 );
 
-// Trending Topic Item 组件（带 hover 功能）
+// Trending Topic Item 组件（带点击功能）
 const TrendingTopicItem = ({
   id,
   topic,
   index,
-  onCopy,
   onTweetsSelect,
 }: {
   id: string;
   topic: any;
   index: number;
-  onCopy: () => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const debouncedSetIsOpen = useDebouncedCallback(setIsOpen, 300);
+  const [isOpen, setIsOpen] = useState(index === 0);
 
-  const handleOpen = () => {
-    debouncedSetIsOpen.cancel();
-    setIsOpen(true);
-  };
-
-  const handleClose = () => {
-    debouncedSetIsOpen(false);
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
   };
 
   return (
-    <div onMouseEnter={handleOpen} onMouseLeave={handleClose}>
+    <div>
       {/* <CopyToClipboard text={topic.title}> */}
       <div className="flex items-start justify-start gap-[16px]">
         <span className="pt-[6px] text-[18px] font-[500] text-[#8C8C8C]">
@@ -71,6 +62,7 @@ const TrendingTopicItem = ({
         </span>
 
         <button
+          onClick={handleToggle}
           className="flex cursor-pointer items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
           style={{
             width: `${Math.max(432, 880 - index * 110)}px`,
@@ -87,10 +79,18 @@ const TrendingTopicItem = ({
       {/* </CopyToClipboard> */}
 
       {/* Trending Topic Tweets 展开区域 */}
-      <div
-        className={cn('mt-3', isOpen ? 'block' : 'hidden')}
-        onMouseEnter={handleOpen}
-        onMouseLeave={handleClose}
+      <motion.div
+        className="mt-3"
+        animate={{
+          opacity: isOpen ? 1 : 0,
+          height: isOpen ? 'auto' : 0,
+          display: isOpen ? 'block' : 'none',
+        }}
+        transition={{
+          duration: 0.3,
+          ease: 'easeInOut',
+        }}
+        style={{ overflow: 'hidden' }}
       >
         <TrendingTopicTweets
           isVisible={isOpen}
@@ -99,7 +99,7 @@ const TrendingTopicItem = ({
             onTweetsSelect?.(selectedTweets, topic.title);
           }}
         />
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -172,12 +172,6 @@ export function TrendingTopicsPage({
                       topic={topic}
                       index={index}
                       id={topic.id}
-                      onCopy={() => {
-                        addToast({
-                          title: 'Copied Successfully',
-                          color: 'success',
-                        });
-                      }}
                       onTweetsSelect={onTweetsSelect}
                     />
                   ))
