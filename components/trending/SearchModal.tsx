@@ -10,6 +10,22 @@ import { Button } from '../base';
 
 import { TwitterCard } from './TwitterCard';
 
+// 声明全局的 twttr 对象
+declare global {
+  interface Window {
+    twttr: {
+      widgets: {
+        createTweet: (
+          id: string,
+          element: HTMLElement,
+          options?: any,
+        ) => Promise<HTMLElement>;
+        load: (element?: HTMLElement) => void;
+      };
+    };
+  }
+}
+
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -84,14 +100,27 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
   // 当组件变为可见时，手动触发Twitter widgets加载
   useEffect(() => {
     if (isOpen && !isLoading && tweetData && tweetData.length > 0) {
+      console.log('Checking Twitter widgets availability...');
+      console.log('window.twttr:', window.twttr);
+      console.log('window.twttr?.widgets:', window.twttr?.widgets);
+
       if (window.twttr?.widgets) {
+        // 延迟一点确保DOM渲染完成
         const timer = setTimeout(() => {
+          console.log('Manually loading Twitter widgets...');
           const blockquotes = document.querySelectorAll(
             'blockquote.twitter-tweet',
           );
+          console.log('Found blockquotes:', blockquotes.length);
 
-          blockquotes.forEach((bq) => {
+          // 清除所有已处理的标记，让Twitter重新处理
+          blockquotes.forEach((bq, index) => {
+            console.log(`Blockquote ${index}:`, bq.outerHTML.substring(0, 200));
+
+            // 移除Twitter已处理的标记
             bq.removeAttribute('data-twitter-extracted');
+
+            // 移除可能存在的处理后的iframe
             const nextSibling = bq.nextElementSibling;
             if (
               nextSibling &&
@@ -102,10 +131,24 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
             }
           });
 
+          console.log('Cleared Twitter processed attributes, reloading...');
           window.twttr.widgets.load();
         }, 200);
 
         return () => clearTimeout(timer);
+      } else {
+        console.error(
+          'Twitter widgets not available! Checking script loading...',
+        );
+        // 检查Twitter脚本是否存在
+        const twitterScript = document.querySelector(
+          'script[src*="platform.twitter.com"]',
+        );
+        console.log('Twitter script element:', twitterScript);
+
+        if (!twitterScript) {
+          console.error('Twitter script not found in DOM!');
+        }
       }
     }
   }, [isOpen, isLoading, tweetData]);
