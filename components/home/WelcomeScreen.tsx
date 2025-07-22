@@ -12,7 +12,7 @@ import { lazy, useEffect, useRef, useState } from 'react';
 import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
-import { ContentFormat, SuggestedTopic, TrendingTopic } from '@/types/api';
+import { ContentFormat, SuggestedTopic, TrendingTopic, ITrendsRecommendTweet } from '@/types/api';
 
 const TrendingTopicsPage = lazy(() =>
   import('@/components/trending/TrendingTopicsPage').then((module) => ({
@@ -26,6 +26,7 @@ interface WelcomeScreenProps {
   onBackFromTrending: () => void;
   onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
+  onTrendingSearchConfirm?: (searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => void;
   selectedTweets?: any[];
   onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
@@ -40,6 +41,7 @@ export const WelcomeScreen = ({
   onBackFromTrending,
   onTrendingTopicSelect,
   onTrendingTweetsSelect,
+  onTrendingSearchConfirm,
   selectedTweets,
   onRemoveSelectedTweet,
   topicInput,
@@ -275,6 +277,11 @@ export const WelcomeScreen = ({
               // 回到上一页并携带选中的推文数据
               onBackFromTrending();
               onTrendingTweetsSelect?.(selectedTweets, topicTitle);
+            }}
+            onSearchConfirm={(searchTerm, selectedTweets) => {
+              // 回到上一页并携带搜索结果和选中的推文数据
+              onBackFromTrending();
+              onTrendingSearchConfirm?.(searchTerm, selectedTweets);
             }}
           />
         </div>

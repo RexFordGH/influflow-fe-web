@@ -14,6 +14,7 @@ import {
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 
+import { StaticTrendsRecommend } from '@/components/trending/mock';
 import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
 import {
   createLocalModifyOutlineResponse,
@@ -195,6 +196,28 @@ export function useTrendingRecommend(id: string, enabled?: boolean) {
       return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
       );
+    },
+    select: (data) => {
+      return data.tweets;
+    },
+    enabled: enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+}
+
+export function useTrendingSearch(topic: string, enabled?: boolean) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, topic],
+    queryFn: async () => {
+      return Promise.resolve({
+        tweets: StaticTrendsRecommend['82c6ba13-4c10-4813-b59e-68a6c5ff9929'],
+      });
+      // return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
+      //   `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/search?id=${encodeURIComponent(topic)}`,
+      // );
     },
     select: (data) => {
       return data.tweets;
