@@ -91,7 +91,11 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
   return (
     <div
       ref={containerRef}
-      className={`tweet-embed-container relative ${className}`}
+      className={`tweet-embed-container relative h-[520px] overflow-hidden ${className}`}
+      style={{
+        maxHeight: '520px',
+        overflowY: 'scroll',
+      }}
     ></div>
   );
 }
