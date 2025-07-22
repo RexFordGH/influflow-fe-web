@@ -1,6 +1,5 @@
 'use client';
 
-import { PencilIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -88,7 +87,7 @@ export function MindmapRenderer({
     const { selected, data, id } = props;
     return (
       <div className="relative">
-        {selected && (
+        {/* {selected && (
           <div className="absolute left-1/2 top-[-45px] z-10 -translate-x-1/2">
             <Button
               size="sm"
@@ -99,7 +98,7 @@ export function MindmapRenderer({
               Edit with AI
             </Button>
           </div>
-        )}
+        )} */}
         <MindmapNode {...props} />
       </div>
     );
