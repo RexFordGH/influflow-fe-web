@@ -1,6 +1,6 @@
 'use client';
 
-import { Image } from '@heroui/react';
+import { Image, Tooltip } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
 import { useTrendingRecommend } from '@/lib/api/services';
@@ -147,18 +147,28 @@ export function TrendingTopicTweets({
               <div key={index} className="relative">
                 <TwitterCard html={tweet.html} className="flex-1" />
 
-                <div
-                  onClick={() => toggleTweetSelection(index)}
-                  className={`absolute right-[8px] top-[14px] cursor-pointer rounded-[8px] bg-white p-[8px] transition-colors hover:bg-[#E8E8E8]`}
+                <Tooltip
+                  content="Use as Reference"
+                  closeDelay={0}
+                  placement="top"
+                  classNames={{
+                    content: 'bg-black text-white',
+                    arrow: 'bg-black border-black',
+                  }}
                 >
-                  <Image
-                    src="/icons/check.svg"
-                    alt="Select Tweet"
-                    width={24}
-                    height={24}
-                    className={isSelected ? 'invert' : ''}
-                  />
-                </div>
+                  <div
+                    onClick={() => toggleTweetSelection(index)}
+                    className={`absolute right-[8px] top-[14px] cursor-pointer rounded-[8px] bg-white p-[8px] transition-colors hover:bg-[#E8E8E8]`}
+                  >
+                    <Image
+                      src="/icons/check.svg"
+                      alt="Select Tweet"
+                      width={24}
+                      height={24}
+                      className={isSelected ? 'invert' : ''}
+                    />
+                  </div>
+                </Tooltip>
               </div>
             );
           })}
