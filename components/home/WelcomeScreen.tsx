@@ -107,13 +107,13 @@ export const WelcomeScreen = ({
       >
         {/* 首页 */}
         <div className="flex size-full items-center justify-center bg-white">
-          <div className="relative flex flex-col gap-[24px] px-[24px] text-center">
+          <div className="relative flex flex-col px-[24px] text-center">
             <h2 className="text-[24px] font-[600] text-black">
               Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what
               would you like to write about today?
             </h2>
 
-            <div className="relative">
+            <div className="mt-[24px] relative">
               <textarea
                 ref={textareaRef}
                 placeholder="You can start with a topic or an opinion."
@@ -205,7 +205,7 @@ export const WelcomeScreen = ({
             </div>
 
             {selectedTweets && selectedTweets.length > 0 && (
-              <div className="mt-[16px] grid max-w-[700px] grid-cols-3 gap-[8px]">
+              <div className="mt-[14px] grid max-w-[700px] grid-cols-3 gap-[8px]">
                 {selectedTweets.map((tweet, index) => (
                   <div
                     key={tweet.id}
