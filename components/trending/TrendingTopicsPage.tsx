@@ -2,13 +2,13 @@
 
 import { cn, Skeleton } from '@heroui/react';
 import { useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { Button } from '@/components/base';
 import { addToast } from '@/components/base/toast';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
 import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
 
-import { useDebouncedCallback } from 'use-debounce';
 import { TrendingTopicTweets } from './TrendingTopicTweets';
 
 interface TrendingTopicsProps {
@@ -44,7 +44,7 @@ const TrendingTopicItem = ({
   onCopy,
   onTweetsSelect,
 }: {
-  id: number;
+  id: string;
   topic: any;
   index: number;
   onCopy: () => void;
@@ -92,9 +92,9 @@ const TrendingTopicItem = ({
         onMouseEnter={handleOpen}
         onMouseLeave={handleClose}
       >
-        <TrendingTopicTweets 
-          isVisible={isOpen} 
-          id={id} 
+        <TrendingTopicTweets
+          isVisible={isOpen}
+          id={id}
           onConfirm={(selectedTweets) => {
             onTweetsSelect?.(selectedTweets, topic.title);
           }}

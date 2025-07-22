@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  ITrendsRecommendTweet,
   type CheckInvitationCodeResponse,
   type GenerateImageRequest,
   type GenerateThreadRequest,
@@ -13,7 +14,6 @@ import {
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 
-import MOCK_TWEETS from '@/components/trending/mock';
 import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
 import {
   createLocalModifyOutlineResponse,
@@ -188,23 +188,22 @@ export function useTrendingTopics(topicType: string = 'ai') {
   });
 }
 
-export function useTrendingRecommend(id: number, enabled?: boolean) {
+export function useTrendingRecommend(id: string, enabled?: boolean) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, id],
-    queryFn: () => {
-      return Promise.resolve(MOCK_TWEETS);
-      // return apiDirectGet<any[]>(
-      //   `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
-      // );
+    queryFn: async () => {
+      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
+      );
+    },
+    select: (data) => {
+      return data.tweets;
     },
     enabled: enabled,
-    select: (data) => {
-      console.log('[trends/recommend]', data);
-      return data;
-    },
-    staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
-    gcTime: 10 * 60 * 1000, // 10分钟缓存
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    retry: false,
   });
 }
 

@@ -1,17 +1,20 @@
 'use client';
 
+import { Image } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
 import { useTrendingRecommend } from '@/lib/api/services';
-import { Image } from '@heroui/react';
+import { ITrendsRecommendTweet } from '@/types/api';
+
 import { Button } from '../base';
-import MOCK_TWEETS from './mock';
+
 import { TwitterCard } from './TwitterCard';
+import { StaticTrendsRecommend } from './mock';
 
 interface TrendingTopicTweetsProps {
-  id: number;
+  id: string;
   isVisible: boolean;
-  onConfirm?: (selectedTweets: typeof MOCK_TWEETS) => void;
+  onConfirm?: (selectedTweets: ITrendsRecommendTweet[]) => void;
 }
 
 export function TrendingTopicTweets({
@@ -19,7 +22,8 @@ export function TrendingTopicTweets({
   id,
   onConfirm,
 }: TrendingTopicTweetsProps) {
-  const { data: tweetData, isLoading } = useTrendingRecommend(id, isVisible);
+  const { data: tweetData } = useTrendingRecommend(id, isVisible);
+  const staticData = StaticTrendsRecommend[id] || [];
   const [selectedTweetIndices, setSelectedTweetIndices] = useState<Set<number>>(
     new Set(),
   );
@@ -44,7 +48,7 @@ export function TrendingTopicTweets({
     }
 
     const selectedTweets = Array.from(selectedTweetIndices).map(
-      (index) => MOCK_TWEETS[index],
+      (index) => tweetData![index],
     );
     onConfirm?.(selectedTweets);
   };
@@ -107,7 +111,7 @@ export function TrendingTopicTweets({
 
   return (
     <div className="w-full shadow-sm">
-      <div className="flex justify-between items-center mb-[16px]">
+      <div className="mb-[16px] flex items-center justify-between">
         <div>
           <h3 className="mb-1 text-sm font-medium text-black">Viral Tweets</h3>
           <p className="text-xs text-gray-600">
@@ -117,8 +121,8 @@ export function TrendingTopicTweets({
         </div>
         <Button
           className={`rounded-full ${
-            selectedTweetIndices.size > 0 
-              ? 'bg-black text-white hover:bg-gray-800' 
+            selectedTweetIndices.size > 0
+              ? 'bg-black text-white hover:bg-gray-800'
               : ''
           }`}
           onClick={handleConfirm}
@@ -137,7 +141,7 @@ export function TrendingTopicTweets({
         }}
       >
         <div className="grid grid-cols-3 gap-3">
-          {MOCK_TWEETS.map((tweet, index) => {
+          {(tweetData || staticData || []).map((tweet, index) => {
             const isSelected = selectedTweetIndices.has(index);
             return (
               <div key={index} className="relative">
@@ -145,7 +149,7 @@ export function TrendingTopicTweets({
 
                 <div
                   onClick={() => toggleTweetSelection(index)}
-                  className={`absolute top-[14px] right-[8px] rounded-[8px] transition-colors p-[8px] bg-white cursor-pointer hover:bg-[#E8E8E8]`}
+                  className={`absolute right-[8px] top-[14px] cursor-pointer rounded-[8px] bg-white p-[8px] transition-colors hover:bg-[#E8E8E8]`}
                 >
                   <Image
                     src="/icons/check.svg"

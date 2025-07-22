@@ -54,7 +54,7 @@ export type ModifyOutlineResponse = BaseResponse<ModifyOutlineData>;
 
 // Trending Topics 相关类型
 export interface TrendingTopic {
-  id: number;
+  id: string;
   title: string;
   type: string;
   value: number;
@@ -68,6 +68,20 @@ export interface SuggestedTopic {
 export interface TrendingTopicsResponse {
   trending_topics: TrendingTopic[];
   suggested_topics: SuggestedTopic[];
+}
+
+export interface ITrendsRecommendTweet {
+  url: string;
+  author_name: string;
+  author_url: string;
+  html: string;
+  width: number;
+  height: number | null;
+  type: string;
+  cache_age: string;
+  provider_name: string;
+  provider_url: string;
+  version: string;
 }
 
 // 图片生成相关类型

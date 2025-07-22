@@ -177,7 +177,7 @@ export const WelcomeScreen = ({
             </div>
 
             {selectedTweets && selectedTweets.length > 0 && (
-              <div className="mt-[16px] grid grid-cols-3 gap-[8px] max-w-[700px]">
+              <div className="mt-[16px] grid max-w-[700px] grid-cols-3 gap-[8px]">
                 {selectedTweets.map((tweet, index) => (
                   <div
                     key={tweet.id}
@@ -187,13 +187,13 @@ export const WelcomeScreen = ({
                       src={'/icons/x-icon.svg'}
                       width={32}
                       height={32}
-                      className="flex-shrink-0"
+                      className="shrink-0"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] text-[#757575] text-left font-[500]">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-left text-[12px] font-[500] text-[#757575]">
                         {tweet.author_name}
                       </p>
-                      <p className="text-[12px] text-[#8C8C8C] truncate">
+                      <p className="truncate text-[12px] text-[#8C8C8C]">
                         {(() => {
                           // 提取推文内容的前几个词作为预览
                           const htmlContent = tweet.html;

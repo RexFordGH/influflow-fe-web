@@ -162,14 +162,14 @@ function HomeContent() {
       // 清除之前选择的笔记数据，确保重新生成新内容
       setInitialData(undefined);
       setContentFormat(selectedContentFormat);
-      
+
       // 如果有选中的推文，将其链接附加到topic中
       let finalTopic = topicInput;
       if (selectedTweets.length > 0) {
-        const tweetUrls = selectedTweets.map(tweet => tweet.url).join(', ');
+        const tweetUrls = selectedTweets.map((tweet) => tweet.url).join(', ');
         finalTopic = `${topicInput}. Reference these popular posts: ${tweetUrls}`;
       }
-      
+
       setCurrentTopic(finalTopic);
       setShowContentGeneration(true);
       setHasCreatedContentGeneration(true);
@@ -211,7 +211,9 @@ function HomeContent() {
   };
 
   const handleRemoveSelectedTweet = (indexToRemove: number) => {
-    setSelectedTweets(prev => prev.filter((_, index) => index !== indexToRemove));
+    setSelectedTweets((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   const handleCloseProfileCompletePrompt = () => {
