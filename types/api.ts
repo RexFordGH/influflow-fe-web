@@ -54,6 +54,7 @@ export type ModifyOutlineResponse = BaseResponse<ModifyOutlineData>;
 
 // Trending Topics 相关类型
 export interface TrendingTopic {
+  id: number;
   title: string;
   type: string;
   value: number;

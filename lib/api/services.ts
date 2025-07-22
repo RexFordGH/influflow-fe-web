@@ -13,6 +13,7 @@ import {
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 
+import MOCK_TWEETS from '@/components/trending/mock';
 import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
 import {
   createLocalModifyOutlineResponse,
@@ -27,6 +28,7 @@ export const QUERY_KEYS = {
   TWITTER_MODIFY_OUTLINE: ['twitter', 'modify-outline'] as const,
   TWITTER_GENERATE_IMAGE: ['twitter', 'generate-image'] as const,
   TRENDING_TOPICS: ['trending', 'topics'] as const,
+  TRENDING_RECOMMEND: ['trending', 'recommend'] as const,
   VERIFY_INVITATION_CODE: ['verify', 'invitation-code'] as const,
 } as const;
 
@@ -183,6 +185,26 @@ export function useTrendingTopics(topicType: string = 'ai') {
     gcTime: 10 * 60 * 1000, // 10分钟缓存
     refetchOnWindowFocus: false,
     retry: 3,
+  });
+}
+
+export function useTrendingRecommend(id: number, enabled?: boolean) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, id],
+    queryFn: () => {
+      return Promise.resolve(MOCK_TWEETS);
+      // return apiDirectGet<any[]>(
+      //   `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
+      // );
+    },
+    enabled: enabled,
+    select: (data) => {
+      console.log('[trends/recommend]', data);
+      return data;
+    },
+    staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
+    gcTime: 10 * 60 * 1000, // 10分钟缓存
+    refetchOnWindowFocus: false,
   });
 }
 

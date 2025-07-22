@@ -54,6 +54,7 @@
     "remark-stringify": "^11.0.0",
     "twitter-api-v2": "^1.17.2",
     "unified": "^11.0.5",
+    "use-debounce": "^10.0.5",
     "uuid": "^11.1.0",
     "zustand": "^5.0.5"
   },

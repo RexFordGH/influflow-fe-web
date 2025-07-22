@@ -1,6 +1,5 @@
 'use client';
 
-import { Image } from '@heroui/react';
 import { useEffect, useRef } from 'react';
 
 interface TwitterCardProps {
@@ -93,8 +92,6 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
     <div
       ref={containerRef}
       className={`tweet-embed-container relative ${className}`}
-    >
-      <Image src="/icons/check.svg" alt="Twitter Card" width={16} height={16} />
-    </div>
+    ></div>
   );
 }
