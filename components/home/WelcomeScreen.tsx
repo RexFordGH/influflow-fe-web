@@ -8,7 +8,7 @@ import {
   DropdownTrigger,
   Image,
 } from '@heroui/react';
-import { lazy, useState } from 'react';
+import { lazy, useEffect, useRef, useState } from 'react';
 import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
@@ -50,6 +50,7 @@ export const WelcomeScreen = ({
   const { user, isAuthenticated } = useAuthStore();
   const [selectedContentFormat, setSelectedContentFormat] =
     useState<ContentFormat>('longform');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 直接使用外部状态，不需要内部同步
   const currentPage = showTrendingTopics ? 1 : 0;
@@ -59,6 +60,22 @@ export const WelcomeScreen = ({
     { key: 'longform', label: 'Article', icon: '≣' },
     { key: 'thread', label: 'Threads', icon: '≡' },
   ];
+
+  // 自动调整textarea高度
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // 重置高度以获取正确的scrollHeight
+      textarea.style.height = 'auto';
+      // 设置最小高度为100px，最大高度为300px
+      const newHeight = Math.max(100, Math.min(300, textarea.scrollHeight));
+      textarea.style.height = `${newHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [topicInput]);
 
   const handleTopicSubmit = () => {
     onTopicSubmit(selectedContentFormat);
@@ -93,6 +110,7 @@ export const WelcomeScreen = ({
 
             <div className="relative">
               <textarea
+                ref={textareaRef}
                 placeholder="You can start with a topic or an opinion."
                 value={topicInput}
                 onChange={(e) => onTopicInputChange(e.target.value)}
@@ -109,7 +127,13 @@ export const WelcomeScreen = ({
                 onWheel={(e) => {
                   e.stopPropagation();
                 }}
-                className="min-h-[100px] w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[60dpx] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                onInput={adjustTextareaHeight}
+                className="w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[40px] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                style={{
+                  minHeight: '100px',
+                  maxHeight: '300px',
+                  height: '100px',
+                }}
                 rows={4}
               />
               {/* Content Format Dropdown */}
