@@ -13,9 +13,9 @@ import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
 import {
   type ContentFormat,
+  type ITrendsRecommendTweet,
   type SuggestedTopic,
   type TrendingTopic,
-  type ITrendsRecommendTweet,
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 import {

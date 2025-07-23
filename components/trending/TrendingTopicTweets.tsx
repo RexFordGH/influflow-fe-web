@@ -144,7 +144,7 @@ export function TrendingTopicTweets({
             ? // 骨架屏 - 显示6个推文的占位符
               Array.from({ length: 6 }).map((_, index) => (
                 <div key={`skeleton-${index}`} className="relative">
-                  <div className="rounded-2xl border border-gray-200 bg-white p-4 h-[520px]">
+                  <div className="h-[520px] rounded-2xl border border-gray-200 bg-white p-4">
                     {/* 头部信息 */}
                     <div className="mb-3 flex items-center gap-3">
                       <Skeleton className="size-12 rounded-full" />

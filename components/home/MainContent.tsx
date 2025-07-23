@@ -5,7 +5,12 @@ import { motion } from 'framer-motion';
 import { Suspense, lazy } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
-import { ContentFormat, SuggestedTopic, TrendingTopic, ITrendsRecommendTweet } from '@/types/api';
+import {
+  ContentFormat,
+  ITrendsRecommendTweet,
+  SuggestedTopic,
+  TrendingTopic,
+} from '@/types/api';
 import { Article, Category } from '@/types/content';
 
 import { WelcomeScreen } from './WelcomeScreen';
@@ -49,7 +54,10 @@ export const MainContent = ({
   onBackFromTrending: () => void;
   onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
-  onTrendingSearchConfirm?: (searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => void;
+  onTrendingSearchConfirm?: (
+    searchTerm: string,
+    selectedTweets: ITrendsRecommendTweet[],
+  ) => void;
   selectedTweets?: any[];
   onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
