@@ -1,7 +1,7 @@
 'use client';
 
 import { Image, Modal, ModalContent, Skeleton, Tooltip } from '@heroui/react';
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useTrendingSearch } from '@/lib/api/services';
 import { ITrendsRecommendTweet } from '@/types/api';
@@ -9,6 +9,54 @@ import { ITrendsRecommendTweet } from '@/types/api';
 import { Button } from '../base';
 
 import { TwitterCard } from './TwitterCard';
+
+// 优化的推文项组件
+const TweetItem = memo(({ 
+  tweet, 
+  index, 
+  isSelected, 
+  onToggle 
+}: {
+  tweet: ITrendsRecommendTweet;
+  index: number;
+  isSelected: boolean;
+  onToggle: (index: number) => void;
+}) => {
+  const handleToggle = useCallback(() => {
+    onToggle(index);
+  }, [index, onToggle]);
+
+  return (
+    <div className="relative">
+      <TwitterCard html={tweet.html} className="flex-1" />
+
+      <Tooltip
+        content="Use as Reference"
+        closeDelay={0}
+        placement="top"
+        classNames={{
+          content: 'bg-black text-white',
+          arrow: 'bg-black border-black',
+        }}
+      >
+        <div
+          onClick={handleToggle}
+          className={`absolute right-[8px] top-[14px] cursor-pointer rounded-[8px] bg-white p-[8px] transition-colors hover:bg-[#E8E8E8]`}
+        >
+          <Image
+            src="/icons/check.svg"
+            alt="Select Tweet"
+            width={24}
+            height={24}
+            className={isSelected ? 'invert' : ''}
+          />
+        </div>
+      </Tooltip>
+    </div>
+  );
+});
+
+TweetItem.displayName = 'TweetItem';
 
 // 声明全局的 twttr 对象
 declare global {
@@ -33,14 +81,37 @@ interface SearchModalProps {
     searchTerm: string,
     selectedTweets: ITrendsRecommendTweet[],
   ) => void;
+  // 新增：外部状态管理
+  initialSearchTerm?: string;
+  onSearchTermChange?: (term: string) => void;
 }
 
-export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+export function SearchModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  initialSearchTerm = '', 
+  onSearchTermChange 
+}: SearchModalProps) {
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm);
   const [selectedTweetIndices, setSelectedTweetIndices] = useState<Set<number>>(
     new Set(),
   );
+
+  // 同步外部传入的初始搜索词
+  useEffect(() => {
+    if (initialSearchTerm !== searchTerm) {
+      setSearchTerm(initialSearchTerm);
+      setDebouncedSearchTerm(initialSearchTerm);
+    }
+  }, [initialSearchTerm, searchTerm]);
+
+  // 当搜索词改变时通知父组件
+  const handleSearchTermChange = useCallback((term: string) => {
+    setSearchTerm(term);
+    onSearchTermChange?.(term);
+  }, [onSearchTermChange]);
 
   // 防抖搜索
   useEffect(() => {
@@ -51,18 +122,25 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // 使用搜索API
+  // 使用搜索API - 只要有搜索词就启用查询，不依赖弹窗状态
   const {
     data: tweetData,
     isLoading,
     error,
+    isFetching,
   } = useTrendingSearch(
     debouncedSearchTerm,
-    isOpen && debouncedSearchTerm.trim().length > 0,
+    debouncedSearchTerm.trim().length > 0,
+  );
+
+  // 区分真正的加载状态：只有在没有数据且正在获取时才显示骨架屏
+  const shouldShowSkeleton = useMemo(() => 
+    !tweetData && (isLoading || isFetching), 
+    [tweetData, isLoading, isFetching]
   );
 
   // 切换推文选中状态
-  const toggleTweetSelection = (index: number) => {
+  const toggleTweetSelection = useCallback((index: number) => {
     setSelectedTweetIndices((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
@@ -72,10 +150,10 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
       }
       return newSet;
     });
-  };
+  }, []);
 
   // 处理确认按钮点击
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     // 即使没有选中推文，也可以只传递搜索词
     const selectedTweets = tweetData && selectedTweetIndices.size > 0 
       ? Array.from(selectedTweetIndices).map((index) => tweetData[index])
@@ -83,23 +161,18 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
     
     onConfirm(searchTerm, selectedTweets);
 
-    // 重置状态
-    setSearchTerm('');
-    setDebouncedSearchTerm('');
+    // 确认后只重置选择状态，保留搜索词
     setSelectedTweetIndices(new Set());
-  };
+  }, [tweetData, selectedTweetIndices, onConfirm, searchTerm]);
 
-  // 处理关闭
-  const handleClose = () => {
-    setSearchTerm('');
-    setDebouncedSearchTerm('');
-    setSelectedTweetIndices(new Set());
+  // 处理关闭 - 不重置状态，保持搜索内容
+  const handleClose = useCallback(() => {
     onClose();
-  };
+  }, [onClose]);
 
-  // 当组件变为可见时，手动触发Twitter widgets加载
+  // 当组件变为可见且有数据时，手动触发Twitter widgets加载
   useEffect(() => {
-    if (isOpen && !isLoading && tweetData && tweetData.length > 0) {
+    if (isOpen && !shouldShowSkeleton && tweetData && tweetData.length > 0) {
       console.log('Checking Twitter widgets availability...');
       console.log('window.twttr:', window.twttr);
       console.log('window.twttr?.widgets:', window.twttr?.widgets);
@@ -151,7 +224,7 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
         }
       }
     }
-  }, [isOpen, isLoading, tweetData]);
+  }, [isOpen, shouldShowSkeleton, tweetData]);
 
   return (
     <Modal
@@ -173,7 +246,7 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchTermChange(e.target.value)}
               placeholder="Enter search keywords..."
               className="w-full rounded-lg border-none outline-none px-4 py-3 text-base placeholder-gray-500  focus:outline-none"
               autoFocus
@@ -186,7 +259,7 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
               <div className="flex h-64 items-center justify-center text-gray-500">
                 <p>Enter keywords to search for tweets</p>
               </div>
-            ) : isLoading ? (
+            ) : shouldShowSkeleton ? (
               <div className="grid grid-cols-3 gap-3">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div key={`skeleton-${index}`} className="relative">
@@ -243,6 +316,9 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
                   <div>
                     <h3 className="mb-1 text-sm font-medium text-black">
                       Viral Tweets
+                      {isFetching && tweetData && (
+                        <span className="ml-2 text-xs text-blue-500">Updating...</span>
+                      )}
                     </h3>
                     <p className="text-xs text-gray-600">
                       Use top posts as a reference to craft engaging content.
@@ -264,37 +340,15 @@ export function SearchModal({ isOpen, onClose, onConfirm }: SearchModalProps) {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {tweetData.map((tweet, index) => {
-                    const isSelected = selectedTweetIndices.has(index);
-                    return (
-                      <div key={index} className="relative">
-                        <TwitterCard html={tweet.html} className="flex-1" />
-
-                        <Tooltip
-                          content="Use as Reference"
-                          closeDelay={0}
-                          placement="top"
-                          classNames={{
-                            content: 'bg-black text-white',
-                            arrow: 'bg-black border-black',
-                          }}
-                        >
-                          <div
-                            onClick={() => toggleTweetSelection(index)}
-                            className={`absolute right-[8px] top-[14px] cursor-pointer rounded-[8px] bg-white p-[8px] transition-colors hover:bg-[#E8E8E8]`}
-                          >
-                            <Image
-                              src="/icons/check.svg"
-                              alt="Select Tweet"
-                              width={24}
-                              height={24}
-                              className={isSelected ? 'invert' : ''}
-                            />
-                          </div>
-                        </Tooltip>
-                      </div>
-                    );
-                  })}
+                  {tweetData.map((tweet, index) => (
+                    <TweetItem
+                      key={index}
+                      tweet={tweet}
+                      index={index}
+                      isSelected={selectedTweetIndices.has(index)}
+                      onToggle={toggleTweetSelection}
+                    />
+                  ))}
                 </div>
               </div>
             )}

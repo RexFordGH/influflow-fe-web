@@ -3,7 +3,7 @@
 import { ChevronDownIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
@@ -142,6 +142,7 @@ export function TrendingTopicsPage({
     0,
   ); // 默认展开第一个
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { data: topicTypes } = useTopicTypes();
 
@@ -169,6 +170,20 @@ export function TrendingTopicsPage({
   useEffect(() => {
     setExpandedTopicIndex(0);
   }, [selectedCategory]);
+
+  // 优化回调函数
+  const handleSearchModalClose = useCallback(() => {
+    setIsSearchModalOpen(false);
+  }, []);
+
+  const handleSearchConfirm = useCallback((searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => {
+    onSearchConfirm?.(searchTerm, selectedTweets);
+    setIsSearchModalOpen(false);
+  }, [onSearchConfirm]);
+
+  const handleSearchTermChange = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
 
   return (
     <div className="size-full overflow-y-auto bg-white">
@@ -269,11 +284,10 @@ export function TrendingTopicsPage({
       {/* Search Modal */}
       <SearchModal
         isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        onConfirm={(searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => {
-          onSearchConfirm?.(searchTerm, selectedTweets);
-          setIsSearchModalOpen(false);
-        }}
+        onClose={handleSearchModalClose}
+        onConfirm={handleSearchConfirm}
+        initialSearchTerm={searchTerm}
+        onSearchTermChange={handleSearchTermChange}
       />
     </div>
   );

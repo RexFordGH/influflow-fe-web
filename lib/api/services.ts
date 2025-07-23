@@ -210,7 +210,7 @@ export function useTrendingRecommend(id: string, enabled?: boolean) {
 
 export function useTrendingSearch(topic: string, enabled?: boolean) {
   return useQuery({
-    queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, topic],
+    queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, 'search', topic],
     queryFn: async () => {
       return Promise.resolve({
         tweets: StaticTrendsRecommend['82c6ba13-4c10-4813-b59e-68a6c5ff9929'],
@@ -223,9 +223,10 @@ export function useTrendingSearch(topic: string, enabled?: boolean) {
       return data.tweets;
     },
     enabled: enabled,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 10 * 60 * 1000,    // 10分钟内数据视为新鲜，减少重复请求
+    gcTime: 30 * 60 * 1000,       // 30分钟缓存，保持更久的本地缓存
+    refetchOnWindowFocus: false,  // 窗口聚焦时不重新获取
+    refetchOnMount: false,        // 组件重新挂载时不重新获取（如果有缓存）
     retry: false,
   });
 }
