@@ -1,23 +1,34 @@
 'use client';
 
-import { ChevronDownIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
-import { type SuggestedTopic, type TrendingTopic, type ITrendsRecommendTweet } from '@/types/api';
+import {
+  type ITrendsRecommendTweet,
+  type SuggestedTopic,
+  type TrendingTopic,
+} from '@/types/api';
 
-import { TrendingTopicTweets } from './TrendingTopicTweets';
 import { SearchModal } from './SearchModal';
+import { TrendingTopicTweets } from './TrendingTopicTweets';
 
 interface TrendingTopicsProps {
   isVisible: boolean;
   onBack: () => void;
   onTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
-  onSearchConfirm?: (searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => void;
+  onSearchConfirm?: (
+    searchTerm: string,
+    selectedTweets: ITrendsRecommendTweet[],
+  ) => void;
 }
 
 const TrendingTopicSkeleton = ({ index }: { index: number }) => (
@@ -176,10 +187,13 @@ export function TrendingTopicsPage({
     setIsSearchModalOpen(false);
   }, []);
 
-  const handleSearchConfirm = useCallback((searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => {
-    onSearchConfirm?.(searchTerm, selectedTweets);
-    setIsSearchModalOpen(false);
-  }, [onSearchConfirm]);
+  const handleSearchConfirm = useCallback(
+    (searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => {
+      onSearchConfirm?.(searchTerm, selectedTweets);
+      setIsSearchModalOpen(false);
+    },
+    [onSearchConfirm],
+  );
 
   const handleSearchTermChange = useCallback((term: string) => {
     setSearchTerm(term);
@@ -191,13 +205,13 @@ export function TrendingTopicsPage({
         <div className="flex-1 px-[30px] py-14">
           <div className="mx-auto w-full max-w-4xl">
             <div className="mb-10">
-              <div className='flex justify-between items-center'>
+              <div className="flex justify-between items-center">
                 <h2 className="mb-4 text-lg font-medium text-black">
                   Trending Topics
                 </h2>
                 <button
                   onClick={() => setIsSearchModalOpen(true)}
-                  className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-gray-500 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-gray-500 transition-colors hover:border-gray-400 hover:bg-gray-50 "
                 >
                   <MagnifyingGlassIcon className="size-4" />
                   <span>Search</span>
