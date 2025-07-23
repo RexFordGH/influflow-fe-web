@@ -11,50 +11,52 @@ import { Button } from '../base';
 import { TwitterCard } from './TwitterCard';
 
 // 优化的推文项组件
-const TweetItem = memo(({ 
-  tweet, 
-  index, 
-  isSelected, 
-  onToggle 
-}: {
-  tweet: ITrendsRecommendTweet;
-  index: number;
-  isSelected: boolean;
-  onToggle: (index: number) => void;
-}) => {
-  const handleToggle = useCallback(() => {
-    onToggle(index);
-  }, [index, onToggle]);
+const TweetItem = memo(
+  ({
+    tweet,
+    index,
+    isSelected,
+    onToggle,
+  }: {
+    tweet: ITrendsRecommendTweet;
+    index: number;
+    isSelected: boolean;
+    onToggle: (index: number) => void;
+  }) => {
+    const handleToggle = useCallback(() => {
+      onToggle(index);
+    }, [index, onToggle]);
 
-  return (
-    <div className="relative">
-      <TwitterCard html={tweet.html} className="flex-1" />
+    return (
+      <div className="relative">
+        <TwitterCard html={tweet.html} className="flex-1" />
 
-      <Tooltip
-        content="Use as Reference"
-        closeDelay={0}
-        placement="top"
-        classNames={{
-          content: 'bg-black text-white',
-          arrow: 'bg-black border-black',
-        }}
-      >
-        <div
-          onClick={handleToggle}
-          className={`absolute right-[8px] top-[14px] cursor-pointer rounded-[8px] bg-white p-[8px] transition-colors hover:bg-[#E8E8E8]`}
+        <Tooltip
+          content="Use as Reference"
+          closeDelay={0}
+          placement="top"
+          classNames={{
+            content: 'bg-black text-white',
+            arrow: 'bg-black border-black',
+          }}
         >
-          <Image
-            src="/icons/check.svg"
-            alt="Select Tweet"
-            width={24}
-            height={24}
-            className={isSelected ? 'invert' : ''}
-          />
-        </div>
-      </Tooltip>
-    </div>
-  );
-});
+          <div
+            onClick={handleToggle}
+            className={`absolute right-[8px] top-[14px] cursor-pointer rounded-[8px] bg-white p-[8px] transition-colors hover:bg-[#E8E8E8]`}
+          >
+            <Image
+              src="/icons/check.svg"
+              alt="Select Tweet"
+              width={24}
+              height={24}
+              className={isSelected ? 'invert' : ''}
+            />
+          </div>
+        </Tooltip>
+      </div>
+    );
+  },
+);
 
 TweetItem.displayName = 'TweetItem';
 
@@ -86,15 +88,16 @@ interface SearchModalProps {
   onSearchTermChange?: (term: string) => void;
 }
 
-export function SearchModal({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  initialSearchTerm = '', 
-  onSearchTermChange 
+export function SearchModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  initialSearchTerm = '',
+  onSearchTermChange,
 }: SearchModalProps) {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearchTerm);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] =
+    useState(initialSearchTerm);
   const [selectedTweetIndices, setSelectedTweetIndices] = useState<Set<number>>(
     new Set(),
   );
@@ -108,10 +111,13 @@ export function SearchModal({
   }, [initialSearchTerm, searchTerm]);
 
   // 当搜索词改变时通知父组件
-  const handleSearchTermChange = useCallback((term: string) => {
-    setSearchTerm(term);
-    onSearchTermChange?.(term);
-  }, [onSearchTermChange]);
+  const handleSearchTermChange = useCallback(
+    (term: string) => {
+      setSearchTerm(term);
+      onSearchTermChange?.(term);
+    },
+    [onSearchTermChange],
+  );
 
   // 防抖搜索
   useEffect(() => {
@@ -134,9 +140,9 @@ export function SearchModal({
   );
 
   // 区分真正的加载状态：只有在没有数据且正在获取时才显示骨架屏
-  const shouldShowSkeleton = useMemo(() => 
-    !tweetData && (isLoading || isFetching), 
-    [tweetData, isLoading, isFetching]
+  const shouldShowSkeleton = useMemo(
+    () => !tweetData && (isLoading || isFetching),
+    [tweetData, isLoading, isFetching],
   );
 
   // 切换推文选中状态
@@ -155,10 +161,11 @@ export function SearchModal({
   // 处理确认按钮点击
   const handleConfirm = useCallback(() => {
     // 即使没有选中推文，也可以只传递搜索词
-    const selectedTweets = tweetData && selectedTweetIndices.size > 0 
-      ? Array.from(selectedTweetIndices).map((index) => tweetData[index])
-      : [];
-    
+    const selectedTweets =
+      tweetData && selectedTweetIndices.size > 0
+        ? Array.from(selectedTweetIndices).map((index) => tweetData[index])
+        : [];
+
     onConfirm(searchTerm, selectedTweets);
 
     // 确认后只重置选择状态，保留搜索词
@@ -240,7 +247,7 @@ export function SearchModal({
       hideCloseButton
     >
       <ModalContent>
-        <div className="flex h-full max-h-[90vh] flex-col bg-white">
+        <div className="flex h-full max-h-[90vh] flex-col bg-white min-w-[1024px]">
           {/* Search Input */}
           <div className="p-[20px]">
             <input
@@ -254,7 +261,7 @@ export function SearchModal({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-[20px]">
             {!debouncedSearchTerm.trim() ? (
               <div className="flex h-64 items-center justify-center text-gray-500">
                 <p>Enter keywords to search for tweets</p>
@@ -317,7 +324,9 @@ export function SearchModal({
                     <h3 className="mb-1 text-sm font-medium text-black">
                       Viral Tweets
                       {isFetching && tweetData && (
-                        <span className="ml-2 text-xs text-blue-500">Updating...</span>
+                        <span className="ml-2 text-xs text-blue-500">
+                          Updating...
+                        </span>
                       )}
                     </h3>
                     <p className="text-xs text-gray-600">

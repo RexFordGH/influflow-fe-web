@@ -14,7 +14,6 @@ import {
 } from '@/types/api';
 import { Outline } from '@/types/outline';
 
-import { StaticTrendsRecommend } from '@/components/trending/mock';
 import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
 import {
   createLocalModifyOutlineResponse,
@@ -30,6 +29,7 @@ export const QUERY_KEYS = {
   TWITTER_GENERATE_IMAGE: ['twitter', 'generate-image'] as const,
   TRENDING_TOPICS: ['trending', 'topics'] as const,
   TRENDING_RECOMMEND: ['trending', 'recommend'] as const,
+  TRENDING_SEARCH: ['trending', 'query'] as const,
   VERIFY_INVITATION_CODE: ['verify', 'invitation-code'] as const,
 } as const;
 
@@ -208,25 +208,25 @@ export function useTrendingRecommend(id: string, enabled?: boolean) {
   });
 }
 
-export function useTrendingSearch(topic: string, enabled?: boolean) {
+export function useTrendingSearch(query: string, enabled?: boolean) {
   return useQuery({
-    queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, 'search', topic],
+    queryKey: [...QUERY_KEYS.TRENDING_SEARCH, 'search', query],
     queryFn: async () => {
-      return Promise.resolve({
-        tweets: StaticTrendsRecommend['82c6ba13-4c10-4813-b59e-68a6c5ff9929'],
-      });
-      // return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
-      //   `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/search?id=${encodeURIComponent(topic)}`,
-      // );
+      // return Promise.resolve({
+      //   tweets: StaticTrendsRecommend['82c6ba13-4c10-4813-b59e-68a6c5ff9929'],
+      // });
+      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/query?query=${encodeURIComponent(query)}`,
+      );
     },
     select: (data) => {
       return data.tweets;
     },
     enabled: enabled,
-    staleTime: 10 * 60 * 1000,    // 10分钟内数据视为新鲜，减少重复请求
-    gcTime: 30 * 60 * 1000,       // 30分钟缓存，保持更久的本地缓存
-    refetchOnWindowFocus: false,  // 窗口聚焦时不重新获取
-    refetchOnMount: false,        // 组件重新挂载时不重新获取（如果有缓存）
+    staleTime: 10 * 60 * 1000, // 10分钟内数据视为新鲜，减少重复请求
+    gcTime: 30 * 60 * 1000, // 30分钟缓存，保持更久的本地缓存
+    refetchOnWindowFocus: false, // 窗口聚焦时不重新获取
+    refetchOnMount: false, // 组件重新挂载时不重新获取（如果有缓存）
     retry: false,
   });
 }
