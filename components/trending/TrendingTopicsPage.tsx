@@ -154,6 +154,9 @@ export function TrendingTopicsPage({
   ); // 默认展开第一个
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchWidgetsLoaded, setSearchWidgetsLoaded] = useState<
+    Record<string, boolean>
+  >({});
 
   const { data: topicTypes } = useTopicTypes();
 
@@ -199,13 +202,23 @@ export function TrendingTopicsPage({
     setSearchTerm(term);
   }, []);
 
+  const handleWidgetsLoadedChange = useCallback(
+    (term: string, loaded: boolean) => {
+      setSearchWidgetsLoaded((prev) => ({
+        ...prev,
+        [term]: loaded,
+      }));
+    },
+    [],
+  );
+
   return (
     <div className="size-full overflow-y-auto bg-white">
       <div className="flex min-h-full flex-col">
         <div className="flex-1 px-[30px] py-14">
           <div className="mx-auto w-full max-w-4xl">
             <div className="mb-10">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <h2 className="mb-4 text-lg font-medium text-black">
                   Trending Topics
                 </h2>
@@ -302,6 +315,8 @@ export function TrendingTopicsPage({
         onConfirm={handleSearchConfirm}
         initialSearchTerm={searchTerm}
         onSearchTermChange={handleSearchTermChange}
+        widgetsLoaded={searchWidgetsLoaded}
+        onWidgetsLoadedChange={handleWidgetsLoadedChange}
       />
     </div>
   );

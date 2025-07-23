@@ -1,7 +1,8 @@
 'use client';
 
-import { Image, Modal, ModalContent, Skeleton, Tooltip } from '@heroui/react';
+import { Image, Skeleton, Tooltip } from '@heroui/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useTrendingSearch } from '@/lib/api/services';
 import { ITrendsRecommendTweet } from '@/types/api';
@@ -86,6 +87,9 @@ interface SearchModalProps {
   // 新增：外部状态管理
   initialSearchTerm?: string;
   onSearchTermChange?: (term: string) => void;
+  // Twitter widgets 加载状态管理
+  widgetsLoaded?: Record<string, boolean>;
+  onWidgetsLoadedChange?: (term: string, loaded: boolean) => void;
 }
 
 export function SearchModal({
@@ -94,6 +98,8 @@ export function SearchModal({
   onConfirm,
   initialSearchTerm = '',
   onSearchTermChange,
+  widgetsLoaded = {},
+  onWidgetsLoadedChange,
 }: SearchModalProps) {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [debouncedSearchTerm, setDebouncedSearchTerm] =
@@ -177,9 +183,16 @@ export function SearchModal({
     onClose();
   }, [onClose]);
 
-  // 当组件变为可见且有数据时，手动触发Twitter widgets加载
+  // 当有新数据时，手动触发Twitter widgets加载
   useEffect(() => {
-    if (isOpen && !shouldShowSkeleton && tweetData && tweetData.length > 0) {
+    if (
+      !isLoading &&
+      !isFetching &&
+      tweetData &&
+      tweetData.length > 0 &&
+      debouncedSearchTerm &&
+      !widgetsLoaded[debouncedSearchTerm]
+    ) {
       console.log('Checking Twitter widgets availability...');
       console.log('window.twttr:', window.twttr);
       console.log('window.twttr?.widgets:', window.twttr?.widgets);
@@ -193,26 +206,9 @@ export function SearchModal({
           );
           console.log('Found blockquotes:', blockquotes.length);
 
-          // 清除所有已处理的标记，让Twitter重新处理
-          blockquotes.forEach((bq, index) => {
-            console.log(`Blockquote ${index}:`, bq.outerHTML.substring(0, 200));
-
-            // 移除Twitter已处理的标记
-            bq.removeAttribute('data-twitter-extracted');
-
-            // 移除可能存在的处理后的iframe
-            const nextSibling = bq.nextElementSibling;
-            if (
-              nextSibling &&
-              nextSibling.tagName === 'IFRAME' &&
-              nextSibling.id.includes('twitter-widget')
-            ) {
-              nextSibling.remove();
-            }
-          });
-
-          console.log('Cleared Twitter processed attributes, reloading...');
+          console.log('Loading Twitter widgets...');
           window.twttr.widgets.load();
+          onWidgetsLoadedChange?.(debouncedSearchTerm, true);
         }, 200);
 
         return () => clearTimeout(timer);
@@ -231,23 +227,82 @@ export function SearchModal({
         }
       }
     }
-  }, [isOpen, shouldShowSkeleton, tweetData]);
+  }, [
+    isLoading,
+    isFetching,
+    tweetData,
+    debouncedSearchTerm,
+    widgetsLoaded,
+    onWidgetsLoadedChange,
+  ]);
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      size="5xl"
-      classNames={{
-        base: 'max-h-[90vh]',
-        body: 'p-0',
-        header: 'p-0',
-        footer: 'p-0',
+  // 禁止/恢复 body 滚动
+  useEffect(() => {
+    if (isOpen) {
+      // 保存当前滚动位置
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // 恢复滚动位置
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+
+    // 清理函数：组件卸载时恢复滚动
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
+
+  // 使用 portal 渲染到 body，确保在正确的 DOM 层级
+  if (typeof window === 'undefined') return null;
+
+  const modalContent = (
+    <div
+      className={`fixed inset-0 flex items-center justify-center ${
+        isOpen ? 'visible' : 'invisible'
+      }`}
+      style={{
+        backgroundColor: isOpen ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+        transition: 'all 0.2s ease-in-out',
+        zIndex: 9999,
       }}
-      hideCloseButton
+      onClick={handleClose}
     >
-      <ModalContent>
-        <div className="flex h-full max-h-[90vh] flex-col bg-white min-w-[1024px]">
+      <div
+        className={`relative max-h-[90vh] min-w-[1024px] max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl transition-all duration-200${
+          isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex h-full max-h-[90vh] min-w-[1024px] flex-col bg-white">
+          {/* Close Button */}
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <svg
+              className="size-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
           {/* Search Input */}
           <div className="p-[20px]">
             <input
@@ -255,13 +310,17 @@ export function SearchModal({
               value={searchTerm}
               onChange={(e) => handleSearchTermChange(e.target.value)}
               placeholder="Enter search keywords..."
-              className="w-full rounded-lg border-none outline-none px-4 py-3 text-base placeholder-gray-500  focus:outline-none"
+              className="w-full rounded-lg border-none px-4 py-3 text-base outline-none placeholder:text-gray-500  focus:outline-none"
               autoFocus
             />
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-[20px]">
+          <div
+            className="flex-1 overflow-y-auto p-[20px]"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             {!debouncedSearchTerm.trim() ? (
               <div className="flex h-64 items-center justify-center text-gray-500">
                 <p>Enter keywords to search for tweets</p>
@@ -270,7 +329,7 @@ export function SearchModal({
               <div className="grid grid-cols-3 gap-3">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div key={`skeleton-${index}`} className="relative">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-4 h-[520px]">
+                    <div className="h-[520px] rounded-2xl border border-gray-200 bg-white p-4">
                       {/* 头部信息 */}
                       <div className="mb-3 flex items-center gap-3">
                         <Skeleton className="size-12 rounded-full" />
@@ -363,7 +422,9 @@ export function SearchModal({
             )}
           </div>
         </div>
-      </ModalContent>
-    </Modal>
+      </div>
+    </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
