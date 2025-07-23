@@ -266,20 +266,23 @@ export function SearchModal({
 
   const modalContent = (
     <div
-      className={`fixed inset-0 flex items-center justify-center ${
-        isOpen ? 'visible' : 'invisible'
-      }`}
+      className="fixed inset-0 flex items-center justify-center"
       style={{
         backgroundColor: isOpen ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
         transition: 'all 0.2s ease-in-out',
         zIndex: 9999,
+        pointerEvents: isOpen ? 'auto' : 'none',
+        visibility: isOpen ? 'visible' : 'hidden',
       }}
       onClick={handleClose}
     >
       <div
-        className={`relative max-h-[90vh] min-w-[1024px] max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl transition-all duration-200${
+        className={`relative max-h-[90vh] min-w-[1024px] max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl transition-all duration-200 ${
           isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
+        style={{
+          pointerEvents: isOpen ? 'auto' : 'none',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex h-full max-h-[90vh] min-w-[1024px] flex-col bg-white">
