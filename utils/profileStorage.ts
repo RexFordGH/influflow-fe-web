@@ -1,5 +1,5 @@
 export type ITone =
-  | 'Style'
+  | 'YourStyle'
   | 'Expert'
   | 'Humorous'
   | 'Motivational'

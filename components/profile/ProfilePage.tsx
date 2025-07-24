@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
-import { Button, Textarea } from '@heroui/react';
+import { Button, cn, Textarea } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ import { addToast } from '../base/toast';
 
 const STYLE_OPTIONS = [
   {
-    value: 'Style',
+    value: 'YourStyle',
     label: 'My Style',
   },
   {
@@ -167,10 +167,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       const profileData = {
         account_name: accountName,
         bio: personalIntro,
-        tone:
-          selectedStyle === 'Customized' || selectedStyle === null
-            ? undefined
-            : selectedStyle,
+        tone: (selectedStyle || '') as ITone,
         tweet_examples:
           selectedStyle === 'Customized'
             ? customContent.filter((link) => link.trim() !== '')
@@ -324,42 +321,48 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             ))}
           </div>
 
-          {selectedStyle === 'Style' && (
-            <div className="rounded-lg p-4 text-sm text-gray-600">
-              <p className="mb-2">This Style is based on your past posts</p>
-              <p>– Your style is humorous and witty.</p>
-              <p>
-                – You enjoy using memes and playful references, often illustrate
-                your points with examples.
-              </p>
-              <p>– Your opinions are sharp and thought-provoking.</p>
-            </div>
-          )}
+          <div
+            className={cn(
+              'rounded-lg p-4 text-sm text-gray-600',
+              selectedStyle === 'YourStyle' ? 'block' : 'hidden',
+            )}
+          >
+            <p className="mb-2">This Style is based on your past posts</p>
+            <p>– Your style is humorous and witty.</p>
+            <p>
+              – You enjoy using memes and playful references, often illustrate
+              your points with examples.
+            </p>
+            <p>– Your opinions are sharp and thought-provoking.</p>
+          </div>
 
           {/* Custom Style Links - 只在选择 Customized 时显示 */}
-          {selectedStyle === 'Customized' && (
-            <div className="mb-6">
-              <h3 className="mb-2 text-lg font-medium text-gray-900">
-                Examples of Customized Style
-              </h3>
-              <p className="mb-4 text-gray-500">
-                Type in the content you'd like to use as style references.
-              </p>
-              <div className="space-y-3">
-                {customContent.map((content, index) => (
-                  <Textarea
-                    key={index}
-                    value={content}
-                    onChange={(e) => handleLinkChange(index, e.target.value)}
-                    placeholder=""
-                    variant="bordered"
-                    className="w-full"
-                    rows={2}
-                  />
-                ))}
-              </div>
+          <div
+            className={cn(
+              'mb-6',
+              selectedStyle === 'Customized' ? 'block' : 'hidden',
+            )}
+          >
+            <h3 className="mb-2 text-lg font-medium text-gray-900">
+              Examples of Customized Style
+            </h3>
+            <p className="mb-4 text-gray-500">
+              Type in the content you'd like to use as style references.
+            </p>
+            <div className="space-y-3">
+              {customContent.map((content, index) => (
+                <Textarea
+                  key={index}
+                  value={content}
+                  onChange={(e) => handleLinkChange(index, e.target.value)}
+                  placeholder=""
+                  variant="bordered"
+                  className="w-full"
+                  rows={2}
+                />
+              ))}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Personal Introduction Section */}
