@@ -638,7 +638,7 @@ export function EditWithAIButton({
         className={markdownStyles.source.button}
         onPress={() => onEditWithAI?.(nodeId)}
       >
-        <PencilIcon className="size-3" />
+        <Image src="/icons/Edit.svg" alt="edit" width={20} height={20} />
       </Button>
     </Tooltip>
   );
