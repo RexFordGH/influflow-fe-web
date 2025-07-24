@@ -286,7 +286,7 @@ export function SectionRendererOfLongForm({
       const { title = '', content = '' } = currentTweetData || {};
 
       const tweetContent = content.replace(title, '');
-      console.log('currentTweetData', tweetContent);
+      // console.log('currentTweetData', tweetContent);
 
       const editorValue = JSON.stringify({
         content: tweetContent || textContent,
