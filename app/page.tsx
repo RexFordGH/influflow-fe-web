@@ -196,8 +196,8 @@ function HomeContent() {
       // 使用新架构启动生成流程
       setShowGenerationOrchestrator(true);
 
-      // 清理输入
-      setTopicInput('');
+      // 清理输入 - 移除此处的清理，让组件关闭后再清理
+      // setTopicInput('');
       setSelectedTweets([]); // 清除选中的推文
     }
   };
@@ -230,6 +230,7 @@ function HomeContent() {
     setShowGenerationOrchestrator(false);
     setCurrentTopic('');
     setSelectedItemId(undefined); // 清除选中状态
+    setTopicInput(''); // 清理输入
     setSessionId(undefined); // 清除 session_id
     // 返回首页时重新拉取文章列表确保数据同步
     sidebarRef.current?.refresh();

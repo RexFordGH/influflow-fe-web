@@ -48,11 +48,13 @@
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.0",
+    "react-typed": "^2.0.12",
     "reactflow": "^11.11.4",
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
     "twitter-api-v2": "^1.17.2",
+    "typed.js": "^2.1.0",
     "unified": "^11.0.5",
     "use-debounce": "^10.0.5",
     "zustand": "^5.0.5"

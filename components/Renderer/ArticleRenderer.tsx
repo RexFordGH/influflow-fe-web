@@ -17,6 +17,8 @@ import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { IOutline } from '@/types/outline';
 import { isLongformType } from '@/utils/contentFormat';
 
+import SSELoading from '@/components/SSE/SSELoading';
+import { useSSELoading } from '@/hooks/useSSELoading';
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
 import { DeleteConfirmModal } from './ArticleRenderer/DeleteConfirmModal';
@@ -54,6 +56,10 @@ export function ArticleRenderer({
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
   const [currentEdges, setCurrentEdges] = useState<MindmapEdgeData[]>([]);
 
+  // 控制是否使用 SSE 流式加载
+  const { useSSE } = useSSELoading();
+  const [isSSEComplete, setIsSSEComplete] = useState(false);
+
   // 获取用户信息
   const { user } = useAuthStore();
 
@@ -85,10 +91,67 @@ export function ArticleRenderer({
     ),
   });
 
+  // SSE 完成处理函数
+  const handleSSEComplete = useCallback(
+    (data: any) => {
+      console.log('SSE completed with data:', data);
+      setIsSSEComplete(true);
+
+      // 将 SSE 返回的数据转换为 IOutline 格式
+      // data 结构应该是 { status: 'success', data: {...}, is_final: true }
+      const outlineData = data?.data || data;
+
+      if (outlineData) {
+        // 确保数据包含必要的字段
+        const formattedData = {
+          ...outlineData,
+          updatedAt: outlineData.updatedAt || new Date().toISOString(),
+          topic: outlineData.topic || topic,
+          content_format: outlineData.content_format || contentFormat,
+        };
+
+        generation.setRawAPIData(formattedData);
+        const { nodes, edges } = convertThreadDataToMindmap(formattedData);
+        setCurrentNodes(nodes);
+        setCurrentEdges(edges);
+        onGenerationComplete?.(formattedData);
+      }
+    },
+    [generation, onGenerationComplete, topic, contentFormat],
+  );
+
+  // SSE 错误处理函数
+  const handleSSEError = useCallback(
+    (error: Error | unknown) => {
+      console.error('SSE error:', error);
+      setIsSSEComplete(true);
+      const err =
+        error instanceof Error ? error : new Error('SSE streaming error');
+      onGenerationError?.(err);
+      onBack();
+    },
+    [onBack, onGenerationError],
+  );
+
   // 对于非 draft 模式，组件挂载后立即开始生成
   useEffect(() => {
-    if (!initialData && mode && topic && !generation.hasStartedGeneration) {
-      console.log('Starting generation for mode:', mode);
+    console.log('Generation useEffect check:', {
+      useSSE,
+      hasStartedGeneration: generation.hasStartedGeneration,
+      initialData: !!initialData,
+      mode,
+      topic,
+    });
+    
+    // 根据环境变量和条件判断是否使用 SSE
+    if (
+      !initialData &&
+      mode &&
+      topic &&
+      !generation.hasStartedGeneration &&
+      !useSSE  // 如果使用 SSE，不启动传统的生成
+    ) {
+      console.log('Starting traditional generation for mode:', mode);
       generation.startGeneration({
         topic,
         contentFormat,
@@ -106,6 +169,7 @@ export function ArticleRenderer({
     initialData,
     generation.hasStartedGeneration,
     generation,
+    useSSE,  // 添加 useSSE 到依赖数组
   ]);
 
   const images = useImageManagement({
@@ -188,28 +252,33 @@ export function ArticleRenderer({
     });
   }, []);
 
-  // 如果正在生成或出错，显示加载页面
-  if (
-    generation.isGenerating ||
-    (!generation.generatedContent && !generation.rawAPIData && !initialData)
-  ) {
-    const hasError = !generation.isGenerating && !!generation.apiError;
+  // 如果使用 SSE 且未完成，显示 SSELoading 组件
+  if (useSSE && !isSSEComplete && userInput) {
+    // 转换 contentFormat 到 SSE 期望的格式
+    let sseContentFormat: 'longform' | 'article' | 'thread';
+    if (contentFormat === 'longform') {
+      sseContentFormat = 'longform';
+    } else if (contentFormat === 'thread') {
+      sseContentFormat = 'thread';
+    } else {
+      // deep_research 或其他格式默认使用 article
+      sseContentFormat = 'article';
+    }
+
+    console.log('Rendering SSELoading with:', {
+      topic,
+      userInput,
+      contentFormat: sseContentFormat,
+    });
 
     return (
-      <CreateArticleLoading
+      <SSELoading
         topic={topic}
+        userInput={userInput}
+        contentFormat={sseContentFormat}
+        onComplete={handleSSEComplete}
+        onError={handleSSEError}
         onBack={onBack}
-        isError={hasError}
-        errorMessage={generation.apiError || undefined}
-        generationSteps={generation.generationSteps}
-        onRetry={
-          hasError
-            ? () => {
-                generation.resetGeneration();
-                generation.startGeneration();
-              }
-            : undefined
-        }
       />
     );
   }
