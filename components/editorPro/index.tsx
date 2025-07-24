@@ -454,7 +454,27 @@ const EditorPro: React.FC<EditorProProps> = ({
 
   useEffect(() => {
     if (editor && editorValue.content !== editor.getHTML()) {
-      editor.commands.setContent(editorValue.content);
+      // Check if content contains HTML tags
+      const isHTML = /<[^>]+>/.test(editorValue.content);
+      
+      if (isHTML) {
+        // If it's HTML, set it directly
+        editor.commands.setContent(editorValue.content);
+      } else {
+        // If it's plain text, handle newlines properly
+        // Split by double newlines to create paragraphs
+        const paragraphs = editorValue.content.split('\n\n');
+        const contentWithBreaks = paragraphs
+          .map(paragraph => {
+            // Within each paragraph, replace single newlines with <br>
+            const lines = paragraph.split('\n');
+            const lineContent = lines.join('<br>');
+            return lineContent.trim() ? `<p>${lineContent}</p>` : '<p></p>';
+          })
+          .join('');
+        
+        editor.commands.setContent(contentWithBreaks || '<p></p>');
+      }
     }
   }, [editorValue.content, editor]);
 

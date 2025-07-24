@@ -263,8 +263,6 @@ export function SectionRendererOfLongForm({
       );
 
     case 'tweet':
-      // const testContent = `比特币就是个垃圾\n\n这玩意就是个彻头彻尾的骗局\n价格全靠炒作和韭菜接盘\n没有任何实际价值支撑\n\n一帮人天天吹什么去中心化\n结果大户一砸盘\n散户全部爆仓\n这他妈叫去中心化？\n\n操他妈的\n就是割韭菜的工具\n谁买谁傻逼！`;
-      // const lines = testContent.split('\n\n');
       const lines = section.content.split('\n\n');
       let contentLines = [];
 
@@ -285,25 +283,9 @@ export function SectionRendererOfLongForm({
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
 
-      // Special handling for list items - convert double breaks between list items to single breaks
-      const processedContent = textContent
-        .replace(/\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break before list item -> single break
-        .replace(/(?<=[•\-\*]\s+[^\n]*)\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break between list items -> single break
-        .replace(/\n\n/g, '||DOUBLE_BR||')
-        .replace(/\n/g, '<br>')
-        .replace(/\|\|DOUBLE_BR\|\|/g, '<br><br>');
 
       const editorValue = JSON.stringify({
-        content: processedContent
-          .replace(
-            /\*\*(.*?)\*\*/g,
-            '<strong class="font-semibold text-gray-900">$1</strong>',
-          )
-          .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-          .replace(
-            /#([^\s#]+)/g,
-            '<span class="text-blue-600 font-medium">#$1</span>',
-          ),
+        content: textContent,
         type: 'doc',
         isEmpty: !textContent.trim(),
       });
