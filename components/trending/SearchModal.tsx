@@ -125,14 +125,20 @@ export function SearchModal({
     [onSearchTermChange],
   );
 
-  // 防抖搜索
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  // 处理 Enter 键搜索
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (
+        e.key === 'Enter' &&
+        !e.shiftKey &&
+        !e.nativeEvent.isComposing &&
+        searchTerm.trim()
+      ) {
+        setDebouncedSearchTerm(searchTerm);
+      }
+    },
+    [searchTerm],
+  );
 
   // 使用搜索API - 只要有搜索词就启用查询，不依赖弹窗状态
   const {
@@ -312,6 +318,7 @@ export function SearchModal({
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearchTermChange(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Enter search keywords..."
               className="w-full rounded-lg border-none px-4 py-3 text-base outline-none placeholder:text-gray-500  focus:outline-none"
               autoFocus
@@ -397,12 +404,12 @@ export function SearchModal({
                   </div>
                   <Button
                     className={`rounded-full ${
-                      selectedTweetIndices.size > 0 || searchTerm.trim()
+                      selectedTweetIndices.size > 0
                         ? 'bg-black text-white hover:bg-gray-800'
                         : ''
                     }`}
                     onClick={handleConfirm}
-                    isDisabled={!searchTerm.trim()}
+                    isDisabled={selectedTweetIndices.size === 0}
                   >
                     Confirm{' '}
                     {selectedTweetIndices.size > 0 &&
