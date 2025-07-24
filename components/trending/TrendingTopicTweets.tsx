@@ -71,7 +71,7 @@ export function TrendingTopicTweets({
 
           // 清除所有已处理的标记，让Twitter重新处理
           blockquotes.forEach((bq, index) => {
-            console.log(`Blockquote ${index}:`, bq.outerHTML.substring(0, 200));
+            // console.log(`Blockquote ${index}:`, bq.outerHTML.substring(0, 200));
 
             // 移除Twitter已处理的标记
             bq.removeAttribute('data-twitter-extracted');

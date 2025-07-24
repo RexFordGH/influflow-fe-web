@@ -456,7 +456,7 @@ const EditorPro: React.FC<EditorProProps> = ({
     if (editor && editorValue.content !== editor.getHTML()) {
       // Check if content contains HTML tags
       const isHTML = /<[^>]+>/.test(editorValue.content);
-      
+
       if (isHTML) {
         // If it's HTML, set it directly
         editor.commands.setContent(editorValue.content);
@@ -464,11 +464,11 @@ const EditorPro: React.FC<EditorProProps> = ({
         // If it's plain text, handle paragraph breaks properly
         const htmlContent = editorValue.content
           .trim()
-          .replace(/\n\n/g, '</p><p>')  // 双换行转为段落分隔
-          .replace(/\n/g, '<br>')        // 单换行转为 <br>
-          .replace(/^/, '<p>')           // 开头加 <p>
-          .replace(/$/, '</p>');         // 结尾加 </p>
-        
+          .replace(/\n\n/g, '<br><br>') // 双换行转为段落分隔
+          .replace(/\n/g, '<br>') // 单换行转为 <br>
+          .replace(/^/, '<p>') // 开头加 <p>
+          .replace(/$/, '</p>'); // 结尾加 </p>
+
         editor.commands.setContent(htmlContent || '<p></p>');
       }
     }
