@@ -263,6 +263,8 @@ export function SectionRendererOfLongForm({
       );
 
     case 'tweet':
+      // const testContent = `比特币就是个垃圾\n\n这玩意就是个彻头彻尾的骗局\n价格全靠炒作和韭菜接盘\n没有任何实际价值支撑\n\n一帮人天天吹什么去中心化\n结果大户一砸盘\n散户全部爆仓\n这他妈叫去中心化？\n\n操他妈的\n就是割韭菜的工具\n谁买谁傻逼！`;
+      // const lines = testContent.split('\n\n');
       const lines = section.content.split('\n\n');
       let contentLines = [];
 

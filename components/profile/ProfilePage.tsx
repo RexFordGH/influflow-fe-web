@@ -22,6 +22,10 @@ import { addToast } from '../base/toast';
 
 const STYLE_OPTIONS = [
   {
+    value: 'Style',
+    label: 'My Style',
+  },
+  {
     value: 'Expert',
     label: 'Professional',
   },
@@ -319,6 +323,18 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               </Button>
             ))}
           </div>
+
+          {selectedStyle === 'Style' && (
+            <div className="rounded-lg p-4 text-sm text-gray-600">
+              <p className="mb-2">This Style is based on your past posts</p>
+              <p>– Your style is humorous and witty.</p>
+              <p>
+                – You enjoy using memes and playful references, often illustrate
+                your points with examples.
+              </p>
+              <p>– Your opinions are sharp and thought-provoking.</p>
+            </div>
+          )}
 
           {/* Custom Style Links - 只在选择 Customized 时显示 */}
           {selectedStyle === 'Customized' && (
