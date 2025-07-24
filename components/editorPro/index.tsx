@@ -465,7 +465,7 @@ const EditorPro: React.FC<EditorProProps> = ({
         // Split by double newlines to create paragraphs
         const paragraphs = editorValue.content.split('\n\n');
         const contentWithBreaks = paragraphs
-          .map(paragraph => {
+          .map((paragraph: string) => {
             // Within each paragraph, replace single newlines with <br>
             const lines = paragraph.split('\n');
             const lineContent = lines.join('<br>');
