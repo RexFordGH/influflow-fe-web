@@ -397,7 +397,6 @@ export function SearchModal({
                 }}
                 variant="flat"
                 radius="lg"
-                autoFocus
               />
             </div>
 
