@@ -461,19 +461,15 @@ const EditorPro: React.FC<EditorProProps> = ({
         // If it's HTML, set it directly
         editor.commands.setContent(editorValue.content);
       } else {
-        // If it's plain text, handle newlines properly
-        // Split by double newlines to create paragraphs
-        const paragraphs = editorValue.content.split('\n\n');
-        const contentWithBreaks = paragraphs
-          .map((paragraph: string) => {
-            // Within each paragraph, replace single newlines with <br>
-            const lines = paragraph.split('\n');
-            const lineContent = lines.join('<br>');
-            return lineContent.trim() ? `<p>${lineContent}</p>` : '<p></p>';
-          })
-          .join('');
+        // If it's plain text, handle paragraph breaks properly
+        const htmlContent = editorValue.content
+          .trim()
+          .replace(/\n\n/g, '</p><p>')  // 双换行转为段落分隔
+          .replace(/\n/g, '<br>')        // 单换行转为 <br>
+          .replace(/^/, '<p>')           // 开头加 <p>
+          .replace(/$/, '</p>');         // 结尾加 </p>
         
-        editor.commands.setContent(contentWithBreaks || '<p></p>');
+        editor.commands.setContent(htmlContent || '<p></p>');
       }
     }
   }, [editorValue.content, editor]);
