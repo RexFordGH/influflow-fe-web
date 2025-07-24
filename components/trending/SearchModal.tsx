@@ -1,6 +1,7 @@
 'use client';
 
-import { Image, Skeleton, Tooltip } from '@heroui/react';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Image, Input, Skeleton, Tooltip } from '@heroui/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -107,12 +108,20 @@ export function SearchModal({
   const [selectedTweetIndices, setSelectedTweetIndices] = useState<Set<number>>(
     new Set(),
   );
+  // 新增状态：控制是否显示完整界面（初始时根据是否有搜索词决定）
+  const [showFullModal, setShowFullModal] = useState(
+    initialSearchTerm.trim().length > 0,
+  );
 
   // 同步外部传入的初始搜索词
   useEffect(() => {
     if (initialSearchTerm !== searchTerm) {
       setSearchTerm(initialSearchTerm);
       setDebouncedSearchTerm(initialSearchTerm);
+      // 如果有初始搜索词，直接显示完整界面
+      if (initialSearchTerm.trim()) {
+        setShowFullModal(true);
+      }
     }
   }, [initialSearchTerm, searchTerm]);
 
@@ -135,6 +144,7 @@ export function SearchModal({
         searchTerm.trim()
       ) {
         setDebouncedSearchTerm(searchTerm);
+        setShowFullModal(true); // 按 Enter 后显示完整界面
       }
     },
     [searchTerm],
@@ -156,6 +166,13 @@ export function SearchModal({
     () => !tweetData && (isLoading || isFetching),
     [tweetData, isLoading, isFetching],
   );
+
+  // 当有搜索结果时，自动显示完整界面
+  useEffect(() => {
+    if (tweetData && tweetData.length > 0 && !showFullModal) {
+      setShowFullModal(true);
+    }
+  }, [tweetData, showFullModal]);
 
   // 切换推文选中状态
   const toggleTweetSelection = useCallback((index: number) => {
@@ -180,14 +197,22 @@ export function SearchModal({
 
     onConfirm(searchTerm, selectedTweets);
 
-    // 确认后只重置选择状态，保留搜索词
+    // 确认后重置选择状态，但保持显示状态（如果有数据）
     setSelectedTweetIndices(new Set());
+    // 只有在没有数据时才返回简单搜索框
+    if (!tweetData || tweetData.length === 0) {
+      setShowFullModal(false);
+    }
   }, [tweetData, selectedTweetIndices, onConfirm, searchTerm]);
 
-  // 处理关闭 - 不重置状态，保持搜索内容
+  // 处理关闭 - 保持搜索内容，根据数据决定显示状态
   const handleClose = useCallback(() => {
+    // 如果没有数据，才重置为简单搜索框
+    if (!tweetData || tweetData.length === 0) {
+      setShowFullModal(false);
+    }
     onClose();
-  }, [onClose]);
+  }, [onClose, tweetData]);
 
   // 当有新数据时，手动触发Twitter widgets加载
   useEffect(() => {
@@ -272,9 +297,10 @@ export function SearchModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 flex items-center justify-center"
+      className={`fixed inset-0 flex ${showFullModal ? 'items-center' : 'items-start pt-[15vh]'} justify-center`}
       style={{
-        backgroundColor: isOpen ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+        backgroundColor:
+          isOpen && showFullModal ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
         transition: 'all 0.2s ease-in-out',
         zIndex: 9999,
         pointerEvents: isOpen ? 'auto' : 'none',
@@ -282,157 +308,208 @@ export function SearchModal({
       }}
       onClick={handleClose}
     >
-      <div
-        className={`relative max-h-[90vh] min-w-[1024px] max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl transition-all duration-200 ${
-          isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-        }`}
-        style={{
-          pointerEvents: isOpen ? 'auto' : 'none',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex h-full max-h-[90vh] min-w-[1024px] flex-col bg-white">
-          {/* Close Button */}
-          <button
-            onClick={handleClose}
-            className="absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          >
-            <svg
-              className="size-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+      {/* 简单搜索框模式 */}
+      {!showFullModal ? (
+        <div
+          className={`relative overflow-hidden rounded-[24px] bg-white shadow-2xl transition-all duration-200 ${
+            isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          } shadow-2xl`}
+          style={{
+            pointerEvents: isOpen ? 'auto' : 'none',
+            width: '800px',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => handleSearchTermChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search for trending topics on X"
+            startContent={
+              <MagnifyingGlassIcon className="size-5 text-gray-400" />
+            }
+            classNames={{
+              base: 'h-auto',
+              mainWrapper: 'h-auto',
+              inputWrapper:
+                'h-auto px-6 py-5 bg-transparent border-0 shadow-none hover:bg-transparent focus-within:bg-transparent data-[hover=true]:bg-transparent group-data-[focus=true]:bg-transparent focus:ring-0 focus-within:ring-0 data-[focus=true]:ring-0',
+              input:
+                'text-lg placeholder:text-gray-400 focus:outline-none focus:ring-0',
+              innerWrapper: 'bg-transparent',
+            }}
+            variant="flat"
+            radius="full"
+            autoFocus
+          />
+        </div>
+      ) : (
+        /* 完整模态框模式 */
+        <div
+          className={`relative max-h-[90vh] min-w-[1024px] max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl transition-all duration-200 ${
+            isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          }`}
+          style={{
+            pointerEvents: isOpen ? 'auto' : 'none',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex h-full max-h-[90vh] min-w-[1024px] flex-col bg-white">
+            {/* Close Button */}
+            <button
+              onClick={handleClose}
+              className="absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
+              <svg
+                className="size-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Search Input */}
+            <div className="p-[20px]">
+              <Input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearchTermChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Enter search keywords..."
+                startContent={
+                  <MagnifyingGlassIcon className="size-5 text-gray-400" />
+                }
+                classNames={{
+                  base: 'h-auto',
+                  mainWrapper: 'h-auto',
+                  inputWrapper:
+                    'h-auto px-4 py-3 bg-transparent border-0 shadow-none hover:bg-transparent focus-within:bg-transparent data-[hover=true]:bg-transparent group-data-[focus=true]:bg-transparent focus:ring-0 focus-within:ring-0 data-[focus=true]:ring-0',
+                  input:
+                    'text-base placeholder:text-gray-500 focus:outline-none focus:ring-0',
+                  innerWrapper: 'bg-transparent',
+                }}
+                variant="flat"
+                radius="lg"
+                autoFocus
               />
-            </svg>
-          </button>
+            </div>
 
-          {/* Search Input */}
-          <div className="p-[20px]">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => handleSearchTermChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Enter search keywords..."
-              className="w-full rounded-lg border-none px-4 py-3 text-base outline-none placeholder:text-gray-500  focus:outline-none"
-              autoFocus
-            />
-          </div>
+            {/* Content */}
+            <div
+              className="flex-1 overflow-y-auto p-[20px]"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+            >
+              {!debouncedSearchTerm.trim() ? (
+                <div className="flex h-64 items-center justify-center text-gray-500">
+                  <p>Enter keywords to search for tweets</p>
+                </div>
+              ) : shouldShowSkeleton ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={`skeleton-${index}`} className="relative">
+                      <div className="h-[520px] rounded-2xl border border-gray-200 bg-white p-4">
+                        {/* 头部信息 */}
+                        <div className="mb-3 flex items-center gap-3">
+                          <Skeleton className="size-12 rounded-full" />
+                          <div className="flex-1">
+                            <Skeleton className="mb-1 h-4 w-24 rounded" />
+                            <Skeleton className="h-3 w-16 rounded" />
+                          </div>
+                        </div>
 
-          {/* Content */}
-          <div
-            className="flex-1 overflow-y-auto p-[20px]"
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
-          >
-            {!debouncedSearchTerm.trim() ? (
-              <div className="flex h-64 items-center justify-center text-gray-500">
-                <p>Enter keywords to search for tweets</p>
-              </div>
-            ) : shouldShowSkeleton ? (
-              <div className="grid grid-cols-3 gap-3">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <div key={`skeleton-${index}`} className="relative">
-                    <div className="h-[520px] rounded-2xl border border-gray-200 bg-white p-4">
-                      {/* 头部信息 */}
-                      <div className="mb-3 flex items-center gap-3">
-                        <Skeleton className="size-12 rounded-full" />
-                        <div className="flex-1">
-                          <Skeleton className="mb-1 h-4 w-24 rounded" />
-                          <Skeleton className="h-3 w-16 rounded" />
+                        {/* 内容 */}
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-full rounded" />
+                          <Skeleton className="h-4 w-4/5 rounded" />
+                          <Skeleton className="h-4 w-3/5 rounded" />
+                        </div>
+
+                        {/* 底部交互 */}
+                        <div className="mt-4 flex items-center gap-6">
+                          <Skeleton className="h-4 w-12 rounded" />
+                          <Skeleton className="h-4 w-12 rounded" />
+                          <Skeleton className="h-4 w-12 rounded" />
                         </div>
                       </div>
-
-                      {/* 内容 */}
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-full rounded" />
-                        <Skeleton className="h-4 w-4/5 rounded" />
-                        <Skeleton className="h-4 w-3/5 rounded" />
-                      </div>
-
-                      {/* 底部交互 */}
-                      <div className="mt-4 flex items-center gap-6">
-                        <Skeleton className="h-4 w-12 rounded" />
-                        <Skeleton className="h-4 w-12 rounded" />
-                        <Skeleton className="h-4 w-12 rounded" />
-                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : error ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-center">
-                  <p className="mb-2 text-gray-500">
-                    Unable to search tweets at the moment
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Please try again later
-                  </p>
-                </div>
-              </div>
-            ) : !tweetData || tweetData.length === 0 ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-center">
-                  <p className="mb-2 text-gray-500">No tweets found</p>
-                  <p className="text-sm text-gray-400">
-                    Try different search keywords
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="mb-1 text-sm font-medium text-black">
-                      Viral Tweets
-                      {isFetching && tweetData && (
-                        <span className="ml-2 text-xs text-blue-500">
-                          Updating...
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-xs text-gray-600">
-                      Use top posts as a reference to craft engaging content.
-                    </p>
-                  </div>
-                  <Button
-                    className={`rounded-full ${
-                      selectedTweetIndices.size > 0
-                        ? 'bg-black text-white hover:bg-gray-800'
-                        : ''
-                    }`}
-                    onClick={handleConfirm}
-                    isDisabled={selectedTweetIndices.size === 0}
-                  >
-                    Confirm{' '}
-                    {selectedTweetIndices.size > 0 &&
-                      `(${selectedTweetIndices.size})`}
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  {tweetData.map((tweet, index) => (
-                    <TweetItem
-                      key={index}
-                      tweet={tweet}
-                      index={index}
-                      isSelected={selectedTweetIndices.has(index)}
-                      onToggle={toggleTweetSelection}
-                    />
                   ))}
                 </div>
-              </div>
-            )}
+              ) : error ? (
+                <div className="flex h-64 items-center justify-center">
+                  <div className="text-center">
+                    <p className="mb-2 text-gray-500">
+                      Unable to search tweets at the moment
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Please try again later
+                    </p>
+                  </div>
+                </div>
+              ) : !tweetData || tweetData.length === 0 ? (
+                <div className="flex h-64 items-center justify-center">
+                  <div className="text-center">
+                    <p className="mb-2 text-gray-500">No tweets found</p>
+                    <p className="text-sm text-gray-400">
+                      Try different search keywords
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <h3 className="mb-1 text-sm font-medium text-black">
+                        Viral Tweets
+                        {isFetching && tweetData && (
+                          <span className="ml-2 text-xs text-blue-500">
+                            Updating...
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        Use top posts as a reference to craft engaging content.
+                      </p>
+                    </div>
+                    <Button
+                      className={`rounded-full ${
+                        selectedTweetIndices.size > 0
+                          ? 'bg-black text-white hover:bg-gray-800'
+                          : ''
+                      }`}
+                      onClick={handleConfirm}
+                      isDisabled={selectedTweetIndices.size === 0}
+                    >
+                      Confirm{' '}
+                      {selectedTweetIndices.size > 0 &&
+                        `(${selectedTweetIndices.size})`}
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    {tweetData.map((tweet, index) => (
+                      <TweetItem
+                        key={index}
+                        tweet={tweet}
+                        index={index}
+                        isSelected={selectedTweetIndices.has(index)}
+                        onToggle={toggleTweetSelection}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 
