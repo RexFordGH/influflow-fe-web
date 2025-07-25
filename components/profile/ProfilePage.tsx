@@ -319,11 +319,30 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               const isYourStyleDisabled =
                 option.value === 'YourStyle' && !hasTweetData;
 
-              const button = (
+              return isYourStyleDisabled ? (
+                <Tooltip
+                  key={option.value}
+                  content="Unable to learn style without past tweets"
+                  placement="top"
+                  classNames={{
+                    content: 'bg-black text-white',
+                    arrow: 'bg-black border-black',
+                  }}
+                >
+                  <Button
+                    key={option.value}
+                    variant="bordered"
+                    className={`border-1 rounded-[12px] px-6 py-3 opacity-30 cursor-not-allowed hover:opacity-30 `}
+                    disabled={true}
+                    onPress={() => handleStyleSelect(option.value)}
+                  >
+                    {option.label}
+                  </Button>
+                </Tooltip>
+              ) : (
                 <Button
                   key={option.value}
                   variant="bordered"
-                  isDisabled={isYourStyleDisabled}
                   className={`border-1 rounded-[12px] px-6 py-3 ${
                     selectedStyle === option.value
                       ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
@@ -335,18 +354,6 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                 >
                   {option.label}
                 </Button>
-              );
-
-              return isYourStyleDisabled ? (
-                <Tooltip
-                  key={option.value}
-                  content="Unable to learn style without past tweets"
-                  placement="top"
-                >
-                  {button}
-                </Tooltip>
-              ) : (
-                button
               );
             })}
           </div>
