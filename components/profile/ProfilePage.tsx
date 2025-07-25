@@ -105,14 +105,14 @@ const loadProfileToState = (
   // 检查是否有 user_tweets 数据
   const hasTweets = profile.user_tweets && profile.user_tweets.length > 0;
   setHasTweetData(hasTweets);
-  
+
   // 如果没有 user_tweets 且当前选择是 YourStyle，改为 null
   if (!hasTweets && profile.tone === 'YourStyle') {
     setSelectedStyle(null);
   } else {
     setSelectedStyle(profile.tone || null);
   }
-  
+
   // 设置其他字段
   if (profile.bio) setPersonalIntro(profile.bio);
   if (profile.account_name) setAccountName(profile.account_name);
@@ -236,7 +236,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       if (style === 'YourStyle' && !hasTweetData) {
         return;
       }
-      
+
       if (selectedStyle === style) {
         setSelectedStyle(null);
       } else {
@@ -316,8 +316,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           {/* Style Options */}
           <div className="mb-6 flex gap-4">
             {STYLE_OPTIONS.map((option) => {
-              const isYourStyleDisabled = option.value === 'YourStyle' && !hasTweetData;
-              
+              const isYourStyleDisabled =
+                option.value === 'YourStyle' && !hasTweetData;
+
               const button = (
                 <Button
                   key={option.value}
@@ -327,15 +328,15 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                     selectedStyle === option.value
                       ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
                       : isYourStyleDisabled
-                      ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-50'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-50'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   } ${option.value === 'Customized' ? 'underline' : ''}`}
                   onPress={() => handleStyleSelect(option.value)}
                 >
                   {option.label}
                 </Button>
               );
-              
+
               return isYourStyleDisabled ? (
                 <Tooltip
                   key={option.value}
@@ -350,7 +351,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             })}
           </div>
 
-          {userStyleSummary && (
+          {userStyleSummary && selectedStyle === 'YourStyle' && (
             <div className={cn('rounded-lg p-4 text-sm text-gray-600')}>
               <p className="whitespace-pre-line">{userStyleSummary}</p>
             </div>
