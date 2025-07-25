@@ -104,7 +104,7 @@ const loadProfileToState = (
 
   // 检查是否有 user_tweets 数据
   const hasTweets = profile.user_tweets && profile.user_tweets.length > 0;
-  setHasTweetData(hasTweets);
+  setHasTweetData(!!hasTweets);
 
   // 如果没有 user_tweets 且当前选择是 YourStyle，改为 null
   if (!hasTweets && profile.tone === 'YourStyle') {
