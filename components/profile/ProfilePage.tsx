@@ -100,7 +100,7 @@ const loadProfileToState = (
     setTweetExampleUrls,
   } = setters;
 
-  setSelectedStyle(profile.tone || 'YourStyle');
+  setSelectedStyle(profile.tone || null);
   // 设置其他字段
   if (profile.bio) setPersonalIntro(profile.bio);
   if (profile.account_name) setAccountName(profile.account_name);
@@ -219,7 +219,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   const handleStyleSelect = useCallback(
     (style: ITone) => {
       if (selectedStyle === style) {
-        // setSelectedStyle(null);
+        setSelectedStyle(null);
       } else {
         setSelectedStyle(style);
       }
