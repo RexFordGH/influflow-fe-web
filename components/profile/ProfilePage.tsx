@@ -36,6 +36,18 @@ const fetchAndSaveTweetExamples = async (
 ) => {
   try {
     const validUrls = urls.filter((url) => url.trim() !== '');
+    
+    // 如果没有有效的 URL，清空 tweet_examples
+    if (validUrls.length === 0) {
+      const updateData: ProfileData = {
+        tweet_examples: [],
+      };
+      await saveProfileToSupabase(updateData);
+      console.log('Tweet examples cleared');
+      setUserStyleSummary(undefined);
+      return;
+    }
+
     const tweetDetailsPromises = validUrls.map((url) =>
       queryTweetDetail(url).catch((err) => {
         console.error(`Failed to fetch tweet detail for ${url}:`, err);
@@ -203,11 +215,8 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         throw new Error(error || 'Failed to save to Supabase');
       }
 
-      // 如果选择了 Customized 且有 tweetExampleUrls，后台静默获取推文内容
-      if (
-        selectedStyle === 'Customized' &&
-        tweetExampleUrls.some((url) => url.trim() !== '')
-      ) {
+      // 如果选择了 Customized，后台静默处理推文内容（获取或清空）
+      if (selectedStyle === 'Customized') {
         // 在后台静默执行，不影响保存的 loading 状态
         fetchAndSaveTweetExamples(tweetExampleUrls, setUserStyleSummary);
       }
