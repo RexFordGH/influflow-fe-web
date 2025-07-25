@@ -1545,7 +1545,7 @@ export function ArticleRenderer({
       {/* 主要内容区域 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 左侧思维导图 */}
-        <div className="relative w-1/2 border-r border-gray-200 bg-white">
+        <div className="relative flex-1 border-r border-gray-200 bg-white">
           <ReactFlowProvider>
             <EditableContentMindmap
               nodes={currentNodes}
@@ -1564,7 +1564,7 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="flex w-1/2 flex-col bg-white">
+        <div className="flex w-[500px] flex-col bg-white">
           {/* Twitter Thread内容区域 */}
           <div className="flex-1 overflow-y-auto">
             {rawAPIData && (
