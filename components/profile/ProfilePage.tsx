@@ -36,7 +36,7 @@ const fetchAndSaveTweetExamples = async (
 ) => {
   try {
     const validUrls = urls.filter((url) => url.trim() !== '');
-    
+
     // 如果没有有效的 URL，清空 tweet_examples
     if (validUrls.length === 0) {
       const updateData: ProfileData = {
@@ -368,7 +368,11 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           </div>
 
           {userStyleSummary && selectedStyle === 'YourStyle' && (
-            <div className={cn('rounded-lg p-4 text-sm text-gray-600')}>
+            <div
+              className={cn(
+                'rounded-lg p-4 text-[16px] leading-[1.4] text-gray-600',
+              )}
+            >
               <p className="whitespace-pre-line">{userStyleSummary}</p>
             </div>
           )}
