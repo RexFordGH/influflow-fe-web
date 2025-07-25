@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { useAuthStore } from '@/stores/authStore';
 import { queryTweetDetail } from '@/lib/api/services';
+import { useAuthStore } from '@/stores/authStore';
 import { ITone, ProfileData } from '@/utils/profileStorage';
 import { debugSupabaseAuth } from '@/utils/supabaseDebug';
 import {
@@ -40,7 +40,7 @@ const fetchAndSaveTweetExamples = async (
       queryTweetDetail(url).catch((err) => {
         console.error(`Failed to fetch tweet detail for ${url}:`, err);
         return null;
-      })
+      }),
     );
 
     const tweetDetails = await Promise.all(tweetDetailsPromises);
@@ -100,13 +100,7 @@ const loadProfileToState = (
     setTweetExampleUrls,
   } = setters;
 
-  // 设置风格
-  if (profile.tone) {
-    setSelectedStyle(profile.tone);
-  } else if (profile.tweet_examples?.length) {
-    setSelectedStyle('Customized');
-  }
-
+  setSelectedStyle(profile.tone || 'YourStyle');
   // 设置其他字段
   if (profile.bio) setPersonalIntro(profile.bio);
   if (profile.account_name) setAccountName(profile.account_name);
@@ -153,7 +147,8 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
       try {
         // 从 Supabase 加载数据
-        const { data: supabaseProfile, error } = await loadProfileFromSupabase();
+        const { data: supabaseProfile, error } =
+          await loadProfileFromSupabase();
         if (supabaseProfile && !error) {
           console.log('Loading from Supabase:', supabaseProfile);
           loadProfileToState(supabaseProfile, setters);
@@ -224,7 +219,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   const handleStyleSelect = useCallback(
     (style: ITone) => {
       if (selectedStyle === style) {
-        setSelectedStyle(null);
+        // setSelectedStyle(null);
       } else {
         setSelectedStyle(style);
       }
