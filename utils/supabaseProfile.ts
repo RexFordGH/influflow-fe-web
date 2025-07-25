@@ -9,6 +9,7 @@ export interface UserPersonalization {
   tweet_examples: string[] | null;
   user_style_summary: string | null;
   tweet_example_urls: string[] | null;
+  user_tweets: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -151,6 +152,7 @@ export const loadProfileFromSupabase = async (): Promise<{
       tweet_examples: data.tweet_examples || undefined,
       user_style_summary: data.user_style_summary || undefined,
       tweet_example_urls: data.tweet_example_urls || undefined,
+      user_tweets: data.user_tweets || undefined,
     };
 
     return { data: profileData };

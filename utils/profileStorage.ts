@@ -12,6 +12,7 @@ export interface ProfileData {
   bio?: string;
   user_style_summary?: string;
   tweet_example_urls?: string[];
+  user_tweets?: string[];
   lastUpdated?: number;
 }
 

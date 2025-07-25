@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
-import { Button, cn, Input, Textarea } from '@heroui/react';
+import { Button, cn, Input, Textarea, Tooltip } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -90,6 +90,7 @@ const loadProfileToState = (
     setAccountName: (name: string) => void;
     setUserStyleSummary: (summary: string | undefined) => void;
     setTweetExampleUrls: (urls: string[]) => void;
+    setHasTweetData: (has: boolean) => void;
   },
 ) => {
   const {
@@ -98,9 +99,20 @@ const loadProfileToState = (
     setAccountName,
     setUserStyleSummary,
     setTweetExampleUrls,
+    setHasTweetData,
   } = setters;
 
-  setSelectedStyle(profile.tone || null);
+  // 检查是否有 user_tweets 数据
+  const hasTweets = profile.user_tweets && profile.user_tweets.length > 0;
+  setHasTweetData(hasTweets);
+  
+  // 如果没有 user_tweets 且当前选择是 YourStyle，改为 null
+  if (!hasTweets && profile.tone === 'YourStyle') {
+    setSelectedStyle(null);
+  } else {
+    setSelectedStyle(profile.tone || null);
+  }
+  
   // 设置其他字段
   if (profile.bio) setPersonalIntro(profile.bio);
   if (profile.account_name) setAccountName(profile.account_name);
@@ -130,6 +142,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   >();
   const [tweetExampleUrls, setTweetExampleUrls] =
     useState<string[]>(EMPTY_URLS);
+  const [hasTweetData, setHasTweetData] = useState(false);
 
   // 创建 setters 对象用于传递给辅助函数
   const setters = {
@@ -138,6 +151,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     setAccountName,
     setUserStyleSummary,
     setTweetExampleUrls,
+    setHasTweetData,
   };
 
   // 加载数据
@@ -218,13 +232,18 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   // 处理风格选择
   const handleStyleSelect = useCallback(
     (style: ITone) => {
+      // 如果选择 YourStyle 但没有 tweet 数据，不允许选择
+      if (style === 'YourStyle' && !hasTweetData) {
+        return;
+      }
+      
       if (selectedStyle === style) {
         setSelectedStyle(null);
       } else {
         setSelectedStyle(style);
       }
     },
-    [selectedStyle],
+    [selectedStyle, hasTweetData],
   );
 
   // 处理链接改变
@@ -296,20 +315,39 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
           {/* Style Options */}
           <div className="mb-6 flex gap-4">
-            {STYLE_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                variant="bordered"
-                className={`border-1 rounded-[12px] px-6 py-3 ${
-                  selectedStyle === option.value
-                    ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                } ${option.value === 'Customized' ? 'underline' : ''}`}
-                onPress={() => handleStyleSelect(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
+            {STYLE_OPTIONS.map((option) => {
+              const isYourStyleDisabled = option.value === 'YourStyle' && !hasTweetData;
+              
+              const button = (
+                <Button
+                  key={option.value}
+                  variant="bordered"
+                  isDisabled={isYourStyleDisabled}
+                  className={`border-1 rounded-[12px] px-6 py-3 ${
+                    selectedStyle === option.value
+                      ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
+                      : isYourStyleDisabled
+                      ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-50'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  } ${option.value === 'Customized' ? 'underline' : ''}`}
+                  onPress={() => handleStyleSelect(option.value)}
+                >
+                  {option.label}
+                </Button>
+              );
+              
+              return isYourStyleDisabled ? (
+                <Tooltip
+                  key={option.value}
+                  content="Unable to learn style without past tweets"
+                  placement="top"
+                >
+                  {button}
+                </Tooltip>
+              ) : (
+                button
+              );
+            })}
           </div>
 
           {userStyleSummary && (
