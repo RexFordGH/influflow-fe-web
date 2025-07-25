@@ -290,6 +290,11 @@ export interface TwitterPostResponse {
   }[];
 }
 
+export interface TweetDetail {
+  tweet_id: string;
+  tweet_text: string;
+}
+
 // 检查当前登录用户的 Twitter 授权状态
 export function useCheckTwitterAuthStatus() {
   return useQuery({
@@ -330,6 +335,12 @@ export function usePostToTwitter() {
       console.error('Failed to post to Twitter:', error);
     },
   });
+}
+
+export async function queryTweetDetail(tweet_url: string): Promise<TweetDetail> {
+  return apiGet<TweetDetail>(
+    `/api/twitter/query-tweet?tweet_url=${encodeURIComponent(tweet_url)}`,
+  );
 }
 
 // ========================

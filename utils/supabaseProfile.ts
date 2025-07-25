@@ -7,6 +7,8 @@ export interface UserPersonalization {
   tone: string | null;
   bio: string | null;
   tweet_examples: string[] | null;
+  user_style_summary: string | null;
+  tweet_example_urls: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -38,15 +40,31 @@ export const saveProfileToSupabase = async (
     const userId = session.user.id;
     console.log('User ID:', userId);
 
-    // 准备数据
-    const upsertData = {
+    // 准备数据 - 只包含传入的字段，避免覆盖未传入的字段
+    const upsertData: any = {
       uid: userId,
-      account_name: profileData.account_name || null,
-      tone: profileData.tone || null,
-      bio: profileData.bio || null,
-      tweet_examples: profileData.tweet_examples || null,
       updated_at: new Date().toISOString(),
     };
+
+    // 只添加 profileData 中实际存在的字段
+    if ('account_name' in profileData) {
+      upsertData.account_name = profileData.account_name || null;
+    }
+    if ('tone' in profileData) {
+      upsertData.tone = profileData.tone || null;
+    }
+    if ('bio' in profileData) {
+      upsertData.bio = profileData.bio || null;
+    }
+    if ('tweet_examples' in profileData) {
+      upsertData.tweet_examples = profileData.tweet_examples || null;
+    }
+    if ('user_style_summary' in profileData) {
+      upsertData.user_style_summary = profileData.user_style_summary || null;
+    }
+    if ('tweet_example_urls' in profileData) {
+      upsertData.tweet_example_urls = profileData.tweet_example_urls || null;
+    }
 
     console.log('Upsert data:', upsertData);
 
@@ -131,6 +149,8 @@ export const loadProfileFromSupabase = async (): Promise<{
       tone: (data.tone as ProfileData['tone']) || undefined,
       bio: data.bio || undefined,
       tweet_examples: data.tweet_examples || undefined,
+      user_style_summary: data.user_style_summary || undefined,
+      tweet_example_urls: data.tweet_example_urls || undefined,
     };
 
     return { data: profileData };

@@ -14,6 +14,8 @@ export interface User {
   account_name?: string;
   tone?: ITone;
   tweet_examples?: string[];
+  user_style_summary?: string;
+  tweet_example_urls?: string[];
 }
 
 interface AuthState {

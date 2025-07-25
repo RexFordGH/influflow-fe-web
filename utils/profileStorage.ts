@@ -10,6 +10,8 @@ export interface ProfileData {
   tone?: ITone;
   tweet_examples?: string[];
   bio?: string;
+  user_style_summary?: string;
+  tweet_example_urls?: string[];
   lastUpdated?: number;
 }
 
