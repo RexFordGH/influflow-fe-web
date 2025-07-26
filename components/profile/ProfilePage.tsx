@@ -3,6 +3,7 @@
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button, cn, Input, Textarea, Tooltip } from '@heroui/react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -191,6 +192,20 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
   // 处理提交
   const handleSubmit = useCallback(async () => {
+    // 如果选择了 Customized，检查所有非空链接的合法性
+    if (selectedStyle === 'Customized') {
+      const invalidUrls = tweetExampleUrls.filter(
+        (url) => url.trim() !== '' && isValidUrl(url) !== true,
+      );
+      if (invalidUrls.length > 0) {
+        addToast({
+          title: 'Please enter valid Twitter/X post links',
+          color: 'danger',
+        });
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -254,6 +269,26 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     },
     [selectedStyle, hasTweetData],
   );
+
+  // 校验链接是否合法的 Twitter/X 推文链接
+  const isValidUrl = (url: string): boolean | 'invalid-url' | 'not-twitter' => {
+    if (!url || url.trim() === '') return true; // 空值被认为是合法的
+    
+    try {
+      // 尝试构造 URL 对象，如果失败则说明不是合法的 URL
+      new URL(url);
+      
+      // 检查是否是 Twitter/X 的推文链接
+      const twitterRegex = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[a-zA-Z0-9_]+\/status\/\d+/;
+      if (!twitterRegex.test(url)) {
+        return 'not-twitter';
+      }
+      
+      return true;
+    } catch {
+      return 'invalid-url';
+    }
+  };
 
   // 处理链接改变
   const handleLinkChange = useCallback((index: number, value: string) => {
@@ -388,19 +423,43 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               Examples of Customized Style
             </h3>
             <p className="mb-4 text-gray-500">
-              Type in the content you'd like to use as style references.
+              Paste the link to the posts you'd like to use as style references.
             </p>
-            <div className="space-y-3">
-              {tweetExampleUrls.map((url, index) => (
-                <Input
-                  key={index}
-                  value={url}
-                  onChange={(e) => handleLinkChange(index, e.target.value)}
-                  placeholder=""
-                  variant="bordered"
-                  className="w-full"
-                />
-              ))}
+            <div className="flex justify-between gap-[10px]">
+              {tweetExampleUrls.map((url, index) => {
+                const validationResult = isValidUrl(url);
+                const isInvalid = url.trim() !== '' && validationResult !== true;
+                const errorMessage = 
+                  validationResult === 'invalid-url' 
+                    ? 'Please enter a valid URL' 
+                    : validationResult === 'not-twitter'
+                    ? 'Please enter a Twitter/X post link'
+                    : undefined;
+                
+                return (
+                  <Input
+                    key={index}
+                    value={url}
+                    onChange={(e) => handleLinkChange(index, e.target.value)}
+                    placeholder={
+                      index === 0 ? 'https://x.com/influxy.ai...' : ''
+                    }
+                    variant="bordered"
+                    className="flex-1"
+                    isInvalid={isInvalid}
+                    errorMessage={errorMessage}
+                    startContent={
+                      <Image
+                        src="/icons/link.svg"
+                        alt="Link"
+                        width={20}
+                        height={20}
+                        className="pointer-events-none flex-shrink-0 text-gray-400"
+                      />
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
