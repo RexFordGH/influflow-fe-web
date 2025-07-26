@@ -31,9 +31,9 @@ import {
   MindmapNodeData,
 } from '@/types/content';
 import { Outline, TweetContentItem } from '@/types/outline';
+import { devLog } from '@/utils/devLog';
 import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
 
-import { devLog } from '@/utils/devLog';
 import { CreateArticleLoading } from './CreateLoading';
 import { ImageEditModal } from './markdown/ImageEditModal';
 import { MarkdownRenderer } from './markdown/MarkdownRenderer';
@@ -1546,13 +1546,13 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="w-[628px] flex flex-col bg-white px-[24px] overflow-scroll  pb-[60px] font-inter">
+        <div className="font-inter flex w-[628px] flex-col overflow-scroll bg-white  px-[24px] pb-[60px]">
           {/* 标题区域 */}
           <div className="pt-[24px]">
-            <h1 className="text-[32px] font-[700] text-black font-inter leading-[1]">
+            <h1 className="font-inter text-[32px] font-[700] leading-none text-black">
               {rawAPIData?.topic}
             </h1>
-            <p className="text-[14px] font-[400] text-[#8C8C8C] font-inter leading-[1]">
+            <p className="font-inter text-[14px] font-[400] leading-none text-[#8C8C8C]">
               {formatTime(rawAPIData?.updatedAt || Date.now())}
             </p>
           </div>
@@ -1569,7 +1569,7 @@ export function ArticleRenderer({
               </div>
 
               <div>
-                <div className="ml-[12px] flex gap-[4px] text-[16px] leading-[1]">
+                <div className="ml-[12px] flex gap-[4px] text-[16px] leading-none">
                   <span className=" font-[600] text-black">{user?.name}</span>
                   <span className="text-[#5C6D7A]">@{user?.account_name}</span>
                 </div>

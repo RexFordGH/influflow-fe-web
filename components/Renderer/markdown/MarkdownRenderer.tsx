@@ -4,9 +4,9 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { devLog } from '@/utils/devLog';
 import { copyImageToClipboard } from '@/utils/twitter';
 
-import { devLog } from '@/utils/devLog';
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
@@ -62,7 +62,7 @@ interface CollectedImage {
 
 interface MarkdownSection {
   id: string;
-  type: 'heading' | 'paragraph' | 'list' | 'tweet' | 'group';
+  type: 'list' | 'tweet' | 'group' | 'heading' | 'paragraph';
   level?: number;
   content: string;
   rawContent: string;
@@ -521,7 +521,6 @@ export function MarkdownRenderer({
         editingNodeId ? 'pb-[300px]' : '',
       )}
     >
-      
       <div className={markdownStyles.container.content}>
         <div className={markdownStyles.container.sections}>
           {sections.map((section) => renderSection(section))}

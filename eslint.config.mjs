@@ -108,7 +108,12 @@ export default [
       'tailwindcss/no-custom-classname': [
         'warn',
         {
-          whitelist: ['font-poppins', 'font-inter', 'scrollbar-hide', 'text-danger'],
+          whitelist: [
+            'font-poppins',
+            'font-inter',
+            'scrollbar-hide',
+            'text-danger',
+          ],
         },
       ],
 

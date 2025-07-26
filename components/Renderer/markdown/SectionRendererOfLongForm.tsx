@@ -254,7 +254,7 @@ export function SectionRendererOfLongForm({
           )}
 
           {textContent && textContent.trim() && (
-            <div className="text-[15px] font-[500] font-inter leading-[1.35] text-black tracking-tight">
+            <div className="font-inter text-[15px] font-[500] leading-[1.35] tracking-tight text-black">
               <EditorPro
                 value={editorValue}
                 onChange={handleEditorChange}
@@ -349,7 +349,7 @@ export function SectionRendererOfLongForm({
             </div>
           )}
 
-          <div className="text-[15px] font-[600] leading-[1.35] text-black tracking-tight">
+          <div className="text-[15px] font-[600] leading-[1.35] tracking-tight text-black">
             <EditorPro
               value={groupTitleEditorValue}
               onChange={handleEditorChange}

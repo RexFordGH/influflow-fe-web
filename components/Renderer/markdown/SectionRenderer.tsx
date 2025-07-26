@@ -18,7 +18,7 @@ import {
 
 export interface MarkdownSection {
   id: string;
-  type: 'list' | 'tweet' | 'group';
+  type: 'list' | 'tweet' | 'group' | 'heading' | 'paragraph';
   level?: number;
   content: string;
   rawContent: string;
