@@ -521,6 +521,7 @@ export function MarkdownRenderer({
         editingNodeId ? 'pb-[300px]' : '',
       )}
     >
+      
       <div className={markdownStyles.container.content}>
         <div className={markdownStyles.container.sections}>
           {sections.map((section) => renderSection(section))}

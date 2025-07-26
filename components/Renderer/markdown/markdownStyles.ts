@@ -4,9 +4,9 @@
 export const markdownStyles = {
   // 容器样式
   container: {
-    main: 'h-full overflow-y-auto bg-white font-inter',
-    content: 'p-[24px]',
-    sections: 'w-[580px] space-y-[12px] font-inter',
+    main: 'bg-white font-inter',
+    content: '',
+    sections: 'space-y-[12px]',
   },
 
   // 基础布局样式

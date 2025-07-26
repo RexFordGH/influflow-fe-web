@@ -7,7 +7,6 @@ import EditorPro from '../../editorPro/index';
 import { LocalImageUploader } from './LocalImageUploader';
 import {
   getBaseClasses,
-  getHeadingClass,
   getHighlightClasses,
   markdownStyles,
   shouldEnableInteraction,
@@ -149,63 +148,6 @@ export function SectionRendererOfLongForm({
   const { handleEnter, handleLeave } = createMouseHandlers();
 
   switch (section.type) {
-    case 'heading':
-      const HeadingTag = `h${Math.min(section.level || 1, 6)}` as
-        | 'h1'
-        | 'h2'
-        | 'h3'
-        | 'h4'
-        | 'h5'
-        | 'h6';
-      const headingClass = getHeadingClass(section.level || 1);
-
-      return (
-        <div
-          key={section.id}
-          ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-          onMouseEnter={handleEnter}
-          onMouseLeave={handleLeave}
-        >
-          {isLoading && (
-            <div className={markdownStyles.loading.indicator}>
-              <div className={markdownStyles.loading.spinner}></div>
-            </div>
-          )}
-          <HeadingTag
-            className={headingClass}
-            dangerouslySetInnerHTML={{ __html: renderEmoji(section.content) }}
-          />
-        </div>
-      );
-
-    case 'paragraph':
-      // Image rendering logic is removed as it's handled by the parent.
-      const processedParagraphContent = (section.content || '')
-        .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
-        .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
-        .replace(/#([^\s#]+)/g, markdownStyles.formatting.hashtag);
-
-      return (
-        <div
-          key={section.id}
-          ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-          onMouseEnter={handleEnter}
-          onMouseLeave={handleLeave}
-        >
-          {isLoading && (
-            <div className={markdownStyles.loading.indicator}>
-              <div className={markdownStyles.loading.spinner}></div>
-            </div>
-          )}
-          <p
-            className={markdownStyles.text.paragraph}
-            dangerouslySetInnerHTML={{ __html: processedParagraphContent }}
-          />
-        </div>
-      );
-
     case 'list':
       const listItems = section.content
         .split('\n')
@@ -397,7 +339,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[20px] py-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[16px] py-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >

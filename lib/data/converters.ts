@@ -131,16 +131,17 @@ export function convertAPIDataToGeneratedContent(
 export function convertAPIDataToMarkdown(data: Outline): string {
   let markdown = '';
 
-  // 添加一级标题
-  markdown += `# ${data.topic}\n`;
+  // 移除标题和时间，放到最外层用普通的div来渲染， 2025.07.26
+  // // 添加一级标题
+  // markdown += `# ${data.topic}\n`;
 
-  // 添加当前时间 - 英文格式，紧跟标题
-  const currentTime = new Date().toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  markdown += `<div>Edited on ${currentTime}</div>\n\n`;
+  // // 添加当前时间 - 英文格式，紧跟标题
+  // const currentTime = new Date().toLocaleString('en-US', {
+  //   year: 'numeric',
+  //   month: 'long',
+  //   day: 'numeric',
+  // });
+  // markdown += `<div>Edited on ${currentTime}</div>\n\n`;
 
   // 按接口数据数组排列，包含分组标题
   data.nodes.forEach((tweetGroup: any, groupIndex: number) => {
