@@ -43,7 +43,7 @@ export const useTweetThreads = (uid?: string) => {
 
         // 在开发环境限制数据量
         if (process.env.NEXT_PUBLIC_ENV === 'local') {
-          query.limit(10);
+          query.limit(100);
         }
 
         const { data, error } = await query;

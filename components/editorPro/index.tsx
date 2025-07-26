@@ -438,7 +438,6 @@ const EditorPro: React.FC<EditorProProps> = ({
           '[&_h1]:text-[2rem] [&_h1]:leading-[1.4]',
           '[&_h2]:text-[1.6rem] [&_h2]:leading-[1.4]',
           '[&_h3]:text-[1.4rem] [&_h3]:leading-[1.4]',
-          isEdit ? 'text-[14px]' : 'text-[16px]',
           !isEdit && 'cursor-default',
           className,
         ),

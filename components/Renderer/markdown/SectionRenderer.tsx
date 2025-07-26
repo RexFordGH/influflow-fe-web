@@ -11,7 +11,6 @@ import { copyTwitterContent } from '@/utils/twitter';
 import { LocalImageUploader } from './LocalImageUploader';
 import {
   getBaseClasses,
-  getHeadingClass,
   getHighlightClasses,
   markdownStyles,
   shouldEnableInteraction,
@@ -19,7 +18,7 @@ import {
 
 export interface MarkdownSection {
   id: string;
-  type: 'heading' | 'paragraph' | 'list' | 'tweet' | 'group';
+  type: 'list' | 'tweet' | 'group' | 'heading' | 'paragraph';
   level?: number;
   content: string;
   rawContent: string;
@@ -196,108 +195,6 @@ export function SectionRenderer({
   const { handleEnter, handleLeave } = createMouseHandlers();
 
   switch (section.type) {
-    case 'heading':
-      const HeadingTag = `h${Math.min(section.level || 1, 6)}` as
-        | 'h1'
-        | 'h2'
-        | 'h3'
-        | 'h4'
-        | 'h5'
-        | 'h6';
-      const headingClass = getHeadingClass(section.level || 1);
-
-      return (
-        <div
-          key={section.id}
-          ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-          onMouseEnter={handleEnter}
-          onMouseLeave={handleLeave}
-        >
-          {isLoading && (
-            <div className={markdownStyles.loading.indicator}>
-              <div className={markdownStyles.loading.spinner}></div>
-            </div>
-          )}
-          <HeadingTag
-            className={headingClass}
-            dangerouslySetInnerHTML={{ __html: renderEmoji(section.content) }}
-          />
-        </div>
-      );
-
-    case 'paragraph':
-      const imageMatch = section.content.match(/!\[(.*?)\]\((.*?)\)/);
-
-      if (imageMatch) {
-        const [, altText, imageSrc] = imageMatch;
-        return (
-          <div
-            key={section.id}
-            ref={(el) => setSectionRef?.(section.id, el)}
-            className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-6`}
-            onMouseEnter={handleEnter}
-            onMouseLeave={handleLeave}
-          >
-            {isLoading && (
-              <div className={markdownStyles.loading.zIndex}>
-                <div className={markdownStyles.loading.spinner}></div>
-              </div>
-            )}
-            <div className="relative cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-              <img
-                src={imageSrc}
-                alt={altText}
-                className={markdownStyles.image.image}
-                onClick={() =>
-                  onImageClick?.({
-                    url: imageSrc,
-                    alt: altText,
-                    caption: imageData?.caption,
-                    prompt: imageData?.prompt,
-                  })
-                }
-              />
-              {imageData?.caption && (
-                <div className={markdownStyles.image.overlay}>
-                  <p className={markdownStyles.image.caption}>
-                    {imageData.caption}
-                  </p>
-                </div>
-              )}
-              <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs text-white opacity-0 transition-opacity hover:opacity-100">
-                点击编辑图片
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      const processedParagraphContent = (section.content || '')
-        .replace(/\*\*(.*?)\*\*/g, markdownStyles.formatting.bold)
-        .replace(/\*(.*?)\*/g, markdownStyles.formatting.italic)
-        .replace(/#([^\s#]+)/g, markdownStyles.formatting.hashtag);
-
-      return (
-        <div
-          key={section.id}
-          ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-          onMouseEnter={handleEnter}
-          onMouseLeave={handleLeave}
-        >
-          {isLoading && (
-            <div className={markdownStyles.loading.indicator}>
-              <div className={markdownStyles.loading.spinner}></div>
-            </div>
-          )}
-          <p
-            className={markdownStyles.text.paragraph}
-            dangerouslySetInnerHTML={{ __html: processedParagraphContent }}
-          />
-        </div>
-      );
-
     case 'list':
       const listItems = section.content
         .split('\n')

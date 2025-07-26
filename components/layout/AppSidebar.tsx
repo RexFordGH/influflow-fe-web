@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/stores/authStore';
 import { Category } from '@/types/content';
+import { devLog } from '@/utils/devLog';
 
 import { ArticleItem } from '../home/ArticleItem';
 
@@ -85,6 +86,7 @@ export const AppSidebar = ({
     ) {
       // 点击 tweet 分类时，打开思维导图和 MD 区域
       // 确保使用最新的 tweetData
+      devLog('onTweetThreadClick', category);
       onTweetThreadClick({ ...category.tweetData, timestamp: Date.now() });
     } else {
       // 普通分类的展开/收起

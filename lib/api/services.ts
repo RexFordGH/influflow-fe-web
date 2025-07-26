@@ -337,7 +337,9 @@ export function usePostToTwitter() {
   });
 }
 
-export async function queryTweetDetail(tweet_url: string): Promise<TweetDetail> {
+export async function queryTweetDetail(
+  tweet_url: string,
+): Promise<TweetDetail> {
   return apiGet<TweetDetail>(
     `/api/twitter/query-tweet?tweet_url=${encodeURIComponent(tweet_url)}`,
   );

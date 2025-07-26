@@ -18,4 +18,5 @@ export interface Outline {
   nodes: Tweet[];
   topic: string;
   total_tweets: number;
+  updatedAt?: Date | number;
 }
