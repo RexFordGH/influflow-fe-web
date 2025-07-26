@@ -34,11 +34,19 @@ export const useTweetThreads = (uid?: string) => {
         setLoading(true);
         setError(null);
 
-        const { data, error } = await supabase
+        // 本地开发环境只取前 10 条数据
+        const query = supabase
           .from('tweet_thread')
           .select('*')
           .eq('uid', uid) // 确保只拉取当前用户的数据
           .order('created_at', { ascending: false });
+
+        // 在开发环境限制数据量
+        if (process.env.NEXT_PUBLIC_ENV === 'local') {
+          query.limit(10);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           throw error;
@@ -78,11 +86,19 @@ export const useTweetThreads = (uid?: string) => {
           setLoading(true);
           setError(null);
 
-          const { data, error } = await supabase
+          // 本地开发环境只取前 10 条数据
+          const query = supabase
             .from('tweet_thread')
             .select('*')
             .eq('uid', uid) // 确保只拉取当前用户的数据
             .order('created_at', { ascending: false });
+
+          // 在开发环境限制数据量
+          if (process.env.NEXT_PUBLIC_ENV === 'local') {
+            query.limit(10);
+          }
+
+          const { data, error } = await query;
 
           if (error) {
             throw error;

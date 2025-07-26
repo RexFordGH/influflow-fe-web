@@ -4,7 +4,7 @@ export interface TweetContentItem {
   tweet_number: number;
   content: string;
   title: string;
-  image_url?: string;
+  image_url?: string | null;
 }
 
 export interface Tweet {

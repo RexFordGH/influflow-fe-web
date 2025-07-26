@@ -1,14 +1,23 @@
 'use client';
 
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
-import { type SuggestedTopic, type TrendingTopic } from '@/types/api';
+import {
+  type ITrendsRecommendTweet,
+  type SuggestedTopic,
+  type TrendingTopic,
+} from '@/types/api';
 
+import { SearchModal } from './SearchModal';
 import { TrendingTopicTweets } from './TrendingTopicTweets';
 
 interface TrendingTopicsProps {
@@ -16,6 +25,10 @@ interface TrendingTopicsProps {
   onBack: () => void;
   onTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
+  onSearchConfirm?: (
+    searchTerm: string,
+    selectedTweets: ITrendsRecommendTweet[],
+  ) => void;
 }
 
 const TrendingTopicSkeleton = ({ index }: { index: number }) => (
@@ -133,9 +146,17 @@ export function TrendingTopicsPage({
   onBack: _onBack,
   onTopicSelect,
   onTweetsSelect,
+  onSearchConfirm,
 }: TrendingTopicsProps) {
   const [selectedCategory, setSelectedCategory] = useState('ai');
-  const [expandedTopicIndex, setExpandedTopicIndex] = useState<number | null>(0); // 默认展开第一个
+  const [expandedTopicIndex, setExpandedTopicIndex] = useState<number | null>(
+    0,
+  ); // 默认展开第一个
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchWidgetsLoaded, setSearchWidgetsLoaded] = useState<
+    Record<string, boolean>
+  >({});
 
   const { data: topicTypes } = useTopicTypes();
 
@@ -164,15 +185,51 @@ export function TrendingTopicsPage({
     setExpandedTopicIndex(0);
   }, [selectedCategory]);
 
+  // 优化回调函数
+  const handleSearchModalClose = useCallback(() => {
+    setIsSearchModalOpen(false);
+  }, []);
+
+  const handleSearchConfirm = useCallback(
+    (searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => {
+      onSearchConfirm?.(searchTerm, selectedTweets);
+      setIsSearchModalOpen(false);
+    },
+    [onSearchConfirm],
+  );
+
+  const handleSearchTermChange = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
+
+  const handleWidgetsLoadedChange = useCallback(
+    (term: string, loaded: boolean) => {
+      setSearchWidgetsLoaded((prev) => ({
+        ...prev,
+        [term]: loaded,
+      }));
+    },
+    [],
+  );
+
   return (
     <div className="size-full overflow-y-auto bg-white">
       <div className="flex min-h-full flex-col">
         <div className="flex-1 px-[30px] py-14">
           <div className="mx-auto w-full max-w-4xl">
             <div className="mb-10">
-              <h2 className="mb-4 text-lg font-medium text-black">
-                Trending Topics
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="mb-4 text-lg font-medium text-black">
+                  Trending Topics
+                </h2>
+                <button
+                  onClick={() => setIsSearchModalOpen(true)}
+                  className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-gray-500 transition-colors hover:border-gray-400 hover:bg-gray-50 "
+                >
+                  <MagnifyingGlassIcon className="size-4" />
+                  <span>Search</span>
+                </button>
+              </div>
 
               {/* type */}
               <div className="mb-4 flex gap-3">
@@ -250,6 +307,17 @@ export function TrendingTopicsPage({
           </div>
         </div>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={handleSearchModalClose}
+        onConfirm={handleSearchConfirm}
+        initialSearchTerm={searchTerm}
+        onSearchTermChange={handleSearchTermChange}
+        widgetsLoaded={searchWidgetsLoaded}
+        onWidgetsLoadedChange={handleWidgetsLoadedChange}
+      />
     </div>
   );
 }

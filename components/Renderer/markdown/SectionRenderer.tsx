@@ -1,6 +1,5 @@
 'use client';
 
-import { PencilIcon } from '@heroicons/react/24/outline';
 import { Button, cn, Image, Tooltip } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
@@ -399,25 +398,8 @@ export function SectionRenderer({
       const currentTweetImageUrl = currentTweetData?.image_url;
       const imageToDisplay = imageUri;
 
-      // Special handling for list items - convert double breaks between list items to single breaks
-      const processedContent = textContent
-        .replace(/\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break before list item -> single break
-        .replace(/(?<=[•\-\*]\s+[^\n]*)\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break between list items -> single break
-        .replace(/\n\n/g, '||DOUBLE_BR||')
-        .replace(/\n/g, '<br>')
-        .replace(/\|\|DOUBLE_BR\|\|/g, '<br><br>');
-
       const editorValue = JSON.stringify({
-        content: processedContent
-          .replace(
-            /\*\*(.*?)\*\*/g,
-            '<strong class="font-semibold text-gray-900">$1</strong>',
-          )
-          .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-          .replace(
-            /#([^\s#]+)/g,
-            '<span class="text-blue-600 font-medium">#$1</span>',
-          ),
+        content: textContent,
         type: 'doc',
         isEmpty: !textContent.trim(),
       });
@@ -638,7 +620,7 @@ export function EditWithAIButton({
         className={markdownStyles.source.button}
         onPress={() => onEditWithAI?.(nodeId)}
       >
-        <PencilIcon className="size-3" />
+        <Image src="/icons/Edit.svg" alt="edit" width={20} height={20} />
       </Button>
     </Tooltip>
   );

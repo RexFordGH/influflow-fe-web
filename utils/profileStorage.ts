@@ -1,10 +1,18 @@
-export type ITone = 'Expert' | 'Humorous' | 'Motivational' | 'Customized';
+export type ITone =
+  | 'YourStyle'
+  | 'Expert'
+  | 'Humorous'
+  | 'Motivational'
+  | 'Customized';
 
 export interface ProfileData {
   account_name?: string;
   tone?: ITone;
   tweet_examples?: string[];
   bio?: string;
+  user_style_summary?: string;
+  tweet_example_urls?: string[];
+  user_tweets?: string[];
   lastUpdated?: number;
 }
 

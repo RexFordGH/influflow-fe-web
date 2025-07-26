@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
 import { Skeleton } from '@heroui/react';
 
 interface TwitterCardProps {
@@ -86,7 +85,7 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
         <div className="absolute inset-0 z-10 rounded-2xl border border-gray-200 bg-white p-4">
           {/* 头部信息 */}
           <div className="mb-3 flex items-center gap-3">
-            <Skeleton className="h-12 w-12 rounded-full" />
+            <Skeleton className="size-12 rounded-full" />
             <div className="flex-1">
               <Skeleton className="mb-1 h-4 w-24 rounded" />
               <Skeleton className="h-3 w-16 rounded" />

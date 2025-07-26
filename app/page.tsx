@@ -13,6 +13,7 @@ import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
 import {
   type ContentFormat,
+  type ITrendsRecommendTweet,
   type SuggestedTopic,
   type TrendingTopic,
 } from '@/types/api';
@@ -216,6 +217,16 @@ function HomeContent() {
     );
   };
 
+  const handleTrendingSearchConfirm = (
+    searchTerm: string,
+    selectedTweets: ITrendsRecommendTweet[],
+  ) => {
+    // 将搜索词设置到输入框
+    setTopicInput(searchTerm);
+    // 管理选中的推文
+    setSelectedTweets(selectedTweets);
+  };
+
   const handleCloseProfileCompletePrompt = () => {
     setShowProfileCompletePrompt(false);
     setPromptDismissed(); // 记录用户已关闭提示
@@ -339,6 +350,7 @@ function HomeContent() {
           onBackFromTrending={handleBackFromTrending}
           onTrendingTopicSelect={handleTrendingTopicSelect}
           onTrendingTweetsSelect={handleTrendingTweetsSelect}
+          onTrendingSearchConfirm={handleTrendingSearchConfirm}
           selectedTweets={selectedTweets}
           onRemoveSelectedTweet={handleRemoveSelectedTweet}
           topicInput={topicInput}

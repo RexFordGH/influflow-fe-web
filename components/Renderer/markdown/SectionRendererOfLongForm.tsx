@@ -283,25 +283,13 @@ export function SectionRendererOfLongForm({
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
 
-      // Special handling for list items - convert double breaks between list items to single breaks
-      const processedContent = textContent
-        .replace(/\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break before list item -> single break
-        .replace(/(?<=[•\-\*]\s+[^\n]*)\n\n(?=[\s]*[•\-\*]\s+)/g, '\n') // Double break between list items -> single break
-        .replace(/\n\n/g, '||DOUBLE_BR||')
-        .replace(/\n/g, '<br>')
-        .replace(/\|\|DOUBLE_BR\|\|/g, '<br><br>');
+      const { title = '', content = '' } = currentTweetData || {};
+
+      const tweetContent = content.replace(title, '');
+      // console.log('currentTweetData', tweetContent);
 
       const editorValue = JSON.stringify({
-        content: processedContent
-          .replace(
-            /\*\*(.*?)\*\*/g,
-            '<strong class="font-semibold text-gray-900">$1</strong>',
-          )
-          .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-          .replace(
-            /#([^\s#]+)/g,
-            '<span class="text-blue-600 font-medium">#$1</span>',
-          ),
+        content: tweetContent || textContent,
         type: 'doc',
         isEmpty: !textContent.trim(),
       });
@@ -313,7 +301,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[20px] !scale-100 border-none !py-[4px] px-[8px] pb-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
