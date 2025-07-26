@@ -100,6 +100,7 @@ export default [
           config: {
             classNameContradictions: {
               'font-poppins': [],
+              'font-inter': [],
             },
           },
         },
@@ -107,7 +108,7 @@ export default [
       'tailwindcss/no-custom-classname': [
         'warn',
         {
-          whitelist: ['font-poppins', 'scrollbar-hide', 'text-danger'],
+          whitelist: ['font-poppins', 'font-inter', 'scrollbar-hide', 'text-danger'],
         },
       ],
 

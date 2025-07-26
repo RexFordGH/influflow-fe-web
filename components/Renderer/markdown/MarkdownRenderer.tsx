@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { copyImageToClipboard } from '@/utils/twitter';
 
+import { devLog } from '@/utils/devLog';
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
@@ -368,6 +369,20 @@ export function MarkdownRenderer({
 
     return sections;
   }, [processedContent]);
+
+  useEffect(() => {
+    if (content) {
+      devLog('MarkdownRenderer->content', {
+        content: content,
+      });
+    }
+  }, [content]);
+
+  useEffect(() => {
+    if (sections && sections.length > 0) {
+      devLog('MarkdownRenderer->sections', sections);
+    }
+  }, [sections]);
 
   // 监听scrollToSection变化并执行滚动
   useEffect(() => {

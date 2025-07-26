@@ -4,9 +4,9 @@
 export const markdownStyles = {
   // 容器样式
   container: {
-    main: 'h-full overflow-y-auto bg-white',
-    content: 'max-w-none p-6',
-    sections: 'space-y-[12px]',
+    main: 'h-full overflow-y-auto bg-white font-inter',
+    content: 'p-[24px]',
+    sections: 'w-[580px] space-y-[12px] font-inter',
   },
 
   // 基础布局样式
@@ -37,7 +37,7 @@ export const markdownStyles = {
 
   // 段落和文本样式
   text: {
-    paragraph: 'text-sm leading-relaxed text-gray-700',
+    paragraph: 'text-[14px] leading-relaxed text-[#8C8C8C]',
     bold: 'font-semibold text-gray-900',
     italic: 'italic text-gray-600',
     hashtag: 'text-blue-600 font-medium',
@@ -58,7 +58,7 @@ export const markdownStyles = {
   tweet: {
     container: 'border border-gray-100',
     titleContainer: 'border-b border-gray-200 pb-3',
-    content: 'text-sm leading-relaxed text-gray-700',
+    content: 'text-[15px] font-[500] leading-relaxed text-gray-700',
   },
 
   // 分组样式

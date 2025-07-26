@@ -301,7 +301,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[20px] !scale-100 border-none !py-[4px] px-[8px] pb-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[16px] !scale-100 border-none !py-[4px] px-[8px] pb-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -312,7 +312,7 @@ export function SectionRendererOfLongForm({
           )}
 
           {textContent && textContent.trim() && (
-            <div className="text-[14px] leading-[1.6] text-black">
+            <div className="text-[15px] font-[500] font-inter leading-[1.35] text-black tracking-tight">
               <EditorPro
                 value={editorValue}
                 onChange={handleEditorChange}
@@ -397,7 +397,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[32px] py-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[20px] py-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -407,7 +407,7 @@ export function SectionRendererOfLongForm({
             </div>
           )}
 
-          <div className="text-[14px] font-medium leading-[1.6] text-black">
+          <div className="text-[15px] font-[600] leading-[1.35] text-black tracking-tight">
             <EditorPro
               value={groupTitleEditorValue}
               onChange={handleEditorChange}

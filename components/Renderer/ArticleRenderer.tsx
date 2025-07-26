@@ -34,6 +34,7 @@ import {
 import { Outline, TweetContentItem } from '@/types/outline';
 import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
 
+import { devLog } from '@/utils/devLog';
 import { CreateArticleLoading } from './CreateLoading';
 import { ImageEditModal } from './markdown/ImageEditModal';
 import { MarkdownRenderer } from './markdown/MarkdownRenderer';
@@ -1008,6 +1009,14 @@ export function ArticleRenderer({
     setProcessedMarkdown(cleanedMarkdown);
   }, [rawAPIData, regeneratedMarkdown, contentFormat]);
 
+  useEffect(() => {
+    if (processedMarkdown) {
+      devLog('ArticleRenderer->processedMarkdown', {
+        processedMarkdown,
+      });
+    }
+  }, [processedMarkdown]);
+
   const handleDeleteImage = useCallback(
     (image: CollectedImage) => {
       console.log('handleDeleteImage called in Generation. Image:', image);
@@ -1564,7 +1573,7 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="flex w-[500px] flex-col bg-white">
+        <div className="flex  flex-col bg-white">
           {/* Twitter Thread内容区域 */}
           <div className="flex-1 overflow-y-auto">
             {rawAPIData && (

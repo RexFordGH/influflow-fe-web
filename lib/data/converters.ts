@@ -140,7 +140,7 @@ export function convertAPIDataToMarkdown(data: Outline): string {
     month: 'long',
     day: 'numeric',
   });
-  markdown += `<div class="text-gray-500 text-sm mb-4">Edited on ${currentTime}</div>\n\n`;
+  markdown += `<div>Edited on ${currentTime}</div>\n\n`;
 
   // 按接口数据数组排列，包含分组标题
   data.nodes.forEach((tweetGroup: any, groupIndex: number) => {
