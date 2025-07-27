@@ -6,8 +6,7 @@ export const FakeData1: Tweet[] = [
     tweets: [
       {
         title: 'AI 协同成为企业核心竞争力',
-        content:
-          '🚀 随着 AI 技术的快速发展，企业正面临前所未有的变革机遇。从内部提效工具到战略核心驱动，AI 协同已不再是可选项，而是企业在数字化时代生存发展的必需品。\n\n根据最新行业调研显示，超过 59% 的企业已将 AI 应用于代码开发与测试，52% 的企业在用户营销与运营中引入 AI 能力。这些数据表明，企业 AI 协同正从试水阶段迈向深度融合阶段。',
+        content: "Solana的这次升级不仅仅是技术参数的调整，更是对整个区块链行业发展方向的一次表态：\n\n我们不满足于现状，我们要推动极限。\n\n这种\"硬件军备竞赛\"会重塑整个公链格局。那些无法跟上性能竞争的项目可能会被边缘化，而能够持续创新的平台将获得更大的市场份额。\n\n作为行业参与者，我们需要在性能、去中心化和可持续性之间找到最佳平衡点。\n\nSolana正在用行动告诉我们：未来属于那些敢于突破边界的人 💪\n\n#Solana #区块链升级 #Web3创业 #性能优化",
         image_url: null,
         tweet_number: 1,
       },
@@ -178,7 +177,7 @@ export const FakeData3: Tweet[] = [
 export const FakeOutline: Outline = {
   id: '1233',
   content_format: 'longform',
-  nodes: FakeData3,
+  nodes: FakeData1,
   topic: 'fake data',
   total_tweets: 10,
 };

@@ -4,6 +4,7 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { devLog } from '@/utils/devLog';
 import { copyImageToClipboard } from '@/utils/twitter';
 
 import { markdownStyles } from './markdownStyles';
@@ -61,7 +62,7 @@ interface CollectedImage {
 
 interface MarkdownSection {
   id: string;
-  type: 'heading' | 'paragraph' | 'list' | 'tweet' | 'group';
+  type: 'list' | 'tweet' | 'group' | 'heading' | 'paragraph';
   level?: number;
   content: string;
   rawContent: string;
@@ -151,25 +152,6 @@ export function MarkdownRenderer({
     lines.forEach((line) => {
       const trimmedLine = line.trim();
 
-      // 检查是否是时间标签 div
-      const timeDivMatch = trimmedLine.match(
-        /<div\s+class="[^"]*">Edited on [^<]+<\/div>/,
-      );
-      if (timeDivMatch) {
-        if (currentSection) {
-          sections.push(currentSection);
-        }
-        currentSection = {
-          id: `time-section-${sectionIndex++}`,
-          type: 'paragraph',
-          content: trimmedLine, // 保存完整的 HTML
-          rawContent: line,
-        };
-        sections.push(currentSection);
-        currentSection = null;
-        return;
-      }
-
       // 检查是否是group div开始标签
       const groupDivMatch = trimmedLine.match(/<div\s+data-group-id="(\d+)">/);
       if (groupDivMatch) {
@@ -240,7 +222,7 @@ export function MarkdownRenderer({
 
       // 如果在div内，累积内容，特别处理标题
       if (inTweetDiv && currentSection) {
-        if (trimmedLine && !trimmedLine.startsWith('---')) {
+        if (!trimmedLine.startsWith('---')) {
           // 检查是否是标题行
           if (trimmedLine.startsWith('#')) {
             const level = trimmedLine.match(/^#+/)?.[0].length || 1;
@@ -256,12 +238,12 @@ export function MarkdownRenderer({
               currentSection.level = level;
             } else {
               // 如果已有内容，添加到现有内容
-              currentSection.content += '\n\n' + text;
+              currentSection.content += '\n' + text;
             }
           } else {
-            // 普通内容行
+            // 普通内容行（包括空行）
             if (currentSection.content) {
-              currentSection.content += '\n\n' + trimmedLine;
+              currentSection.content += '\n' + trimmedLine;
             } else {
               currentSection.content = trimmedLine;
             }
@@ -272,7 +254,7 @@ export function MarkdownRenderer({
       }
 
       if (inGroupDiv && currentSection) {
-        if (trimmedLine && !trimmedLine.startsWith('---')) {
+        if (!trimmedLine.startsWith('---')) {
           // 检查是否是标题行
           if (trimmedLine.startsWith('#')) {
             const level = trimmedLine.match(/^#+/)?.[0].length || 1;
@@ -288,12 +270,12 @@ export function MarkdownRenderer({
               currentSection.level = level;
             } else {
               // 如果已有内容，添加到现有内容
-              currentSection.content += '\n\n' + text;
+              currentSection.content += '\n' + text;
             }
           } else {
-            // 普通内容行
+            // 普通内容行（包括空行）
             if (currentSection.content) {
-              currentSection.content += '\n\n' + trimmedLine;
+              currentSection.content += '\n' + trimmedLine;
             } else {
               currentSection.content = trimmedLine;
             }
@@ -356,8 +338,21 @@ export function MarkdownRenderer({
             rawContent: line,
           };
         } else {
-          currentSection.content += ' ' + trimmedLine;
+          // 保留换行而不是用空格连接
+          currentSection.content += '\n' + trimmedLine;
           currentSection.rawContent += '\n' + line;
+        }
+      } else if (!trimmedLine) {
+        // 空行处理：如果有当前section且不是div内部，则结束当前section
+        if (
+          currentSection &&
+          !inTweetDiv &&
+          !inGroupDiv &&
+          (currentSection.type === 'paragraph' ||
+            currentSection.type === 'list')
+        ) {
+          sections.push(currentSection);
+          currentSection = null;
         }
       }
     });
@@ -368,6 +363,20 @@ export function MarkdownRenderer({
 
     return sections;
   }, [processedContent]);
+
+  useEffect(() => {
+    if (content) {
+      devLog('MarkdownRenderer->content', {
+        content: content,
+      });
+    }
+  }, [content]);
+
+  useEffect(() => {
+    if (sections && sections.length > 0) {
+      devLog('MarkdownRenderer->sections', sections);
+    }
+  }, [sections]);
 
   // 监听scrollToSection变化并执行滚动
   useEffect(() => {
@@ -514,7 +523,7 @@ export function MarkdownRenderer({
         {/* 图片画廊 - 仅在 longform 模式下显示 */}
         {tweetData?.content_format === 'longform' &&
           collectedImages.length > 0 && (
-            <div className="mt-[48px] flex flex-col  justify-center gap-[16px]">
+            <div className="mt-[48px] flex w-[580px]  flex-col justify-center gap-[16px] overflow-hidden">
               {collectedImages.map((image, index) => (
                 <div
                   key={index}
@@ -523,7 +532,7 @@ export function MarkdownRenderer({
                   <Image
                     src={image.src}
                     alt={image.alt}
-                    className="h-[400px] w-auto rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
+                    className="h-[400px] w-auto max-w-[500px] rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
                   />
                   <div className="absolute right-1.5 top-1.5 z-20 flex items-center justify-end gap-1">
                     <Button

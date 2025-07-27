@@ -9,6 +9,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { MainContent } from '@/components/home/MainContent';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { ProfileCompletePrompt } from '@/components/profile';
+import { FakeOutline } from '@/components/Renderer/mock';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -243,6 +244,7 @@ function HomeContent() {
         0,
       ),
       id: tweetData.id,
+      updatedAt: tweetData.updated_at ?? new Date(),
     };
 
     // 2. 设置 initialData 和 topic
@@ -296,7 +298,11 @@ function HomeContent() {
             topic={currentTopic}
             contentFormat={contentFormat}
             onBack={handleBackToHome}
-            initialData={initialData}
+            initialData={
+              process.env.NEXT_PUBLIC_USE_FAKE_OUTLINE === 'true'
+                ? FakeOutline
+                : initialData
+            }
             onDataUpdate={refetchTweetThreads}
           />
         </div>

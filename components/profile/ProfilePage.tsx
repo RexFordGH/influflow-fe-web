@@ -376,7 +376,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                   <Button
                     key={option.value}
                     variant="bordered"
-                    className={`border-1 rounded-[12px] px-6 py-3 opacity-30 cursor-not-allowed hover:opacity-30 `}
+                    className={`border-1 cursor-not-allowed rounded-[12px] px-6 py-3 opacity-30 hover:opacity-30 `}
                     disabled={true}
                     onPress={() => handleStyleSelect(option.value)}
                   >
@@ -391,7 +391,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                     selectedStyle === option.value
                       ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
                       : isYourStyleDisabled
-                        ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-50'
+                        ? 'cursor-not-allowed border-gray-200 text-gray-400 opacity-50'
                         : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   } ${option.value === 'Customized' ? 'underline' : ''}`}
                   onPress={() => handleStyleSelect(option.value)}
@@ -454,7 +454,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                         alt="Link"
                         width={20}
                         height={20}
-                        className="pointer-events-none flex-shrink-0 text-gray-400"
+                        className="pointer-events-none shrink-0 text-gray-400"
                       />
                     }
                   />

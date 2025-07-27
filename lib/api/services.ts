@@ -51,13 +51,6 @@ export function useHealth() {
 export function useGenerateThread() {
   return useMutation({
     mutationFn: async (data: GenerateThreadRequest): Promise<Outline> => {
-      // 检查是否使用本地数据
-      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
-        // 模拟网络延迟
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        return localGenerateThreadResponse;
-      }
-      // 生产环境调用真实接口
       return apiPost<Outline>('/api/twitter/generate', data, 120000);
     },
     onSuccess: (data) => {
@@ -74,17 +67,6 @@ export function useGenerateThread() {
 export function useModifyTweet() {
   return useMutation({
     mutationFn: async (data: ModifyTweetRequest): Promise<ModifyTweetData> => {
-      // 检查是否使用本地数据
-      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
-        // 模拟网络延迟
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        return createLocalModifyTweetResponse(
-          data.outline,
-          data.tweet_number,
-          data.modification_prompt,
-        );
-      }
-      // 生产环境调用真实接口
       return apiPost<ModifyTweetData>(
         '/api/twitter/modify-tweet',
         data,
@@ -107,16 +89,6 @@ export function useModifyOutline() {
     mutationFn: async (
       data: ModifyOutlineRequest,
     ): Promise<ModifyOutlineData> => {
-      // 检查是否使用本地数据
-      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
-        // 模拟网络延迟
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        return createLocalModifyOutlineResponse(
-          data.original_outline,
-          data.new_outline_structure,
-        );
-      }
-      // 生产环境调用真实接口
       return apiPost<ModifyOutlineData>(
         '/api/twitter/modify-outline',
         data,
@@ -137,27 +109,6 @@ export function useModifyOutline() {
 export function useGenerateImage() {
   return useMutation({
     mutationFn: async (data: GenerateImageRequest): Promise<string> => {
-      // 检查是否使用本地数据
-      if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === 'true') {
-        // 模拟网络延迟
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-
-        // 基于请求内容生成一致的图片ID，这样同样的内容会得到同样的图片
-        // 使用简单的字符串哈希避免 btoa 的编码问题
-        const content = data.target_tweet || '';
-        let hash = 0;
-        for (let i = 0; i < content.length; i++) {
-          const char = content.charCodeAt(i);
-          hash = (hash << 5) - hash + char;
-          hash = hash & hash; // 转换为32位整数
-        }
-        const contentHash = Math.abs(hash).toString(36).slice(0, 8);
-        const timestamp = Date.now();
-
-        // 返回一个带有内容标识和时间戳的模拟图片URL，便于测试
-        return `https://picsum.photos/800/600?seed=${contentHash}&t=${timestamp}`;
-      }
-      // 生产环境调用真实接口
       return generateImage(data.target_tweet, data.tweet_thread, 120000);
     },
     onSuccess: (imageUrl) => {
@@ -337,7 +288,9 @@ export function usePostToTwitter() {
   });
 }
 
-export async function queryTweetDetail(tweet_url: string): Promise<TweetDetail> {
+export async function queryTweetDetail(
+  tweet_url: string,
+): Promise<TweetDetail> {
   return apiGet<TweetDetail>(
     `/api/twitter/query-tweet?tweet_url=${encodeURIComponent(tweet_url)}`,
   );
