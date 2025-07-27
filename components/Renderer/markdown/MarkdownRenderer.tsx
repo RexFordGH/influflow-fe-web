@@ -152,25 +152,6 @@ export function MarkdownRenderer({
     lines.forEach((line) => {
       const trimmedLine = line.trim();
 
-      // 检查是否是时间标签 div
-      const timeDivMatch = trimmedLine.match(
-        /<div\s+class="[^"]*">Edited on [^<]+<\/div>/,
-      );
-      if (timeDivMatch) {
-        if (currentSection) {
-          sections.push(currentSection);
-        }
-        currentSection = {
-          id: `time-section-${sectionIndex++}`,
-          type: 'paragraph',
-          content: trimmedLine, // 保存完整的 HTML
-          rawContent: line,
-        };
-        sections.push(currentSection);
-        currentSection = null;
-        return;
-      }
-
       // 检查是否是group div开始标签
       const groupDivMatch = trimmedLine.match(/<div\s+data-group-id="(\d+)">/);
       if (groupDivMatch) {
@@ -257,12 +238,12 @@ export function MarkdownRenderer({
               currentSection.level = level;
             } else {
               // 如果已有内容，添加到现有内容
-              currentSection.content += '\n\n' + text;
+              currentSection.content += '\n' + text;
             }
           } else {
             // 普通内容行
             if (currentSection.content) {
-              currentSection.content += '\n\n' + trimmedLine;
+              currentSection.content += '\n' + trimmedLine;
             } else {
               currentSection.content = trimmedLine;
             }
@@ -289,12 +270,12 @@ export function MarkdownRenderer({
               currentSection.level = level;
             } else {
               // 如果已有内容，添加到现有内容
-              currentSection.content += '\n\n' + text;
+              currentSection.content += '\n' + text;
             }
           } else {
             // 普通内容行
             if (currentSection.content) {
-              currentSection.content += '\n\n' + trimmedLine;
+              currentSection.content += '\n' + trimmedLine;
             } else {
               currentSection.content = trimmedLine;
             }
@@ -359,6 +340,13 @@ export function MarkdownRenderer({
         } else {
           currentSection.content += ' ' + trimmedLine;
           currentSection.rawContent += '\n' + line;
+        }
+      } else if (!trimmedLine) {
+        // 空行处理：如果有当前section且不是div内部，则结束当前section
+        if (currentSection && !inTweetDiv && !inGroupDiv && 
+            (currentSection.type === 'paragraph' || currentSection.type === 'list')) {
+          sections.push(currentSection);
+          currentSection = null;
         }
       }
     });

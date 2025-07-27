@@ -67,7 +67,7 @@ export function SectionRendererOfLongForm({
 
   useEffect(() => {
     if (section.type === 'tweet') {
-      const lines = section.content.split('\n\n');
+      const lines = section.content.split('\n');
       let contentLines = [];
 
       const titleLine = lines.find((line) => line.startsWith('#'));
@@ -205,7 +205,7 @@ export function SectionRendererOfLongForm({
       );
 
     case 'tweet':
-      const lines = section.content.split('\n\n');
+      const lines = section.content.split('\n');
       let contentLines = [];
 
       const titleLine = lines.find((line) => line.startsWith('#'));
@@ -312,7 +312,7 @@ export function SectionRendererOfLongForm({
       );
 
     case 'group':
-      const groupLines = section.content.split('\n\n');
+      const groupLines = section.content.split('\n');
       let groupTitle = '';
       let groupContent = '';
       const groupTitleLine = groupLines.find((line) => line.startsWith('#'));

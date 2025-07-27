@@ -252,7 +252,7 @@ export function SectionRenderer({
       );
 
     case 'tweet':
-      const lines = section.content.split('\n\n');
+      const lines = section.content.split('\n');
       let title = '';
       let contentLines = [];
 
@@ -267,7 +267,7 @@ export function SectionRenderer({
         contentLines = lines.slice(1).filter((line) => line.trim() !== '');
       }
 
-      const content = contentLines.join('\n\n');
+      const content = contentLines.join('\n');
       const contentImageMatch = content.match(/!\[(.*?)\]\((.*?)\)/);
       let textContent = content;
       let tweetImageSrc = null;
