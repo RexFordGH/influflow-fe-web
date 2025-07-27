@@ -36,7 +36,7 @@ import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
 
 import { CreateArticleLoading } from './CreateLoading';
 import { ImageEditModal } from './markdown/ImageEditModal';
-import { MarkdownRenderer } from './markdown/MarkdownRenderer';
+import { StructuredRenderer } from './structured/StructuredRenderer';
 import EditableContentMindmap from './mindmap/MindmapRenderer';
 
 interface ArticleRendererProps {
@@ -156,8 +156,6 @@ export function ArticleRenderer({
 
   // 从 longform 内容中提取的图片
   const [collectedImages, setCollectedImages] = useState<CollectedImage[]>([]);
-  // 经过图片移除处理后的 Markdown 内容
-  const [processedMarkdown, setProcessedMarkdown] = useState<string>('');
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<CollectedImage | null>(
@@ -975,7 +973,6 @@ export function ArticleRenderer({
   useEffect(() => {
     if (contentFormat !== 'longform' || !rawAPIData) {
       setCollectedImages([]);
-      setProcessedMarkdown('');
       return;
     }
 
@@ -997,24 +994,9 @@ export function ArticleRenderer({
     });
     setCollectedImages(images);
 
-    // 生成完整的 Markdown
-    const fullMarkdown =
-      regeneratedMarkdown || convertAPIDataToMarkdown(rawAPIData);
 
-    // 从 Markdown 中移除所有图片标记，以进行渲染
-    const imageRegex = /!\[.*?\]\(https?:\/\/[^\s)]+\)/g;
-    const cleanedMarkdown = fullMarkdown.replace(imageRegex, '');
-
-    setProcessedMarkdown(cleanedMarkdown);
   }, [rawAPIData, regeneratedMarkdown, contentFormat]);
 
-  useEffect(() => {
-    if (processedMarkdown) {
-      devLog('ArticleRenderer->processedMarkdown', {
-        processedMarkdown,
-      });
-    }
-  }, [processedMarkdown]);
 
   const handleDeleteImage = useCallback(
     (image: CollectedImage) => {
@@ -1579,8 +1561,8 @@ export function ArticleRenderer({
                   </div>
                   {/* Thread 内容 */}
                   {rawAPIData && (
-                    <MarkdownRenderer
-                      content={processedMarkdown}
+                    <StructuredRenderer
+                      data={rawAPIData}
                       onSectionHover={handleMarkdownHover}
                       onSourceClick={handleSourceClick}
                       onImageClick={handleImageClick}
@@ -1612,11 +1594,8 @@ export function ArticleRenderer({
                 <div>
                   {/* Thread 内容 */}
                   {rawAPIData && (
-                    <MarkdownRenderer
-                      content={
-                        regeneratedMarkdown ||
-                        (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '')
-                      }
+                    <StructuredRenderer
+                      data={rawAPIData}
                       onSectionHover={handleMarkdownHover}
                       onSourceClick={handleSourceClick}
                       onImageClick={handleImageClick}

@@ -67,6 +67,20 @@ export const markdownStyles = {
     content: 'text-sm leading-relaxed text-gray-700',
   },
 
+  // Section 样式
+  sections: {
+    tweet: {
+      base: 'transition-all duration-300 p-[12px] rounded-lg relative',
+      highlighted: 'bg-blue-50 transform scale-[1.02]',
+      loading: 'opacity-60 cursor-wait',
+    },
+    group: {
+      base: 'mb-6 p-[12px] rounded-lg',
+      highlighted: 'bg-blue-50',
+      loading: 'opacity-60',
+    },
+  },
+
   // 图片样式
   image: {
     container: 'mb-6',
