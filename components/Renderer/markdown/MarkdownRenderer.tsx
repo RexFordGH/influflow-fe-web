@@ -344,8 +344,13 @@ export function MarkdownRenderer({
         }
       } else if (!trimmedLine) {
         // 空行处理：如果有当前section且不是div内部，则结束当前section
-        if (currentSection && !inTweetDiv && !inGroupDiv && 
-            (currentSection.type === 'paragraph' || currentSection.type === 'list')) {
+        if (
+          currentSection &&
+          !inTweetDiv &&
+          !inGroupDiv &&
+          (currentSection.type === 'paragraph' ||
+            currentSection.type === 'list')
+        ) {
           sections.push(currentSection);
           currentSection = null;
         }
@@ -518,7 +523,7 @@ export function MarkdownRenderer({
         {/* 图片画廊 - 仅在 longform 模式下显示 */}
         {tweetData?.content_format === 'longform' &&
           collectedImages.length > 0 && (
-            <div className="mt-[48px] flex flex-col  justify-center gap-[16px]">
+            <div className="mt-[48px] flex flex-col  justify-center gap-[16px] w-[580px] overflow-hidden">
               {collectedImages.map((image, index) => (
                 <div
                   key={index}
@@ -527,7 +532,7 @@ export function MarkdownRenderer({
                   <Image
                     src={image.src}
                     alt={image.alt}
-                    className="h-[400px] w-auto rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
+                    className="h-[400px] w-auto max-w-[500px] rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
                   />
                   <div className="absolute right-1.5 top-1.5 z-20 flex items-center justify-end gap-1">
                     <Button
