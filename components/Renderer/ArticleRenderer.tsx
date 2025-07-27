@@ -1546,7 +1546,7 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="flex-1 flex justify-center bg-white">
+        <div className="flex flex-1 justify-center bg-white">
           <div className="margin-auto font-inter flex w-[628px] flex-col overflow-scroll   px-[24px] pb-[60px]">
             {/* 标题区域 */}
             <div className="pt-[24px]">
@@ -1560,13 +1560,13 @@ export function ArticleRenderer({
             {/* Twitter Thread内容区域 */}
             {contentFormat === 'longform' ? (
               <div className="mt-[50px]  flex items-start justify-center">
-                <div className="size-[40px] shrink-0 rounded-full overflow-hidden">
+                <div className="size-[40px] shrink-0 overflow-hidden rounded-full">
                   <Image
                     src={user?.avatar}
                     width={40}
                     height={40}
                     alt={user?.name}
-                    className="rounded-full overflow-hidden object-cover"
+                    className="overflow-hidden rounded-full object-cover"
                   />
                 </div>
 

@@ -454,7 +454,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                         alt="Link"
                         width={20}
                         height={20}
-                        className="pointer-events-none flex-shrink-0 text-gray-400"
+                        className="pointer-events-none shrink-0 text-gray-400"
                       />
                     }
                   />

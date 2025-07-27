@@ -46,7 +46,6 @@ export function convertToTwitterFormat(
   twitterContent = twitterContent.replace(/\*\*(.+?)\*\*/g, '$1');
   twitterContent = twitterContent.replace(/\*(.+?)\*/g, '$1');
   twitterContent = twitterContent.replace(/!\[.*?\]\(.*?\)/g, '');
-  twitterContent = twitterContent.replace(/\n\n/g, '\n');
   twitterContent = twitterContent.replace(/(\n• .+)(\n[^•])/g, '$1\n$2');
   twitterContent = twitterContent.replace(/\n{3,}/g, '\n\n');
   twitterContent = twitterContent.trim();

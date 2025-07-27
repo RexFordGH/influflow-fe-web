@@ -523,7 +523,7 @@ export function MarkdownRenderer({
         {/* 图片画廊 - 仅在 longform 模式下显示 */}
         {tweetData?.content_format === 'longform' &&
           collectedImages.length > 0 && (
-            <div className="mt-[48px] flex flex-col  justify-center gap-[16px] w-[580px] overflow-hidden">
+            <div className="mt-[48px] flex w-[580px]  flex-col justify-center gap-[16px] overflow-hidden">
               {collectedImages.map((image, index) => (
                 <div
                   key={index}
