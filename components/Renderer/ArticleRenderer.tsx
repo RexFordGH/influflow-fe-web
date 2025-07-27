@@ -1546,107 +1546,111 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="font-inter flex w-[628px] flex-col overflow-scroll bg-white  px-[24px] pb-[60px]">
-          {/* 标题区域 */}
-          <div className="pt-[24px]">
-            <h1 className="font-inter text-[32px] font-[700] leading-none text-black">
-              {rawAPIData?.topic}
-            </h1>
-            <p className="font-inter text-[14px] font-[400] leading-none text-[#8C8C8C]">
-              {formatTime(rawAPIData?.updatedAt || Date.now())}
-            </p>
-          </div>
-          {/* Twitter Thread内容区域 */}
-          {contentFormat === 'longform' ? (
-            <div className="mt-[50px]  flex items-start justify-center">
-              <div className="size-[40px] shrink-0 rounded-full overflow-hidden">
-                <Image
-                  src={user?.avatar}
-                  width={40}
-                  height={40}
-                  alt={user?.name}
-                  className="rounded-full overflow-hidden object-cover"
-                />
-              </div>
-
-              <div>
-                <div className="ml-[12px] flex gap-[4px] text-[16px] leading-none">
-                  <span className=" font-[600] text-black">{user?.name}</span>
-                  <span className="text-[#5C6D7A]">@{user?.account_name}</span>
+        <div className="flex-1 flex justify-center bg-white">
+          <div className="margin-auto font-inter flex w-[628px] flex-col overflow-scroll   px-[24px] pb-[60px]">
+            {/* 标题区域 */}
+            <div className="pt-[24px]">
+              <h1 className="font-inter text-[32px] font-[700] leading-none text-black">
+                {rawAPIData?.topic}
+              </h1>
+              <p className="font-inter text-[14px] font-[400] leading-none text-[#8C8C8C]">
+                {formatTime(rawAPIData?.updatedAt || Date.now())}
+              </p>
+            </div>
+            {/* Twitter Thread内容区域 */}
+            {contentFormat === 'longform' ? (
+              <div className="mt-[50px]  flex items-start justify-center">
+                <div className="size-[40px] shrink-0 rounded-full overflow-hidden">
+                  <Image
+                    src={user?.avatar}
+                    width={40}
+                    height={40}
+                    alt={user?.name}
+                    className="rounded-full overflow-hidden object-cover"
+                  />
                 </div>
-                {/* Thread 内容 */}
-                {rawAPIData && (
-                  <MarkdownRenderer
-                    content={processedMarkdown}
-                    onSectionHover={handleMarkdownHover}
-                    onSourceClick={handleSourceClick}
-                    onImageClick={handleImageClick}
-                    onTweetImageEdit={handleTweetImageEdit}
-                    onTweetContentChange={handleTweetContentChange}
-                    onGroupTitleChange={handleGroupTitleChange}
-                    onLocalImageUploadSuccess={handleLocalImageUpload}
-                    onImageSelect={handleImageSelect} // 新增
-                    onDirectGenerate={handleDirectGenerate}
-                    onEditWithAI={handleEditWithAI}
-                    highlightedSection={hoveredTweetId}
-                    hoveredTweetId={hoveredTweetId}
-                    selectedNodeId={selectedNodeId}
-                    editingNodeId={selectedNodeForAI}
-                    imageData={generatedContent?.image}
-                    tweetData={rawAPIData}
-                    loadingTweetId={loadingTweetId}
-                    generatingImageTweetIds={generatingImageTweetIds}
-                    localImageUrls={localImageUrls} // 新增
-                    scrollToSection={scrollToSection}
-                    collectedImages={collectedImages}
-                    onDeleteImage={handleDeleteImage}
-                  />
-                )}
+
+                <div>
+                  <div className="ml-[12px] flex gap-[4px] text-[16px] leading-none">
+                    <span className=" font-[600] text-black">{user?.name}</span>
+                    <span className="text-[#5C6D7A]">
+                      @{user?.account_name}
+                    </span>
+                  </div>
+                  {/* Thread 内容 */}
+                  {rawAPIData && (
+                    <MarkdownRenderer
+                      content={processedMarkdown}
+                      onSectionHover={handleMarkdownHover}
+                      onSourceClick={handleSourceClick}
+                      onImageClick={handleImageClick}
+                      onTweetImageEdit={handleTweetImageEdit}
+                      onTweetContentChange={handleTweetContentChange}
+                      onGroupTitleChange={handleGroupTitleChange}
+                      onLocalImageUploadSuccess={handleLocalImageUpload}
+                      onImageSelect={handleImageSelect} // 新增
+                      onDirectGenerate={handleDirectGenerate}
+                      onEditWithAI={handleEditWithAI}
+                      highlightedSection={hoveredTweetId}
+                      hoveredTweetId={hoveredTweetId}
+                      selectedNodeId={selectedNodeId}
+                      editingNodeId={selectedNodeForAI}
+                      imageData={generatedContent?.image}
+                      tweetData={rawAPIData}
+                      loadingTweetId={loadingTweetId}
+                      generatingImageTweetIds={generatingImageTweetIds}
+                      localImageUrls={localImageUrls} // 新增
+                      scrollToSection={scrollToSection}
+                      collectedImages={collectedImages}
+                      onDeleteImage={handleDeleteImage}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="mt-[50px]  flex items-start justify-center">
-              <div>
-                {/* Thread 内容 */}
-                {rawAPIData && (
-                  <MarkdownRenderer
-                    content={
-                      regeneratedMarkdown ||
-                      (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '')
-                    }
-                    onSectionHover={handleMarkdownHover}
-                    onSourceClick={handleSourceClick}
-                    onImageClick={handleImageClick}
-                    onTweetImageEdit={handleTweetImageEdit}
-                    onTweetContentChange={handleTweetContentChange}
-                    onGroupTitleChange={handleGroupTitleChange}
-                    onLocalImageUploadSuccess={handleLocalImageUpload}
-                    onImageSelect={handleImageSelect} // 新增
-                    onDirectGenerate={handleDirectGenerate}
-                    onEditWithAI={handleEditWithAI}
-                    highlightedSection={hoveredTweetId}
-                    hoveredTweetId={hoveredTweetId}
-                    selectedNodeId={selectedNodeId}
-                    editingNodeId={selectedNodeForAI}
-                    imageData={generatedContent?.image}
-                    tweetData={rawAPIData}
-                    loadingTweetId={loadingTweetId}
-                    generatingImageTweetIds={generatingImageTweetIds}
-                    localImageUrls={localImageUrls} // 新增
-                    scrollToSection={scrollToSection}
-                    collectedImages={collectedImages}
-                    onDeleteImage={handleDeleteImage}
-                  />
-                )}
+            ) : (
+              <div className="mt-[50px]  flex items-start justify-center">
+                <div>
+                  {/* Thread 内容 */}
+                  {rawAPIData && (
+                    <MarkdownRenderer
+                      content={
+                        regeneratedMarkdown ||
+                        (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '')
+                      }
+                      onSectionHover={handleMarkdownHover}
+                      onSourceClick={handleSourceClick}
+                      onImageClick={handleImageClick}
+                      onTweetImageEdit={handleTweetImageEdit}
+                      onTweetContentChange={handleTweetContentChange}
+                      onGroupTitleChange={handleGroupTitleChange}
+                      onLocalImageUploadSuccess={handleLocalImageUpload}
+                      onImageSelect={handleImageSelect} // 新增
+                      onDirectGenerate={handleDirectGenerate}
+                      onEditWithAI={handleEditWithAI}
+                      highlightedSection={hoveredTweetId}
+                      hoveredTweetId={hoveredTweetId}
+                      selectedNodeId={selectedNodeId}
+                      editingNodeId={selectedNodeForAI}
+                      imageData={generatedContent?.image}
+                      tweetData={rawAPIData}
+                      loadingTweetId={loadingTweetId}
+                      generatingImageTweetIds={generatingImageTweetIds}
+                      localImageUrls={localImageUrls} // 新增
+                      scrollToSection={scrollToSection}
+                      collectedImages={collectedImages}
+                      onDeleteImage={handleDeleteImage}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {/* AI 编辑对话框 - 固定在右侧 */}
       {showAIEditModal && (
-        <div className="fixed inset-y-0 right-0 z-50 w-[628px]">
+        <div className="fixed inset-y-0 right-0 z-50 w-1/2">
           <div className="flex h-full items-end ">
             <div className="flex w-full flex-col bg-[#F5F6F7] p-[20px] ">
               <div className="mb-[24px]">
