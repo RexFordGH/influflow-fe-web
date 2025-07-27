@@ -1507,7 +1507,7 @@ export function ArticleRenderer({
                 disabled={isCopyingFullContent}
                 className="bg-black/15"
               >
-                {isCopyingFullContent ? 'Copying...' : 'Copy'}
+                Copy
               </Button>
             )}
             <Button
