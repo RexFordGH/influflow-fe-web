@@ -4,6 +4,7 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { devLog } from '@/utils/devLog';
 import { copyImageToClipboard } from '@/utils/twitter';
 
 import { markdownStyles } from './markdownStyles';
@@ -61,7 +62,7 @@ interface CollectedImage {
 
 interface MarkdownSection {
   id: string;
-  type: 'heading' | 'paragraph' | 'list' | 'tweet' | 'group';
+  type: 'list' | 'tweet' | 'group' | 'heading' | 'paragraph';
   level?: number;
   content: string;
   rawContent: string;
@@ -368,6 +369,20 @@ export function MarkdownRenderer({
 
     return sections;
   }, [processedContent]);
+
+  useEffect(() => {
+    if (content) {
+      devLog('MarkdownRenderer->content', {
+        content: content,
+      });
+    }
+  }, [content]);
+
+  useEffect(() => {
+    if (sections && sections.length > 0) {
+      devLog('MarkdownRenderer->sections', sections);
+    }
+  }, [sections]);
 
   // 监听scrollToSection变化并执行滚动
   useEffect(() => {

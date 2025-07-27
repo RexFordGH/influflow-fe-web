@@ -243,6 +243,7 @@ function HomeContent() {
         0,
       ),
       id: tweetData.id,
+      updatedAt: tweetData.updated_at ?? new Date(),
     };
 
     // 2. 设置 initialData 和 topic

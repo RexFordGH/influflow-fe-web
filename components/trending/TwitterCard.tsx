@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from '@heroui/react';
+import { useEffect, useRef, useState } from 'react';
 
 interface TwitterCardProps {
   html: string;
