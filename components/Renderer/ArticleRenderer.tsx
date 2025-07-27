@@ -1573,9 +1573,11 @@ export function ArticleRenderer({
                 <div>
                   <div className="ml-[12px] flex gap-[4px] text-[16px] leading-none">
                     <span className=" font-[600] text-black">{user?.name}</span>
-                    <span className="text-[#5C6D7A]">
-                      @{user?.account_name}
-                    </span>
+                    {user?.account_name && (
+                      <span className="text-[#5C6D7A]">
+                        @{user?.account_name}
+                      </span>
+                    )}
                   </div>
                   {/* Thread 内容 */}
                   {rawAPIData && (
