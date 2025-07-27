@@ -1559,12 +1559,13 @@ export function ArticleRenderer({
           {/* Twitter Thread内容区域 */}
           {contentFormat === 'longform' ? (
             <div className="mt-[50px]  flex items-start justify-center">
-              <div className="w-[40px] shrink-0">
+              <div className="size-[40px] shrink-0 rounded-full overflow-hidden">
                 <Image
                   src={user?.avatar}
                   width={40}
                   height={40}
                   alt={user?.name}
+                  className="rounded-full overflow-hidden object-cover"
                 />
               </div>
 
