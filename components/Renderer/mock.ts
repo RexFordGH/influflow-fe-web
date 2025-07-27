@@ -178,7 +178,7 @@ export const FakeData3: Tweet[] = [
 export const FakeOutline: Outline = {
   id: '1233',
   content_format: 'longform',
-  nodes: FakeData1,
+  nodes: FakeData3,
   topic: 'fake data',
   total_tweets: 10,
 };

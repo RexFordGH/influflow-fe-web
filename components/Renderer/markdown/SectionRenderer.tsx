@@ -140,19 +140,19 @@ export function SectionRenderer({
 
   useEffect(() => {
     if (section.type === 'tweet') {
-      const lines = section.content.split('\n\n');
+      const lines = section.content.split('\n');
       let contentLines = [];
 
       const titleLine = lines.find((line) => line.startsWith('#'));
       if (titleLine) {
         contentLines = lines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
+          (line) => !line.startsWith('#'),
         );
       } else {
-        contentLines = lines.slice(1).filter((line) => line.trim() !== '');
+        contentLines = lines.slice(1);
       }
 
-      const content = contentLines.join('\n\n');
+      const content = contentLines.join('\n');
       const textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
       setCurrentEditorContent(textContent);
     }
@@ -260,11 +260,11 @@ export function SectionRenderer({
       if (titleLine) {
         title = titleLine.replace(/^#+\s*/, '').trim();
         contentLines = lines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
+          (line) => !line.startsWith('#'),
         );
       } else {
         title = lines[0] || section.content;
-        contentLines = lines.slice(1).filter((line) => line.trim() !== '');
+        contentLines = lines.slice(1);
       }
 
       const content = contentLines.join('\n');

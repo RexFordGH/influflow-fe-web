@@ -222,7 +222,7 @@ export function MarkdownRenderer({
 
       // 如果在div内，累积内容，特别处理标题
       if (inTweetDiv && currentSection) {
-        if (trimmedLine && !trimmedLine.startsWith('---')) {
+        if (!trimmedLine.startsWith('---')) {
           // 检查是否是标题行
           if (trimmedLine.startsWith('#')) {
             const level = trimmedLine.match(/^#+/)?.[0].length || 1;
@@ -241,7 +241,7 @@ export function MarkdownRenderer({
               currentSection.content += '\n' + text;
             }
           } else {
-            // 普通内容行
+            // 普通内容行（包括空行）
             if (currentSection.content) {
               currentSection.content += '\n' + trimmedLine;
             } else {
@@ -254,7 +254,7 @@ export function MarkdownRenderer({
       }
 
       if (inGroupDiv && currentSection) {
-        if (trimmedLine && !trimmedLine.startsWith('---')) {
+        if (!trimmedLine.startsWith('---')) {
           // 检查是否是标题行
           if (trimmedLine.startsWith('#')) {
             const level = trimmedLine.match(/^#+/)?.[0].length || 1;
@@ -273,7 +273,7 @@ export function MarkdownRenderer({
               currentSection.content += '\n' + text;
             }
           } else {
-            // 普通内容行
+            // 普通内容行（包括空行）
             if (currentSection.content) {
               currentSection.content += '\n' + trimmedLine;
             } else {
@@ -338,7 +338,8 @@ export function MarkdownRenderer({
             rawContent: line,
           };
         } else {
-          currentSection.content += ' ' + trimmedLine;
+          // 保留换行而不是用空格连接
+          currentSection.content += '\n' + trimmedLine;
           currentSection.rawContent += '\n' + line;
         }
       } else if (!trimmedLine) {
