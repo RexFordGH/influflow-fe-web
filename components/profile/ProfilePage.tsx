@@ -27,6 +27,12 @@ const STYLE_OPTIONS = [
   { value: 'Customized', label: 'Customize' },
 ] as const;
 
+const SUMMARY_MAP: Partial<Record<ITone, string>> = {
+  Expert: `- Use precise terminology, formal register, and standards or white-paper citations\n- Avoid slang, emojis, and exclamation marks\n- Structure from overview to detailed implications with clear subheadings`,
+  Motivational: `- Employ energetic verbs (like “build, create”)\n- Use positive adjectives\n- Weave in success stories and forward-looking calls to action throughout the longform`,
+  Humorous: `- Inject clever puns, meme or pop-culture references\n- Occasional CAPS for punch lines\n- Use emojis generously throughout to amplify comedic timing and visual punchlines\n- Humour must stay brand-safe (PG-13)`,
+};
+
 const EMPTY_URLS = ['', '', ''];
 const TWEET_FETCH_DELAY = 2000;
 
@@ -273,17 +279,18 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   // 校验链接是否合法的 Twitter/X 推文链接
   const isValidUrl = (url: string): boolean | 'invalid-url' | 'not-twitter' => {
     if (!url || url.trim() === '') return true; // 空值被认为是合法的
-    
+
     try {
       // 尝试构造 URL 对象，如果失败则说明不是合法的 URL
       new URL(url);
-      
+
       // 检查是否是 Twitter/X 的推文链接
-      const twitterRegex = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[a-zA-Z0-9_]+\/status\/\d+/;
+      const twitterRegex =
+        /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[a-zA-Z0-9_]+\/status\/\d+/;
       if (!twitterRegex.test(url)) {
         return 'not-twitter';
       }
-      
+
       return true;
     } catch {
       return 'invalid-url';
@@ -412,6 +419,20 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             </div>
           )}
 
+          {selectedStyle !== 'YourStyle' &&
+            selectedStyle !== 'Customized' &&
+            SUMMARY_MAP[selectedStyle!] && (
+              <div
+                className={cn(
+                  'rounded-lg p-4 text-[16px] leading-[1.4] text-gray-600',
+                )}
+              >
+                <p className="whitespace-pre-line">
+                  {SUMMARY_MAP[selectedStyle!]}
+                </p>
+              </div>
+            )}
+
           {/* Custom Style Links - 只在选择 Customized 时显示 */}
           <div
             className={cn(
@@ -428,14 +449,15 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             <div className="flex justify-between gap-[10px]">
               {tweetExampleUrls.map((url, index) => {
                 const validationResult = isValidUrl(url);
-                const isInvalid = url.trim() !== '' && validationResult !== true;
-                const errorMessage = 
-                  validationResult === 'invalid-url' 
-                    ? 'Please enter a valid URL' 
+                const isInvalid =
+                  url.trim() !== '' && validationResult !== true;
+                const errorMessage =
+                  validationResult === 'invalid-url'
+                    ? 'Please enter a valid URL'
                     : validationResult === 'not-twitter'
-                    ? 'Please enter a Twitter/X post link'
-                    : undefined;
-                
+                      ? 'Please enter a Twitter/X post link'
+                      : undefined;
+
                 return (
                   <Input
                     key={index}
