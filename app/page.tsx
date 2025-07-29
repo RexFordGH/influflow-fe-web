@@ -7,7 +7,8 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
 import { MainContent } from '@/components/home/MainContent';
-import { AppSidebar } from '@/components/layout/AppSidebar';
+import { AppSidebar } from '@/components/layout/sidebar/AppSidebar';
+import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
 import { useArticleManagement } from '@/hooks/useArticleManagement';
@@ -60,6 +61,7 @@ function HomeContent() {
   );
   const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
   const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
 
   const {
     categories,
@@ -184,6 +186,7 @@ function HomeContent() {
     setInitialData(undefined);
     setShowContentGeneration(false);
     setCurrentTopic('');
+    setSelectedItemId(undefined); // 清除选中状态
     // 返回首页时重新拉取文章列表确保数据同步
     refetchTweetThreads();
   };
@@ -257,6 +260,28 @@ function HomeContent() {
     setHasCreatedContentGeneration(true);
   };
 
+  // 处理侧边栏列表项点击
+  const handleSidebarItemClick = (item: SidebarItem) => {
+    // 设置选中的项目ID
+    setSelectedItemId(item.id);
+
+    // 直接使用分页API已获取的完整数据
+    if (item.tweetData) {
+      handleTweetThreadClick(item.tweetData);
+    } else {
+      // 如果没有完整数据，使用简化数据作为回退
+      const fallbackData = {
+        id: item.id.replace('tweet-', ''),
+        topic: item.title,
+        content_format: 'longform',
+        tweets: [],
+        updated_at: item.updatedAt || item.createdAt,
+        created_at: item.createdAt,
+      };
+      handleTweetThreadClick(fallbackData);
+    }
+  };
+
   const handleAddNewClick = () => {
     // 点击 Add New 返回主页面
     setShowContentGeneration(false);
@@ -317,26 +342,10 @@ function HomeContent() {
       >
         <AnimatePresence>
           <AppSidebar
+            onItemClick={handleSidebarItemClick}
+            selectedId={selectedItemId}
             collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            categories={categories}
-            editingCategoryId={editingCategoryId}
-            tempTitle={tempTitle}
-            onToggleCategoryExpanded={toggleCategoryExpanded}
-            onStartEditCategoryTitle={startEditCategoryTitle}
-            onSaveCategoryTitle={saveCategoryTitle}
-            onCancelEdit={cancelEdit}
-            onTempTitleChange={setTempTitle}
-            onCreateNewArticle={createNewArticle}
-            onCreateNewCategory={createNewCategory}
-            onToggleArticleExpanded={toggleArticleExpanded}
-            onOpenArticleEditor={openArticleEditor}
-            editingArticleId={editingArticleId}
-            onStartEditArticleTitle={startEditArticleTitle}
-            onSaveArticleTitle={saveArticleTitle}
-            onTweetThreadClick={handleTweetThreadClick}
-            onAddNewClick={handleAddNewClick}
-            tweetThreadsLoading={tweetThreadsLoading}
+            onToggleCollapse={() => setSidebarCollapsed(true)}
           />
         </AnimatePresence>
 
