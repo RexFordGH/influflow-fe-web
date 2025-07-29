@@ -36,6 +36,7 @@ import { CreateArticleLoading } from './CreateLoading';
 import { ImageEditModal } from './markdown/ImageEditModal';
 import { MarkdownRenderer } from './markdown/MarkdownRenderer';
 import EditableContentMindmap from './mindmap/MindmapRenderer';
+import { getEmojiNumber } from '@/utils/markdownUtils';
 
 interface ArticleRendererProps {
   topic: string;
@@ -1291,45 +1292,55 @@ export function ArticleRenderer({
     setIsCopyingFullContent(true);
 
     try {
-      // 1. Define a helper function for emoji numbers
-      const getEmojiNumber = (index: number) => {
-        const emojiNumbers = [
-          '1️⃣',
-          '2️⃣',
-          '3️⃣',
-          '4️⃣',
-          '5️⃣',
-          '6️⃣',
-          '7️⃣',
-          '8️⃣',
-          '9️⃣',
-          '🔟',
-        ];
-        return emojiNumbers[index] || `${index + 1}️⃣`;
-      };
-
       // 2. Format each part individually and collect them
       const contentParts: string[] = [];
       if (rawAPIData.topic) {
         contentParts.push(convertToTwitterFormat(rawAPIData.topic));
       }
-      rawAPIData.nodes.forEach((group: any, groupIndex: number) => {
-        if (group.title) {
-          const emojiNumber = getEmojiNumber(groupIndex);
-          const titleWithEmoji = `${emojiNumber} ${group.title}`;
-          contentParts.push(convertToTwitterFormat(titleWithEmoji));
-        }
-        group.tweets.forEach((tweet: any) => {
-          if (tweet.content || tweet.title) {
-            contentParts.push(
-              convertToTwitterFormat(tweet.content || tweet.title),
-            );
-          }
+
+      // 根据 content_format 决定处理方式
+      if (rawAPIData.content_format === 'longform') {
+        // longform 模式：不展示第一个小标题，序号从第二个小标题开始
+        let globalTweetIndex = 0;
+        
+        rawAPIData.nodes.forEach((group: any) => {
+          group.tweets.forEach((tweet: any) => {
+            // 第一个小标题不展示
+            if (globalTweetIndex > 0 && tweet.title) {
+              // 从第二个标题开始显示 emoji 数字（1️⃣、2️⃣...）
+              const emojiNumber = getEmojiNumber(globalTweetIndex - 1);
+              const titleWithEmoji = `${emojiNumber} ${tweet.title}`;
+              contentParts.push(convertToTwitterFormat(titleWithEmoji));
+            }
+            
+            // 始终添加内容
+            if (tweet.content) {
+              contentParts.push(convertToTwitterFormat(tweet.content));
+            }
+            
+            globalTweetIndex++;
+          });
         });
-      });
+      } else {
+        // 其他格式（thread 等）：保持原有逻辑
+        rawAPIData.nodes.forEach((group: any, groupIndex: number) => {
+          if (group.title) {
+            const emojiNumber = getEmojiNumber(groupIndex);
+            const titleWithEmoji = `${emojiNumber} ${group.title}`;
+            contentParts.push(convertToTwitterFormat(titleWithEmoji));
+          }
+          group.tweets.forEach((tweet: any) => {
+            if (tweet.content || tweet.title) {
+              contentParts.push(
+                convertToTwitterFormat(tweet.content || tweet.title),
+              );
+            }
+          });
+        });
+      }
 
       // 3. Join the pre-formatted parts
-      const fullContent = contentParts.join('\n\n\n');
+      const fullContent = contentParts.join('\n\n');
 
       // 4. Get the URL of the first image, if any
       const firstImageUrl =

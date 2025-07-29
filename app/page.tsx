@@ -67,24 +67,9 @@ function HomeContent() {
     categories,
     currentArticle,
     showMarkdownEditor,
-    editingCategoryId,
-    editingArticleId,
-    tempTitle,
-    tweetThreadsLoading,
-    setTempTitle,
     setShowMarkdownEditor,
     setCurrentArticle,
-    toggleCategoryExpanded,
-    toggleArticleExpanded,
-    createNewArticle,
-    createNewCategory,
-    openArticleEditor,
     saveArticleContent,
-    startEditCategoryTitle,
-    startEditArticleTitle,
-    saveCategoryTitle,
-    saveArticleTitle,
-    cancelEdit,
     handleWriteByMyself,
     refetchTweetThreads,
   } = useArticleManagement();
@@ -281,27 +266,6 @@ function HomeContent() {
       handleTweetThreadClick(fallbackData);
     }
   };
-
-  const handleAddNewClick = () => {
-    // 点击 Add New 返回主页面
-    setShowContentGeneration(false);
-    setShowMarkdownEditor(false);
-    setCurrentArticle(null);
-    setCurrentTopic('');
-  };
-
-  // 页面 focus 时刷新数据
-  // useEffect(() => {
-  //   const handleFocus = () => {
-  //     if (isAuthenticated && !showContentGeneration) {
-  //       // 只在用户已登录且在首页时刷新
-  //       refetchTweetThreads();
-  //     }
-  //   };
-
-  //   window.addEventListener('focus', handleFocus);
-  //   return () => window.removeEventListener('focus', handleFocus);
-  // }, [isAuthenticated, showContentGeneration, refetchTweetThreads]);
 
   return (
     <div className="relative h-screen overflow-hidden">

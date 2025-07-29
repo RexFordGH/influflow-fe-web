@@ -126,7 +126,9 @@ export function MarkdownRenderer({
 
   // 直接从 Outline 数据生成 sections
   const sections = useMemo(() => {
-    return processSectionsFromOutline(content);
+    return processSectionsFromOutline(content, {
+      contentFormat: content.content_format
+    });
   }, [content]);
 
   useEffect(() => {
@@ -176,9 +178,10 @@ export function MarkdownRenderer({
     const isHighlighted =
       highlightedSection === section.mappingId ||
       highlightedSection === section.id ||
-      // Tweet节点的多种匹配方式 - 增强类型兼容性
+      // Tweet节点的多种匹配方式 - 增强类型兼容性（包括 tweetTitle 类型）
       (hoveredTweetId &&
         section.tweetId &&
+        (section.type === 'tweet' || section.type === 'tweetTitle') &&
         (section.tweetId === hoveredTweetId ||
           section.tweetId.toString() === hoveredTweetId.toString() ||
           Number(section.tweetId) === Number(hoveredTweetId))) ||
@@ -190,9 +193,10 @@ export function MarkdownRenderer({
           section.groupId.toString() === hoveredTweetId.replace('group-', '') ||
           Number(section.groupId) ===
             Number(hoveredTweetId.replace('group-', '')))) ||
-      // 编辑状态高亮 - 新增：当section正在被编辑时保持高亮
+      // 编辑状态高亮 - 新增：当section正在被编辑时保持高亮（包括 tweetTitle 类型）
       (editingNodeId &&
         ((section.tweetId &&
+          (section.type === 'tweet' || section.type === 'tweetTitle') &&
           (section.tweetId === editingNodeId ||
             section.tweetId.toString() === editingNodeId.toString() ||
             Number(section.tweetId) === Number(editingNodeId))) ||
@@ -204,28 +208,31 @@ export function MarkdownRenderer({
               Number(section.groupId) ===
                 Number(editingNodeId.replace('group-', '')))) ||
           editingNodeId === section.id)) ||
-      // 生图状态高亮 - 新增
+      // 生图状态高亮 - 新增（包括 tweetTitle 类型）
       (generatingImageTweetIds &&
         section.tweetId &&
+        (section.type === 'tweet' || section.type === 'tweetTitle') &&
         generatingImageTweetIds.some(
           (id) =>
             section.tweetId === id ||
             section.tweetId?.toString() === id.toString() ||
             Number(section.tweetId) === Number(id),
         )) ||
-      // 选中状态高亮 - 新增
+      // 选中状态高亮 - 新增（包括 tweetTitle 类型）
       (selectedNodeId &&
         section.tweetId &&
+        (section.type === 'tweet' || section.type === 'tweetTitle') &&
         (section.tweetId === selectedNodeId ||
           section.tweetId.toString() === selectedNodeId.toString() ||
           Number(section.tweetId) === Number(selectedNodeId))) ||
       // Fallback：直接ID匹配
       hoveredTweetId === section.id;
 
-    // 检查是否正在loading - 增强匹配逻辑
+    // 检查是否正在loading - 增强匹配逻辑（包括 tweetTitle 类型）
     const isLoading = Boolean(
       loadingTweetId && // Tweet节点的多种匹配方式
         ((section.tweetId &&
+          (section.type === 'tweet' || section.type === 'tweetTitle') &&
           (section.tweetId === loadingTweetId ||
             section.tweetId.toString() === loadingTweetId.toString() ||
             Number(section.tweetId) === Number(loadingTweetId))) ||

@@ -41,14 +41,14 @@ export function convertToTwitterFormat(
 
   let twitterContent = content;
 
-  twitterContent = twitterContent.replace(/^[-*]\s+(.+)$/gm, '• $1');
-  twitterContent = twitterContent.replace(/^\d+\.\s+(.+)$/gm, '• $1');
-  twitterContent = twitterContent.replace(/\*\*(.+?)\*\*/g, '$1');
-  twitterContent = twitterContent.replace(/\*(.+?)\*/g, '$1');
-  twitterContent = twitterContent.replace(/!\[.*?\]\(.*?\)/g, '');
-  twitterContent = twitterContent.replace(/(\n• .+)(\n[^•])/g, '$1\n$2');
-  twitterContent = twitterContent.replace(/\n{3,}/g, '\n\n');
-  twitterContent = twitterContent.trim();
+  // twitterContent = twitterContent.replace(/^[-*]\s+(.+)$/gm, '• $1');
+  // twitterContent = twitterContent.replace(/^\d+\.\s+(.+)$/gm, '• $1');
+  // twitterContent = twitterContent.replace(/\*\*(.+?)\*\*/g, '$1');
+  // twitterContent = twitterContent.replace(/\*(.+?)\*/g, '$1');
+  // twitterContent = twitterContent.replace(/!\[.*?\]\(.*?\)/g, '');
+  // twitterContent = twitterContent.replace(/(\n• .+)(\n[^•])/g, '$1\n$2');
+  // twitterContent = twitterContent.replace(/\n{3,}/g, '\n\n');
+  // twitterContent = twitterContent.trim();
 
   if (tweetNumber && totalTweets && totalTweets > 1) {
     twitterContent = `(${tweetNumber}/${totalTweets})\n${twitterContent}`;
