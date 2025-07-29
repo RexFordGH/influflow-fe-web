@@ -19,7 +19,6 @@ import {
 } from '@/lib/api/services';
 import {
   convertAPIDataToGeneratedContent,
-  convertAPIDataToMarkdown,
   convertThreadDataToMindmap,
 } from '@/lib/data/converters';
 import { createClient } from '@/lib/supabase/client';
@@ -140,9 +139,7 @@ export function ArticleRenderer({
   } | null>(null);
   const [editingTweetData, setEditingTweetData] = useState<any | null>(null); // 新增：正在编辑的tweet 数据
 
-  const [regeneratedMarkdown, setRegeneratedMarkdown] = useState<string | null>(
-    null,
-  ); // 重新生成的markdown
+  // regeneratedMarkdown 不再需要，直接使用 rawAPIData
   const [loadingTweetId, setLoadingTweetId] = useState<string | null>(null); // markdown loading状态
   const [generatingImageTweetIds, setGeneratingImageTweetIds] = useState<
     string[]
@@ -156,8 +153,7 @@ export function ArticleRenderer({
 
   // 从 longform 内容中提取的图片
   const [collectedImages, setCollectedImages] = useState<CollectedImage[]>([]);
-  // 经过图片移除处理后的 Markdown 内容
-  const [processedMarkdown, setProcessedMarkdown] = useState<string>('');
+  // processedMarkdown 不再需要，直接使用 rawAPIData
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<CollectedImage | null>(
@@ -252,9 +248,6 @@ export function ArticleRenderer({
 
       // 关键：当 topic 变化时，重置本地图片URL状态
       setLocalImageUrls({});
-
-      // 修复：重置 regeneratedMarkdown 状态，防止显示上一篇文章的内容
-      setRegeneratedMarkdown(null);
     }
   }, [topic, initialData]);
 
@@ -271,9 +264,6 @@ export function ArticleRenderer({
 
       // 关键：当 initialData 变化时，重置本地图片URL状态
       setLocalImageUrls({});
-
-      // 修复：重置 regeneratedMarkdown 状态，确保显示正确的文章内容
-      setRegeneratedMarkdown(null);
     }
   }, [initialData]);
 
@@ -591,9 +581,8 @@ export function ArticleRenderer({
         setCurrentNodes(content.mindmap.nodes);
         setCurrentEdges(content.mindmap.edges);
 
-        // 5. 重新生成markdown
-        const newMarkdown = convertAPIDataToMarkdown(updatedOutline);
-        setRegeneratedMarkdown(newMarkdown);
+        // 5. 重新生成markdown - 不再需要，直接使用 Outline 数据
+        // setRegeneratedMarkdown 不再需要
 
         addToast({
           title: 'Success',
@@ -634,51 +623,6 @@ export function ArticleRenderer({
     [],
   );
 
-  /**
-   * 更新或插入Tweet图片的Markdown内容
-   * @param fullContent - 完整的Markdown字符串
-   * @param tweetNumber - 目标Tweet的编号
-   * @param newImageUrl - 新图片的URL
-   * @param tweetText - Tweet的文本，用于alt标签
-   * @returns 更新后的完整Markdown字符串
-   */
-  const updateTweetImageInContent = (
-    fullContent: string,
-    tweetNumber: string,
-    newImageUrl: string,
-    tweetText: string,
-  ): string => {
-    const imageMarkdown = `\n\n![${tweetText}](${newImageUrl})`;
-    const tweetDivRegex = new RegExp(
-      `(<div\s+data-tweet-id="${tweetNumber}"[^>]*>[\s\S]*?)(<\/div>)`,
-    );
-    const tweetBlockMatch = fullContent.match(tweetDivRegex);
-
-    if (!tweetBlockMatch) {
-      return fullContent;
-    }
-
-    const tweetBlock = tweetBlockMatch[0];
-    const imageRegex = /!\[.*?\]\(https?:\/\/[^\s)]+\)/g;
-
-    // 如果Tweet区块内已有图片，则替换它
-    if (imageRegex.test(tweetBlock)) {
-      const result = fullContent.replace(
-        tweetBlock,
-        tweetBlock.replace(imageRegex, imageMarkdown.trim()),
-      );
-
-      return result;
-    }
-    // 如果没有图片，则在 </div> 前插入
-    else {
-      const openingDiv = tweetBlockMatch[1];
-      const closingDiv = tweetBlockMatch[2];
-      const updatedBlock = `${openingDiv.trim()}${imageMarkdown}\n\n${closingDiv}`;
-      const result = fullContent.replace(tweetBlock, updatedBlock);
-      return result;
-    }
-  };
 
   // 新逻辑: 点击后不再自动生成图片，而是直接打开模态框
   const handleTweetImageEdit = useCallback(
@@ -745,21 +689,8 @@ export function ArticleRenderer({
         return latestRawAPIData;
       });
 
-      // 2. 更新Markdown内容（使用函数式更新）
-      setRegeneratedMarkdown((prevMarkdown) => {
-        const currentMarkdown =
-          prevMarkdown ||
-          (latestRawAPIData ? convertAPIDataToMarkdown(latestRawAPIData) : '');
-
-        const updatedMarkdown = updateTweetImageInContent(
-          currentMarkdown,
-          tweet_number.toString(),
-          newImage.url,
-          newImage.alt || tweetText || title,
-        );
-
-        return updatedMarkdown;
-      });
+      // 2. 更新Markdown内容 - 不再需要，因为直接使用 Outline 数据
+      // Markdown 内容由 MarkdownRenderer 直接从 Outline 数据生成
 
       // 3. 更新 Supabase 数据库（使用最新的数据）
       if (latestRawAPIData && latestRawAPIData.id) {
@@ -971,11 +902,10 @@ export function ArticleRenderer({
     [rawAPIData, onDataUpdate],
   );
 
-  // 当 rawAPIData 或 regeneratedMarkdown 更新时，预处理内容，提取图片
+  // 当 rawAPIData 更新时，预处理内容，提取图片
   useEffect(() => {
     if (contentFormat !== 'longform' || !rawAPIData) {
       setCollectedImages([]);
-      setProcessedMarkdown('');
       return;
     }
 
@@ -996,25 +926,8 @@ export function ArticleRenderer({
       }
     });
     setCollectedImages(images);
+  }, [rawAPIData, contentFormat]);
 
-    // 生成完整的 Markdown
-    const fullMarkdown =
-      regeneratedMarkdown || convertAPIDataToMarkdown(rawAPIData);
-
-    // 从 Markdown 中移除所有图片标记，以进行渲染
-    const imageRegex = /!\[.*?\]\(https?:\/\/[^\s)]+\)/g;
-    const cleanedMarkdown = fullMarkdown.replace(imageRegex, '');
-
-    setProcessedMarkdown(cleanedMarkdown);
-  }, [rawAPIData, regeneratedMarkdown, contentFormat]);
-
-  useEffect(() => {
-    if (processedMarkdown) {
-      devLog('ArticleRenderer->processedMarkdown', {
-        processedMarkdown,
-      });
-    }
-  }, [processedMarkdown]);
 
   const handleDeleteImage = useCallback(
     (image: CollectedImage) => {
@@ -1220,9 +1133,7 @@ export function ArticleRenderer({
           setCurrentNodes(newNodes);
           setCurrentEdges(newEdges);
 
-          // 重新生成 markdown
-          const newMarkdown = convertAPIDataToMarkdown(newOutline);
-          setRegeneratedMarkdown(newMarkdown);
+          // 不再需要重新生成 markdown，直接使用 newOutline
 
           // 更新生成的内容
           if (generatedContent) {
@@ -1250,9 +1161,7 @@ export function ArticleRenderer({
           setCurrentNodes(newNodes);
           setCurrentEdges(newEdges);
 
-          // 重新生成 markdown
-          const newMarkdown = convertAPIDataToMarkdown(newOutline);
-          setRegeneratedMarkdown(newMarkdown);
+          // 不再需要重新生成 markdown，直接使用 newOutline
 
           // 更新生成的内容
           if (generatedContent) {
@@ -1553,7 +1462,7 @@ export function ArticleRenderer({
               <h1 className="font-inter text-[32px] font-[700] leading-none text-black">
                 {rawAPIData?.topic}
               </h1>
-              <p className="mt-[10px] font-inter text-[14px] font-[400] leading-none text-[#8C8C8C]">
+              <p className="font-inter mt-[10px] text-[14px] font-[400] leading-none text-[#8C8C8C]">
                 {formatTime(rawAPIData?.updatedAt || Date.now())}
               </p>
             </div>
@@ -1582,7 +1491,7 @@ export function ArticleRenderer({
                   {/* Thread 内容 */}
                   {rawAPIData && (
                     <MarkdownRenderer
-                      content={processedMarkdown}
+                      content={rawAPIData}
                       onSectionHover={handleMarkdownHover}
                       onSourceClick={handleSourceClick}
                       onImageClick={handleImageClick}
@@ -1615,10 +1524,7 @@ export function ArticleRenderer({
                   {/* Thread 内容 */}
                   {rawAPIData && (
                     <MarkdownRenderer
-                      content={
-                        regeneratedMarkdown ||
-                        (rawAPIData ? convertAPIDataToMarkdown(rawAPIData) : '')
-                      }
+                      content={rawAPIData}
                       onSectionHover={handleMarkdownHover}
                       onSourceClick={handleSourceClick}
                       onImageClick={handleImageClick}

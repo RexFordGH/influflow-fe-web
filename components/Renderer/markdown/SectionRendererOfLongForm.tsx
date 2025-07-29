@@ -67,21 +67,8 @@ export function SectionRendererOfLongForm({
 
   useEffect(() => {
     if (section.type === 'tweet') {
-      const lines = section.content.split('\n');
-      let contentLines = [];
-
-      const titleLine = lines.find((line) => line.startsWith('#'));
-      if (titleLine) {
-        contentLines = lines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
-        );
-      } else {
-        contentLines = lines.slice(1).filter((line) => line.trim() !== '');
-      }
-
-      const content = contentLines.join('\n\n');
-      // The parent component has already cleaned the content, so we just set it.
-      setCurrentEditorContent(content.trim());
+      // 直接使用 section.content，不再需要解析
+      setCurrentEditorContent(section.content);
     }
   }, [section]);
 
@@ -205,19 +192,8 @@ export function SectionRendererOfLongForm({
       );
 
     case 'tweet':
-      const lines = section.content.split('\n');
-      let contentLines = [];
-
-      const titleLine = lines.find((line) => line.startsWith('#'));
-      if (titleLine) {
-        contentLines = lines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
-        );
-      } else {
-        contentLines = lines.slice(1).filter((line) => line.trim() !== '');
-      }
-
-      const textContent = contentLines.join('\n\n');
+      // 直接使用 section 中的数据，不再解析
+      const textContent = section.content;
 
       const currentTweetData = tweetData?.nodes
         ?.flatMap((group: any) => group.tweets)

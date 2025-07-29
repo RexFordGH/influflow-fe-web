@@ -4,7 +4,13 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { Outline } from '@/types/outline';
 import { devLog } from '@/utils/devLog';
+import {
+  MarkdownSection,
+  processSectionsFromOutline,
+  validateOutlineData,
+} from '@/utils/markdownUtils';
 import { copyImageToClipboard } from '@/utils/twitter';
 
 import { markdownStyles } from './markdownStyles';
@@ -12,7 +18,7 @@ import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
 
 interface MarkdownRendererProps {
-  content: string;
+  content: Outline;
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
   onImageClick?: (image: {
@@ -58,19 +64,6 @@ interface CollectedImage {
   alt: string;
   originalSectionId: string;
   tweetId?: string;
-}
-
-interface MarkdownSection {
-  id: string;
-  type: 'list' | 'tweet' | 'group' | 'heading' | 'paragraph';
-  level?: number;
-  content: string;
-  rawContent: string;
-  mappingId?: string; // 用于与思维导图节点映射
-  tweetId?: string; // 用于tweet高亮
-  groupIndex?: number;
-  tweetIndex?: number;
-  groupId?: string; // 用于group高亮
 }
 
 export function MarkdownRenderer({
@@ -126,248 +119,20 @@ export function MarkdownRenderer({
     }
   }, []);
 
-  // 处理图片占位符 - 只有真实的图片URL才会被替换
-  const processedContent = useMemo(() => {
-    if (imageData?.url) {
-      return content.replace('PLACEHOLDER_IMAGE', imageData.url);
-    }
-    // 如果没有真实图片，移除占位符
-    return content.replace('PLACEHOLDER_IMAGE', '');
-  }, [content, imageData]);
+  // 验证输入数据
+  if (!validateOutlineData(content)) {
+    throw new TypeError('MarkdownRenderer only accepts Outline data format');
+  }
 
-  // 解析含有HTML标签的Markdown为结构化数据
+  // 直接从 Outline 数据生成 sections
   const sections = useMemo(() => {
-    const lines = processedContent.split('\n');
-    const sections: MarkdownSection[] = [];
-    let currentSection: MarkdownSection | null = null;
-    let sectionIndex = 0;
-    let inTweetDiv = false;
-    let inGroupDiv = false;
-    let currentTweetId: string | null = null;
-    let currentGroupIndex: number | null = null;
-    let currentTweetIndex: number | null = null;
-    let currentGroupId: string | null = null;
-    let groupCounter = 0;
-
-    lines.forEach((line) => {
-      const trimmedLine = line.trim();
-
-      // 检查是否是group div开始标签
-      const groupDivMatch = trimmedLine.match(/<div\s+data-group-id="(\d+)">/);
-      if (groupDivMatch) {
-        if (currentSection) {
-          sections.push(currentSection);
-        }
-        inGroupDiv = true;
-        currentGroupId = groupDivMatch[1];
-
-        currentSection = {
-          id: `group-section-${currentGroupId}`,
-          type: 'group',
-          content: '',
-          rawContent: line,
-          groupId: currentGroupId,
-          groupIndex: groupCounter++,
-        };
-        return;
-      }
-
-      // 检查是否是tweet div开始标签
-      const tweetDivMatch = trimmedLine.match(
-        /<div\s+data-tweet-id="(\d+)"\s+data-group-index="(\d+)"\s+data-tweet-index="(\d+)">/,
-      );
-      if (tweetDivMatch) {
-        if (currentSection) {
-          sections.push(currentSection);
-        }
-        inTweetDiv = true;
-        currentTweetId = tweetDivMatch[1];
-        currentGroupIndex = parseInt(tweetDivMatch[2]);
-        currentTweetIndex = parseInt(tweetDivMatch[3]);
-
-        currentSection = {
-          id: `tweet-section-${currentTweetId}`,
-          type: 'tweet',
-          content: '',
-          rawContent: line,
-          tweetId: currentTweetId,
-          groupIndex: currentGroupIndex,
-          tweetIndex: currentTweetIndex,
-        };
-        return;
-      }
-
-      // 检查是否是div结束标签
-      if (trimmedLine === '</div>') {
-        if (inTweetDiv) {
-          if (currentSection) {
-            sections.push(currentSection);
-            currentSection = null;
-          }
-          inTweetDiv = false;
-          currentTweetId = null;
-          currentGroupIndex = null;
-          currentTweetIndex = null;
-          return;
-        } else if (inGroupDiv) {
-          if (currentSection) {
-            sections.push(currentSection);
-            currentSection = null;
-          }
-          inGroupDiv = false;
-          currentGroupId = null;
-          return;
-        }
-      }
-
-      // 如果在div内，累积内容，特别处理标题
-      if (inTweetDiv && currentSection) {
-        if (!trimmedLine.startsWith('---')) {
-          // 检查是否是标题行
-          if (trimmedLine.startsWith('#')) {
-            const level = trimmedLine.match(/^#+/)?.[0].length || 1;
-            const text = trimmedLine
-              .replace(/^#+\s*/, '')
-              .replace(/[🧵📊💡🔧🚀✨]/gu, '')
-              .trim();
-
-            // 如果还没有内容，将标题作为主要内容
-            if (!currentSection.content) {
-              currentSection.content = text;
-              currentSection.type = 'tweet'; // 确保类型正确
-              currentSection.level = level;
-            } else {
-              // 如果已有内容，添加到现有内容
-              currentSection.content += '\n' + text;
-            }
-          } else {
-            // 普通内容行（包括空行）
-            if (currentSection.content) {
-              currentSection.content += '\n' + trimmedLine;
-            } else {
-              currentSection.content = trimmedLine;
-            }
-          }
-          currentSection.rawContent += '\n' + line;
-        }
-        return;
-      }
-
-      if (inGroupDiv && currentSection) {
-        if (!trimmedLine.startsWith('---')) {
-          // 检查是否是标题行
-          if (trimmedLine.startsWith('#')) {
-            const level = trimmedLine.match(/^#+/)?.[0].length || 1;
-            const text = trimmedLine
-              .replace(/^#+\s*/, '')
-              .replace(/[🧵📊💡🔧🚀✨]/gu, '')
-              .trim();
-
-            // 如果还没有内容，将标题作为主要内容
-            if (!currentSection.content) {
-              currentSection.content = text;
-              currentSection.type = 'group'; // 确保类型正确
-              currentSection.level = level;
-            } else {
-              // 如果已有内容，添加到现有内容
-              currentSection.content += '\n' + text;
-            }
-          } else {
-            // 普通内容行（包括空行）
-            if (currentSection.content) {
-              currentSection.content += '\n' + trimmedLine;
-            } else {
-              currentSection.content = trimmedLine;
-            }
-          }
-          currentSection.rawContent += '\n' + line;
-        }
-        return;
-      }
-
-      // 普通markdown解析逻辑
-      if (trimmedLine.startsWith('#')) {
-        // 标题
-        if (currentSection) {
-          sections.push(currentSection);
-        }
-
-        const level = trimmedLine.match(/^#+/)?.[0].length || 1;
-        const text = trimmedLine
-          .replace(/^#+\s*/, '')
-          .replace(/[🧵📊💡🔧🚀✨]/gu, '')
-          .trim();
-
-        currentSection = {
-          id: `section-${sectionIndex++}`,
-          type: 'heading',
-          level,
-          content: text,
-          rawContent: line,
-        };
-      } else if (
-        trimmedLine.startsWith('-') ||
-        trimmedLine.startsWith('*') ||
-        /^\d+\./.test(trimmedLine)
-      ) {
-        // 列表项
-        if (!currentSection || currentSection.type !== 'list') {
-          if (currentSection) {
-            sections.push(currentSection);
-          }
-          currentSection = {
-            id: `section-${sectionIndex++}`,
-            type: 'list',
-            content: trimmedLine,
-            rawContent: line,
-          };
-        } else {
-          currentSection.content += '\n' + trimmedLine;
-          currentSection.rawContent += '\n' + line;
-        }
-      } else if (trimmedLine && !trimmedLine.startsWith('---')) {
-        // 段落（排除分隔线）
-        if (!currentSection || currentSection.type !== 'paragraph') {
-          if (currentSection) {
-            sections.push(currentSection);
-          }
-          currentSection = {
-            id: `section-${sectionIndex++}`,
-            type: 'paragraph',
-            content: trimmedLine,
-            rawContent: line,
-          };
-        } else {
-          // 保留换行而不是用空格连接
-          currentSection.content += '\n' + trimmedLine;
-          currentSection.rawContent += '\n' + line;
-        }
-      } else if (!trimmedLine) {
-        // 空行处理：如果有当前section且不是div内部，则结束当前section
-        if (
-          currentSection &&
-          !inTweetDiv &&
-          !inGroupDiv &&
-          (currentSection.type === 'paragraph' ||
-            currentSection.type === 'list')
-        ) {
-          sections.push(currentSection);
-          currentSection = null;
-        }
-      }
-    });
-
-    if (currentSection) {
-      sections.push(currentSection);
-    }
-
-    return sections;
-  }, [processedContent]);
+    return processSectionsFromOutline(content);
+  }, [content]);
 
   useEffect(() => {
     if (content) {
-      devLog('MarkdownRenderer->content', {
-        content: content,
+      devLog('MarkdownRenderer->outline', {
+        outline: content,
       });
     }
   }, [content]);

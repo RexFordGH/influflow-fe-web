@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import EditorPro from '@/components/editorPro';
 import { ImageLoadingAnimation } from '@/components/ui/ImageLoadingAnimation';
+import { MarkdownSection } from '@/utils/markdownUtils';
 import { copyTwitterContent } from '@/utils/twitter';
 
 import { LocalImageUploader } from './LocalImageUploader';
@@ -15,19 +16,6 @@ import {
   markdownStyles,
   shouldEnableInteraction,
 } from './markdownStyles';
-
-export interface MarkdownSection {
-  id: string;
-  type: 'list' | 'tweet' | 'group' | 'heading' | 'paragraph';
-  level?: number;
-  content: string;
-  rawContent: string;
-  mappingId?: string;
-  tweetId?: string;
-  groupIndex?: number;
-  tweetIndex?: number;
-  groupId?: string;
-}
 
 export interface SectionRendererProps {
   section: MarkdownSection;
@@ -140,21 +128,8 @@ export function SectionRenderer({
 
   useEffect(() => {
     if (section.type === 'tweet') {
-      const lines = section.content.split('\n');
-      let contentLines = [];
-
-      const titleLine = lines.find((line) => line.startsWith('#'));
-      if (titleLine) {
-        contentLines = lines.filter(
-          (line) => !line.startsWith('#'),
-        );
-      } else {
-        contentLines = lines.slice(1);
-      }
-
-      const content = contentLines.join('\n');
-      const textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
-      setCurrentEditorContent(textContent);
+      // 直接使用 section.content，不再需要解析
+      setCurrentEditorContent(section.content);
     }
   }, [section]);
 
@@ -252,32 +227,11 @@ export function SectionRenderer({
       );
 
     case 'tweet':
-      const lines = section.content.split('\n');
-      let title = '';
-      let contentLines = [];
-
-      const titleLine = lines.find((line) => line.startsWith('#'));
-      if (titleLine) {
-        title = titleLine.replace(/^#+\s*/, '').trim();
-        contentLines = lines.filter(
-          (line) => !line.startsWith('#'),
-        );
-      } else {
-        title = lines[0] || section.content;
-        contentLines = lines.slice(1);
-      }
-
-      const content = contentLines.join('\n');
-      const contentImageMatch = content.match(/!\[(.*?)\]\((.*?)\)/);
-      let textContent = content;
-      let tweetImageSrc = null;
-      let tweetImageAlt = null;
-
-      if (contentImageMatch) {
-        textContent = content.replace(/!\[(.*?)\]\((.*?)\)\s*/, '').trim();
-        tweetImageSrc = contentImageMatch[2];
-        tweetImageAlt = contentImageMatch[1];
-      }
+      // 直接使用 section 中的数据，不再解析
+      const title = (section as any).title || '';
+      const textContent = section.content;
+      const tweetImageSrc = (section as any).imageUrl || null;
+      const tweetImageAlt = title;
 
       const currentTweetData = tweetData?.nodes
         ?.flatMap((group: any) => group.tweets)
