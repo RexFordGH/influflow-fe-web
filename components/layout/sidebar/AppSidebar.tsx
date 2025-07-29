@@ -3,7 +3,7 @@
 import { UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
 
@@ -26,12 +26,16 @@ interface AppSidebarProps {
   onToggleCollapse?: () => void;
 }
 
-export const AppSidebar = ({
+export interface AppSidebarRef {
+  refresh: () => Promise<void>;
+}
+
+export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(({
   onItemClick,
   selectedId,
   collapsed = false,
   onToggleCollapse,
-}: AppSidebarProps) => {
+}, ref) => {
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
@@ -98,6 +102,11 @@ export const AppSidebar = ({
       setRefreshing(false);
     }
   };
+  
+  // 暴露刷新方法给父组件
+  useImperativeHandle(ref, () => ({
+    refresh: handleRefresh,
+  }), [handleRefresh]);
 
   if (!isAuthenticated) {
     return null;
@@ -201,4 +210,6 @@ export const AppSidebar = ({
       </div>
     </div>
   );
-};
+});
+
+AppSidebar.displayName = 'AppSidebar';

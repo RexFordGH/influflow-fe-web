@@ -4,10 +4,10 @@ import { cn } from '@heroui/react';
 import { AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { MainContent } from '@/components/home/MainContent';
-import { AppSidebar } from '@/components/layout/sidebar/AppSidebar';
+import { AppSidebar, AppSidebarRef } from '@/components/layout/sidebar/AppSidebar';
 import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
@@ -73,6 +73,9 @@ function HomeContent() {
     handleWriteByMyself,
     refetchTweetThreads,
   } = useArticleManagement();
+  
+  // 侧边栏 ref
+  const sidebarRef = useRef<AppSidebarRef | null>(null);
 
   useEffect(() => {
     checkAuthStatus();
@@ -292,7 +295,12 @@ function HomeContent() {
                 ? FakeOutline
                 : initialData
             }
-            onDataUpdate={refetchTweetThreads}
+            onDataUpdate={async () => {
+              // 刷新 tweet threads 数据
+              await refetchTweetThreads();
+              // 刷新侧边栏数据
+              await sidebarRef.current?.refresh();
+            }}
           />
         </div>
       )}
@@ -306,6 +314,7 @@ function HomeContent() {
       >
         <AnimatePresence>
           <AppSidebar
+            ref={sidebarRef}
             onItemClick={handleSidebarItemClick}
             selectedId={selectedItemId}
             collapsed={sidebarCollapsed}
