@@ -109,7 +109,7 @@ export function SectionRendererOfLongForm({
       }
 
       // 计算显示文本（使用 emoji 数字）
-      const titleNumber = (section.titleIndex || 0); // titleIndex 从 0 开始
+      const titleNumber = section.titleIndex || 0; // titleIndex 从 0 开始
       const titleEmojiNumber = getEmojiNumber(titleNumber - 1); // 第二个标题显示为 1️⃣，所以减1
       const displayTitle = `${titleEmojiNumber} ${section.content}`;
 
@@ -143,7 +143,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} mb-2 mt-4`}
+          className={`${baseClasses} ${loadingClasses} mb-2 mt-4 cursor-default`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -163,7 +163,8 @@ export function SectionRendererOfLongForm({
               className={{
                 base: 'border-none bg-transparent',
                 editorWrapper: 'p-0',
-                editor: 'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
+                editor:
+                  'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
               }}
             />
           </div>
