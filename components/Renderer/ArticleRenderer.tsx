@@ -1553,7 +1553,7 @@ export function ArticleRenderer({
               <h1 className="font-inter text-[32px] font-[700] leading-none text-black">
                 {rawAPIData?.topic}
               </h1>
-              <p className="font-inter text-[14px] font-[400] leading-none text-[#8C8C8C]">
+              <p className="mt-[10px] font-inter text-[14px] font-[400] leading-none text-[#8C8C8C]">
                 {formatTime(rawAPIData?.updatedAt || Date.now())}
               </p>
             </div>
