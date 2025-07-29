@@ -2,6 +2,8 @@
 
 import { useCallback } from 'react';
 
+import { getEmojiNumber } from '@/utils/markdownUtils';
+
 import EditorPro from '../../editorPro/index';
 
 import { LocalImageUploader } from './LocalImageUploader';
@@ -16,7 +18,6 @@ import {
   SectionRendererProps,
   TweetImageButton,
 } from './SectionRenderer';
-import { getEmojiNumber } from '@/utils/markdownUtils';
 
 export function SectionRendererOfLongForm({
   section,
