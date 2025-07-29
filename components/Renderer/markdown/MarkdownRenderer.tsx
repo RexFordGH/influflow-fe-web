@@ -172,81 +172,52 @@ export function MarkdownRenderer({
     }
   }, [scrollToSection, sections, scrollToSectionById]);
 
+  // 检查section是否匹配指定的ID
+  const checkSectionMatch = (
+    section: MarkdownSection,
+    targetId: string | null | undefined,
+  ): boolean => {
+    if (!targetId) return false;
+
+    // 直接ID匹配
+    if (section.id === targetId || section.mappingId === targetId) return true;
+
+    // 处理group ID匹配
+    if (targetId.startsWith('group-') && section.groupId) {
+      const groupId = targetId.replace('group-', '');
+      return matchIds(section.groupId, groupId);
+    }
+
+    // 处理tweet ID匹配
+    if (section.tweetId && (section.type === 'tweet' || section.type === 'tweetTitle')) {
+      return matchIds(section.tweetId, targetId);
+    }
+
+    return false;
+  };
+
+  // ID匹配辅助函数
+  const matchIds = (id1: any, id2: any): boolean => {
+    if (!id1 || !id2) return false;
+    return (
+      id1 === id2 ||
+      id1.toString() === id2.toString() ||
+      Number(id1) === Number(id2)
+    );
+  };
+
   // 渲染单个段落
   const renderSection = (section: MarkdownSection) => {
-    // 检查是否应该高亮：增强匹配逻辑
+    // 检查是否应该高亮
     const isHighlighted =
-      highlightedSection === section.mappingId ||
-      highlightedSection === section.id ||
-      // Tweet节点的多种匹配方式 - 增强类型兼容性（包括 tweetTitle 类型）
-      (hoveredTweetId &&
-        section.tweetId &&
-        (section.type === 'tweet' || section.type === 'tweetTitle') &&
-        (section.tweetId === hoveredTweetId ||
-          section.tweetId.toString() === hoveredTweetId.toString() ||
-          Number(section.tweetId) === Number(hoveredTweetId))) ||
-      // Group节点的多种匹配方式 - 增强类型兼容性
-      (hoveredTweetId &&
-        hoveredTweetId.startsWith('group-') &&
-        section.groupId &&
-        (section.groupId === hoveredTweetId.replace('group-', '') ||
-          section.groupId.toString() === hoveredTweetId.replace('group-', '') ||
-          Number(section.groupId) ===
-            Number(hoveredTweetId.replace('group-', '')))) ||
-      // 编辑状态高亮 - 新增：当section正在被编辑时保持高亮（包括 tweetTitle 类型）
-      (editingNodeId &&
-        ((section.tweetId &&
-          (section.type === 'tweet' || section.type === 'tweetTitle') &&
-          (section.tweetId === editingNodeId ||
-            section.tweetId.toString() === editingNodeId.toString() ||
-            Number(section.tweetId) === Number(editingNodeId))) ||
-          (editingNodeId.startsWith('group-') &&
-            section.groupId &&
-            (section.groupId === editingNodeId.replace('group-', '') ||
-              section.groupId.toString() ===
-                editingNodeId.replace('group-', '') ||
-              Number(section.groupId) ===
-                Number(editingNodeId.replace('group-', '')))) ||
-          editingNodeId === section.id)) ||
-      // 生图状态高亮 - 新增（包括 tweetTitle 类型）
-      (generatingImageTweetIds &&
-        section.tweetId &&
-        (section.type === 'tweet' || section.type === 'tweetTitle') &&
-        generatingImageTweetIds.some(
-          (id) =>
-            section.tweetId === id ||
-            section.tweetId?.toString() === id.toString() ||
-            Number(section.tweetId) === Number(id),
-        )) ||
-      // 选中状态高亮 - 新增（包括 tweetTitle 类型）
-      (selectedNodeId &&
-        section.tweetId &&
-        (section.type === 'tweet' || section.type === 'tweetTitle') &&
-        (section.tweetId === selectedNodeId ||
-          section.tweetId.toString() === selectedNodeId.toString() ||
-          Number(section.tweetId) === Number(selectedNodeId))) ||
-      // Fallback：直接ID匹配
-      hoveredTweetId === section.id;
+      checkSectionMatch(section, highlightedSection) ||
+      checkSectionMatch(section, hoveredTweetId) ||
+      checkSectionMatch(section, editingNodeId) ||
+      checkSectionMatch(section, selectedNodeId) ||
+      (generatingImageTweetIds?.some((id) => checkSectionMatch(section, id)) ?? false);
 
-    // 检查是否正在loading - 增强匹配逻辑（包括 tweetTitle 类型）
-    const isLoading = Boolean(
-      loadingTweetId && // Tweet节点的多种匹配方式
-        ((section.tweetId &&
-          (section.type === 'tweet' || section.type === 'tweetTitle') &&
-          (section.tweetId === loadingTweetId ||
-            section.tweetId.toString() === loadingTweetId.toString() ||
-            Number(section.tweetId) === Number(loadingTweetId))) ||
-          // Group节点的多种匹配方式
-          (loadingTweetId.startsWith('group-') &&
-            section.groupId &&
-            (section.groupId === loadingTweetId.replace('group-', '') ||
-              section.groupId.toString() ===
-                loadingTweetId.replace('group-', '') ||
-              Number(section.groupId) ===
-                Number(loadingTweetId.replace('group-', '')))) ||
-          // Fallback：直接ID匹配
-          loadingTweetId === section.id),
-    );
+    // 检查是否正在loading
+    const isLoading = checkSectionMatch(section, loadingTweetId);
 
     // 根据 content_format 选择渲染器
     const RendererSectionComponent =
