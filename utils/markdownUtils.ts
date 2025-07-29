@@ -5,9 +5,9 @@ import { Outline, Tweet } from '@/types/outline';
  */
 export function validateOutlineData(data: unknown): data is Outline {
   if (!data || typeof data !== 'object') return false;
-  
+
   const outline = data as any;
-  
+
   // 检查必需的顶级字段
   if (
     typeof outline.id !== 'string' ||
@@ -17,14 +17,14 @@ export function validateOutlineData(data: unknown): data is Outline {
   ) {
     return false;
   }
-  
+
   // 检查 nodes 数组中的每个元素
   for (const node of outline.nodes) {
     if (!isValidTweetNode(node)) {
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -33,15 +33,15 @@ export function validateOutlineData(data: unknown): data is Outline {
  */
 function isValidTweetNode(node: unknown): node is Tweet {
   if (!node || typeof node !== 'object') return false;
-  
+
   const tweet = node as any;
-  
+
   // 检查 title
   if (typeof tweet.title !== 'string') return false;
-  
+
   // 检查 tweets 数组
   if (!Array.isArray(tweet.tweets)) return false;
-  
+
   // 检查每个 tweet 内容项
   for (const item of tweet.tweets) {
     if (
@@ -51,15 +51,17 @@ function isValidTweetNode(node: unknown): node is Tweet {
     ) {
       return false;
     }
-    
+
     // image_url 是可选的，但如果存在必须是 string 或 null
-    if (item.image_url !== undefined && 
-        item.image_url !== null && 
-        typeof item.image_url !== 'string') {
+    if (
+      item.image_url !== undefined &&
+      item.image_url !== null &&
+      typeof item.image_url !== 'string'
+    ) {
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -84,10 +86,12 @@ export interface MarkdownSection {
 /**
  * 将 Outline 数据转换为 MarkdownSection 数组
  */
-export function processSectionsFromOutline(outline: Outline): MarkdownSection[] {
+export function processSectionsFromOutline(
+  outline: Outline,
+): MarkdownSection[] {
   const sections: MarkdownSection[] = [];
   let sectionIndex = 0;
-  
+
   outline.nodes.forEach((group, groupIndex) => {
     // 创建 group section
     sections.push({
@@ -99,7 +103,7 @@ export function processSectionsFromOutline(outline: Outline): MarkdownSection[] 
       groupIndex,
       level: 2,
     });
-    
+
     // 创建 tweet sections
     group.tweets.forEach((tweet, tweetIndex) => {
       sections.push({
@@ -116,7 +120,7 @@ export function processSectionsFromOutline(outline: Outline): MarkdownSection[] 
       });
     });
   });
-  
+
   return sections;
 }
 
@@ -131,8 +135,10 @@ export function preserveLineBreaks(content: string): string {
 /**
  * 格式化内容用于显示
  */
-export function formatContentForDisplay(content: string, type: 'tweet' | 'group'): string {
+export function formatContentForDisplay(
+  content: string,
+  type: 'tweet' | 'group',
+): string {
   // 目前只是保持原样，后续可以根据需要添加格式化逻辑
   return preserveLineBreaks(content);
 }
-

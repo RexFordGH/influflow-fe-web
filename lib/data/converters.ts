@@ -125,7 +125,6 @@ export function convertAPIDataToGeneratedContent(
   };
 }
 
-
 /**
  * 从思维导图数据直接生成markdown（用于Regenerate功能）- 支持多层级
  */
