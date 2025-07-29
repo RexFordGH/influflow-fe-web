@@ -201,13 +201,8 @@ export function SectionRendererOfLongForm({
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
 
-      const { title = '', content = '' } = currentTweetData || {};
-
-      const tweetContent = content.replace(title, '');
-      // console.log('currentTweetData', tweetContent);
-
       const editorValue = JSON.stringify({
-        content: tweetContent || textContent,
+        content: textContent,
         type: 'doc',
         isEmpty: !textContent.trim(),
       });
