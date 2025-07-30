@@ -127,7 +127,7 @@ export function MarkdownRenderer({
   // 直接从 Outline 数据生成 sections
   const sections = useMemo(() => {
     return processSectionsFromOutline(content, {
-      contentFormat: content.content_format
+      contentFormat: content.content_format,
     });
   }, [content]);
 
@@ -189,7 +189,10 @@ export function MarkdownRenderer({
     }
 
     // 处理tweet ID匹配
-    if (section.tweetId && (section.type === 'tweet' || section.type === 'tweetTitle')) {
+    if (
+      section.tweetId &&
+      (section.type === 'tweet' || section.type === 'tweetTitle')
+    ) {
       return matchIds(section.tweetId, targetId);
     }
 
@@ -214,7 +217,8 @@ export function MarkdownRenderer({
       checkSectionMatch(section, hoveredTweetId) ||
       checkSectionMatch(section, editingNodeId) ||
       checkSectionMatch(section, selectedNodeId) ||
-      (generatingImageTweetIds?.some((id) => checkSectionMatch(section, id)) ?? false);
+      (generatingImageTweetIds?.some((id) => checkSectionMatch(section, id)) ??
+        false);
 
     // 检查是否正在loading
     const isLoading = checkSectionMatch(section, loadingTweetId);

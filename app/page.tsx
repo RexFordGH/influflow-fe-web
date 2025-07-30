@@ -7,7 +7,10 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { MainContent } from '@/components/home/MainContent';
-import { AppSidebar, AppSidebarRef } from '@/components/layout/sidebar/AppSidebar';
+import {
+  AppSidebar,
+  AppSidebarRef,
+} from '@/components/layout/sidebar/AppSidebar';
 import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
@@ -61,7 +64,7 @@ function HomeContent() {
   const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
   const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
-  
+
   // 侧边栏 ref
   const sidebarRef = useRef<AppSidebarRef | null>(null);
 

@@ -1,4 +1,3 @@
-import { useCallback, useState } from 'react';
 import { addToast } from '@/components/base/toast';
 import {
   getErrorMessage,
@@ -8,8 +7,9 @@ import {
   type TwitterTweetData,
 } from '@/lib/api/services';
 import { Outline } from '@/types/outline';
-import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
 import { getEmojiNumber } from '@/utils/markdownUtils';
+import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
+import { useCallback, useState } from 'react';
 
 interface CollectedImage {
   src: string;
@@ -28,7 +28,7 @@ interface UseTwitterIntegrationReturn {
   isPostingToTwitter: boolean;
   twitterAuthStatus: any;
   isCopyingFullContent: boolean;
-  
+
   // 方法
   handlePostToTwitter: () => Promise<void>;
   handleCopyFullContent: () => Promise<void>;
@@ -38,23 +38,23 @@ interface UseTwitterIntegrationReturn {
 
 export function useTwitterIntegration({
   rawAPIData,
-  collectedImages = []
+  collectedImages = [],
 }: UseTwitterIntegrationProps): UseTwitterIntegrationReturn {
   const [isPostingToTwitter, setIsPostingToTwitter] = useState(false);
   const [isCopyingFullContent, setIsCopyingFullContent] = useState(false);
-  
+
   // 使用现有的 Twitter auth hook
-  const { data: twitterAuthStatus, refetch: refetchTwitterAuthStatus } = 
+  const { data: twitterAuthStatus, refetch: refetchTwitterAuthStatus } =
     useCheckTwitterAuthStatus();
-  
+
   // 使用 Twitter 发布 hook
   const postToTwitterMutation = usePostToTwitter();
-  
+
   // 检查认证状态
   const checkTwitterAuth = useCallback(() => {
     return twitterAuthStatus?.authorized ?? false;
   }, [twitterAuthStatus]);
-  
+
   // Twitter发布逻辑
   const handlePostToTwitter = useCallback(async () => {
     addToast({
@@ -62,7 +62,7 @@ export function useTwitterIntegration({
       color: 'warning',
       timeout: 5000,
     });
-    
+
     if (!rawAPIData) {
       addToast({
         title: '没有可发布的内容',
@@ -70,9 +70,9 @@ export function useTwitterIntegration({
       });
       return;
     }
-    
+
     setIsPostingToTwitter(true);
-    
+
     try {
       // 构建推文数据
       const tweets: TwitterTweetData[] = rawAPIData.nodes
@@ -85,25 +85,24 @@ export function useTwitterIntegration({
           const tweetNumber = index + 1;
           const content = tweet.content || tweet.title || '';
           const text = `${tweetNumber}/${totalTweets}\n\n${content}`;
-          
+
           const tweetData: TwitterTweetData = { text };
-          
+
           // 如果推文有图片，添加图片URL
           if (tweet.image_url) {
             tweetData.image_url = tweet.image_url;
           }
-          
+
           return tweetData;
         });
-      
+
       const postRequest: TwitterPostRequest = {
         tweets,
         delay_seconds: 1, // 推文间隔1秒
       };
-      
+
       // 后端暂时不用，发请求用于后端打 log
       postToTwitterMutation.mutateAsync(postRequest);
-      
     } catch (error) {
       console.error('Twitter发布失败:', error);
       addToast({
@@ -115,25 +114,25 @@ export function useTwitterIntegration({
       setIsPostingToTwitter(false);
     }
   }, [rawAPIData, postToTwitterMutation]);
-  
+
   // 处理复制全文内容
   const handleCopyFullContent = useCallback(async () => {
     if (!rawAPIData) return;
-    
+
     setIsCopyingFullContent(true);
-    
+
     try {
       // 格式化各部分内容
       const contentParts: string[] = [];
       if (rawAPIData.topic) {
         contentParts.push(convertToTwitterFormat(rawAPIData.topic));
       }
-      
+
       // 根据 content_format 决定处理方式
       if (rawAPIData.content_format === 'longform') {
         // longform 模式：不展示第一个小标题，序号从第二个小标题开始
         let globalTweetIndex = 0;
-        
+
         rawAPIData.nodes.forEach((group: any) => {
           group.tweets.forEach((tweet: any) => {
             // 第一个小标题不展示
@@ -143,12 +142,12 @@ export function useTwitterIntegration({
               const titleWithEmoji = `${emojiNumber} ${tweet.title}`;
               contentParts.push(convertToTwitterFormat(titleWithEmoji));
             }
-            
+
             // 始终添加内容
             if (tweet.content) {
               contentParts.push(convertToTwitterFormat(tweet.content));
             }
-            
+
             globalTweetIndex++;
           });
         });
@@ -169,14 +168,14 @@ export function useTwitterIntegration({
           });
         });
       }
-      
+
       // 合并预格式化的部分
       const fullContent = contentParts.join('\n\n');
-      
+
       // 获取第一张图片的URL（如果有）
       const firstImageUrl =
         collectedImages.length > 0 ? collectedImages[0].src : undefined;
-      
+
       // 调用现有的 copyTwitterContent 函数
       // 该函数处理文本格式化、图片获取、PNG 转换和剪贴板写入
       await copyTwitterContent(fullContent, firstImageUrl);
@@ -187,13 +186,13 @@ export function useTwitterIntegration({
       setIsCopyingFullContent(false);
     }
   }, [rawAPIData, collectedImages]);
-  
+
   return {
     // 状态
     isPostingToTwitter,
     twitterAuthStatus,
     isCopyingFullContent,
-    
+
     // 方法
     handlePostToTwitter,
     handleCopyFullContent,
