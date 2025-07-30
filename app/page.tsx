@@ -4,13 +4,16 @@ import { cn } from '@heroui/react';
 import { AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { MainContent } from '@/components/home/MainContent';
-import { AppSidebar } from '@/components/layout/AppSidebar';
+import {
+  AppSidebar,
+  AppSidebarRef,
+} from '@/components/layout/sidebar/AppSidebar';
+import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
-import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
 import {
   type ContentFormat,
@@ -60,32 +63,10 @@ function HomeContent() {
   );
   const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
   const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
 
-  const {
-    categories,
-    currentArticle,
-    showMarkdownEditor,
-    editingCategoryId,
-    editingArticleId,
-    tempTitle,
-    tweetThreadsLoading,
-    setTempTitle,
-    setShowMarkdownEditor,
-    setCurrentArticle,
-    toggleCategoryExpanded,
-    toggleArticleExpanded,
-    createNewArticle,
-    createNewCategory,
-    openArticleEditor,
-    saveArticleContent,
-    startEditCategoryTitle,
-    startEditArticleTitle,
-    saveCategoryTitle,
-    saveArticleTitle,
-    cancelEdit,
-    handleWriteByMyself,
-    refetchTweetThreads,
-  } = useArticleManagement();
+  // 侧边栏 ref
+  const sidebarRef = useRef<AppSidebarRef | null>(null);
 
   useEffect(() => {
     checkAuthStatus();
@@ -184,8 +165,9 @@ function HomeContent() {
     setInitialData(undefined);
     setShowContentGeneration(false);
     setCurrentTopic('');
+    setSelectedItemId(undefined); // 清除选中状态
     // 返回首页时重新拉取文章列表确保数据同步
-    refetchTweetThreads();
+    sidebarRef.current?.refresh();
   };
 
   const handleScrollToTrending = () => {
@@ -257,26 +239,27 @@ function HomeContent() {
     setHasCreatedContentGeneration(true);
   };
 
-  const handleAddNewClick = () => {
-    // 点击 Add New 返回主页面
-    setShowContentGeneration(false);
-    setShowMarkdownEditor(false);
-    setCurrentArticle(null);
-    setCurrentTopic('');
+  // 处理侧边栏列表项点击
+  const handleSidebarItemClick = (item: SidebarItem) => {
+    // 设置选中的项目ID
+    setSelectedItemId(item.id);
+
+    // 直接使用分页API已获取的完整数据
+    if (item.tweetData) {
+      handleTweetThreadClick(item.tweetData);
+    } else {
+      // 如果没有完整数据，使用简化数据作为回退
+      const fallbackData = {
+        id: item.id.replace('tweet-', ''),
+        topic: item.title,
+        content_format: 'longform',
+        tweets: [],
+        updated_at: item.updatedAt || item.createdAt,
+        created_at: item.createdAt,
+      };
+      handleTweetThreadClick(fallbackData);
+    }
   };
-
-  // 页面 focus 时刷新数据
-  // useEffect(() => {
-  //   const handleFocus = () => {
-  //     if (isAuthenticated && !showContentGeneration) {
-  //       // 只在用户已登录且在首页时刷新
-  //       refetchTweetThreads();
-  //     }
-  //   };
-
-  //   window.addEventListener('focus', handleFocus);
-  //   return () => window.removeEventListener('focus', handleFocus);
-  // }, [isAuthenticated, showContentGeneration, refetchTweetThreads]);
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -303,7 +286,9 @@ function HomeContent() {
                 ? FakeOutline
                 : initialData
             }
-            onDataUpdate={refetchTweetThreads}
+            onDataUpdate={async () => {
+              await sidebarRef.current?.refresh();
+            }}
           />
         </div>
       )}
@@ -317,40 +302,17 @@ function HomeContent() {
       >
         <AnimatePresence>
           <AppSidebar
+            ref={sidebarRef}
+            onItemClick={handleSidebarItemClick}
+            selectedId={selectedItemId}
             collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            categories={categories}
-            editingCategoryId={editingCategoryId}
-            tempTitle={tempTitle}
-            onToggleCategoryExpanded={toggleCategoryExpanded}
-            onStartEditCategoryTitle={startEditCategoryTitle}
-            onSaveCategoryTitle={saveCategoryTitle}
-            onCancelEdit={cancelEdit}
-            onTempTitleChange={setTempTitle}
-            onCreateNewArticle={createNewArticle}
-            onCreateNewCategory={createNewCategory}
-            onToggleArticleExpanded={toggleArticleExpanded}
-            onOpenArticleEditor={openArticleEditor}
-            editingArticleId={editingArticleId}
-            onStartEditArticleTitle={startEditArticleTitle}
-            onSaveArticleTitle={saveArticleTitle}
-            onTweetThreadClick={handleTweetThreadClick}
-            onAddNewClick={handleAddNewClick}
-            tweetThreadsLoading={tweetThreadsLoading}
+            onToggleCollapse={() => setSidebarCollapsed(true)}
           />
         </AnimatePresence>
 
         <MainContent
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed(false)}
-          showMarkdownEditor={showMarkdownEditor}
-          currentArticle={currentArticle}
-          categories={categories}
-          onBackFromEditor={() => {
-            setShowMarkdownEditor(false);
-            setCurrentArticle(null);
-          }}
-          onSaveArticleContent={saveArticleContent}
           showTrendingTopics={showTrendingTopics}
           onScrollToTrending={handleScrollToTrending}
           onBackFromTrending={handleBackFromTrending}
@@ -362,7 +324,6 @@ function HomeContent() {
           topicInput={topicInput}
           onTopicInputChange={setTopicInput}
           onTopicSubmit={handleTopicSubmit}
-          onWriteByMyself={handleWriteByMyself}
         />
       </div>
     </div>

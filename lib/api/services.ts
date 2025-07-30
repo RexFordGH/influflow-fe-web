@@ -15,11 +15,6 @@ import {
 import { Outline } from '@/types/outline';
 
 import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
-import {
-  createLocalModifyOutlineResponse,
-  createLocalModifyTweetResponse,
-  localGenerateThreadResponse,
-} from './local.res';
 
 export const QUERY_KEYS = {
   HEALTH: ['health'] as const,
