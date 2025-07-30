@@ -124,6 +124,7 @@ export const shouldEnableInteraction = (section: {
   return (
     section.type === 'tweet' ||
     section.type === 'group' ||
+    section.type === 'tweetTitle' ||
     (section.type === 'paragraph' &&
       !section.content?.includes('Edited on') &&
       !section.content?.includes('!['))

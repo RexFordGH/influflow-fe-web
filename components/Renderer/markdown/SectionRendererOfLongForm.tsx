@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+
+import { getEmojiNumber } from '@/utils/markdownUtils';
 
 import EditorPro from '../../editorPro/index';
 
@@ -34,7 +36,7 @@ export function SectionRendererOfLongForm({
   tweetData,
   setSectionRef,
 }: SectionRendererProps) {
-  const [currentEditorContent, setCurrentEditorContent] = useState('');
+  // 移除未使用的状态
 
   const handleEditorChange = useCallback(
     (newValue: string) => {
@@ -51,7 +53,7 @@ export function SectionRendererOfLongForm({
           plainText = plainText.replace(/^[0-9️⃣🔟]+\s*/, '');
         }
 
-        setCurrentEditorContent(plainText);
+        // 移除 setCurrentEditorContent 调用
 
         if (section.type === 'tweet' && section.tweetId) {
           onTweetContentChange?.(section.tweetId!, plainText);
@@ -65,25 +67,7 @@ export function SectionRendererOfLongForm({
     [section, onTweetContentChange, onGroupTitleChange],
   );
 
-  useEffect(() => {
-    if (section.type === 'tweet') {
-      const lines = section.content.split('\n');
-      let contentLines = [];
-
-      const titleLine = lines.find((line) => line.startsWith('#'));
-      if (titleLine) {
-        contentLines = lines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
-        );
-      } else {
-        contentLines = lines.slice(1).filter((line) => line.trim() !== '');
-      }
-
-      const content = contentLines.join('\n\n');
-      // The parent component has already cleaned the content, so we just set it.
-      setCurrentEditorContent(content.trim());
-    }
-  }, [section]);
+  // 移除未使用的 useEffect
 
   const createMouseHandlers = useCallback(() => {
     const shouldInteract = shouldEnableInteraction(section);
@@ -92,6 +76,8 @@ export function SectionRendererOfLongForm({
       if (!shouldInteract) return;
 
       if (section.type === 'tweet' && section.tweetId) {
+        onSectionHover?.(section.tweetId);
+      } else if (section.type === 'tweetTitle' && section.tweetId) {
         onSectionHover?.(section.tweetId);
       } else if (section.type === 'group' && section.groupId) {
         onSectionHover?.(`group-${section.groupId}`);
@@ -109,38 +95,6 @@ export function SectionRendererOfLongForm({
     return { handleEnter, handleLeave };
   }, [section, onSectionHover]);
 
-  const renderEmoji = useCallback((text: string) => {
-    return text.replace(/[🧵📊💡🔧🚀✨]/gu, (match) =>
-      markdownStyles.formatting.emoji.replace('$1', match),
-    );
-  }, []);
-
-  const getEmojiNumber = useCallback((index: number) => {
-    const emojiNumbers = [
-      '1️⃣',
-      '2️⃣',
-      '3️⃣',
-      '4️⃣',
-      '5️⃣',
-      '6️⃣',
-      '7️⃣',
-      '8️⃣',
-      '9️⃣',
-      '🔟',
-      '1️⃣1️⃣',
-      '1️⃣2️⃣',
-      '1️⃣3️⃣',
-      '1️⃣4️⃣',
-      '1️⃣5️⃣',
-      '1️⃣6️⃣',
-      '1️⃣7️⃣',
-      '1️⃣8️⃣',
-      '1️⃣9️⃣',
-      '2️⃣0️⃣',
-    ];
-    return emojiNumbers[index] || `${index + 1}️⃣`;
-  }, []);
-
   const shouldInteract = shouldEnableInteraction(section);
   const baseClasses = getBaseClasses(shouldInteract);
   const highlightClasses = getHighlightClasses(isHighlighted, shouldInteract);
@@ -148,6 +102,75 @@ export function SectionRendererOfLongForm({
   const { handleEnter, handleLeave } = createMouseHandlers();
 
   switch (section.type) {
+    case 'tweetTitle':
+      // 第一个小标题直接隐藏，不进行渲染
+      if (section.isFirstTitle) {
+        return null;
+      }
+
+      // 计算显示文本（使用 emoji 数字）
+      const titleNumber = section.titleIndex || 0; // titleIndex 从 0 开始
+      const titleEmojiNumber = getEmojiNumber(titleNumber - 1); // 第二个标题显示为 1️⃣，所以减1
+      const displayTitle = `${titleEmojiNumber} ${section.content}`;
+
+      const titleEditorValue = JSON.stringify({
+        content: displayTitle,
+        type: 'doc',
+        isEmpty: !section.content.trim(),
+      });
+
+      const handleTitleChange = (newValue: string) => {
+        try {
+          const parsed = JSON.parse(newValue);
+          let plainText = parsed.content
+            .replace(/<br\s*\/?\s*>/g, '\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .trim();
+
+          // 移除emoji序号前缀（如果存在）
+          plainText = plainText.replace(/^[0-9️⃣🔟]+\s*/, '');
+
+          if (section.tweetId) {
+            onTweetContentChange?.(section.tweetId, plainText);
+          }
+        } catch (error) {
+          console.error('Failed to parse title editor content:', error);
+        }
+      };
+
+      return (
+        <div
+          key={section.id}
+          ref={(el) => setSectionRef?.(section.id, el)}
+          className={`${baseClasses} ${loadingClasses} mb-2 mt-4 cursor-default`}
+          onMouseEnter={handleEnter}
+          onMouseLeave={handleLeave}
+        >
+          {isLoading && (
+            <div className="absolute left-2 top-2">
+              <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+            </div>
+          )}
+
+          <div className="text-[15px] font-[600] leading-[1.35] tracking-tight text-black">
+            <EditorPro
+              value={titleEditorValue}
+              onChange={handleTitleChange}
+              isEdit={true}
+              hideMenuBar={true}
+              debounceMs={1000}
+              className={{
+                base: 'border-none bg-transparent',
+                editorWrapper: 'p-0',
+                editor:
+                  'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
+              }}
+            />
+          </div>
+        </div>
+      );
+
     case 'list':
       const listItems = section.content
         .split('\n')
@@ -205,19 +228,8 @@ export function SectionRendererOfLongForm({
       );
 
     case 'tweet':
-      const lines = section.content.split('\n');
-      let contentLines = [];
-
-      const titleLine = lines.find((line) => line.startsWith('#'));
-      if (titleLine) {
-        contentLines = lines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
-        );
-      } else {
-        contentLines = lines.slice(1).filter((line) => line.trim() !== '');
-      }
-
-      const textContent = contentLines.join('\n\n');
+      // 直接使用 section 中的数据，不再解析
+      const textContent = section.content;
 
       const currentTweetData = tweetData?.nodes
         ?.flatMap((group: any) => group.tweets)
@@ -225,13 +237,8 @@ export function SectionRendererOfLongForm({
           (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
         );
 
-      const { title = '', content = '' } = currentTweetData || {};
-
-      const tweetContent = content.replace(title, '');
-      // console.log('currentTweetData', tweetContent);
-
       const editorValue = JSON.stringify({
-        content: tweetContent || textContent,
+        content: textContent,
         type: 'doc',
         isEmpty: !textContent.trim(),
       });

@@ -126,45 +126,6 @@ export function convertAPIDataToGeneratedContent(
 }
 
 /**
- * 将API数据直接转换为markdown格式（支持hover高亮）
- */
-export function convertAPIDataToMarkdown(data: Outline): string {
-  let markdown = '';
-
-  // 移除标题和时间，放到最外层用普通的div来渲染， 2025.07.26
-  // // 添加一级标题
-  // markdown += `# ${data.topic}\n`;
-
-  // // 添加当前时间 - 英文格式，紧跟标题
-  // const currentTime = new Date().toLocaleString('en-US', {
-  //   year: 'numeric',
-  //   month: 'long',
-  //   day: 'numeric',
-  // });
-  // markdown += `<div>Edited on ${currentTime}</div>\n\n`;
-
-  // 按接口数据数组排列，包含分组标题
-  data.nodes.forEach((tweetGroup: any, groupIndex: number) => {
-    // 添加分组标题 (H2) 包含group标识符
-    markdown += `<div data-group-id="${groupIndex}">\n\n`;
-    markdown += `## ${tweetGroup.title}\n\n`;
-    markdown += `</div>\n\n`;
-
-    // 添加该分组下的tweets
-    tweetGroup.tweets.forEach((tweetItem: any, tweetIndex: number) => {
-      // 添加可用于高亮的标识符
-      markdown += `<div data-tweet-id="${tweetItem.tweet_number}" data-group-index="${groupIndex}" data-tweet-index="${tweetIndex}">\n\n`;
-      markdown += `### ${tweetItem.title}\n\n`;
-      markdown += `${tweetItem.content}\n\n`;
-
-      markdown += `</div>\n\n`;
-    });
-  });
-
-  return markdown;
-}
-
-/**
  * 从思维导图数据直接生成markdown（用于Regenerate功能）- 支持多层级
  */
 export function convertMindmapToMarkdown(
