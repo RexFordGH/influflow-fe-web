@@ -9,7 +9,6 @@ import { devLog } from '@/utils/devLog';
 import {
   MarkdownSection,
   processSectionsFromOutline,
-  validateOutlineData,
 } from '@/utils/markdownUtils';
 import { copyImageToClipboard } from '@/utils/twitter';
 
@@ -119,12 +118,6 @@ export function MarkdownRenderer({
     }
   }, []);
 
-  // 验证输入数据
-  if (!content || typeof content !== 'object') {
-    console.error('MarkdownRenderer received invalid data:', content);
-    return null;
-  }
-
   // 直接从 Outline 数据生成 sections
   const sections = useMemo(() => {
     try {
@@ -228,6 +221,12 @@ export function MarkdownRenderer({
 
     // 检查是否正在loading
     const isLoading = checkSectionMatch(section, loadingTweetId);
+
+    // 验证输入数据
+    if (!content || typeof content !== 'object') {
+      console.error('MarkdownRenderer received invalid data:', content);
+      return null;
+    }
 
     // 根据 content_format 选择渲染器
     const RendererSectionComponent =

@@ -94,16 +94,16 @@ const TWEET_FETCH_DELAY = 2000;
 // 获取推文内容的辅助函数
 const fetchTweetTexts = async (urls: string[]): Promise<string[]> => {
   if (urls.length === 0) return [];
-  
+
   const tweetDetailsPromises = urls.map((url) =>
     queryTweetDetail(url).catch((err) => {
       console.error(`Failed to fetch tweet detail for ${url}:`, err);
       return null;
-    })
+    }),
   );
-  
+
   const tweetDetails = await Promise.all(tweetDetailsPromises);
-  
+
   // 保持与 URLs 数组对应的顺序，失败的位置用空字符串
   return tweetDetails.map((detail) => detail?.tweet_text || '');
 };
@@ -241,7 +241,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       if (selectedStyle === 'Customized') {
         const validUrls = tweetExampleUrls.filter((url) => url.trim() !== '');
         const tweetTexts = await fetchTweetTexts(validUrls);
-        
+
         // 准备要保存的数据，包含同步的 tweet_examples
         profileData = {
           account_name: accountName,
@@ -551,8 +551,10 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             isLoading={isLoading}
             className="rounded-full bg-black px-8 py-3 font-medium text-white"
           >
-            {isLoading 
-              ? (selectedStyle === 'Customized' ? 'Fetching tweets and saving...' : 'Saving...') 
+            {isLoading
+              ? selectedStyle === 'Customized'
+                ? 'Fetching tweets and saving...'
+                : 'Saving...'
               : 'Save Changes'}
           </Button>
         </div>
