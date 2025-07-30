@@ -471,7 +471,13 @@ export function EditWithAIButton({
         className={markdownStyles.source.button}
         onPress={() => onEditWithAI?.(nodeId)}
       >
-        <Image src="/icons/Edit.svg" alt="edit" width={20} height={20} />
+        <Image
+          src="/icons/Edit.svg"
+          alt="edit"
+          width={20}
+          height={20}
+          className="rounded-none"
+        />
       </Button>
     </Tooltip>
   );
@@ -515,7 +521,13 @@ export function TweetImageButton({
         onPress={handleImageAction}
         isLoading={isGeneratingImage}
       >
-        <Image src="/icons/genImage.svg" alt="edit" width={20} height={20} />
+        <Image
+          src="/icons/genImage.svg"
+          alt="edit"
+          width={20}
+          height={20}
+          className="rounded-none"
+        />
       </Button>
     </Tooltip>
   );

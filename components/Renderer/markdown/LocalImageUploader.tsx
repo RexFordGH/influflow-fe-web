@@ -99,6 +99,7 @@ export const LocalImageUploader: React.FC<LocalImageUploaderProps> = ({
             alt="upload"
             width={20}
             height={20}
+            className="rounded-none"
           />
         </Button>
       </Tooltip>
