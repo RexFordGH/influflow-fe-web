@@ -52,7 +52,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
       isInitialLoading,
     } = usePaginatedData({
       userId: user?.id || '',
-      pageSize: 20,
+      pageSize: 50,
     });
 
     // 使用无限滚动Hook
