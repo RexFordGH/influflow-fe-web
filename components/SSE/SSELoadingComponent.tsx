@@ -3,6 +3,7 @@
 import { Button, Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import { Typewriter } from '../shared/Typewriter';
 
 export interface StageInfo {
   id: string;
@@ -60,22 +61,34 @@ export function SSELoadingComponent({
   error,
 }: SSELoadingComponentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [displayContent, setDisplayContent] = useState<string>('');
+  const [completedText, setCompletedText] = useState<string>('');
+  const [currentText, setCurrentText] = useState<string>('');
+  const [isTyping, setIsTyping] = useState(false);
 
-  // 直接显示完整内容，不分段
+  // 处理新的流式内容
   useEffect(() => {
     if (!streamContent) return;
     
-    // 直接设置内容，保持原始格式
-    setDisplayContent(streamContent);
-  }, [streamContent]);
+    // 计算新增的文本
+    const newText = streamContent.slice(completedText.length);
+    if (newText) {
+      setCurrentText(newText);
+      setIsTyping(true);
+    }
+  }, [streamContent, completedText]);
+
+  const handleTypewriterComplete = () => {
+    setCompletedText(streamContent);
+    setCurrentText('');
+    setIsTyping(false);
+  };
 
   // 自动滚动到底部
   useEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollTop = contentRef.current.scrollHeight;
     }
-  }, [displayContent]);
+  }, [completedText, currentText]);
 
   if (error) {
     return (
@@ -98,6 +111,18 @@ export function SSELoadingComponent({
 
   return (
     <div className="flex h-screen flex-col bg-[#FAFAFA]">
+      {/* 头部 */}
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+        <h1 className="text-xl font-semibold text-gray-800">{topic}</h1>
+        <Button
+          variant="light"
+          size="sm"
+          onPress={onBack}
+        >
+          返回
+        </Button>
+      </div>
+
       {/* 主内容区域 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 左侧：阶段列表 */}
@@ -161,17 +186,48 @@ export function SSELoadingComponent({
         {/* 右侧：内容展示 */}
         <div className="flex-1  p-6">
           <div className="mx-auto max-w-3xl">
+            {/* 当前阶段标题 */}
+            {currentStage && stages[currentStage] && (
+              <div className="mb-4">
+                <h2 className="text-lg font-medium text-gray-700">
+                  {stages[currentStage].displayName}
+                </h2>
+              </div>
+            )}
             <div
               ref={contentRef}
-              className="max-h-[calc(100vh-200px)] overflow-y-auto rounded-lg  p-6"
+              className="max-h-[calc(100vh-200px)] overflow-y-auto rounded-lg p-6"
             >
-              {displayContent ? (
-                <div className="font-mono text-sm text-gray-700 whitespace-pre-wrap">
-                  {displayContent}
+              {completedText || currentText ? (
+                <div className="space-y-4">
+                  {/* 已完成的文本 */}
+                  {completedText && (
+                    <div className="whitespace-pre-wrap text-gray-700">
+                      {completedText}
+                    </div>
+                  )}
+                  
+                  {/* 正在打字的文本 */}
+                  {isTyping && currentText && (
+                    <div className="whitespace-pre-wrap text-gray-700">
+                      <Typewriter
+                        text={currentText}
+                        speed={20}
+                        onComplete={handleTypewriterComplete}
+                      />
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="text-center text-gray-400">
-                  Generating Content...
+                <div className="flex h-full items-center justify-center">
+                  <div className="text-center">
+                    <div className="mb-4 text-lg font-medium text-gray-600">
+                      正在生成内容...
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      这可能需要一些时间，请耐心等待
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

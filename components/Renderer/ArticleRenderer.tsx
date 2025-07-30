@@ -10,6 +10,8 @@ import { useGenerationState } from '@/hooks/useGenerationState';
 import { useImageManagement } from '@/hooks/useImageManagement';
 import { useMindmapInteraction } from '@/hooks/useMindmapInteraction';
 import { useTwitterIntegration } from '@/hooks/useTwitterIntegration';
+import { useSSEGeneration } from '@/hooks/useSSEGeneration';
+import { useSSELoading } from '@/hooks/useSSELoading';
 import { convertThreadDataToMindmap } from '@/lib/data/converters';
 import { useAuthStore } from '@/stores/authStore';
 import { ContentFormat } from '@/types/api';
@@ -23,6 +25,7 @@ import { CreateArticleLoading } from './CreateLoading';
 import { ImageEditModal } from './markdown/ImageEditModal';
 import { MarkdownRenderer } from './markdown/MarkdownRenderer';
 import EditableContentMindmap from './mindmap/MindmapRenderer';
+import { SSELoadingComponent } from '../SSE/SSELoadingComponent';
 
 interface ArticleRendererProps {
   topic: string;
@@ -45,6 +48,9 @@ export function ArticleRenderer({
 
   // 获取用户信息
   const { user } = useAuthStore();
+  
+  // SSE 模式开关
+  const { useSSE } = useSSELoading();
 
   // 使用自定义 Hooks
   const generation = useGenerationState({
@@ -60,6 +66,28 @@ export function ArticleRenderer({
     onGenerationError: useCallback(
       (error: Error) => {
         console.error('Generation error:', error);
+        onBack();
+      },
+      [onBack],
+    ),
+  });
+  
+  // SSE 生成 Hook
+  const sseGeneration = useSSEGeneration({
+    enabled: useSSE && generation.isGenerating && !initialData,
+    topic,
+    contentFormat,
+    onComplete: useCallback((data: Outline) => {
+      console.log('SSE generation completed:', data);
+      generation.setRawAPIData(data);
+      generation.resetGeneration();
+      const { nodes, edges } = convertThreadDataToMindmap(data);
+      setCurrentNodes(nodes);
+      setCurrentEdges(edges);
+    }, [generation]),
+    onError: useCallback(
+      (error: Error) => {
+        console.error('SSE generation error:', error);
         onBack();
       },
       [onBack],
@@ -153,6 +181,21 @@ export function ArticleRenderer({
   ) {
     const hasError = !generation.isGenerating && !!generation.apiError;
 
+    // 使用 SSE 加载组件
+    if (useSSE && !hasError && !initialData) {
+      return (
+        <SSELoadingComponent
+          topic={topic}
+          onBack={onBack}
+          stages={sseGeneration.stages}
+          currentStage={sseGeneration.currentStage}
+          streamContent={sseGeneration.streamContent}
+          error={sseGeneration.error}
+        />
+      );
+    }
+
+    // 使用原有加载组件
     return (
       <CreateArticleLoading
         topic={topic}

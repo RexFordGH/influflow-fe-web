@@ -2,6 +2,7 @@ import { addToast } from '@/components/base/toast';
 import { getErrorMessage, useGenerateThread } from '@/lib/api/services';
 import { convertAPIDataToGeneratedContent } from '@/lib/data/converters';
 import { useAuthStore } from '@/stores/authStore';
+import { useSSELoading } from '@/hooks/useSSELoading';
 import { ContentFormat } from '@/types/api';
 import { GeneratedContent } from '@/types/content';
 import { Outline } from '@/types/outline';
@@ -67,6 +68,9 @@ export function useGenerationState({
 
   // 获取用户信息用于个性化设置
   const { user } = useAuthStore();
+  
+  // SSE 模式开关
+  const { useSSE } = useSSELoading();
 
   // API调用hook
   const { mutate: generateThread } = useGenerateThread();
@@ -159,6 +163,13 @@ export function useGenerationState({
   const startGeneration = useCallback(() => {
     // 防止重复请求
     if (hasStartedGeneration) return;
+    
+    // 如果启用了 SSE 模式，不调用普通 API
+    if (useSSE) {
+      console.log('SSE 模式已启用，跳过普通 API 调用');
+      setHasStartedGeneration(true);
+      return;
+    }
 
     const currentRequestId = `${topic}-${Date.now()}`;
 
@@ -245,6 +256,7 @@ export function useGenerationState({
     animateGenerationSteps,
     onGenerationComplete,
     onGenerationError,
+    useSSE,
   ]);
 
   // 重置生成状态
@@ -253,7 +265,8 @@ export function useGenerationState({
     setGenerationStep(0);
     setHasStartedGeneration(false);
     setApiError(null);
-    setRawAPIData(null);
+    // 不清空数据，因为 SSE 可能已经设置了数据
+    // setRawAPIData(null);
     requestIdRef.current = null;
   }, []);
 
