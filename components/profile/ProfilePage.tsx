@@ -36,59 +36,76 @@ const SUMMARY_MAP: Partial<Record<ITone, string>> = {
 const EMPTY_URLS = ['', '', ''];
 const TWEET_FETCH_DELAY = 2000;
 
-// 后台获取推文内容并保存
-const fetchAndSaveTweetExamples = async (
-  urls: string[],
-  setUserStyleSummary: (summary: string | undefined) => void,
-) => {
-  try {
-    const validUrls = urls.filter((url) => url.trim() !== '');
+// 后台获取推文内容并保存 - 已废弃，现在在 handleSubmit 中同步处理
+// const fetchAndSaveTweetExamples = async (
+//   urls: string[],
+//   setUserStyleSummary: (summary: string | undefined) => void,
+// ) => {
+//   try {
+//     const validUrls = urls.filter((url) => url.trim() !== '');
 
-    // 如果没有有效的 URL，清空 tweet_examples
-    if (validUrls.length === 0) {
-      const updateData: ProfileData = {
-        tweet_examples: [],
-      };
-      await saveProfileToSupabase(updateData);
-      console.log('Tweet examples cleared');
-      setUserStyleSummary(undefined);
-      return;
-    }
+//     // 如果没有有效的 URL，清空 tweet_examples
+//     if (validUrls.length === 0) {
+//       const updateData: ProfileData = {
+//         tweet_examples: [],
+//       };
+//       await saveProfileToSupabase(updateData);
+//       console.log('Tweet examples cleared');
+//       setUserStyleSummary(undefined);
+//       return;
+//     }
 
-    const tweetDetailsPromises = validUrls.map((url) =>
-      queryTweetDetail(url).catch((err) => {
-        console.error(`Failed to fetch tweet detail for ${url}:`, err);
-        return null;
-      }),
-    );
+//     const tweetDetailsPromises = validUrls.map((url) =>
+//       queryTweetDetail(url).catch((err) => {
+//         console.error(`Failed to fetch tweet detail for ${url}:`, err);
+//         return null;
+//       }),
+//     );
 
-    const tweetDetails = await Promise.all(tweetDetailsPromises);
-    const tweetTexts = tweetDetails
-      .filter((detail) => detail && detail.tweet_text)
-      .map((detail) => detail!.tweet_text);
+//     const tweetDetails = await Promise.all(tweetDetailsPromises);
+//     const tweetTexts = tweetDetails
+//       .filter((detail) => detail && detail.tweet_text)
+//       .map((detail) => detail!.tweet_text);
 
-    if (tweetTexts.length > 0) {
-      // 保存 tweet_examples 到 Supabase
-      const updateData: ProfileData = {
-        tweet_examples: tweetTexts,
-      };
-      await saveProfileToSupabase(updateData);
-      console.log('Tweet examples saved successfully:', tweetTexts);
+//     if (tweetTexts.length > 0) {
+//       // 保存 tweet_examples 到 Supabase
+//       const updateData: ProfileData = {
+//         tweet_examples: tweetTexts,
+//       };
+//       await saveProfileToSupabase(updateData);
+//       console.log('Tweet examples saved successfully:', tweetTexts);
 
-      // 延迟后重新拉取数据，获取后端生成的 user_style_summary
-      setTimeout(async () => {
-        const { data: updatedProfile, error } = await loadProfileFromSupabase();
-        if (updatedProfile && !error) {
-          // 更新后端生成的字段
-          if (updatedProfile.user_style_summary) {
-            setUserStyleSummary(updatedProfile.user_style_summary);
-          }
-        }
-      }, TWEET_FETCH_DELAY);
-    }
-  } catch (error) {
-    console.error('Failed to fetch and save tweet examples:', error);
-  }
+//       // 延迟后重新拉取数据，获取后端生成的 user_style_summary
+//       setTimeout(async () => {
+//         const { data: updatedProfile, error } = await loadProfileFromSupabase();
+//         if (updatedProfile && !error) {
+//           // 更新后端生成的字段
+//           if (updatedProfile.user_style_summary) {
+//             setUserStyleSummary(updatedProfile.user_style_summary);
+//           }
+//         }
+//       }, TWEET_FETCH_DELAY);
+//     }
+//   } catch (error) {
+//     console.error('Failed to fetch and save tweet examples:', error);
+//   }
+// };
+
+// 获取推文内容的辅助函数
+const fetchTweetTexts = async (urls: string[]): Promise<string[]> => {
+  if (urls.length === 0) return [];
+  
+  const tweetDetailsPromises = urls.map((url) =>
+    queryTweetDetail(url).catch((err) => {
+      console.error(`Failed to fetch tweet detail for ${url}:`, err);
+      return null;
+    })
+  );
+  
+  const tweetDetails = await Promise.all(tweetDetailsPromises);
+  
+  // 保持与 URLs 数组对应的顺序，失败的位置用空字符串
+  return tweetDetails.map((detail) => detail?.tweet_text || '');
 };
 
 interface ProfilePageProps {
@@ -218,13 +235,31 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       // 调试认证状态
       await debugSupabaseAuth();
 
-      // 准备要保存的数据 - 只保存前端可修改的字段
-      const profileData: ProfileData = {
-        account_name: accountName,
-        bio: personalIntro,
-        tone: (selectedStyle || '') as ITone,
-        tweet_example_urls: tweetExampleUrls.filter((url) => url.trim() !== ''),
-      };
+      let profileData: ProfileData;
+
+      // 如果选择了 Customized，先获取推文内容
+      if (selectedStyle === 'Customized') {
+        const validUrls = tweetExampleUrls.filter((url) => url.trim() !== '');
+        const tweetTexts = await fetchTweetTexts(validUrls);
+        
+        // 准备要保存的数据，包含同步的 tweet_examples
+        profileData = {
+          account_name: accountName,
+          bio: personalIntro,
+          tone: selectedStyle as ITone,
+          tweet_example_urls: validUrls,
+          tweet_examples: tweetTexts, // 同步保存
+        };
+      } else {
+        // 非 Customized 模式的保存逻辑
+        profileData = {
+          account_name: accountName,
+          bio: personalIntro,
+          tone: (selectedStyle || '') as ITone,
+          tweet_example_urls: [],
+          tweet_examples: [], // 清空推文
+        };
+      }
 
       console.log('Submitting profile data:', profileData);
 
@@ -236,10 +271,14 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         throw new Error(error || 'Failed to save to Supabase');
       }
 
-      // 如果选择了 Customized，后台静默处理推文内容（获取或清空）
+      // 如果是 Customized 模式，延迟获取后端生成的 user_style_summary
       if (selectedStyle === 'Customized') {
-        // 在后台静默执行，不影响保存的 loading 状态
-        fetchAndSaveTweetExamples(tweetExampleUrls, setUserStyleSummary);
+        setTimeout(async () => {
+          const { data: updatedProfile } = await loadProfileFromSupabase();
+          if (updatedProfile?.user_style_summary) {
+            setUserStyleSummary(updatedProfile.user_style_summary);
+          }
+        }, TWEET_FETCH_DELAY);
       }
 
       addToast({
@@ -512,7 +551,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             isLoading={isLoading}
             className="rounded-full bg-black px-8 py-3 font-medium text-white"
           >
-            {isLoading ? 'Saving...' : 'Save Changes'}
+            {isLoading 
+              ? (selectedStyle === 'Customized' ? 'Fetching tweets and saving...' : 'Saving...') 
+              : 'Save Changes'}
           </Button>
         </div>
       </div>
