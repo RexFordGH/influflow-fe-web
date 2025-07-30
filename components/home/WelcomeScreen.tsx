@@ -40,7 +40,6 @@ interface WelcomeScreenProps {
   topicInput: string;
   onTopicInputChange: (value: string) => void;
   onTopicSubmit: (contentFormat: ContentFormat) => void;
-  onWriteByMyself: () => void;
 }
 
 export const WelcomeScreen = ({
@@ -55,7 +54,6 @@ export const WelcomeScreen = ({
   topicInput,
   onTopicInputChange,
   onTopicSubmit,
-  onWriteByMyself,
 }: WelcomeScreenProps) => {
   const { user, isAuthenticated } = useAuthStore();
   const [selectedContentFormat, setSelectedContentFormat] =

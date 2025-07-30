@@ -11,7 +11,6 @@ import { AppSidebar, AppSidebarRef } from '@/components/layout/sidebar/AppSideba
 import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
-import { useArticleManagement } from '@/hooks/useArticleManagement';
 import { useAuthStore } from '@/stores/authStore';
 import {
   type ContentFormat,
@@ -62,17 +61,6 @@ function HomeContent() {
   const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
   const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
-
-  const {
-    categories,
-    currentArticle,
-    showMarkdownEditor,
-    setShowMarkdownEditor,
-    setCurrentArticle,
-    saveArticleContent,
-    handleWriteByMyself,
-    refetchTweetThreads,
-  } = useArticleManagement();
   
   // 侧边栏 ref
   const sidebarRef = useRef<AppSidebarRef | null>(null);
@@ -176,7 +164,7 @@ function HomeContent() {
     setCurrentTopic('');
     setSelectedItemId(undefined); // 清除选中状态
     // 返回首页时重新拉取文章列表确保数据同步
-    refetchTweetThreads();
+    sidebarRef.current?.refresh();
   };
 
   const handleScrollToTrending = () => {
@@ -296,9 +284,6 @@ function HomeContent() {
                 : initialData
             }
             onDataUpdate={async () => {
-              // 刷新 tweet threads 数据
-              await refetchTweetThreads();
-              // 刷新侧边栏数据
               await sidebarRef.current?.refresh();
             }}
           />
@@ -325,14 +310,6 @@ function HomeContent() {
         <MainContent
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed(false)}
-          showMarkdownEditor={showMarkdownEditor}
-          currentArticle={currentArticle}
-          categories={categories}
-          onBackFromEditor={() => {
-            setShowMarkdownEditor(false);
-            setCurrentArticle(null);
-          }}
-          onSaveArticleContent={saveArticleContent}
           showTrendingTopics={showTrendingTopics}
           onScrollToTrending={handleScrollToTrending}
           onBackFromTrending={handleBackFromTrending}
@@ -344,7 +321,6 @@ function HomeContent() {
           topicInput={topicInput}
           onTopicInputChange={setTopicInput}
           onTopicSubmit={handleTopicSubmit}
-          onWriteByMyself={handleWriteByMyself}
         />
       </div>
     </div>
