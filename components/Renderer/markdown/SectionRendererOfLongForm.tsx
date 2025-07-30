@@ -143,7 +143,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${loadingClasses} mb-2 mt-4 cursor-default`}
+          className={`${baseClasses} ${loadingClasses} !mt-[32px] !py-0 !px-[8px] cursor-default`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -250,7 +250,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[16px] !scale-100 border-none !py-[4px] px-[8px] pb-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-0 !mb-[12px] !scale-100 border-none !py-[4px] px-[8px] pb-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -288,7 +288,7 @@ export function SectionRendererOfLongForm({
           {/* Image rendering is removed from here */}
 
           <div
-            className={`absolute right-[4px] top-[-28px] flex items-center justify-end gap-1 transition-opacity ${
+            className={`absolute right-[4px] bottom-[-32px] flex items-center justify-end gap-1 transition-opacity ${
               // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
               editingNodeId &&
               ((section.tweetId &&
