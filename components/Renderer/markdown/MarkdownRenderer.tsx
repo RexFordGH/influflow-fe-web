@@ -120,15 +120,21 @@ export function MarkdownRenderer({
   }, []);
 
   // 验证输入数据
-  if (!validateOutlineData(content)) {
-    throw new TypeError('MarkdownRenderer only accepts Outline data format');
+  if (!content || typeof content !== 'object') {
+    console.error('MarkdownRenderer received invalid data:', content);
+    return null;
   }
 
   // 直接从 Outline 数据生成 sections
   const sections = useMemo(() => {
-    return processSectionsFromOutline(content, {
-      contentFormat: content.content_format,
-    });
+    try {
+      return processSectionsFromOutline(content, {
+        contentFormat: content.content_format,
+      });
+    } catch (error) {
+      console.error('Error processing sections from outline:', error, content);
+      return [];
+    }
   }, [content]);
 
   useEffect(() => {

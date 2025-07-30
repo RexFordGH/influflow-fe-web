@@ -201,6 +201,13 @@ export function useContentManagement({
         console.log('Regenerate 成功，返回的数据:', result);
 
         const newOutline = result.updated_outline;
+        console.log('新的 outline 数据结构:', {
+          id: newOutline.id,
+          topic: newOutline.topic,
+          nodes: newOutline.nodes?.length,
+          total_tweets: newOutline.total_tweets,
+          content_format: newOutline.content_format,
+        });
 
         // 保存最新数据到 Supabase
         try {
