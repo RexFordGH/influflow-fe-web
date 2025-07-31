@@ -38,6 +38,16 @@ const ArticleRenderer = dynamic(
   },
 );
 
+const ChatDraftConfirmation = dynamic(
+  () =>
+    import('@/components/draft/ChatDraftConfirmation').then((mod) => ({
+      default: mod.ChatDraftConfirmation,
+    })),
+  {
+    ssr: false,
+  },
+);
+
 function HomeContent() {
   const {
     user,
@@ -64,6 +74,11 @@ function HomeContent() {
   const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
   const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
+  
+  // 草案确认相关状态
+  const [showDraftConfirmation, setShowDraftConfirmation] = useState(false);
+  const [draftTopic, setDraftTopic] = useState('');
+  const [draftContentFormat, setDraftContentFormat] = useState<ContentFormat>('longform');
 
   // 侧边栏 ref
   const sidebarRef = useRef<AppSidebarRef | null>(null);
@@ -144,8 +159,7 @@ function HomeContent() {
     if (topicInput.trim()) {
       // 清除之前选择的笔记数据，确保重新生成新内容
       setInitialData(undefined);
-      setContentFormat(selectedContentFormat);
-
+      
       // 如果有选中的推文，将其链接附加到topic中
       let finalTopic = topicInput;
       if (selectedTweets.length > 0) {
@@ -153,12 +167,30 @@ function HomeContent() {
         finalTopic = `${topicInput}. Reference these popular posts: ${tweetUrls}`;
       }
 
-      setCurrentTopic(finalTopic);
-      setShowContentGeneration(true);
-      setHasCreatedContentGeneration(true);
+      // 设置草案确认相关状态
+      setDraftTopic(finalTopic);
+      setDraftContentFormat(selectedContentFormat);
+      setShowDraftConfirmation(true);
+      
+      // 清理输入
       setTopicInput('');
       setSelectedTweets([]); // 清除选中的推文
     }
+  };
+  
+  // 草案确认完成后的处理
+  const handleDraftConfirmed = (topic: string, contentFormat: ContentFormat) => {
+    setShowDraftConfirmation(false);
+    setCurrentTopic(topic);
+    setContentFormat(contentFormat);
+    setShowContentGeneration(true);
+    setHasCreatedContentGeneration(true);
+  };
+  
+  // 从草案确认返回
+  const handleBackFromDraft = () => {
+    setShowDraftConfirmation(false);
+    setDraftTopic('');
   };
 
   const handleBackToHome = () => {
@@ -268,6 +300,18 @@ function HomeContent() {
         isVisible={showProfileCompletePrompt}
         onClose={handleCloseProfileCompletePrompt}
       />
+      
+      {/* Draft Confirmation */}
+      {showDraftConfirmation && (
+        <div className="absolute inset-0 z-50">
+          <ChatDraftConfirmation
+            topic={draftTopic}
+            contentFormat={draftContentFormat}
+            onBack={handleBackFromDraft}
+            onConfirm={handleDraftConfirmed}
+          />
+        </div>
+      )}
 
       {/* Content Generation */}
       {hasCreatedContentGeneration && (
@@ -298,6 +342,7 @@ function HomeContent() {
         className={cn(
           'flex h-screen overflow-hidden bg-gray-50',
           showContentGeneration && currentTopic ? 'hidden' : 'flex',
+          showDraftConfirmation ? 'hidden' : 'flex',
         )}
       >
         <AnimatePresence>
