@@ -91,7 +91,8 @@ const TrendingTopicItem = ({
           <span className="text-left text-lg font-medium text-black">
             {topic.title}
           </span>
-          <div className="flex items-center gap-[10px]">
+          {/* 对topic.value 进行隐藏*/}
+          {/* <div className="flex items-center gap-[10px]">
             <span className="text-lg font-medium text-gray-600">
               {topic.value}
             </span>
@@ -110,7 +111,7 @@ const TrendingTopicItem = ({
                 <ChevronRightIcon className="size-5" />
               )}
             </motion.div>
-          </div>
+          </div> */}
         </button>
       </div>
       {/* </CopyToClipboard> */}
