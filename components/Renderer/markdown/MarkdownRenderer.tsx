@@ -121,14 +121,28 @@ export function MarkdownRenderer({
   // 直接从 Outline 数据生成 sections
   const sections = useMemo(() => {
     try {
+      // 使用统一的格式判断逻辑
+      const contentFormat = tweetData?.content_format || content.content_format || 'longform';
       return processSectionsFromOutline(content, {
-        contentFormat: content.content_format,
+        contentFormat: contentFormat,
       });
     } catch (error) {
       console.error('Error processing sections from outline:', error, content);
       return [];
     }
-  }, [content]);
+  }, [content, tweetData?.content_format]);
+
+  const getContentFormat = useCallback((): 'longform' | 'thread' => {
+    if (tweetData?.content_format) {
+      return tweetData.content_format;
+    }
+    
+    if (content?.content_format) {
+      return content.content_format;
+    }
+    
+    return 'longform';
+  }, [tweetData?.content_format, content?.content_format, sections]);
 
   useEffect(() => {
     if (content) {
@@ -230,7 +244,7 @@ export function MarkdownRenderer({
 
     // 根据 content_format 选择渲染器
     const RendererSectionComponent =
-      tweetData?.content_format === 'longform'
+      getContentFormat() === 'longform'
         ? SectionRendererOfLongForm
         : SectionRenderer;
 

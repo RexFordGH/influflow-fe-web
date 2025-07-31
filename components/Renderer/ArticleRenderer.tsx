@@ -237,7 +237,7 @@ export function ArticleRenderer({
                 </div>
 
                 <div>
-                  <div className="ml-[12px] flex gap-[4px] text-[16px] leading-none">
+                  <div className="ml-[12px] pb-[12px] flex gap-[4px] text-[16px] leading-none">
                     <span className="font-[600] text-black">{user?.name}</span>
                     {user?.account_name && (
                       <span className="text-[#5C6D7A]">
@@ -249,6 +249,7 @@ export function ArticleRenderer({
                   {generation.rawAPIData && (
                     <MarkdownRenderer
                       content={generation.rawAPIData}
+                      tweetData={generation.rawAPIData}
                       onSectionHover={mindmap.handleMarkdownHover}
                       onSourceClick={() => {}} // TODO: 实现信息来源展示功能
                       onImageClick={images.handleImageClick}
@@ -264,7 +265,6 @@ export function ArticleRenderer({
                       selectedNodeId={mindmap.selectedNodeId}
                       editingNodeId={aiEdit.selectedNodeForAI}
                       imageData={generation.generatedContent?.image}
-                      tweetData={generation.rawAPIData}
                       loadingTweetId={content.loadingTweetId}
                       generatingImageTweetIds={images.generatingImageTweetIds}
                       localImageUrls={images.localImageUrls}

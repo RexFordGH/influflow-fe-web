@@ -151,29 +151,22 @@ function processStandardSections(outline: Outline): MarkdownSection[] {
  */
 function processLongformSections(outline: Outline): MarkdownSection[] {
   const sections: MarkdownSection[] = [];
-  let titleIndex = 0;
 
   outline.nodes.forEach((group, groupIndex) => {
-    // longform 格式跳过创建 group section
+    // 创建一级标题 (group section)
+    sections.push({
+      id: `group-section-${groupIndex}`,
+      type: 'group',
+      content: group.title,
+      rawContent: group.title,
+      groupId: groupIndex.toString(),
+      groupIndex,
+      level: 2,
+      isFirstTitle: groupIndex === 0, // 第一个group标题标记为isFirstTitle
+    });
 
-    // 创建 tweet sections，每个 tweet 前面添加 tweetTitle section
+    // 创建 tweet sections，不再创建二级标题
     group.tweets.forEach((tweet, tweetIndex) => {
-      // 创建 tweetTitle section
-      sections.push({
-        id: `tweet-title-${tweet.tweet_number}`,
-        type: 'tweetTitle',
-        content: tweet.title,
-        rawContent: tweet.title,
-        tweetId: tweet.tweet_number.toString(),
-        groupIndex,
-        tweetIndex,
-        level: 3,
-        title: tweet.title,
-        titleIndex: titleIndex,
-        isFirstTitle: titleIndex === 0,
-      });
-
-      // 创建 tweet content section
       sections.push({
         id: `tweet-section-${tweet.tweet_number}`,
         type: 'tweet',
@@ -186,8 +179,6 @@ function processLongformSections(outline: Outline): MarkdownSection[] {
         title: tweet.title,
         imageUrl: tweet.image_url,
       });
-
-      titleIndex++;
     });
   });
 
