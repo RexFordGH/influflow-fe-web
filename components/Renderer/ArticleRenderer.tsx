@@ -237,7 +237,7 @@ export function ArticleRenderer({
                 </div>
 
                 <div>
-                  <div className="ml-[12px] flex gap-[4px] text-[16px] leading-none">
+                  <div className="ml-[12px] pb-[12px] flex gap-[4px] text-[16px] leading-none">
                     <span className="font-[600] text-black">{user?.name}</span>
                     {user?.account_name && (
                       <span className="text-[#5C6D7A]">

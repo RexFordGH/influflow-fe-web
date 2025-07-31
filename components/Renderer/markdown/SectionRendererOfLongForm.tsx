@@ -119,6 +119,7 @@ export function SectionRendererOfLongForm({
         isEmpty: !section.content.trim(),
       });
 
+      //  TODO 这个转换有问题的
       const handleTitleChange = (newValue: string) => {
         try {
           const parsed = JSON.parse(newValue);
@@ -319,34 +320,29 @@ export function SectionRendererOfLongForm({
       );
 
     case 'group':
-      const groupLines = section.content.split('\n');
-      let groupTitle = '';
-      let groupContent = '';
-      const groupTitleLine = groupLines.find((line) => line.startsWith('#'));
-      if (groupTitleLine) {
-        groupTitle = groupTitleLine.replace(/^#+\s*/, '').trim();
-        const groupContentLines = groupLines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
-        );
-        groupContent = groupContentLines.join('\n\n');
-      } else {
-        groupTitle = section.content;
+      // 如果是第一个标题且设置了 isFirstTitle，则隐藏
+      if (section.isFirstTitle) {
+        return null;
       }
 
       // Add emoji number prefix to the title
-      const emojiNumber = getEmojiNumber(section.groupIndex || 0);
-      const titleWithEmoji = `${emojiNumber} ${groupTitle}`;
+      // 由于第一个标题被隐藏，所以显示的索引需要调整
+      const displayIndex = section.isFirstTitle
+        ? 0
+        : (section.groupIndex || 0) - 1;
+      const emojiNumber = getEmojiNumber(displayIndex);
+      const titleWithEmoji = `${emojiNumber} ${section.content}`;
 
       const groupTitleEditorValue = JSON.stringify({
         content: titleWithEmoji,
         type: 'doc',
-        isEmpty: !groupTitle.trim(),
+        isEmpty: !section.content.trim(),
       });
       return (
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[16px] py-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mt-[32px] !px-[8px] !py-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >
@@ -371,11 +367,6 @@ export function SectionRendererOfLongForm({
               }}
             />
           </div>
-          {groupContent && (
-            <div className="mt-2 text-sm leading-relaxed text-gray-700">
-              {groupContent}
-            </div>
-          )}
         </div>
       );
 
