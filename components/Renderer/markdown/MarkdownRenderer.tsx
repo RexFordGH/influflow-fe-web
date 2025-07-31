@@ -122,7 +122,8 @@ export function MarkdownRenderer({
   const sections = useMemo(() => {
     try {
       // 使用统一的格式判断逻辑
-      const contentFormat = tweetData?.content_format || content.content_format || 'longform';
+      const contentFormat =
+        tweetData?.content_format || content.content_format || 'longform';
       return processSectionsFromOutline(content, {
         contentFormat: contentFormat,
       });
@@ -136,11 +137,11 @@ export function MarkdownRenderer({
     if (tweetData?.content_format) {
       return tweetData.content_format;
     }
-    
+
     if (content?.content_format) {
       return content.content_format;
     }
-    
+
     return 'longform';
   }, [tweetData?.content_format, content?.content_format, sections]);
 

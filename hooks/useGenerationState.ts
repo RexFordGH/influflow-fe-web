@@ -11,6 +11,7 @@ interface UseGenerationStateProps {
   topic: string;
   contentFormat: ContentFormat;
   initialData?: Outline;
+  sessionId?: string;
   onGenerationComplete?: (data: Outline) => void;
   onGenerationError?: (error: Error) => void;
 }
@@ -51,6 +52,7 @@ export function useGenerationState({
   topic,
   contentFormat,
   initialData,
+  sessionId,
   onGenerationComplete,
   onGenerationError,
 }: UseGenerationStateProps): UseGenerationStateReturn {
@@ -103,21 +105,38 @@ export function useGenerationState({
   // 构建请求数据
   const buildGenerationRequest = useCallback(
     (topicInput: string) => {
+      // 如果存在 sessionId，使用 session 模式
+      if (!!sessionId) {
+        return {
+          session_id: sessionId,
+          user_input: '', // 空字符串，使用已有会话历史
+          content_format: contentFormat,
+          // ...(user && {
+          //   personalization: {
+          //     tone: user.tone,
+          //     bio: user.bio,
+          //     tweet_examples: user.tweet_examples,
+          //   },
+          // }),
+        };
+      }
+
+      // 原有逻辑：解析 topic 和 references
       const { userInput } = parseTopicWithReferences(topicInput);
 
       return {
         user_input: userInput,
         content_format: contentFormat,
-        ...(user && {
-          personalization: {
-            tone: user.tone,
-            bio: user.bio,
-            tweet_examples: user.tweet_examples,
-          },
-        }),
+        // ...(user && {
+        //   personalization: {
+        //     tone: user.tone,
+        //     bio: user.bio,
+        //     tweet_examples: user.tweet_examples,
+        //   },
+        // }),
       };
     },
-    [contentFormat, user, parseTopicWithReferences],
+    [contentFormat, user, sessionId, parseTopicWithReferences],
   );
 
   // 动画步骤推进

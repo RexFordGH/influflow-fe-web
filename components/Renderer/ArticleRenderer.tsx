@@ -30,6 +30,7 @@ interface ArticleRendererProps {
   onBack: () => void;
   initialData?: Outline;
   onDataUpdate?: () => void;
+  sessionId?: string;
 }
 
 export function ArticleRenderer({
@@ -38,6 +39,7 @@ export function ArticleRenderer({
   onBack,
   initialData,
   onDataUpdate,
+  sessionId,
 }: ArticleRendererProps) {
   // 状态：思维导图节点和边
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
@@ -51,6 +53,7 @@ export function ArticleRenderer({
     topic,
     contentFormat,
     initialData,
+    sessionId,
     onGenerationComplete: useCallback((data: Outline) => {
       console.log('Generation completed:', data);
       const { nodes, edges } = convertThreadDataToMindmap(data);
@@ -237,7 +240,7 @@ export function ArticleRenderer({
                 </div>
 
                 <div>
-                  <div className="ml-[12px] pb-[12px] flex gap-[4px] text-[16px] leading-none">
+                  <div className="ml-[12px] flex gap-[4px] pb-[12px] text-[16px] leading-none">
                     <span className="font-[600] text-black">{user?.name}</span>
                     {user?.account_name && (
                       <span className="text-[#5C6D7A]">

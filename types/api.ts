@@ -18,7 +18,11 @@ export type HealthResponse = BaseResponse<HealthData>;
 
 export type ContentFormat = 'longform' | 'thread';
 
+/**
+ * 如果是直接从 draft开始生成接口，只需要传 session_id 和 content_format
+ */
 export interface GenerateThreadRequest {
+  session_id?: string;
   user_input: string;
   content_format: ContentFormat;
   personalization?: Pick<

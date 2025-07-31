@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';

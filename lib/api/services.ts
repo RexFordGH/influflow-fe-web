@@ -12,6 +12,7 @@ import {
   type ModifyTweetRequest,
   type TrendingTopicsResponse,
 } from '@/types/api';
+import { GenerateDraftRequest, GenerateDraftResponse } from '@/types/draft';
 import { Outline } from '@/types/outline';
 
 import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
@@ -22,6 +23,7 @@ export const QUERY_KEYS = {
   TWITTER_MODIFY_TWEET: ['twitter', 'modify-tweet'] as const,
   TWITTER_MODIFY_OUTLINE: ['twitter', 'modify-outline'] as const,
   TWITTER_GENERATE_IMAGE: ['twitter', 'generate-image'] as const,
+  TWITTER_DRAFT_GENERATE: ['twitter', 'draft', 'generate'] as const,
   TRENDING_TOPICS: ['trending', 'topics'] as const,
   TRENDING_RECOMMEND: ['trending', 'recommend'] as const,
   TRENDING_SEARCH: ['trending', 'query'] as const,
@@ -97,6 +99,36 @@ export function useModifyOutline() {
     onError: (error) => {
       console.error('Failed to modify outline:', error);
     },
+  });
+}
+
+// 生成草案
+export function useDraftGeneration() {
+  return useMutation({
+    mutationFn: async (data: GenerateDraftRequest) => {
+      const response = await apiPost<GenerateDraftResponse>(
+        '/api/twitter/draft/generate',
+        data,
+        120000,
+      );
+
+      // apiPost 已经处理了 BaseResponse 结构，直接返回 data 部分
+      return response;
+    },
+    onSuccess: (data) => {
+      console.log('Draft generated successfully:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to generate draft:', error);
+    },
+    retry: (failureCount, error: any) => {
+      // 网络错误重试3次，其他错误不重试
+      if (error?.name === 'NetworkError' && failureCount < 3) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
