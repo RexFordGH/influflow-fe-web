@@ -26,7 +26,7 @@ const DraftInfoDisplay: React.FC<{
     {
       emoji: '🔑',
       title: 'Key Points to Cover',
-      content: draft.key_points?.join('\n') || '',
+      content: draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
     },
     {
       emoji: '📏',
