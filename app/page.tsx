@@ -188,8 +188,8 @@ function HomeContent() {
   ) => {
     setTimeout(() => {
       setShowDraftConfirmation(false);
-      setHasCreatedContentGeneration(true);
-    }, 500);
+    }, 1000)
+    setHasCreatedContentGeneration(true);
     setCurrentTopic(topic);
     setContentFormat(contentFormat);
     setSessionId(sessionId);
@@ -353,7 +353,9 @@ function HomeContent() {
         className={cn(
           'flex h-screen overflow-hidden bg-gray-50',
           showContentGeneration && currentTopic ? 'hidden' : 'flex',
-          showDraftConfirmation && !hasCreatedContentGeneration ? 'hidden' : 'flex',
+          showDraftConfirmation && !hasCreatedContentGeneration
+            ? 'hidden'
+            : 'flex',
         )}
       >
         <AnimatePresence>
