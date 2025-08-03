@@ -353,7 +353,7 @@ function HomeContent() {
         className={cn(
           'flex h-screen overflow-hidden bg-gray-50',
           showContentGeneration && currentTopic ? 'hidden' : 'flex',
-          showDraftConfirmation ? 'hidden' : 'flex',
+          showDraftConfirmation && !hasCreatedContentGeneration ? 'hidden' : 'flex',
         )}
       >
         <AnimatePresence>
