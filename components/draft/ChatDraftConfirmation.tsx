@@ -188,7 +188,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
             placeholder={
               isConfirmed
                 ? 'Draft confirmed, generating content...'
-                : 'Tell me more about the details,'
+                : 'Tell me more about the details'
             }
           />
         </div>

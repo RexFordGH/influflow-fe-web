@@ -189,7 +189,7 @@ function HomeContent() {
     setTimeout(() => {
       setShowDraftConfirmation(false);
       setHasCreatedContentGeneration(true);
-    },50)
+    }, 500);
     setCurrentTopic(topic);
     setContentFormat(contentFormat);
     setSessionId(sessionId);

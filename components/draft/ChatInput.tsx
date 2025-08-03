@@ -21,7 +21,7 @@ interface ChatInputProps {
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   disabled = false,
-  placeholder = 'Tell me more about the details,',
+  placeholder = 'Tell me more about the details',
   maxLength = 1000,
   className = '',
 }) => {
