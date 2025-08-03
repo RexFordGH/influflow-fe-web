@@ -51,38 +51,54 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       placement="center"
       backdrop="blur"
       classNames={{
-        base: 'max-w-lg',
-        backdrop: 'bg-black/50',
+        base: 'w-[560px]',
+        backdrop: 'bg-black/10',
       }}
     >
-      <ModalContent className="rounded-3xl bg-white p-8">
+      <ModalContent 
+        className="bg-white p-6"
+        style={{
+          borderRadius: '20px',
+          boxShadow: '0 0 15px rgba(95, 99, 110, 0.1)',
+        }}
+      >
         {(onClose) => (
           <>
-            <ModalHeader className="mb-6 p-0">
+            <ModalHeader className="p-0 pb-3">
               <h2
-                className="text-2xl font-medium"
-                style={{ fontFamily: 'Poppins' }}
+                className="text-black"
+                style={{ 
+                  fontFamily: 'Poppins',
+                  fontSize: '20px',
+                  fontWeight: '500',
+                  lineHeight: '30px',
+                }}
               >
                 {config.title}
               </h2>
             </ModalHeader>
 
-            <ModalBody className="mb-8 p-0">
+            <ModalBody className="p-0 pb-6">
               <p
-                className="text-lg text-black"
-                style={{ fontFamily: 'Poppins' }}
+                className="text-black"
+                style={{ 
+                  fontFamily: 'Poppins',
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '24px',
+                }}
               >
                 {config.message}
               </p>
             </ModalBody>
 
-            <ModalFooter className="gap-4 p-0">
+            <ModalFooter className="p-0 gap-3 justify-end">
               <Button
                 variant="bordered"
                 radius="full"
-                size="lg"
+                size="md"
                 onPress={onClose}
-                className="h-12 flex-1 border-gray-300 font-medium text-gray-700"
+                className="h-10 px-6 border-gray-300 font-normal text-gray-700"
                 style={{ fontFamily: 'Poppins' }}
               >
                 {config.cancelText}
@@ -90,12 +106,12 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               <Button
                 color="danger"
                 radius="full"
-                size="lg"
+                size="md"
                 onPress={() => {
                   onConfirm();
                   onClose();
                 }}
-                className="h-12 flex-1 font-medium"
+                className="h-10 px-6 font-normal"
                 style={{ fontFamily: 'Poppins' }}
               >
                 {config.confirmText}
