@@ -88,7 +88,7 @@ export const ChatMessage = memo<ChatMessageProps>(
     // 思考动画组件
     const ThinkingIndicator = () => (
       <div className="text-base text-gray-600" style={{ fontFamily: 'Arial' }}>
-        Thinking....
+        Thinking...
       </div>
     );
 

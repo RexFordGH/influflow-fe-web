@@ -113,12 +113,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
       sendMessage('ok');
       setShowDialog(false);
     }
-  }, [
-    dialogType,
-    clearState,
-    onBack,
-    sendMessage,
-  ]);
+  }, [dialogType, clearState, onBack, sendMessage]);
 
   // 处理发送消息
   const handleSendMessage = useCallback(
@@ -137,7 +132,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
           size="sm"
           variant="light"
           onPress={handleBack}
-          aria-label="返回"
+          aria-label="Back"
           className="h-6 min-w-6 p-0"
           isDisabled={isLoading || isThinking}
         >
@@ -148,8 +143,8 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
           onClick={handleSkip}
           disabled={isLoading || isThinking}
           className={`text-base font-medium transition-colors ${
-            isLoading || isThinking 
-              ? 'text-gray-400 cursor-not-allowed' 
+            isLoading || isThinking
+              ? 'cursor-not-allowed text-gray-400'
               : 'text-[#8C8C8C] hover:text-gray-700'
           }`}
           style={{ fontFamily: 'Poppins' }}
@@ -192,7 +187,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
             disabled={!canSendMessage || isConfirmed}
             placeholder={
               isConfirmed
-                ? '草案已确认，正在生成内容...'
+                ? 'Draft confirmed, generating content...'
                 : 'Tell me more about the details,'
             }
           />

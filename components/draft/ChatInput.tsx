@@ -79,7 +79,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="min-h-[60px] flex-1 resize-none border-none pt-4 text-base leading-6 bg-transparent outline-none"
+            className="min-h-[60px] flex-1 resize-none border-none bg-transparent pt-4 text-base leading-6 outline-none"
             style={{
               fontFamily: 'Poppins',
               height: 'auto',
@@ -122,7 +122,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               disabled={disabled || !message.trim()}
               onClick={handleSend}
               className="size-10 min-w-10 rounded-full bg-[#448AFF]"
-              aria-label="发送消息"
+              aria-label="Send message"
             >
               <PaperAirplaneIcon className="size-5 -rotate-45 text-white" />
             </Button>

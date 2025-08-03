@@ -123,8 +123,8 @@ export const DraftConfirmationProvider: React.FC<{
         '好的',
         '可以',
       ];
-      const isConfirmation = confirmationKeywords.some((keyword) =>
-        userInput.trim().toLowerCase() === keyword.toLowerCase(),
+      const isConfirmation = confirmationKeywords.some(
+        (keyword) => userInput.trim().toLowerCase() === keyword.toLowerCase(),
       );
 
       try {
