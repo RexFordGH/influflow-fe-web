@@ -186,12 +186,14 @@ function HomeContent() {
     contentFormat: ContentFormat,
     sessionId?: string,
   ) => {
-    setShowDraftConfirmation(false);
+    setTimeout(() => {
+      setShowDraftConfirmation(false);
+      setHasCreatedContentGeneration(true);
+    },50)
     setCurrentTopic(topic);
     setContentFormat(contentFormat);
     setSessionId(sessionId);
     setShowContentGeneration(true);
-    setHasCreatedContentGeneration(true);
   };
 
   // 从草案确认返回
