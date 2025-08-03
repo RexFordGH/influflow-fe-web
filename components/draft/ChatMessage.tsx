@@ -26,7 +26,8 @@ const DraftInfoDisplay: React.FC<{
     {
       emoji: '🔑',
       title: 'Key Points to Cover',
-      content: draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
+      content:
+        draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
     },
     {
       emoji: '📏',
@@ -96,13 +97,8 @@ export const ChatMessage = memo<ChatMessageProps>(
     if (isUser) {
       return (
         <div className="mb-6 flex justify-end">
-          <div className="max-w-[80%] rounded-xl bg-[#F8F8F8] p-3">
-            <p
-              className="text-base text-black"
-              style={{ fontFamily: 'Poppins' }}
-            >
-              {message.content}
-            </p>
+          <div className="max-w-[60%] rounded-xl bg-[#F8F8F8] p-3 text-base text-black font-poppins overflow-auto">
+            {message.content}
           </div>
         </div>
       );
