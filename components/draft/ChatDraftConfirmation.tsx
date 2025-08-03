@@ -181,7 +181,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
         </div>
 
         {/* 输入框区域 */}
-        <div className="border-t py-6">
+        <div className=" py-6">
           <ChatInput
             onSend={handleSendMessage}
             disabled={!canSendMessage || isConfirmed}
