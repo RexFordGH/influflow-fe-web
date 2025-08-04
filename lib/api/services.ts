@@ -171,12 +171,12 @@ export function useTrendingRecommend(id: string, enabled?: boolean) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, id],
     queryFn: async () => {
-      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
+      return apiDirectGet< ITrendsRecommendTweet[] >(
         `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
       );
     },
     select: (data) => {
-      return data.tweets;
+      return data;
     },
     enabled: enabled,
     staleTime: 5 * 60 * 1000,
