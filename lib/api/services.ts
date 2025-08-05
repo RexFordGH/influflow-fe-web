@@ -156,7 +156,7 @@ export function useTrendingTopics(topicType: string = 'ai') {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_TOPICS, topicType],
     queryFn: () =>
-      apiGet<ITrendingTopicsResponse>(`/trends/?topic_type=${topicType}`),
+      apiGet<ITrendingTopicsResponse>(`/trends?topic_type=${topicType}`),
     staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
     gcTime: 10 * 60 * 1000, // 10分钟缓存
     refetchOnWindowFocus: false,
