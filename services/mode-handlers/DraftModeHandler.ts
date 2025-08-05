@@ -21,6 +21,10 @@ export class DraftModeHandler extends BaseModeHandler {
     if (!this.validateParams(params)) {
       throw new Error('Invalid parameters for draft mode');
     }
+    
+    if (!contentFormat) {
+      throw new Error('Content format is required for draft mode');
+    }
 
     return {
       mode: 'draft',

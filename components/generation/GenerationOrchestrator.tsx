@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChatDraftConfirmation } from '@/components/draft/ChatDraftConfirmation';
 import { ArticleRenderer } from '@/components/Renderer/ArticleRenderer';
 import { GenerationModeManager } from '@/services/GenerationModeManager';
-import { IContentFormat } from '@/types/api';
+import { IContentFormat, IMode } from '@/types/api';
 import { GenerationOrchestratorProps } from '@/types/generation';
 import { IOutline } from '@/types/outline';
 
@@ -35,7 +35,12 @@ export function GenerationOrchestrator({
 
   // 草案确认完成处理
   const handleDraftConfirmed = useCallback(
-    (_topic: string, _format: IContentFormat, sessionId?: string) => {
+    (
+      _topic: string, 
+      _format: IContentFormat, 
+      _mode?: IMode,
+      sessionId?: string
+    ) => {
       setDraftSessionId(sessionId);
       setCurrentPhase('generation');
     },

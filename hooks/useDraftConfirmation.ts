@@ -15,6 +15,7 @@ export const useDraftConfirmation = () => {
     clearState,
     confirmDraft,
     skipDraft,
+    generateTwitterContent,
   } = context;
 
   // 判断是否可以发送消息
@@ -24,8 +25,8 @@ export const useDraftConfirmation = () => {
 
   // 判断是否已准备好进行确认
   const isReadyToConfirm = useMemo(() => {
-    return state.draft !== null && !state.requires_review;
-  }, [state.draft, state.requires_review]);
+    return state.draft !== null && !state.isConfirmed;
+  }, [state.draft, state.isConfirmed]);
 
   // 发送消息（智能判断是生成还是优化）
   const sendMessage = useCallback(
@@ -60,8 +61,8 @@ export const useDraftConfirmation = () => {
 
   // 检查是否正在等待用户确认
   const isWaitingForConfirmation = useMemo(() => {
-    return state.draft !== null && state.requires_review && !state.isLoading;
-  }, [state.draft, state.requires_review, state.isLoading]);
+    return state.draft !== null && !state.isConfirmed && !state.isLoading;
+  }, [state.draft, state.isConfirmed, state.isLoading]);
 
   // 清理函数，组件卸载时调用
   useEffect(() => {
@@ -130,5 +131,6 @@ export const useDraftConfirmation = () => {
     generateDraft,
     optimizeDraft,
     addMessage,
+    generateTwitterContent,
   };
 };
