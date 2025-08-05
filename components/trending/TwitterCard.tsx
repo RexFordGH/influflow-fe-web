@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@heroui/react';
+import { Image, Skeleton } from '@heroui/react';
 import { useEffect, useRef, useState } from 'react';
 
 interface TwitterCardProps {
@@ -79,7 +79,7 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
   }, [html]);
 
   return (
-    <div className={`relative h-[520px] overflow-hidden ${className}`}>
+    <div className={`relative h-[520px] overflow-hidden ${className} relative`}>
       {/* 骨架屏 */}
       {isLoading && (
         <div className="absolute inset-0 z-10 rounded-2xl border border-gray-200 bg-white p-4">
@@ -111,12 +111,16 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
       {/* 实际的Twitter内容 */}
       <div
         ref={containerRef}
-        className={`tweet-embed-container ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+        className={`tweet-embed-container ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500 `}
         style={{
           maxHeight: '520px',
           overflowY: 'scroll',
         }}
-      />
+      ></div>
+
+      <div className="absolute top-[12px] left-[1px] rounded-t-[8px] w-[288px] h-[56px] bg-white overflow-hidden">
+        <Image src="/images/twitter.png" width={288} height={56} />
+      </div>
     </div>
   );
 }
