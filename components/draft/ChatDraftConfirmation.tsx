@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { DraftConfirmationProvider } from '@/contexts/DraftConfirmationContext';
 import { useDraftConfirmation } from '@/hooks/useDraftConfirmation';
-import { IContentFormat } from '@/types/api';
+import { IContentFormat, IMode } from '@/types/api';
 
 import { addToast } from '../base/toast';
 
@@ -17,6 +17,7 @@ import { ConfirmDialog, DialogType } from './ConfirmDialog';
 interface ChatDraftConfirmationProps {
   topic: string;
   contentFormat: IContentFormat;
+  mode?: IMode; // 添加mode属性，支持未来扩展
   onBack: () => void;
   onConfirm: (
     topic: string,

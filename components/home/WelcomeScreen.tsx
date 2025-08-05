@@ -40,7 +40,7 @@ interface WelcomeScreenProps {
   onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
-  onTopicSubmit: (contentFormat: IContentFormat) => void;
+  onTopicSubmit: (contentFormat: IContentFormat, mode: IMode) => void;
 }
 
 const ContentFormatOptions = [
@@ -98,7 +98,7 @@ export const WelcomeScreen = ({
   }, []);
 
   const handleTopicSubmit = () => {
-    onTopicSubmit(selectedContentFormat);
+    onTopicSubmit(selectedContentFormat, selectedMode);
   };
 
   // 处理页面切换

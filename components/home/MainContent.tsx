@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '@/stores/authStore';
 import {
   IContentFormat,
+  IMode,
   ISuggestedTopic,
   ITrendingTopic,
   ITrendsRecommendTweet,
@@ -29,7 +30,7 @@ export interface IMainContentProps {
   onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
-  onTopicSubmit: (contentFormat: IContentFormat) => void;
+  onTopicSubmit: (contentFormat: IContentFormat, mode: IMode) => void;
 }
 
 export const MainContent = ({

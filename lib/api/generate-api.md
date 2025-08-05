@@ -1,4 +1,4 @@
-## POST接口  /api/twitter/draft/generate
+## POST接口 /api/twitter/draft/generate
 
 生成Twitter推文内容（支持三种模式）
 
@@ -57,4 +57,3 @@
 
 需要JWT认证，系统会自动获取当前用户ID
 个性化设置会从数据库中自动加载应用
-

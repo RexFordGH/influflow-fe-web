@@ -1,4 +1,3 @@
-import { IUser } from '@/stores/authStore';
 import { IOutline } from './outline';
 
 export interface IBaseResponse<T> {
@@ -26,7 +25,7 @@ export interface IGenerateThreadRequest {
   session_id?: string;
   user_input: string;
   content_format: IContentFormat;
-  mode: IMode
+  mode: IMode;
 }
 
 export type IGenerateThreadResponse = IBaseResponse<IOutline>;
