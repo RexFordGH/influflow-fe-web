@@ -2,17 +2,17 @@ import { addToast } from '@/components/base/toast';
 import { getErrorMessage, useGenerateThread } from '@/lib/api/services';
 import { convertAPIDataToGeneratedContent } from '@/lib/data/converters';
 import { useAuthStore } from '@/stores/authStore';
-import { ContentFormat } from '@/types/api';
+import { IContentFormat } from '@/types/api';
 import { GeneratedContent } from '@/types/content';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface UseGenerationStateProps {
   topic: string;
-  contentFormat: ContentFormat;
-  initialData?: Outline;
+  contentFormat: IContentFormat;
+  initialData?: IOutline;
   sessionId?: string;
-  onGenerationComplete?: (data: Outline) => void;
+  onGenerationComplete?: (data: IOutline) => void;
   onGenerationError?: (error: Error) => void;
 }
 
@@ -23,13 +23,13 @@ interface UseGenerationStateReturn {
   generationSteps: string[];
   hasStartedGeneration: boolean;
   apiError: string | null;
-  rawAPIData: Outline | null;
+  rawAPIData: IOutline | null;
   generatedContent: GeneratedContent | null;
 
   // 方法
   startGeneration: () => void;
   resetGeneration: () => void;
-  setRawAPIData: (data: Outline) => void;
+  setRawAPIData: (data: IOutline) => void;
 }
 
 // 生成步骤配置
@@ -60,7 +60,7 @@ export function useGenerationState({
   const [generationStep, setGenerationStep] = useState(0);
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [rawAPIData, setRawAPIData] = useState<Outline | null>(
+  const [rawAPIData, setRawAPIData] = useState<IOutline | null>(
     initialData || null,
   );
 

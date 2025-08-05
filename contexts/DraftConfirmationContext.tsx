@@ -2,7 +2,7 @@
 
 import { useDraftGeneration } from '@/lib/api/services';
 import { draftReducer, initialState } from '@/reducers/draftReducer';
-import { ChatMessage, DraftConfirmationContextType } from '@/types/draft';
+import { DraftConfirmationContextType, IChatMessage } from '@/types/draft';
 import React, {
   createContext,
   useCallback,
@@ -30,7 +30,7 @@ export const DraftConfirmationProvider: React.FC<{
       dispatch({ type: 'SET_THINKING', payload: true });
 
       // 添加用户消息
-      const userMessage: ChatMessage = {
+      const userMessage: IChatMessage = {
         id: uuidv4(),
         type: 'user',
         content: userInput,
@@ -45,7 +45,7 @@ export const DraftConfirmationProvider: React.FC<{
         });
 
         // 添加AI响应消息
-        const aiMessage: ChatMessage = {
+        const aiMessage: IChatMessage = {
           id: uuidv4(),
           type: 'assistant',
           content: "Let's confirm your writing intent",
@@ -74,7 +74,7 @@ export const DraftConfirmationProvider: React.FC<{
         });
 
         // 添加错误消息
-        const errorMessage: ChatMessage = {
+        const errorMessage: IChatMessage = {
           id: uuidv4(),
           type: 'assistant',
           content:
@@ -103,7 +103,7 @@ export const DraftConfirmationProvider: React.FC<{
       dispatch({ type: 'SET_THINKING', payload: true });
 
       // 添加用户消息
-      const userMessage: ChatMessage = {
+      const userMessage: IChatMessage = {
         id: uuidv4(),
         type: 'user',
         content: userInput,
@@ -142,7 +142,7 @@ export const DraftConfirmationProvider: React.FC<{
         }
 
         // 添加AI响应消息
-        const aiMessage: ChatMessage = {
+        const aiMessage: IChatMessage = {
           id: uuidv4(),
           type: 'assistant',
           content: aiMessageContent,
@@ -177,7 +177,7 @@ export const DraftConfirmationProvider: React.FC<{
         });
 
         // 添加错误消息
-        const errorMessage: ChatMessage = {
+        const errorMessage: IChatMessage = {
           id: uuidv4(),
           type: 'assistant',
           content:
@@ -196,8 +196,8 @@ export const DraftConfirmationProvider: React.FC<{
 
   // 添加消息
   const addMessage = useCallback(
-    (message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
-      const newMessage: ChatMessage = {
+    (message: Omit<IChatMessage, 'id' | 'timestamp'>) => {
+      const newMessage: IChatMessage = {
         ...message,
         id: uuidv4(),
         timestamp: new Date(),
@@ -221,7 +221,7 @@ export const DraftConfirmationProvider: React.FC<{
   const skipDraft = useCallback(() => {
     dispatch({ type: 'SET_CONFIRMED', payload: true });
     // 添加跳过消息
-    const skipMessage: ChatMessage = {
+    const skipMessage: IChatMessage = {
       id: uuidv4(),
       type: 'assistant',
       content: 'Skipping draft confirmation. Generating content directly...',

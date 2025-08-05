@@ -2,18 +2,18 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
   ITrendsRecommendTweet,
-  type CheckInvitationCodeResponse,
-  type GenerateImageRequest,
-  type GenerateThreadRequest,
-  type HealthData,
-  type ModifyOutlineData,
-  type ModifyOutlineRequest,
-  type ModifyTweetData,
-  type ModifyTweetRequest,
-  type TrendingTopicsResponse,
+  type ICheckInvitationCodeResponse,
+  type IGenerateImageRequest,
+  type IGenerateThreadRequest,
+  type IHealthData,
+  type IModifyOutlineData,
+  type IModifyOutlineRequest,
+  type IModifyTweetData,
+  type IModifyTweetRequest,
+  type ITrendingTopicsResponse,
 } from '@/types/api';
-import { GenerateDraftRequest, GenerateDraftResponse } from '@/types/draft';
-import { Outline } from '@/types/outline';
+import { IGenerateDraftRequest, IGenerateDraftResponse } from '@/types/draft';
+import { IOutline } from '@/types/outline';
 
 import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
 
@@ -33,7 +33,7 @@ export const QUERY_KEYS = {
 export function useHealth() {
   return useQuery({
     queryKey: QUERY_KEYS.HEALTH,
-    queryFn: () => apiGet<HealthData>('/health'),
+    queryFn: () => apiGet<IHealthData>('/health'),
     refetchInterval: 30000, // 30秒刷新一次
     refetchOnWindowFocus: false,
     retry: 3,
@@ -47,8 +47,8 @@ export function useHealth() {
 // 生成 Twitter Thread
 export function useGenerateThread() {
   return useMutation({
-    mutationFn: async (data: GenerateThreadRequest): Promise<Outline> => {
-      return apiPost<Outline>('/api/twitter/generate', data, 120000);
+    mutationFn: async (data: IGenerateThreadRequest): Promise<IOutline> => {
+      return apiPost<IOutline>('/api/twitter/generate', data, 120000);
     },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
@@ -63,8 +63,10 @@ export function useGenerateThread() {
 // 修改单个 Tweet
 export function useModifyTweet() {
   return useMutation({
-    mutationFn: async (data: ModifyTweetRequest): Promise<ModifyTweetData> => {
-      return apiPost<ModifyTweetData>(
+    mutationFn: async (
+      data: IModifyTweetRequest,
+    ): Promise<IModifyTweetData> => {
+      return apiPost<IModifyTweetData>(
         '/api/twitter/modify-tweet',
         data,
         100000,
@@ -84,9 +86,9 @@ export function useModifyTweet() {
 export function useModifyOutline() {
   return useMutation({
     mutationFn: async (
-      data: ModifyOutlineRequest,
-    ): Promise<ModifyOutlineData> => {
-      return apiPost<ModifyOutlineData>(
+      data: IModifyOutlineRequest,
+    ): Promise<IModifyOutlineData> => {
+      return apiPost<IModifyOutlineData>(
         '/api/twitter/modify-outline',
         data,
         120000,
@@ -105,8 +107,8 @@ export function useModifyOutline() {
 // 生成草案
 export function useDraftGeneration() {
   return useMutation({
-    mutationFn: async (data: GenerateDraftRequest) => {
-      const response = await apiPost<GenerateDraftResponse>(
+    mutationFn: async (data: IGenerateDraftRequest) => {
+      const response = await apiPost<IGenerateDraftResponse>(
         '/api/twitter/draft/generate',
         data,
         120000,
@@ -135,7 +137,7 @@ export function useDraftGeneration() {
 // 生成图片
 export function useGenerateImage() {
   return useMutation({
-    mutationFn: async (data: GenerateImageRequest): Promise<string> => {
+    mutationFn: async (data: IGenerateImageRequest): Promise<string> => {
       return generateImage(data.target_tweet, data.tweet_thread, 120000);
     },
     onSuccess: (imageUrl) => {
@@ -155,8 +157,8 @@ export function useGenerateImage() {
 export function useTrendingTopics(topicType: string = 'ai') {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_TOPICS, topicType],
-    queryFn: (): Promise<TrendingTopicsResponse> => {
-      return apiDirectGet<TrendingTopicsResponse>(
+    queryFn: (): Promise<ITrendingTopicsResponse> => {
+      return apiDirectGet<ITrendingTopicsResponse>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/?topic_type=${topicType}`,
       );
     },
@@ -329,8 +331,8 @@ export async function queryTweetDetail(
 
 export async function checkInvitationCode(
   code: string,
-): Promise<CheckInvitationCodeResponse> {
-  return apiGet<CheckInvitationCodeResponse>(
+): Promise<ICheckInvitationCodeResponse> {
+  return apiGet<ICheckInvitationCodeResponse>(
     `/api/check-invitation-code?code=${code.trim()}`,
   );
 }

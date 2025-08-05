@@ -4,7 +4,7 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 import { devLog } from '@/utils/devLog';
 import {
   MarkdownSection,
@@ -17,7 +17,7 @@ import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
 
 interface MarkdownRendererProps {
-  content: Outline;
+  content: IOutline;
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
   onImageClick?: (image: {

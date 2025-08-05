@@ -2,14 +2,14 @@ import { addToast } from '@/components/base/toast';
 import { useModifyTweet } from '@/lib/api/services';
 import { createClient } from '@/lib/supabase/client';
 import { MindmapNodeData } from '@/types/content';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 import { useCallback, useState } from 'react';
 
 interface UseAIEditingProps {
-  rawAPIData: Outline | null;
+  rawAPIData: IOutline | null;
   currentNodes: MindmapNodeData[];
   onDataUpdate?: () => void;
-  onContentUpdate?: (updatedData: Outline) => void;
+  onContentUpdate?: (updatedData: IOutline) => void;
 }
 
 interface UseAIEditingReturn {
@@ -91,7 +91,7 @@ export function useAIEditing({
         // 1. 更新rawAPIData中对应的tweet内容
         const updatedOutline = JSON.parse(
           JSON.stringify(rawAPIData),
-        ) as Outline;
+        ) as IOutline;
         let tweetFound = false;
 
         for (const outlineNode of updatedOutline.nodes) {

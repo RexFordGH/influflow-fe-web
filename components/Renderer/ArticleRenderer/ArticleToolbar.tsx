@@ -2,11 +2,11 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import React from 'react';
 
-import { ContentFormat } from '@/types/api';
+import { IContentFormat } from '@/types/api';
 
 interface ArticleToolbarProps {
   topic: string;
-  contentFormat: ContentFormat;
+  contentFormat: IContentFormat;
   isGenerating: boolean;
   isRegenerating: boolean;
   isPostingToTwitter: boolean;

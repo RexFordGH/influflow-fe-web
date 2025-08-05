@@ -1,7 +1,7 @@
 import { addToast } from '@/components/base/toast';
 import { getErrorMessage, useGenerateImage } from '@/lib/api/services';
 import { createClient } from '@/lib/supabase/client';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 import { useCallback, useEffect, useState } from 'react';
 
 interface CollectedImage {
@@ -19,10 +19,10 @@ interface EditingImage {
 }
 
 interface UseImageManagementProps {
-  rawAPIData: Outline | null;
+  rawAPIData: IOutline | null;
   contentFormat?: string;
   onDataUpdate?: () => void;
-  onContentUpdate?: (data: Outline) => void;
+  onContentUpdate?: (data: IOutline) => void;
 }
 
 interface UseImageManagementReturn {

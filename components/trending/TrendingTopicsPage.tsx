@@ -8,9 +8,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
 import {
+  type ISuggestedTopic,
+  type ITrendingTopic,
   type ITrendsRecommendTweet,
-  type SuggestedTopic,
-  type TrendingTopic,
 } from '@/types/api';
 
 import { SearchModal } from './SearchModal';
@@ -19,7 +19,7 @@ import { TrendingTopicTweets } from './TrendingTopicTweets';
 interface TrendingTopicsProps {
   isVisible: boolean;
   onBack: () => void;
-  onTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onSearchConfirm?: (
     searchTerm: string,
@@ -255,7 +255,7 @@ export function TrendingTopicsPage({
                 ) : error ? (
                   <TrendingTopicError />
                 ) : (
-                  trendingTopics.map((topic: TrendingTopic, index: number) => (
+                  trendingTopics.map((topic: ITrendingTopic, index: number) => (
                     <TrendingTopicItem
                       key={`${topic.title}-${index}`}
                       topic={topic}

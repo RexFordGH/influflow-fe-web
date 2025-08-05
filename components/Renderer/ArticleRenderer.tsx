@@ -12,9 +12,9 @@ import { useMindmapInteraction } from '@/hooks/useMindmapInteraction';
 import { useTwitterIntegration } from '@/hooks/useTwitterIntegration';
 import { convertThreadDataToMindmap } from '@/lib/data/converters';
 import { useAuthStore } from '@/stores/authStore';
-import { ContentFormat } from '@/types/api';
+import { IContentFormat } from '@/types/api';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
@@ -26,9 +26,9 @@ import EditableContentMindmap from './mindmap/MindmapRenderer';
 
 interface ArticleRendererProps {
   topic: string;
-  contentFormat: ContentFormat;
+  contentFormat: IContentFormat;
   onBack: () => void;
-  initialData?: Outline;
+  initialData?: IOutline;
   onDataUpdate?: () => void;
   sessionId?: string;
 }
@@ -54,7 +54,7 @@ export function ArticleRenderer({
     contentFormat,
     initialData,
     sessionId,
-    onGenerationComplete: useCallback((data: Outline) => {
+    onGenerationComplete: useCallback((data: IOutline) => {
       console.log('Generation completed:', data);
       const { nodes, edges } = convertThreadDataToMindmap(data);
       setCurrentNodes(nodes);
@@ -74,7 +74,7 @@ export function ArticleRenderer({
     contentFormat,
     onDataUpdate,
     onContentUpdate: useCallback(
-      (updatedData: Outline) => {
+      (updatedData: IOutline) => {
         generation.setRawAPIData(updatedData);
       },
       [generation],
@@ -91,7 +91,7 @@ export function ArticleRenderer({
     currentNodes,
     onDataUpdate,
     onContentUpdate: useCallback(
-      (updatedData: Outline) => {
+      (updatedData: IOutline) => {
         generation.setRawAPIData(updatedData);
         const { nodes, edges } = convertThreadDataToMindmap(updatedData);
         setCurrentNodes(nodes);
@@ -108,7 +108,7 @@ export function ArticleRenderer({
     generatedContent: generation.generatedContent,
     onDataUpdate,
     onContentUpdate: useCallback(
-      (updatedData: Outline) => {
+      (updatedData: IOutline) => {
         generation.setRawAPIData(updatedData);
       },
       [generation],

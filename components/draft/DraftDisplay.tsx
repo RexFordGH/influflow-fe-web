@@ -15,10 +15,10 @@ import { Card, CardBody, Chip, Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import React, { memo } from 'react';
 
-import { DraftData } from '@/types/draft';
+import { IDraftData } from '@/types/draft';
 
 interface DraftDisplayProps {
-  draft: DraftData | null;
+  draft: IDraftData | null;
   isLoading?: boolean;
   className?: string;
 }

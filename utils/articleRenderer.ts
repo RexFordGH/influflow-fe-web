@@ -1,5 +1,5 @@
 import { MindmapNodeData } from '@/types/content';
-import { Outline, TweetContentItem } from '@/types/outline';
+import { IOutline, ITweetContentItem } from '@/types/outline';
 
 // 解析 topic 中的参考推文
 export function parseTopicWithReferences(topic: string): {
@@ -28,10 +28,10 @@ export function parseTopicWithReferences(topic: string): {
 
 // 更新 Outline 中的 tweet 内容
 export function updateTweetInOutline(
-  outline: Outline,
+  outline: IOutline,
   tweetNumber: number,
-  updates: Partial<TweetContentItem>,
-): Outline {
+  updates: Partial<ITweetContentItem>,
+): IOutline {
   const updatedNodes = outline.nodes.map((group) => ({
     ...group,
     tweets: group.tweets.map((tweet) =>
@@ -47,10 +47,10 @@ export function updateTweetInOutline(
 
 // 更新 Outline 中的图片URL
 export function updateImageInOutline(
-  outline: Outline,
+  outline: IOutline,
   tweetNumber: number,
   imageUrl: string | null,
-): Outline {
+): IOutline {
   const updatedNodes = outline.nodes.map((group) => ({
     ...group,
     tweets: group.tweets.map((tweet) =>
@@ -68,17 +68,17 @@ export function updateImageInOutline(
 
 // 从 Outline 中移除图片
 export function removeImageFromOutline(
-  outline: Outline,
+  outline: IOutline,
   tweetNumber: number,
-): Outline {
+): IOutline {
   return updateImageInOutline(outline, tweetNumber, null);
 }
 
 // 从思维导图构建新的 Outline 结构
 export function buildOutlineFromMindmap(
-  originalOutline: Outline,
+  originalOutline: IOutline,
   nodes: MindmapNodeData[],
-): Outline {
+): IOutline {
   // 根据节点重新组织 outline 结构
   const topicNode = nodes.find((n) => n.type === 'topic');
   const outlineNodes = nodes.filter((n) => n.type === 'outline_point');
@@ -106,7 +106,7 @@ export function buildOutlineFromMindmap(
           ) || {};
 
         return {
-          ...(originalTweet as TweetContentItem),
+          ...(originalTweet as ITweetContentItem),
           title: tweetNode.label,
           tweet_number: tweetNode.data?.tweetId || 0,
         };
@@ -130,7 +130,7 @@ export interface CollectedImage {
   tweetId?: string;
 }
 
-export function collectImagesFromTweets(outline: Outline): CollectedImage[] {
+export function collectImagesFromTweets(outline: IOutline): CollectedImage[] {
   const images: CollectedImage[] = [];
 
   outline.nodes.forEach((group) => {
@@ -152,7 +152,7 @@ export function collectImagesFromTweets(outline: Outline): CollectedImage[] {
 }
 
 // 生成完整内容用于复制
-export function generateFullContent(outline: Outline): string {
+export function generateFullContent(outline: IOutline): string {
   const sections: string[] = [];
 
   // 添加标题
@@ -180,7 +180,7 @@ export function generateFullContent(outline: Outline): string {
 }
 
 // 构建 Twitter 格式的推文数据
-export function buildTwitterTweetData(outline: Outline) {
+export function buildTwitterTweetData(outline: IOutline) {
   return outline.nodes
     .flatMap((group) => group.tweets)
     .map((tweet, index) => {

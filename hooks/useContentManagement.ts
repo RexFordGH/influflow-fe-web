@@ -10,16 +10,16 @@ import {
   MindmapEdgeData,
   MindmapNodeData,
 } from '@/types/content';
-import { Outline, TweetContentItem } from '@/types/outline';
+import { IOutline, ITweetContentItem } from '@/types/outline';
 import { useCallback, useState } from 'react';
 
 interface UseContentManagementProps {
-  rawAPIData: Outline | null;
+  rawAPIData: IOutline | null;
   currentNodes: MindmapNodeData[];
   currentEdges: MindmapEdgeData[];
   generatedContent: GeneratedContent | null;
   onDataUpdate?: () => void;
-  onContentUpdate?: (data: Outline) => void;
+  onContentUpdate?: (data: IOutline) => void;
   onNodesUpdate?: (nodes: MindmapNodeData[], edges: MindmapEdgeData[]) => void;
 }
 
@@ -35,11 +35,11 @@ interface UseContentManagementReturn {
     newContent: string,
   ) => Promise<void>;
   handleGroupTitleChange: (groupId: string, newTitle: string) => Promise<void>;
-  saveToSupabase: (data: Outline) => Promise<void>;
+  saveToSupabase: (data: IOutline) => Promise<void>;
 
   // 数据转换
-  convertToGeneratedContent: (data: Outline) => GeneratedContent;
-  updateLocalState: (data: Outline) => void;
+  convertToGeneratedContent: (data: IOutline) => GeneratedContent;
+  updateLocalState: (data: IOutline) => void;
 }
 
 export function useContentManagement({
@@ -57,7 +57,7 @@ export function useContentManagement({
   const modifyOutlineMutation = useModifyOutline();
 
   // 保存到 Supabase
-  const saveToSupabase = useCallback(async (data: Outline) => {
+  const saveToSupabase = useCallback(async (data: IOutline) => {
     if (!data.id) return;
 
     try {
@@ -82,7 +82,7 @@ export function useContentManagement({
 
   // 数据转换方法
   const convertToGeneratedContent = useCallback(
-    (data: Outline): GeneratedContent => {
+    (data: IOutline): GeneratedContent => {
       return convertAPIDataToGeneratedContent(data);
     },
     [],
@@ -90,7 +90,7 @@ export function useContentManagement({
 
   // 更新本地状态
   const updateLocalState = useCallback(
-    (data: Outline) => {
+    (data: IOutline) => {
       onContentUpdate?.(data);
 
       // 重新构建思维导图
@@ -167,7 +167,7 @@ export function useContentManagement({
             });
 
             const result = {
-              ...(originalTweet as TweetContentItem),
+              ...(originalTweet as ITweetContentItem),
               title: tweetNode.label,
               tweet_number: tweetNode.data?.tweetId || 0,
               // 如果标题变化了，清空 content，让后端重新生成

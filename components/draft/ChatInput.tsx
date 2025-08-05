@@ -71,7 +71,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <div className={`mx-auto w-full ${className}`}>
       <div
-        className="relative bg-white mx-auto"
+        className="relative mx-auto bg-white"
         style={{
           width: '600px',
           minHeight: '120px',

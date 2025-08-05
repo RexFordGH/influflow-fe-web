@@ -3,18 +3,18 @@
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import React, { memo } from 'react';
 
-import { ChatMessage as ChatMessageType, DraftData } from '@/types/draft';
+import { IChatMessage as ChatMessageType, IDraftData } from '@/types/draft';
 
 interface ChatMessageProps {
   message: ChatMessageType;
   isThinking?: boolean;
   showDraftDisplay?: boolean;
-  draft?: DraftData | null;
+  draft?: IDraftData | null;
 }
 
 // 草案展示组件
 const DraftInfoDisplay: React.FC<{
-  draft: DraftData;
+  draft: IDraftData;
   isThinking?: boolean;
 }> = ({ draft, isThinking }) => {
   const sections = [
@@ -89,9 +89,18 @@ export const ChatMessage = memo<ChatMessageProps>(
     // 思考动画组件
     const ThinkingIndicator = () => (
       <div className="space-y-2">
-        <div className="h-4 bg-gray-200 rounded animate-pulse" style={{ width: '60%' }}></div>
-        <div className="h-4 bg-gray-200 rounded animate-pulse" style={{ width: '80%' }}></div>
-        <div className="h-4 bg-gray-200 rounded animate-pulse" style={{ width: '45%' }}></div>
+        <div
+          className="h-4 animate-pulse rounded bg-gray-200"
+          style={{ width: '60%' }}
+        ></div>
+        <div
+          className="h-4 animate-pulse rounded bg-gray-200"
+          style={{ width: '80%' }}
+        ></div>
+        <div
+          className="h-4 animate-pulse rounded bg-gray-200"
+          style={{ width: '45%' }}
+        ></div>
       </div>
     );
 
@@ -99,7 +108,7 @@ export const ChatMessage = memo<ChatMessageProps>(
     if (isUser) {
       return (
         <div className="mb-6 flex justify-end">
-          <div className="max-w-[60%] rounded-xl bg-[#F8F8F8] p-3 text-base text-black font-poppins overflow-auto">
+          <div className="font-poppins max-w-[60%] overflow-auto rounded-xl bg-[#F8F8F8] p-3 text-base text-black">
             {message.content}
           </div>
         </div>
@@ -185,7 +194,7 @@ ChatMessage.displayName = 'ChatMessage';
 interface ChatMessageListProps {
   messages: ChatMessageType[];
   isThinking?: boolean;
-  draft?: DraftData | null;
+  draft?: IDraftData | null;
   className?: string;
 }
 

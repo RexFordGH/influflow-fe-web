@@ -6,7 +6,7 @@ import {
   type TwitterPostRequest,
   type TwitterTweetData,
 } from '@/lib/api/services';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 import { getEmojiNumber } from '@/utils/markdownUtils';
 import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
 import { useCallback, useState } from 'react';
@@ -19,7 +19,7 @@ interface CollectedImage {
 }
 
 interface UseTwitterIntegrationProps {
-  rawAPIData: Outline | null;
+  rawAPIData: IOutline | null;
   collectedImages?: CollectedImage[];
 }
 

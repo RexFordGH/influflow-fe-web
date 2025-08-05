@@ -13,10 +13,11 @@ import ReactPageScroller from 'react-page-scroller';
 
 import { useAuthStore } from '@/stores/authStore';
 import {
-  ContentFormat,
+  IContentFormat,
+  IMode,
+  ISuggestedTopic,
+  ITrendingTopic,
   ITrendsRecommendTweet,
-  SuggestedTopic,
-  TrendingTopic,
 } from '@/types/api';
 
 const TrendingTopicsPage = lazy(() =>
@@ -29,7 +30,7 @@ interface WelcomeScreenProps {
   showTrendingTopics: boolean;
   onScrollToTrending: () => void;
   onBackFromTrending: () => void;
-  onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTrendingTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onTrendingSearchConfirm?: (
     searchTerm: string,
@@ -39,8 +40,19 @@ interface WelcomeScreenProps {
   onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
-  onTopicSubmit: (contentFormat: ContentFormat) => void;
+  onTopicSubmit: (contentFormat: IContentFormat) => void;
 }
+
+const ContentFormatOptions = [
+  { key: 'longform', label: 'Article', icon: '≣' },
+  { key: 'thread', label: 'Threads', icon: '≡' },
+];
+
+const ModeOptions = [
+  { key: 'lite', label: 'Lite Mode' },
+  { key: 'analysis', label: 'Analysis Mode' },
+  { key: 'draft', label: 'Chatbot Mode' },
+];
 
 export const WelcomeScreen = ({
   showTrendingTopics,
@@ -57,17 +69,12 @@ export const WelcomeScreen = ({
 }: WelcomeScreenProps) => {
   const { user, isAuthenticated } = useAuthStore();
   const [selectedContentFormat, setSelectedContentFormat] =
-    useState<ContentFormat>('longform');
+    useState<IContentFormat>('longform');
+  const [selectedMode, setSelectedMode] = useState<IMode>('analysis');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 直接使用外部状态，不需要内部同步
   const currentPage = showTrendingTopics ? 1 : 0;
-
-  // 内容格式选项
-  const contentFormatOptions = [
-    { key: 'longform', label: 'Article', icon: '≣' },
-    { key: 'thread', label: 'Threads', icon: '≡' },
-  ];
 
   // 自动调整textarea高度
   const adjustTextareaHeight = () => {
@@ -149,7 +156,7 @@ export const WelcomeScreen = ({
                 rows={4}
               />
               {/* Content Format Dropdown */}
-              <div className="absolute bottom-[12px] left-[12px]">
+              <div className="absolute bottom-[12px] left-[12px] flex items-center justify-start gap-[4px]">
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
                     <Button
@@ -171,7 +178,7 @@ export const WelcomeScreen = ({
                       }
                     >
                       {
-                        contentFormatOptions.find(
+                        ContentFormatOptions.find(
                           (opt) => opt.key === selectedContentFormat,
                         )?.label
                       }
@@ -182,11 +189,54 @@ export const WelcomeScreen = ({
                     selectedKeys={[selectedContentFormat]}
                     selectionMode="single"
                     onSelectionChange={(keys) => {
-                      const selectedKey = Array.from(keys)[0] as ContentFormat;
+                      const selectedKey = Array.from(keys)[0] as IContentFormat;
                       setSelectedContentFormat(selectedKey);
                     }}
                   >
-                    {contentFormatOptions.map((option) => (
+                    {ContentFormatOptions.map((option) => (
+                      <DropdownItem key={option.key}>
+                        {option.label}
+                      </DropdownItem>
+                    ))}
+                  </DropdownMenu>
+                </Dropdown>
+
+                <Dropdown placement="bottom-end">
+                  <DropdownTrigger>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      className="min-w-[100px] rounded-full border-none bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50"
+                      endContent={
+                        <svg
+                          className="ml-1 size-3 opacity-60"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      }
+                    >
+                      {
+                        ModeOptions.find((opt) => opt.key === selectedMode)
+                          ?.label
+                      }
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    aria-label="mode selection"
+                    selectedKeys={[selectedMode]}
+                    selectionMode="single"
+                    onSelectionChange={(keys) => {
+                      const selectedKey = Array.from(keys)[0] as IMode;
+                      setSelectedMode(selectedKey);
+                    }}
+                  >
+                    {ModeOptions.map((option) => (
                       <DropdownItem key={option.key}>
                         {option.label}
                       </DropdownItem>

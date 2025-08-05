@@ -1,6 +1,6 @@
-import { DraftAction, DraftConfirmationState } from '@/types/draft';
+import { IDraftAction, IDraftConfirmationState } from '@/types/draft';
 
-export const initialState: DraftConfirmationState = {
+export const initialState: IDraftConfirmationState = {
   draft: null,
   session_id: null,
   messages: [],
@@ -12,9 +12,9 @@ export const initialState: DraftConfirmationState = {
 };
 
 export const draftReducer = (
-  state: DraftConfirmationState,
-  action: DraftAction,
-): DraftConfirmationState => {
+  state: IDraftConfirmationState,
+  action: IDraftAction,
+): IDraftConfirmationState => {
   switch (action.type) {
     case 'SET_DRAFT':
       return {

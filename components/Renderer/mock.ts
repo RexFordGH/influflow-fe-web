@@ -1,6 +1,6 @@
-import { Outline, Tweet } from '@/types/outline';
+import { IOutline, ITweet } from '@/types/outline';
 
-export const FakeData1: Tweet[] = [
+export const FakeData1: ITweet[] = [
   {
     title: 'AI 时代的企业变革新格局',
     tweets: [
@@ -60,7 +60,7 @@ export const FakeData1: Tweet[] = [
   },
 ];
 
-export const FakeData2: Tweet[] = [
+export const FakeData2: ITweet[] = [
   {
     title: '什么是元学习？',
     tweets: [
@@ -120,7 +120,7 @@ export const FakeData2: Tweet[] = [
   },
 ];
 
-export const FakeData3: Tweet[] = [
+export const FakeData3: ITweet[] = [
   {
     title: "What's New in Grok 4",
     tweets: [
@@ -175,7 +175,7 @@ export const FakeData3: Tweet[] = [
   },
 ];
 
-export const FakeOutline: Outline = {
+export const FakeOutline: IOutline = {
   id: '1233',
   content_format: 'longform',
   nodes: FakeData1,

@@ -16,12 +16,12 @@ import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
 import { useAuthStore } from '@/stores/authStore';
 import {
-  type ContentFormat,
+  type IContentFormat,
+  type ISuggestedTopic,
+  type ITrendingTopic,
   type ITrendsRecommendTweet,
-  type SuggestedTopic,
-  type TrendingTopic,
 } from '@/types/api';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 import {
   isPromptDismissed,
   needsProfileCompletion,
@@ -68,10 +68,11 @@ function HomeContent() {
   const [showProfileCompletePrompt, setShowProfileCompletePrompt] =
     useState(false);
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
-  const [initialData, setInitialData] = useState<Outline | undefined>(
+  const [initialData, setInitialData] = useState<IOutline | undefined>(
     undefined,
   );
-  const [contentFormat, setContentFormat] = useState<ContentFormat>('longform');
+  const [contentFormat, setContentFormat] =
+    useState<IContentFormat>('longform');
   const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
 
@@ -79,7 +80,7 @@ function HomeContent() {
   const [showDraftConfirmation, setShowDraftConfirmation] = useState(false);
   const [draftTopic, setDraftTopic] = useState('');
   const [draftContentFormat, setDraftContentFormat] =
-    useState<ContentFormat>('longform');
+    useState<IContentFormat>('longform');
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
 
   // 侧边栏 ref
@@ -152,7 +153,7 @@ function HomeContent() {
     return () => clearTimeout(timer);
   }, [isAuthenticated, syncProfileFromSupabase, hasCheckedProfile]);
 
-  const handleTopicSubmit = (selectedContentFormat: ContentFormat) => {
+  const handleTopicSubmit = (selectedContentFormat: IContentFormat) => {
     if (!isAuthenticated) {
       openLoginModal();
       return;
@@ -183,12 +184,12 @@ function HomeContent() {
   // 草案确认完成后的处理
   const handleDraftConfirmed = (
     topic: string,
-    contentFormat: ContentFormat,
+    contentFormat: IContentFormat,
     sessionId?: string,
   ) => {
     setTimeout(() => {
       setShowDraftConfirmation(false);
-    }, 1000)
+    }, 1000);
     setHasCreatedContentGeneration(true);
     setCurrentTopic(topic);
     setContentFormat(contentFormat);
@@ -220,7 +221,9 @@ function HomeContent() {
     setShowTrendingTopics(false);
   };
 
-  const handleTrendingTopicSelect = (topic: TrendingTopic | SuggestedTopic) => {
+  const handleTrendingTopicSelect = (
+    topic: ITrendingTopic | ISuggestedTopic,
+  ) => {
     setShowTrendingTopics(false);
     setTimeout(() => {
       // TrendingTopic 使用 title 字段，SuggestedTopic 使用 topic 字段
@@ -259,7 +262,7 @@ function HomeContent() {
 
   const handleTweetThreadClick = (tweetData: any) => {
     // 1. 将 TweetThread 格式转换为 Outline 格式
-    const outlineData: Outline = {
+    const outlineData: IOutline = {
       topic: tweetData.topic,
       content_format: tweetData.content_format || 'longform',
       nodes: tweetData.tweets, // 将 'tweets' 映射到 'nodes'

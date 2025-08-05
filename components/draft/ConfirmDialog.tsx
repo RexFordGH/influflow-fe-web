@@ -55,7 +55,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         backdrop: 'bg-black/10',
       }}
     >
-      <ModalContent 
+      <ModalContent
         className="bg-white p-6"
         style={{
           borderRadius: '20px',
@@ -67,7 +67,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <ModalHeader className="p-0 pb-3">
               <h2
                 className="text-black"
-                style={{ 
+                style={{
                   fontFamily: 'Poppins',
                   fontSize: '20px',
                   fontWeight: '500',
@@ -81,7 +81,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <ModalBody className="p-0 pb-6">
               <p
                 className="text-black"
-                style={{ 
+                style={{
                   fontFamily: 'Poppins',
                   fontSize: '16px',
                   fontWeight: '400',
@@ -92,13 +92,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               </p>
             </ModalBody>
 
-            <ModalFooter className="p-0 gap-3 justify-end">
+            <ModalFooter className="justify-end gap-3 p-0">
               <Button
                 variant="bordered"
                 radius="full"
                 size="md"
                 onPress={onClose}
-                className="h-10 px-6 border-gray-300 font-normal text-gray-700"
+                className="h-10 border-gray-300 px-6 font-normal text-gray-700"
                 style={{ fontFamily: 'Poppins' }}
               >
                 {config.cancelText}

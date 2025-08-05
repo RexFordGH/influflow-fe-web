@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { DraftConfirmationProvider } from '@/contexts/DraftConfirmationContext';
 import { useDraftConfirmation } from '@/hooks/useDraftConfirmation';
-import { ContentFormat } from '@/types/api';
+import { IContentFormat } from '@/types/api';
 
 import { addToast } from '../base/toast';
 
@@ -16,11 +16,11 @@ import { ConfirmDialog, DialogType } from './ConfirmDialog';
 
 interface ChatDraftConfirmationProps {
   topic: string;
-  contentFormat: ContentFormat;
+  contentFormat: IContentFormat;
   onBack: () => void;
   onConfirm: (
     topic: string,
-    contentFormat: ContentFormat,
+    contentFormat: IContentFormat,
     sessionId?: string,
   ) => void;
   onSkip?: () => void;
