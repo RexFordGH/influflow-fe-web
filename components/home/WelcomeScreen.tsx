@@ -190,7 +190,9 @@ export const WelcomeScreen = ({
                     selectionMode="single"
                     onSelectionChange={(keys) => {
                       const selectedKey = Array.from(keys)[0] as IContentFormat;
-                      setSelectedContentFormat(selectedKey);
+                      if (selectedKey) {
+                        setSelectedContentFormat(selectedKey);
+                      }
                     }}
                   >
                     {ContentFormatOptions.map((option) => (
@@ -233,7 +235,9 @@ export const WelcomeScreen = ({
                     selectionMode="single"
                     onSelectionChange={(keys) => {
                       const selectedKey = Array.from(keys)[0] as IMode;
-                      setSelectedMode(selectedKey);
+                      if (selectedKey) {
+                        setSelectedMode(selectedKey);
+                      }
                     }}
                   >
                     {ModeOptions.map((option) => (
