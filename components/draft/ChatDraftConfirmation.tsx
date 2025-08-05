@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { DraftConfirmationProvider } from '@/contexts/DraftConfirmationContext';
 import { useDraftConfirmation } from '@/hooks/useDraftConfirmation';
-import { IContentFormat } from '@/types/api';
+import { IContentFormat, IMode } from '@/types/api';
 
 import { addToast } from '../base/toast';
 
@@ -17,10 +17,12 @@ import { ConfirmDialog, DialogType } from './ConfirmDialog';
 interface ChatDraftConfirmationProps {
   topic: string;
   contentFormat: IContentFormat;
+  mode?: IMode; // 添加mode属性，支持未来扩展
   onBack: () => void;
   onConfirm: (
     topic: string,
     contentFormat: IContentFormat,
+    mode?: IMode,
     sessionId?: string,
   ) => void;
   onSkip?: () => void;
@@ -32,6 +34,7 @@ interface ChatDraftConfirmationProps {
 const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   topic,
   contentFormat,
+  mode,
   onBack,
   onConfirm,
   className = '',
@@ -77,9 +80,9 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   // 确认完成后跳转
   useEffect(() => {
     if (isConfirmed && !isLoading) {
-      onConfirm(topic, contentFormat, session_id || undefined);
+      onConfirm(topic, contentFormat, mode || 'draft', session_id || undefined);
     }
-  }, [isConfirmed, isLoading, topic, contentFormat, onConfirm, session_id]);
+  }, [isConfirmed, isLoading, topic, contentFormat, mode, onConfirm, session_id]);
 
   // 错误提示
   useEffect(() => {

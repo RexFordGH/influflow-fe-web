@@ -1,8 +1,9 @@
 'use client';
 
-import { useDraftGeneration } from '@/lib/api/services';
+import { useDraftGeneration, useGenerateThread } from '@/lib/api/services';
 import { draftReducer, initialState } from '@/reducers/draftReducer';
 import { DraftConfirmationContextType, IChatMessage } from '@/types/draft';
+import { IContentFormat } from '@/types/api';
 import React, {
   createContext,
   useCallback,
@@ -22,6 +23,7 @@ export const DraftConfirmationProvider: React.FC<{
 
   // API调用
   const draftMutation = useDraftGeneration();
+  const twitterMutation = useGenerateThread();
 
   // 生成初始草案
   const generateDraft = useCallback(
@@ -91,6 +93,62 @@ export const DraftConfirmationProvider: React.FC<{
     [draftMutation],
   );
 
+  // 生成Twitter内容
+  const generateTwitterContent = useCallback(
+    async (userInput: string, sessionId: string, contentFormat: IContentFormat) => {
+      // 参数验证
+      if (!contentFormat) {
+        throw new Error('Content format is required for Twitter content generation');
+      }
+      
+      try {
+        const response = await twitterMutation.mutateAsync({
+          user_input: userInput,
+          session_id: sessionId,
+          content_format: contentFormat,
+          mode: 'draft',
+        });
+
+        // 添加成功消息
+        const successMessage: IChatMessage = {
+          id: uuidv4(),
+          type: 'assistant',
+          content: 'Perfect! Your content has been generated successfully.',
+          timestamp: new Date(),
+          status: 'sent',
+          metadata: {
+            isConfirmation: true,
+          },
+        };
+        dispatch({ type: 'ADD_MESSAGE', payload: successMessage });
+
+        // 设置确认状态
+        dispatch({ type: 'SET_CONFIRMED', payload: true });
+
+        // 返回生成的内容
+        return response;
+      } catch (error: any) {
+        dispatch({
+          type: 'SET_ERROR',
+          payload:
+            error?.message || 'Failed to generate content. Please try again.',
+        });
+
+        // 添加错误消息
+        const errorMessage: IChatMessage = {
+          id: uuidv4(),
+          type: 'assistant',
+          content:
+            'Sorry, there was an error generating the content. Please try again.',
+          timestamp: new Date(),
+          status: 'error',
+        };
+        dispatch({ type: 'ADD_MESSAGE', payload: errorMessage });
+      }
+    },
+    [twitterMutation],
+  );
+
   // 优化草案
   const optimizeDraft = useCallback(
     async (userInput: string) => {
@@ -128,46 +186,48 @@ export const DraftConfirmationProvider: React.FC<{
       );
 
       try {
-        const response = await draftMutation.mutateAsync({
-          user_input: isConfirmation ? 'ok' : userInput,
-          session_id: state.session_id,
-        });
-
-        // 根据响应确定消息内容
-        let aiMessageContent =
-          'Here is your new overview of the post to be generated.';
-        if (isConfirmation && !response.requires_review) {
-          aiMessageContent =
-            'Great! Your draft has been confirmed. Generating your content now...';
-        }
-
-        // 添加AI响应消息
-        const aiMessage: IChatMessage = {
-          id: uuidv4(),
-          type: 'assistant',
-          content: aiMessageContent,
-          timestamp: new Date(),
-          status: 'sent',
-          metadata: {
-            draftUpdated: true,
-            isConfirmation: isConfirmation && !response.requires_review,
-          },
-        };
-        dispatch({ type: 'ADD_MESSAGE', payload: aiMessage });
-
-        // 更新草案数据
-        dispatch({
-          type: 'SET_DRAFT',
-          payload: {
-            draft: response.draft,
-            session_id: response.session_id,
-            requires_review: response.requires_review,
-          },
-        });
-
-        // 如果不需要继续审核，则标记为已确认
-        if (!response.requires_review) {
+        if (isConfirmation) {
+          // 添加确认消息
+          const confirmMessage: IChatMessage = {
+            id: uuidv4(),
+            type: 'assistant',
+            content: 'Great! Your draft has been confirmed.',
+            timestamp: new Date(),
+            status: 'sent',
+          };
+          dispatch({ type: 'ADD_MESSAGE', payload: confirmMessage });
+          
+          // 确认指令：仅设置确认状态，触发跳转到 ArticleRenderer
           dispatch({ type: 'SET_CONFIRMED', payload: true });
+        } else {
+          // 非确认指令：继续优化草案
+          const response = await draftMutation.mutateAsync({
+            user_input: userInput,
+            session_id: state.session_id,
+          });
+
+          // 添加AI响应消息
+          const aiMessage: IChatMessage = {
+            id: uuidv4(),
+            type: 'assistant',
+            content: 'Here is your new overview of the post to be generated.',
+            timestamp: new Date(),
+            status: 'sent',
+            metadata: {
+              draftUpdated: true,
+            },
+          };
+          dispatch({ type: 'ADD_MESSAGE', payload: aiMessage });
+
+          // 更新草案数据
+          dispatch({
+            type: 'SET_DRAFT',
+            payload: {
+              draft: response.draft,
+              session_id: response.session_id,
+              requires_review: response.requires_review,
+            },
+          });
         }
       } catch (error: any) {
         dispatch({
@@ -191,7 +251,7 @@ export const DraftConfirmationProvider: React.FC<{
         dispatch({ type: 'SET_THINKING', payload: false });
       }
     },
-    [state.session_id, draftMutation],
+    [state.session_id, draftMutation, generateTwitterContent],
   );
 
   // 添加消息
@@ -235,6 +295,7 @@ export const DraftConfirmationProvider: React.FC<{
     state,
     generateDraft,
     optimizeDraft,
+    generateTwitterContent,
     addMessage,
     clearState,
     confirmDraft,

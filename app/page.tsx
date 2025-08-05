@@ -6,6 +6,10 @@ import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
+import {
+  GenerationOrchestrator,
+  GenerationProvider,
+} from '@/components/generation';
 import { MainContent } from '@/components/home/MainContent';
 import {
   AppSidebar,
@@ -17,6 +21,7 @@ import { FakeOutline } from '@/components/Renderer/mock';
 import { useAuthStore } from '@/stores/authStore';
 import {
   type IContentFormat,
+  type IMode,
   type ISuggestedTopic,
   type ITrendingTopic,
   type ITrendsRecommendTweet,
@@ -76,12 +81,19 @@ function HomeContent() {
   const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
 
+  // 生成模式相关状态
+  const [currentMode, setCurrentMode] = useState<IMode>('analysis');
+
   // 草案确认相关状态
   const [showDraftConfirmation, setShowDraftConfirmation] = useState(false);
   const [draftTopic, setDraftTopic] = useState('');
   const [draftContentFormat, setDraftContentFormat] =
     useState<IContentFormat>('longform');
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
+
+  // 使用新架构的生成状态
+  const [showGenerationOrchestrator, setShowGenerationOrchestrator] =
+    useState(false);
 
   // 侧边栏 ref
   const sidebarRef = useRef<AppSidebarRef | null>(null);
@@ -153,7 +165,10 @@ function HomeContent() {
     return () => clearTimeout(timer);
   }, [isAuthenticated, syncProfileFromSupabase, hasCheckedProfile]);
 
-  const handleTopicSubmit = (selectedContentFormat: IContentFormat) => {
+  const handleTopicSubmit = (
+    selectedContentFormat: IContentFormat,
+    mode: IMode,
+  ) => {
     if (!isAuthenticated) {
       openLoginModal();
       return;
@@ -170,10 +185,13 @@ function HomeContent() {
         finalTopic = `${topicInput}. Reference these popular posts: ${tweetUrls}`;
       }
 
-      // 设置草案确认相关状态
+      // 设置生成相关状态
+      setCurrentMode(mode);
       setDraftTopic(finalTopic);
       setDraftContentFormat(selectedContentFormat);
-      setShowDraftConfirmation(true);
+
+      // 使用新架构启动生成流程
+      setShowGenerationOrchestrator(true);
 
       // 清理输入
       setTopicInput('');
@@ -206,11 +224,25 @@ function HomeContent() {
   const handleBackToHome = () => {
     setInitialData(undefined);
     setShowContentGeneration(false);
+    setShowGenerationOrchestrator(false);
     setCurrentTopic('');
     setSelectedItemId(undefined); // 清除选中状态
     setSessionId(undefined); // 清除 session_id
     // 返回首页时重新拉取文章列表确保数据同步
     sidebarRef.current?.refresh();
+  };
+
+  // 生成完成回调
+  const handleGenerationComplete = (data: IOutline) => {
+    console.log('Generation completed:', data);
+    // 刷新侧边栏列表
+    sidebarRef.current?.refresh();
+  };
+
+  // 生成错误回调
+  const handleGenerationError = (error: Error) => {
+    console.error('Generation error:', error);
+    setShowGenerationOrchestrator(false);
   };
 
   const handleScrollToTrending = () => {
@@ -307,87 +339,106 @@ function HomeContent() {
   };
 
   return (
-    <div className="relative h-screen overflow-hidden">
-      {/* Profile Complete Prompt */}
-      <ProfileCompletePrompt
-        isVisible={showProfileCompletePrompt}
-        onClose={handleCloseProfileCompletePrompt}
-      />
+    <GenerationProvider initialMode={currentMode}>
+      <div className="relative h-screen overflow-hidden">
+        {/* Profile Complete Prompt */}
+        <ProfileCompletePrompt
+          isVisible={showProfileCompletePrompt}
+          onClose={handleCloseProfileCompletePrompt}
+        />
 
-      {/* Draft Confirmation */}
-      {showDraftConfirmation && (
-        <div className="absolute inset-0 z-50">
-          <ChatDraftConfirmation
-            topic={draftTopic}
-            contentFormat={draftContentFormat}
-            onBack={handleBackFromDraft}
-            onConfirm={handleDraftConfirmed}
-          />
-        </div>
-      )}
+        {/* Generation Orchestrator - 新架构 */}
+        {showGenerationOrchestrator && (
+          <div className="absolute inset-0 z-50">
+            <GenerationOrchestrator
+              mode={currentMode}
+              topic={draftTopic}
+              contentFormat={draftContentFormat}
+              userInput={topicInput}
+              sessionId={sessionId}
+              onComplete={handleGenerationComplete}
+              onError={handleGenerationError}
+              onBack={handleBackToHome}
+            />
+          </div>
+        )}
 
-      {/* Content Generation */}
-      {hasCreatedContentGeneration && (
+        {/* Legacy Draft Confirmation - 保留兼容旧流程 */}
+        {showDraftConfirmation && !showGenerationOrchestrator && (
+          <div className="absolute inset-0 z-50">
+            <ChatDraftConfirmation
+              topic={draftTopic}
+              contentFormat={draftContentFormat}
+              onBack={handleBackFromDraft}
+              onConfirm={handleDraftConfirmed}
+            />
+          </div>
+        )}
+
+        {/* Legacy Content Generation - 保留兼容旧流程 */}
+        {hasCreatedContentGeneration && !showGenerationOrchestrator && (
+          <div
+            className={cn(
+              'absolute inset-0 z-40',
+              showContentGeneration && currentTopic ? 'block' : 'hidden',
+            )}
+          >
+            <ArticleRenderer
+              topic={currentTopic}
+              contentFormat={contentFormat}
+              onBack={handleBackToHome}
+              initialData={
+                process.env.NEXT_PUBLIC_USE_FAKE_OUTLINE === 'true'
+                  ? FakeOutline
+                  : initialData
+              }
+              sessionId={sessionId}
+              onDataUpdate={async () => {
+                await sidebarRef.current?.refresh();
+              }}
+            />
+          </div>
+        )}
+
+        {/* Main Content */}
         <div
           className={cn(
-            'absolute inset-0 z-40',
-            showContentGeneration && currentTopic ? 'block' : 'hidden',
+            'flex h-screen overflow-hidden bg-gray-50',
+            showContentGeneration && currentTopic ? 'hidden' : 'flex',
+            showDraftConfirmation && !hasCreatedContentGeneration
+              ? 'hidden'
+              : 'flex',
+            showGenerationOrchestrator ? 'hidden' : 'flex',
           )}
         >
-          <ArticleRenderer
-            topic={currentTopic}
-            contentFormat={contentFormat}
-            onBack={handleBackToHome}
-            initialData={
-              process.env.NEXT_PUBLIC_USE_FAKE_OUTLINE === 'true'
-                ? FakeOutline
-                : initialData
-            }
-            sessionId={sessionId}
-            onDataUpdate={async () => {
-              await sidebarRef.current?.refresh();
-            }}
+          <AnimatePresence>
+            <AppSidebar
+              ref={sidebarRef}
+              onItemClick={handleSidebarItemClick}
+              selectedId={selectedItemId}
+              collapsed={sidebarCollapsed}
+              onToggleCollapse={() => setSidebarCollapsed(true)}
+            />
+          </AnimatePresence>
+
+          <MainContent
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={() => setSidebarCollapsed(false)}
+            showTrendingTopics={showTrendingTopics}
+            onScrollToTrending={handleScrollToTrending}
+            onBackFromTrending={handleBackFromTrending}
+            onTrendingTopicSelect={handleTrendingTopicSelect}
+            onTrendingTweetsSelect={handleTrendingTweetsSelect}
+            onTrendingSearchConfirm={handleTrendingSearchConfirm}
+            selectedTweets={selectedTweets}
+            onRemoveSelectedTweet={handleRemoveSelectedTweet}
+            topicInput={topicInput}
+            onTopicInputChange={setTopicInput}
+            onTopicSubmit={handleTopicSubmit}
           />
         </div>
-      )}
-
-      {/* Main Content */}
-      <div
-        className={cn(
-          'flex h-screen overflow-hidden bg-gray-50',
-          showContentGeneration && currentTopic ? 'hidden' : 'flex',
-          showDraftConfirmation && !hasCreatedContentGeneration
-            ? 'hidden'
-            : 'flex',
-        )}
-      >
-        <AnimatePresence>
-          <AppSidebar
-            ref={sidebarRef}
-            onItemClick={handleSidebarItemClick}
-            selectedId={selectedItemId}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(true)}
-          />
-        </AnimatePresence>
-
-        <MainContent
-          sidebarCollapsed={sidebarCollapsed}
-          onToggleSidebar={() => setSidebarCollapsed(false)}
-          showTrendingTopics={showTrendingTopics}
-          onScrollToTrending={handleScrollToTrending}
-          onBackFromTrending={handleBackFromTrending}
-          onTrendingTopicSelect={handleTrendingTopicSelect}
-          onTrendingTweetsSelect={handleTrendingTweetsSelect}
-          onTrendingSearchConfirm={handleTrendingSearchConfirm}
-          selectedTweets={selectedTweets}
-          onRemoveSelectedTweet={handleRemoveSelectedTweet}
-          topicInput={topicInput}
-          onTopicInputChange={setTopicInput}
-          onTopicSubmit={handleTopicSubmit}
-        />
       </div>
-    </div>
+    </GenerationProvider>
   );
 }
 
