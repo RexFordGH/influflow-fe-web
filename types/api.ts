@@ -20,16 +20,13 @@ export type IContentFormat = 'longform' | 'thread';
 export type IMode = 'lite' | 'analysis' | 'draft';
 
 /**
- * 如果是直接从 draft开始生成接口，只需要传 session_id 和 content_format
+ * @example 参考 lib/api/api.md 里的参数说明
  */
 export interface IGenerateThreadRequest {
   session_id?: string;
   user_input: string;
   content_format: IContentFormat;
-  personalization?: Pick<
-    IUser,
-    'account_name' | 'tone' | 'bio' | 'tweet_examples'
-  >;
+  mode: IMode
 }
 
 export type IGenerateThreadResponse = IBaseResponse<IOutline>;

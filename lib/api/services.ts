@@ -114,7 +114,6 @@ export function useDraftGeneration() {
         120000,
       );
 
-      // apiPost 已经处理了 BaseResponse 结构，直接返回 data 部分
       return response;
     },
     onSuccess: (data) => {
@@ -124,7 +123,6 @@ export function useDraftGeneration() {
       console.error('Failed to generate draft:', error);
     },
     retry: (failureCount, error: any) => {
-      // 网络错误重试3次，其他错误不重试
       if (error?.name === 'NetworkError' && failureCount < 3) {
         return true;
       }
