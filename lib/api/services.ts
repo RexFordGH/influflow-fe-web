@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  ITrendingTopicsResponse,
   ITrendsRecommendTweet,
   type ICheckInvitationCodeResponse,
   type IGenerateImageRequest,
@@ -10,12 +11,11 @@ import {
   type IModifyOutlineRequest,
   type IModifyTweetData,
   type IModifyTweetRequest,
-  type ITrendingTopicsResponse,
 } from '@/types/api';
 import { IGenerateDraftRequest, IGenerateDraftResponse } from '@/types/draft';
 import { IOutline } from '@/types/outline';
 
-import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
+import { apiGet, apiPost, generateImage } from './client';
 
 export const QUERY_KEYS = {
   HEALTH: ['health'] as const,
@@ -155,11 +155,8 @@ export function useGenerateImage() {
 export function useTrendingTopics(topicType: string = 'ai') {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_TOPICS, topicType],
-    queryFn: (): Promise<ITrendingTopicsResponse> => {
-      return apiDirectGet<ITrendingTopicsResponse>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/?topic_type=${topicType}`,
-      );
-    },
+    queryFn: () =>
+      apiGet<ITrendingTopicsResponse>(`/trends/?topic_type=${topicType}`),
     staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
     gcTime: 10 * 60 * 1000, // 10分钟缓存
     refetchOnWindowFocus: false,
@@ -170,14 +167,8 @@ export function useTrendingTopics(topicType: string = 'ai') {
 export function useTrendingRecommend(id: string, enabled?: boolean) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, id],
-    queryFn: async () => {
-      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
-      );
-    },
-    select: (data) => {
-      return data.tweets;
-    },
+    queryFn: () =>
+      apiGet<ITrendsRecommendTweet[]>(`/trends/recommend?id=${id}`),
     enabled: enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -189,15 +180,11 @@ export function useTrendingRecommend(id: string, enabled?: boolean) {
 export function useTrendingSearch(query: string, enabled?: boolean) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_SEARCH, 'search', query],
-    queryFn: async () => {
-      // return Promise.resolve({
-      //   tweets: StaticTrendsRecommend['82c6ba13-4c10-4813-b59e-68a6c5ff9929'],
-      // });
-      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/query?query=${encodeURIComponent(query)}`,
-      );
-    },
-    select: (data) => {
+    queryFn: () =>
+      apiGet<{ tweets: ITrendsRecommendTweet[] }>(
+        `/trends/query?query=${encodeURIComponent(query)}`,
+      ),
+    select(data) {
       return data.tweets;
     },
     enabled: enabled,
