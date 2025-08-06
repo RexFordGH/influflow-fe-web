@@ -8,10 +8,18 @@ import {
   DropdownTrigger,
   Image,
 } from '@heroui/react';
-import { lazy, useEffect, useRef, useState } from 'react';
-import ReactPageScroller from 'react-page-scroller';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
+import '@/styles/welcome-screen.css';
 import {
   IContentFormat,
   IMode,
@@ -27,9 +35,6 @@ const TrendingTopicsPage = lazy(() =>
 );
 
 interface WelcomeScreenProps {
-  showTrendingTopics: boolean;
-  onScrollToTrending: () => void;
-  onBackFromTrending: () => void;
   onTrendingTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onTrendingSearchConfirm?: (
@@ -55,9 +60,6 @@ const ModeOptions = [
 ];
 
 export const WelcomeScreen = ({
-  showTrendingTopics,
-  onScrollToTrending,
-  onBackFromTrending,
   onTrendingTopicSelect,
   onTrendingTweetsSelect,
   onTrendingSearchConfirm,
@@ -72,9 +74,14 @@ export const WelcomeScreen = ({
     useState<IContentFormat>('longform');
   const [selectedMode, setSelectedMode] = useState<IMode>('analysis');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const homepageRef = useRef<HTMLDivElement>(null);
+  const trendingRef = useRef<HTMLDivElement>(null);
 
-  // 直接使用外部状态，不需要内部同步
-  const currentPage = showTrendingTopics ? 1 : 0;
+  // 滚动相关
+  const { scrollY, scrollYProgress } = useScroll({
+    container: scrollContainerRef,
+  });
 
   // 自动调整textarea高度
   const adjustTextareaHeight = () => {
@@ -101,27 +108,54 @@ export const WelcomeScreen = ({
     onTopicSubmit(selectedContentFormat, selectedMode);
   };
 
-  // 处理页面切换
-  const handlePageChange = (pageNumber: number) => {
-    if (pageNumber === 0) {
-      onBackFromTrending();
-    } else if (pageNumber === 1) {
-      onScrollToTrending();
+  // 自动滚动到顶部
+  const scrollToTop = useCallback(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     }
-  };
+  }, []);
+
+  // 创建事件处理器，包含自动回滚逻辑
+  const createTrendingEventHandler = useCallback(
+    <T extends any[]>(
+      originalCallback: ((...args: T) => void) | undefined,
+      ...args: T
+    ) => {
+      if (originalCallback) {
+        originalCallback(...args);
+        // 延迟300ms执行回滚，给用户足够时间看到反馈
+        setTimeout(scrollToTop, 300);
+      }
+    },
+    [scrollToTop],
+  );
 
   return (
     <div className="relative size-full min-w-[1000px]">
-      <ReactPageScroller
-        pageOnChange={handlePageChange}
-        customPageNumber={currentPage}
-        animationTimer={600}
-        transitionTimingFunction="ease-out"
-        containerHeight="100vh"
-        containerWidth="100%"
+      {/* 滚动进度指示器 */}
+      <ScrollProgressIndicator scrollProgress={scrollYProgress} />
+
+      {/* 主滚动容器 */}
+      <div
+        ref={scrollContainerRef}
+        className="scroll-container relative h-screen w-full overflow-y-auto"
+        style={{
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
+          willChange: 'scroll-position',
+        }}
       >
-        {/* 首页 */}
-        <div className="flex size-full items-center justify-center bg-white">
+        {/* 首页 Section */}
+        <motion.div
+          ref={homepageRef}
+          className="flex min-h-screen items-center justify-center bg-white"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="relative flex flex-col px-[24px] text-center">
             <h2 className="text-[24px] font-[600] text-black">
               Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what
@@ -312,40 +346,100 @@ export const WelcomeScreen = ({
           </div>
           <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
             <div className="flex flex-col items-center">
-              <div className="animate-bounce">
-                <Image
-                  src="/icons/scroll.svg"
-                  alt="swipe-up"
-                  width={24}
-                  height={24}
-                />
-              </div>
-              <span className="text-[18px] font-[500] text-[#448AFF]">
-                Scroll down to explore trending topics
-              </span>
+              <ScrollHint scrollY={scrollY} />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Trending Topics 页面 */}
-        <div className="size-full ">
-          <TrendingTopicsPage
-            isVisible={true}
-            onBack={onBackFromTrending}
-            onTopicSelect={onTrendingTopicSelect}
-            onTweetsSelect={(selectedTweets, topicTitle) => {
-              // 回到上一页并携带选中的推文数据
-              onBackFromTrending();
-              onTrendingTweetsSelect?.(selectedTweets, topicTitle);
-            }}
-            onSearchConfirm={(searchTerm, selectedTweets) => {
-              // 回到上一页并携带搜索结果和选中的推文数据
-              onBackFromTrending();
-              onTrendingSearchConfirm?.(searchTerm, selectedTweets);
-            }}
-          />
-        </div>
-      </ReactPageScroller>
+        {/* Trending Topics Section */}
+        <motion.div
+          ref={trendingRef}
+          className="min-h-screen w-full"
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          viewport={{ once: true, margin: '-100px' }}
+        >
+          <Suspense fallback={<TrendingTopicsLoader />}>
+            <TrendingTopicsPage
+              isVisible={true}
+              onBack={() => scrollToTop()}
+              onTopicSelect={(topic) =>
+                createTrendingEventHandler(onTrendingTopicSelect, topic)
+              }
+              onTweetsSelect={(selectedTweets, topicTitle) => {
+                createTrendingEventHandler(
+                  onTrendingTweetsSelect,
+                  selectedTweets,
+                  topicTitle,
+                );
+              }}
+              onSearchConfirm={(searchTerm, selectedTweets) => {
+                createTrendingEventHandler(
+                  onTrendingSearchConfirm,
+                  searchTerm,
+                  selectedTweets,
+                );
+              }}
+            />
+          </Suspense>
+        </motion.div>
+      </div>
     </div>
   );
 };
+
+// 滚动进度指示器组件
+const ScrollProgressIndicator: React.FC<{
+  scrollProgress: any;
+}> = ({ scrollProgress }) => {
+  const scaleX = useTransform(scrollProgress, [0, 1], [0, 1]);
+
+  return (
+    <motion.div
+      className="fixed inset-x-0 top-0 z-50 h-1 origin-left bg-blue-500"
+      style={{ scaleX }}
+    />
+  );
+};
+
+// 滚动提示组件
+const ScrollHint: React.FC<{ scrollY: any }> = ({ scrollY }) => {
+  const opacity = useTransform(scrollY, [0, 100], [1, 0]);
+  const y = useTransform(scrollY, [0, 100], [0, -20]);
+
+  return (
+    <motion.div style={{ opacity, y }} className="flex flex-col items-center">
+      <motion.div
+        className="animate-bounce"
+        animate={{ y: [0, -10, 0] }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      >
+        <Image
+          src="/icons/scroll.svg"
+          alt="scroll-down"
+          width={24}
+          height={24}
+        />
+      </motion.div>
+      <span className="text-[18px] font-[500] text-[#448AFF]">
+        Scroll down to explore trending topics
+      </span>
+    </motion.div>
+  );
+};
+
+// Trending Topics 加载组件
+const TrendingTopicsLoader: React.FC = () => (
+  <div className="flex min-h-screen items-center justify-center">
+    <motion.div
+      className="size-8 rounded-full border-4 border-blue-500 border-t-transparent"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+    />
+  </div>
+);
