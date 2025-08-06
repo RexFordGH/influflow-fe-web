@@ -46,7 +46,7 @@ export const DraftConfirmationProvider: React.FC<{
           user_input: userInput,
         });
 
-        // 添加AI响应消息
+        // 添加AI响应消息（包含草稿快照）
         const aiMessage: IChatMessage = {
           id: uuidv4(),
           type: 'assistant',
@@ -55,6 +55,7 @@ export const DraftConfirmationProvider: React.FC<{
           status: 'sent',
           metadata: {
             draftUpdated: true,
+            draftSnapshot: response.draft, // 保存当前的草稿数据
           },
         };
         dispatch({ type: 'ADD_MESSAGE', payload: aiMessage });
@@ -206,7 +207,7 @@ export const DraftConfirmationProvider: React.FC<{
             session_id: state.session_id,
           });
 
-          // 添加AI响应消息
+          // 添加AI响应消息（包含草稿快照）
           const aiMessage: IChatMessage = {
             id: uuidv4(),
             type: 'assistant',
@@ -215,6 +216,7 @@ export const DraftConfirmationProvider: React.FC<{
             status: 'sent',
             metadata: {
               draftUpdated: true,
+              draftSnapshot: response.draft, // 保存当前的草稿数据
             },
           };
           dispatch({ type: 'ADD_MESSAGE', payload: aiMessage });

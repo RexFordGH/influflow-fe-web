@@ -9,7 +9,6 @@ interface ChatMessageProps {
   message: ChatMessageType;
   isThinking?: boolean;
   showDraftDisplay?: boolean;
-  draft?: IDraftData | null;
 }
 
 // 草案展示组件
@@ -106,7 +105,7 @@ const DraftInfoDisplay: React.FC<{
 };
 
 export const ChatMessage = memo<ChatMessageProps>(
-  ({ message, isThinking = false, showDraftDisplay = false, draft }) => {
+  ({ message, isThinking = false, showDraftDisplay = false }) => {
     const isUser = message.type === 'user';
     const isError = message.status === 'error';
     const isSending = message.status === 'sending';
@@ -141,7 +140,9 @@ export const ChatMessage = memo<ChatMessageProps>(
     }
 
     // AI消息 - 显示草案信息
-    if (showDraftDisplay && draft && message.metadata?.draftUpdated) {
+    if (showDraftDisplay && message.metadata?.draftUpdated && message.metadata?.draftSnapshot) {
+      const draftToDisplay = message.metadata.draftSnapshot;
+
       // 判断是否是更新后的草案（基于消息索引或其他逻辑）
       const isUpdatedDraft =
         message.content && message.content.includes('new overview');
@@ -176,7 +177,7 @@ export const ChatMessage = memo<ChatMessageProps>(
           </div>
 
           <div className="py-3">
-            <DraftInfoDisplay draft={draft} isThinking={isThinking} />
+            <DraftInfoDisplay draft={draftToDisplay} isThinking={isThinking} />
           </div>
 
           <div className="mt-8">
@@ -219,31 +220,28 @@ ChatMessage.displayName = 'ChatMessage';
 interface ChatMessageListProps {
   messages: ChatMessageType[];
   isThinking?: boolean;
-  draft?: IDraftData | null;
   className?: string;
 }
 
 export const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
   isThinking = false,
-  draft,
   className = '',
 }) => {
   return (
     <div className={`${className}`}>
-      {messages.map((message, index) => {
+      {messages.map((message) => {
         // 判断是否需要显示草案信息
         const showDraftDisplay =
           message.type === 'assistant' &&
           message.metadata?.draftUpdated &&
-          draft !== null;
+          message.metadata?.draftSnapshot !== undefined;
 
         return (
           <ChatMessage
             key={message.id}
             message={message}
             showDraftDisplay={showDraftDisplay}
-            draft={draft}
           />
         );
       })}
