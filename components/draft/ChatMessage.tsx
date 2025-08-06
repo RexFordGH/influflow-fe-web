@@ -61,11 +61,8 @@ const DraftInfoDisplay: React.FC<{
     },
     {
       emoji: '🔗',
-      title: 'Add link to improve accuracy?',
-      content:
-        draft.references?.length > 0
-          ? draft.references.join('\n')
-          : "You can add any reference articles or links that reflect your style or include specific facts you'd like us to use.",
+      title: 'Add link as reference',
+      content: draft.references?.length > 0 ? draft.references.join('\n') : '-',
     },
     {
       emoji: '📋',
@@ -73,7 +70,7 @@ const DraftInfoDisplay: React.FC<{
       content:
         draft.requirements?.length > 0
           ? draft.requirements.map((req) => `• ${req}`).join('\n')
-          : 'No special requirements',
+          : '-',
     },
   ];
 
