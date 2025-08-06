@@ -174,7 +174,6 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
             <ChatMessageList
               messages={messages}
               isThinking={isThinking}
-              draft={draft}
               className="mx-auto max-w-6xl"
             />
           )}

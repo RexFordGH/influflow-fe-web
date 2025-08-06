@@ -9,7 +9,6 @@ interface ChatMessageProps {
   message: ChatMessageType;
   isThinking?: boolean;
   showDraftDisplay?: boolean;
-  draft?: IDraftData | null;
 }
 
 // 草案展示组件
@@ -19,8 +18,13 @@ const DraftInfoDisplay: React.FC<{
 }> = ({ draft, isThinking }) => {
   const sections = [
     {
+      emoji: '📝',
+      title: 'Topic',
+      content: draft.topic,
+    },
+    {
       emoji: '💬',
-      title: 'Main Point of View',
+      title: 'Content Angel',
       content: draft.content_angle,
     },
     {
@@ -30,22 +34,42 @@ const DraftInfoDisplay: React.FC<{
         draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
     },
     {
+      emoji: '👥',
+      title: 'Target Audience',
+      content: draft.target_audience,
+    },
+    {
+      emoji: '🌐',
+      title: 'Output Language',
+      content: draft.output_language || 'Chinese',
+    },
+    {
+      emoji: '🎯',
+      title: 'Purpose',
+      content: draft.purpose || '',
+    },
+    {
       emoji: '📏',
       title: 'Estimated Length',
       content: draft.content_length,
     },
     {
-      emoji: '✍️',
-      title: 'Tone & Style',
-      content: `${draft.purpose || ''} - ${draft.content_depth || ''}`,
+      emoji: '📊',
+      title: 'Content Depth',
+      content: draft.content_depth || '',
     },
     {
       emoji: '🔗',
-      title: 'Add link to improve accuracy?',
+      title: 'Add link as reference',
+      content: draft.references?.length > 0 ? draft.references.join('\n') : '-',
+    },
+    {
+      emoji: '📋',
+      title: 'Special Requirements',
       content:
-        draft.references?.length > 0
-          ? draft.references.join('\n')
-          : "You can add any reference articles or links that reflect your style or include specific facts you'd like us to use.",
+        draft.requirements?.length > 0
+          ? draft.requirements.map((req) => `• ${req}`).join('\n')
+          : '-',
     },
   ];
 
@@ -81,7 +105,7 @@ const DraftInfoDisplay: React.FC<{
 };
 
 export const ChatMessage = memo<ChatMessageProps>(
-  ({ message, isThinking = false, showDraftDisplay = false, draft }) => {
+  ({ message, isThinking = false, showDraftDisplay = false }) => {
     const isUser = message.type === 'user';
     const isError = message.status === 'error';
     const isSending = message.status === 'sending';
@@ -116,7 +140,9 @@ export const ChatMessage = memo<ChatMessageProps>(
     }
 
     // AI消息 - 显示草案信息
-    if (showDraftDisplay && draft && message.metadata?.draftUpdated) {
+    if (showDraftDisplay && message.metadata?.draftUpdated && message.metadata?.draftSnapshot) {
+      const draftToDisplay = message.metadata.draftSnapshot;
+
       // 判断是否是更新后的草案（基于消息索引或其他逻辑）
       const isUpdatedDraft =
         message.content && message.content.includes('new overview');
@@ -151,7 +177,7 @@ export const ChatMessage = memo<ChatMessageProps>(
           </div>
 
           <div className="py-3">
-            <DraftInfoDisplay draft={draft} isThinking={isThinking} />
+            <DraftInfoDisplay draft={draftToDisplay} isThinking={isThinking} />
           </div>
 
           <div className="mt-8">
@@ -194,31 +220,28 @@ ChatMessage.displayName = 'ChatMessage';
 interface ChatMessageListProps {
   messages: ChatMessageType[];
   isThinking?: boolean;
-  draft?: IDraftData | null;
   className?: string;
 }
 
 export const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
   isThinking = false,
-  draft,
   className = '',
 }) => {
   return (
     <div className={`${className}`}>
-      {messages.map((message, index) => {
+      {messages.map((message) => {
         // 判断是否需要显示草案信息
         const showDraftDisplay =
           message.type === 'assistant' &&
           message.metadata?.draftUpdated &&
-          draft !== null;
+          message.metadata?.draftSnapshot !== undefined;
 
         return (
           <ChatMessage
             key={message.id}
             message={message}
             showDraftDisplay={showDraftDisplay}
-            draft={draft}
           />
         );
       })}
