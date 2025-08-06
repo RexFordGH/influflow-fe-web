@@ -19,8 +19,13 @@ const DraftInfoDisplay: React.FC<{
 }> = ({ draft, isThinking }) => {
   const sections = [
     {
+      emoji: '📝',
+      title: 'Topic',
+      content: draft.topic,
+    },
+    {
       emoji: '💬',
-      title: 'Main Point of View',
+      title: 'Content Angel',
       content: draft.content_angle,
     },
     {
@@ -30,14 +35,29 @@ const DraftInfoDisplay: React.FC<{
         draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
     },
     {
+      emoji: '👥',
+      title: 'Target Audience',
+      content: draft.target_audience,
+    },
+    {
+      emoji: '🌐',
+      title: 'Output Language',
+      content: draft.output_language || 'Chinese',
+    },
+    {
+      emoji: '🎯',
+      title: 'Purpose',
+      content: draft.purpose || '',
+    },
+    {
       emoji: '📏',
       title: 'Estimated Length',
       content: draft.content_length,
     },
     {
-      emoji: '✍️',
-      title: 'Tone & Style',
-      content: `${draft.purpose || ''} - ${draft.content_depth || ''}`,
+      emoji: '📊',
+      title: 'Content Depth',
+      content: draft.content_depth || '',
     },
     {
       emoji: '🔗',
@@ -46,6 +66,14 @@ const DraftInfoDisplay: React.FC<{
         draft.references?.length > 0
           ? draft.references.join('\n')
           : "You can add any reference articles or links that reflect your style or include specific facts you'd like us to use.",
+    },
+    {
+      emoji: '📋',
+      title: 'Special Requirements',
+      content:
+        draft.requirements?.length > 0
+          ? draft.requirements.map((req) => `• ${req}`).join('\n')
+          : 'No special requirements',
     },
   ];
 
