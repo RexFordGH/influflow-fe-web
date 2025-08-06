@@ -1,8 +1,10 @@
 'use client';
 
 import { Button } from '@heroui/react';
+import Tooltip from '@mui/material/Tooltip';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { IDraftData } from '@/types/draft';
 import ReactFlow, {
   Background,
   Controls,
@@ -19,6 +21,7 @@ import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import type { IOutline } from '@/types/outline';
+import { copyTwitterContent } from '@/utils/twitter';
 
 import MindmapNode from './MindmapNode';
 
@@ -35,7 +38,72 @@ interface EditableContentMindmapProps {
   highlightedNodeId?: string | null;
   hoveredTweetId?: string | null;
   isRegenerating?: boolean; // 新增：regenerate loading 状态
+  user?: any; // 新增：user属性
 }
+
+// 提示词历史展示组件
+const PromptHistoryDisplay: React.FC<{
+  draft: IDraftData;
+}> = ({ draft }) => {
+  const sections = [
+    {
+      emoji: '💬',
+      title: 'Main Point of View',
+      content: draft.content_angle,
+    },
+    {
+      emoji: '🔑',
+      title: 'Key Points to Cover',
+      content:
+        draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
+    },
+    {
+      emoji: '📏',
+      title: 'Estimated Length',
+      content: draft.content_length,
+    },
+    {
+      emoji: '✍️',
+      title: 'Tone & Style',
+      content: draft.purpose      || 'Chinese',
+    },
+    {
+      emoji: '🔗',
+      title: 'Add link to improve accuracy?',
+      content: draft.references,
+    }
+  ];
+
+  return (
+    <div className="space-y-4">
+      {sections.map((section, index) => (
+        <div key={index} className="flex gap-10">
+          <div className="flex w-[400px] items-start gap-2">
+            <span className="text-xl">{section.emoji}</span>
+            <h3
+              className="text-xl font-medium"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              {section.title}
+            </h3>
+          </div>
+          <div className="flex-1">
+            <p
+              className="whitespace-pre-line text-base text-black"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              {false && index === 0 ? (
+                <span className="text-gray-400">Generating...</span>
+              ) : (
+                section.content
+              )}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export function MindmapRenderer({
   nodes: mindmapNodes,
@@ -77,6 +145,10 @@ export function MindmapRenderer({
   const [showAIEditModal, setShowAIEditModal] = useState(false);
   const [aiEditInstruction, setAiEditInstruction] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+  
+  // PromptHistoryDisplay 相关状态
+  const [showPromptHistory, setShowPromptHistory] = useState(false);
+  const [promptHistoryData, setPromptHistoryData] = useState<IDraftData | null>(null);
 
   const handleEditWithAI = useCallback((nodeId: string) => {
     setSelectedNodeForAI(nodeId);
@@ -834,28 +906,76 @@ export function MindmapRenderer({
           position="bottom-center"
           className="mb-[24px] flex flex-col gap-[10px]"
         >
-          <Button
-            size="md"
-            color="primary"
-            variant="solid"
-            isLoading={isRegenerating}
-            isDisabled={isRegenerating}
-            onPress={async () => {
-              // 调用父组件的 API 重生成回调
-              if (onRegenerateClick) {
-                await onRegenerateClick();
-              } else {
-                console.warn('没有提供 onRegenerateClick 回调');
-              }
+
+        {/* 为按钮添 Prompt History */}
+        <div className="flex items-center gap-3">
+          
+          <Tooltip 
+            title="Prompt History" 
+            arrow 
+            slotProps={{
+              tooltip: {
+                sx: {
+                  bgcolor: '#333',       // 背景
+                  color: '#fff',         // 文字
+                  fontSize: '1rem',
+                  px: 1.9,               // 左右 1.9*8px = 15.2px
+                  py: 0.8,               // 上下 0.8*8px = 6.4px
+                  borderRadius: '9999px', // 圆角
+                },
+              },
+              arrow: {
+                sx: {
+                  color: '#333',         // 箭头颜色要和背景色一致
+                },
+              },
             }}
-            className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
-              isRegenerating
-                ? 'cursor-not-allowed bg-gray-400'
-                : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
-            }`}
+            placement="top"
           >
-            {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-          </Button>
+            <Button
+              size="sm"
+              color="primary"
+              variant="solid"
+              onPress={() => {
+                // 模拟获取draft数据
+                console.log('prompt history', originalOutline?.draft);
+                
+                setPromptHistoryData(originalOutline?.draft || null);
+                setShowPromptHistory(true);
+              }}
+              className={`rounded-full w-10 h-10 min-w-10 p-0 flex items-center justify-center hover:bg-[#DDE9FF] transition-colors duration-200`}
+            >
+              <img
+                  src="/icons/vector.svg"
+                  alt="check"
+                  className="size-6"
+              />
+            </Button>
+          </Tooltip>
+            
+            <Button
+              size="md"
+              color="primary"
+              variant="solid"
+              isLoading={isRegenerating}
+              isDisabled={isRegenerating}
+              onPress={async () => {
+                // 调用父组件的 API 重生成回调
+                if (onRegenerateClick) {
+                  await onRegenerateClick();
+                } else {
+                  console.warn('没有提供 onRegenerateClick 回调');
+                }
+              }}
+              className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
+                isRegenerating
+                  ? 'cursor-not-allowed bg-gray-400'
+                  : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
+              }`}
+            >
+              {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+            </Button>
+        </div>
         </Panel>
 
         {/* 调试面板 */}
@@ -934,6 +1054,90 @@ export function MindmapRenderer({
                 >
                   {isAIProcessing ? 'Generating...' : 'Submit'}
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PromptHistoryDisplay 模态框 */}
+      {showPromptHistory && promptHistoryData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="max-w-4xl w-full mx-4 bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              {/* 顶部 */}
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Prompt History</h2>
+                <Button
+                  size="sm"
+                  variant="light"
+                  onPress={() => setShowPromptHistory(false)}
+                  className="rounded-full w-9 h-9 min-w-9 p-0"
+                >
+                  <span className="text-gray-400 font-bold text-xl">✕</span>
+                </Button>
+              </div>
+              
+              {/* 内容复制框 */}
+                <div className="mb-9">
+                  <div className="flex items-end justify-end gap-3">
+                    <Tooltip 
+                      title="Copy" 
+                      arrow 
+                      slotProps={{
+                        tooltip: {
+                          sx: {
+                            bgcolor: '#333',       // 背景
+                            color: '#fff',         // 文字
+                            fontSize: '1rem',
+                            px: 1.9,               // 左右 1.5*8px = 12px
+                            py: 0.8,              // 上下 0.75*8px = 6px
+                            borderRadius: '9999px', // 圆角
+                          },
+                        },
+                        arrow: {
+                          sx: {
+                            color: '#333',         // 箭头颜色要和背景色一致
+                          },
+                        },
+                      }}
+                      placement="top"
+                    >
+                      <Button
+                        size="sm"
+                        color="primary"
+                        variant="solid"
+                        onPress={async () => {
+                          await copyTwitterContent(promptHistoryData.topic);
+                        }}
+                        className="rounded-lg w-10 h-10 min-w-10 p-0 hover:bg-[#EFEFEF]"
+                      > 
+                        <img
+                          src="/icons/copy.svg"
+                          alt="copy"
+                          className="size-5"
+                        />
+                      </Button>
+                    </Tooltip>
+
+                    <div className="bg-[#F8F8F8] rounded-lg px-3 py-2 max-w-md">
+                      <span className="text-gray-900 font-medium text-base">
+                          {originalOutline?.userInput || 'No user input'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              
+              {/* 写作意图部分 */}
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Let's Confirm Your Writing Intent
+                </h3>
+                <p className="text-gray-600 mb-8 text-base">
+                  Here's a quick overview of how we plan to structure your article based on your topic:
+                </p>
+                
+                <PromptHistoryDisplay draft={promptHistoryData} />
               </div>
             </div>
           </div>

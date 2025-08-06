@@ -1,5 +1,7 @@
 // AppSidebar 轻量化改造 - 类型定义
 
+import { IDraftData } from "@/types/draft";
+
 // 分页参数接口
 export interface PaginationParams {
   page: number; // 当前页码（从1开始）
@@ -31,6 +33,10 @@ export interface SidebarItem {
     tweets: any[];
     updated_at: string;
     created_at: string;
+    // 新增用户输入和draft数据
+    // 用于传递到prompt history
+    user_input: string;
+    draft: IDraftData | null;
   };
 }
 
