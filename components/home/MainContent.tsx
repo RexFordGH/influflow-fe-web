@@ -5,10 +5,11 @@ import { motion } from 'framer-motion';
 
 import { useAuthStore } from '@/stores/authStore';
 import {
-  ContentFormat,
+  IContentFormat,
+  IMode,
+  ISuggestedTopic,
+  ITrendingTopic,
   ITrendsRecommendTweet,
-  SuggestedTopic,
-  TrendingTopic,
 } from '@/types/api';
 
 import { WelcomeScreen } from './WelcomeScreen';
@@ -19,7 +20,7 @@ export interface IMainContentProps {
   showTrendingTopics: boolean;
   onScrollToTrending: () => void;
   onBackFromTrending: () => void;
-  onTrendingTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTrendingTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onTrendingSearchConfirm?: (
     searchTerm: string,
@@ -29,7 +30,7 @@ export interface IMainContentProps {
   onRemoveSelectedTweet?: (index: number) => void;
   topicInput: string;
   onTopicInputChange: (value: string) => void;
-  onTopicSubmit: (contentFormat: ContentFormat) => void;
+  onTopicSubmit: (contentFormat: IContentFormat, mode: IMode) => void;
 }
 
 export const MainContent = ({

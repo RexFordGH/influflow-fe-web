@@ -12,9 +12,9 @@ import { useMindmapInteraction } from '@/hooks/useMindmapInteraction';
 import { useTwitterIntegration } from '@/hooks/useTwitterIntegration';
 import { convertThreadDataToMindmap } from '@/lib/data/converters';
 import { useAuthStore } from '@/stores/authStore';
-import { ContentFormat } from '@/types/api';
+import { IContentFormat, IMode } from '@/types/api';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
@@ -26,18 +26,28 @@ import EditableContentMindmap from './mindmap/MindmapRenderer';
 
 interface ArticleRendererProps {
   topic: string;
-  contentFormat: ContentFormat;
+  contentFormat: IContentFormat;
+  mode?: IMode; // 添加mode属性
+  userInput?: string; // 添加userInput属性
   onBack: () => void;
-  initialData?: Outline;
+  initialData?: IOutline;
   onDataUpdate?: () => void;
+  sessionId?: string;
+  onGenerationComplete?: (data: IOutline) => void; // 添加生成完成回调
+  onGenerationError?: (error: Error) => void; // 添加错误回调
 }
 
 export function ArticleRenderer({
   topic,
   contentFormat,
+  mode,
+  userInput,
   onBack,
   initialData,
   onDataUpdate,
+  sessionId,
+  onGenerationComplete,
+  onGenerationError,
 }: ArticleRendererProps) {
   // 状态：思维导图节点和边
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
@@ -46,32 +56,62 @@ export function ArticleRenderer({
   // 获取用户信息
   const { user } = useAuthStore();
 
-  // 使用自定义 Hooks
+  // 使用自定义 Hooks - 传入mode和userInput
   const generation = useGenerationState({
+    mode,
     topic,
     contentFormat,
     initialData,
-    onGenerationComplete: useCallback((data: Outline) => {
-      console.log('Generation completed:', data);
-      const { nodes, edges } = convertThreadDataToMindmap(data);
-      setCurrentNodes(nodes);
-      setCurrentEdges(edges);
-    }, []),
+    sessionId,
+    userInput,
+    onGenerationComplete: useCallback(
+      (data: IOutline) => {
+        console.log('Generation completed:', data);
+        const { nodes, edges } = convertThreadDataToMindmap(data);
+        setCurrentNodes(nodes);
+        setCurrentEdges(edges);
+        onGenerationComplete?.(data);
+      },
+      [onGenerationComplete],
+    ),
     onGenerationError: useCallback(
       (error: Error) => {
         console.error('Generation error:', error);
+        onGenerationError?.(error);
         onBack();
       },
-      [onBack],
+      [onBack, onGenerationError],
     ),
   });
+
+  // 对于非 draft 模式，组件挂载后立即开始生成
+  useEffect(() => {
+    if (!initialData && mode && topic && !generation.hasStartedGeneration) {
+      console.log('Starting generation for mode:', mode);
+      generation.startGeneration({
+        topic,
+        contentFormat,
+        mode,
+        userInput,
+        sessionId,
+      });
+    }
+  }, [
+    mode,
+    topic,
+    contentFormat,
+    userInput,
+    sessionId,
+    initialData,
+    generation.hasStartedGeneration,
+  ]);
 
   const images = useImageManagement({
     rawAPIData: generation.rawAPIData,
     contentFormat,
     onDataUpdate,
     onContentUpdate: useCallback(
-      (updatedData: Outline) => {
+      (updatedData: IOutline) => {
         generation.setRawAPIData(updatedData);
       },
       [generation],
@@ -88,7 +128,7 @@ export function ArticleRenderer({
     currentNodes,
     onDataUpdate,
     onContentUpdate: useCallback(
-      (updatedData: Outline) => {
+      (updatedData: IOutline) => {
         generation.setRawAPIData(updatedData);
         const { nodes, edges } = convertThreadDataToMindmap(updatedData);
         setCurrentNodes(nodes);
@@ -105,7 +145,7 @@ export function ArticleRenderer({
     generatedContent: generation.generatedContent,
     onDataUpdate,
     onContentUpdate: useCallback(
-      (updatedData: Outline) => {
+      (updatedData: IOutline) => {
         generation.setRawAPIData(updatedData);
       },
       [generation],
@@ -237,7 +277,7 @@ export function ArticleRenderer({
                 </div>
 
                 <div>
-                  <div className="ml-[12px] pb-[12px] flex gap-[4px] text-[16px] leading-none">
+                  <div className="ml-[12px] flex gap-[4px] pb-[12px] text-[16px] leading-none">
                     <span className="font-[600] text-black">{user?.name}</span>
                     {user?.account_name && (
                       <span className="text-[#5C6D7A]">

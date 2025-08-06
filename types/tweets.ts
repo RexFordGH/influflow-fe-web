@@ -1,4 +1,4 @@
-export interface TweetData {
+export interface ITweetData {
   id: string;
   content: string;
   imageUrl?: string;
@@ -17,8 +17,8 @@ export interface TweetData {
   isSelected?: boolean;
 }
 
-export interface TrendingTopicTweets {
+export interface ITrendingTopicTweets {
   topicId: string;
   topicTitle: string;
-  tweets: TweetData[];
+  tweets: ITweetData[];
 }

@@ -1,20 +1,21 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  ITrendingTopicsResponse,
   ITrendsRecommendTweet,
-  type CheckInvitationCodeResponse,
-  type GenerateImageRequest,
-  type GenerateThreadRequest,
-  type HealthData,
-  type ModifyOutlineData,
-  type ModifyOutlineRequest,
-  type ModifyTweetData,
-  type ModifyTweetRequest,
-  type TrendingTopicsResponse,
+  type ICheckInvitationCodeResponse,
+  type IGenerateImageRequest,
+  type IGenerateThreadRequest,
+  type IHealthData,
+  type IModifyOutlineData,
+  type IModifyOutlineRequest,
+  type IModifyTweetData,
+  type IModifyTweetRequest,
 } from '@/types/api';
-import { Outline } from '@/types/outline';
+import { IGenerateDraftRequest, IGenerateDraftResponse } from '@/types/draft';
+import { IOutline } from '@/types/outline';
 
-import { apiDirectGet, apiGet, apiPost, generateImage } from './client';
+import { apiGet, apiPost, generateImage } from './client';
 
 export const QUERY_KEYS = {
   HEALTH: ['health'] as const,
@@ -22,6 +23,7 @@ export const QUERY_KEYS = {
   TWITTER_MODIFY_TWEET: ['twitter', 'modify-tweet'] as const,
   TWITTER_MODIFY_OUTLINE: ['twitter', 'modify-outline'] as const,
   TWITTER_GENERATE_IMAGE: ['twitter', 'generate-image'] as const,
+  TWITTER_DRAFT_GENERATE: ['twitter', 'draft', 'generate'] as const,
   TRENDING_TOPICS: ['trending', 'topics'] as const,
   TRENDING_RECOMMEND: ['trending', 'recommend'] as const,
   TRENDING_SEARCH: ['trending', 'query'] as const,
@@ -31,7 +33,7 @@ export const QUERY_KEYS = {
 export function useHealth() {
   return useQuery({
     queryKey: QUERY_KEYS.HEALTH,
-    queryFn: () => apiGet<HealthData>('/health'),
+    queryFn: () => apiGet<IHealthData>('/health'),
     refetchInterval: 30000, // 30秒刷新一次
     refetchOnWindowFocus: false,
     retry: 3,
@@ -45,8 +47,8 @@ export function useHealth() {
 // 生成 Twitter Thread
 export function useGenerateThread() {
   return useMutation({
-    mutationFn: async (data: GenerateThreadRequest): Promise<Outline> => {
-      return apiPost<Outline>('/api/twitter/generate', data, 120000);
+    mutationFn: async (data: IGenerateThreadRequest): Promise<IOutline> => {
+      return apiPost<IOutline>('/api/twitter/generate', data, 120000);
     },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
@@ -61,8 +63,10 @@ export function useGenerateThread() {
 // 修改单个 Tweet
 export function useModifyTweet() {
   return useMutation({
-    mutationFn: async (data: ModifyTweetRequest): Promise<ModifyTweetData> => {
-      return apiPost<ModifyTweetData>(
+    mutationFn: async (
+      data: IModifyTweetRequest,
+    ): Promise<IModifyTweetData> => {
+      return apiPost<IModifyTweetData>(
         '/api/twitter/modify-tweet',
         data,
         100000,
@@ -82,9 +86,9 @@ export function useModifyTweet() {
 export function useModifyOutline() {
   return useMutation({
     mutationFn: async (
-      data: ModifyOutlineRequest,
-    ): Promise<ModifyOutlineData> => {
-      return apiPost<ModifyOutlineData>(
+      data: IModifyOutlineRequest,
+    ): Promise<IModifyOutlineData> => {
+      return apiPost<IModifyOutlineData>(
         '/api/twitter/modify-outline',
         data,
         120000,
@@ -100,10 +104,38 @@ export function useModifyOutline() {
   });
 }
 
+// 生成草案
+export function useDraftGeneration() {
+  return useMutation({
+    mutationFn: async (data: IGenerateDraftRequest) => {
+      const response = await apiPost<IGenerateDraftResponse>(
+        '/api/twitter/draft/generate',
+        data,
+        120000,
+      );
+
+      return response;
+    },
+    onSuccess: (data) => {
+      console.log('Draft generated successfully:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to generate draft:', error);
+    },
+    retry: (failureCount, error: any) => {
+      if (error?.name === 'NetworkError' && failureCount < 3) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+}
+
 // 生成图片
 export function useGenerateImage() {
   return useMutation({
-    mutationFn: async (data: GenerateImageRequest): Promise<string> => {
+    mutationFn: async (data: IGenerateImageRequest): Promise<string> => {
       return generateImage(data.target_tweet, data.tweet_thread, 120000);
     },
     onSuccess: (imageUrl) => {
@@ -123,11 +155,8 @@ export function useGenerateImage() {
 export function useTrendingTopics(topicType: string = 'ai') {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_TOPICS, topicType],
-    queryFn: (): Promise<TrendingTopicsResponse> => {
-      return apiDirectGet<TrendingTopicsResponse>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/?topic_type=${topicType}`,
-      );
-    },
+    queryFn: () =>
+      apiGet<ITrendingTopicsResponse>(`/trends?topic_type=${topicType}`),
     staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
     gcTime: 10 * 60 * 1000, // 10分钟缓存
     refetchOnWindowFocus: false,
@@ -138,14 +167,8 @@ export function useTrendingTopics(topicType: string = 'ai') {
 export function useTrendingRecommend(id: string, enabled?: boolean) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_RECOMMEND, id],
-    queryFn: async () => {
-      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/recommend?id=${id}`,
-      );
-    },
-    select: (data) => {
-      return data.tweets;
-    },
+    queryFn: () =>
+      apiGet<ITrendsRecommendTweet[]>(`/trends/recommend?id=${id}`),
     enabled: enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -157,15 +180,11 @@ export function useTrendingRecommend(id: string, enabled?: boolean) {
 export function useTrendingSearch(query: string, enabled?: boolean) {
   return useQuery({
     queryKey: [...QUERY_KEYS.TRENDING_SEARCH, 'search', query],
-    queryFn: async () => {
-      // return Promise.resolve({
-      //   tweets: StaticTrendsRecommend['82c6ba13-4c10-4813-b59e-68a6c5ff9929'],
-      // });
-      return apiDirectGet<{ tweets: ITrendsRecommendTweet[] }>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL_TRENDING_TOPIC}/trends/query?query=${encodeURIComponent(query)}`,
-      );
-    },
-    select: (data) => {
+    queryFn: () =>
+      apiGet<{ tweets: ITrendsRecommendTweet[] }>(
+        `/trends/query?query=${encodeURIComponent(query)}`,
+      ),
+    select(data) {
       return data.tweets;
     },
     enabled: enabled,
@@ -297,8 +316,8 @@ export async function queryTweetDetail(
 
 export async function checkInvitationCode(
   code: string,
-): Promise<CheckInvitationCodeResponse> {
-  return apiGet<CheckInvitationCodeResponse>(
+): Promise<ICheckInvitationCodeResponse> {
+  return apiGet<ICheckInvitationCodeResponse>(
     `/api/check-invitation-code?code=${code.trim()}`,
   );
 }

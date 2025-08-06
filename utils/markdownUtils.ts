@@ -1,10 +1,10 @@
-import { ContentFormat } from '@/types/api';
-import { Outline, Tweet } from '@/types/outline';
+import { IContentFormat } from '@/types/api';
+import { IOutline, ITweet } from '@/types/outline';
 
 /**
  * 验证数据是否为有效的 Outline 格式
  */
-export function validateOutlineData(data: unknown): data is Outline {
+export function validateOutlineData(data: unknown): data is IOutline {
   if (!data || typeof data !== 'object') return false;
 
   const outline = data as any;
@@ -32,7 +32,7 @@ export function validateOutlineData(data: unknown): data is Outline {
 /**
  * 验证 Tweet 节点的有效性
  */
-function isValidTweetNode(node: unknown): node is Tweet {
+function isValidTweetNode(node: unknown): node is ITweet {
   if (!node || typeof node !== 'object') return false;
 
   const tweet = node as any;
@@ -91,9 +91,9 @@ export interface MarkdownSection {
  * 将 Outline 数据转换为 MarkdownSection 数组
  */
 export function processSectionsFromOutline(
-  outline: Outline,
+  outline: IOutline,
   options?: {
-    contentFormat?: ContentFormat;
+    contentFormat?: IContentFormat;
   },
 ): MarkdownSection[] {
   // 确定内容格式
@@ -111,7 +111,7 @@ export function processSectionsFromOutline(
 /**
  * 处理标准格式（thread）的 sections
  */
-function processStandardSections(outline: Outline): MarkdownSection[] {
+function processStandardSections(outline: IOutline): MarkdownSection[] {
   const sections: MarkdownSection[] = [];
 
   outline.nodes.forEach((group, groupIndex) => {
@@ -149,7 +149,7 @@ function processStandardSections(outline: Outline): MarkdownSection[] {
 /**
  * 处理长文格式（longform）的 sections
  */
-function processLongformSections(outline: Outline): MarkdownSection[] {
+function processLongformSections(outline: IOutline): MarkdownSection[] {
   const sections: MarkdownSection[] = [];
 
   outline.nodes.forEach((group, groupIndex) => {

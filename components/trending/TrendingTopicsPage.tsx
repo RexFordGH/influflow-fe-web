@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
@@ -12,9 +8,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
 import {
+  type ISuggestedTopic,
+  type ITrendingTopic,
   type ITrendsRecommendTweet,
-  type SuggestedTopic,
-  type TrendingTopic,
 } from '@/types/api';
 
 import { SearchModal } from './SearchModal';
@@ -23,7 +19,7 @@ import { TrendingTopicTweets } from './TrendingTopicTweets';
 interface TrendingTopicsProps {
   isVisible: boolean;
   onBack: () => void;
-  onTopicSelect: (topic: TrendingTopic | SuggestedTopic) => void;
+  onTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onSearchConfirm?: (
     searchTerm: string,
@@ -91,7 +87,8 @@ const TrendingTopicItem = ({
           <span className="text-left text-lg font-medium text-black">
             {topic.title}
           </span>
-          <div className="flex items-center gap-[10px]">
+          {/* 对topic.value 进行隐藏*/}
+          {/* <div className="flex items-center gap-[10px]">
             <span className="text-lg font-medium text-gray-600">
               {topic.value}
             </span>
@@ -110,7 +107,7 @@ const TrendingTopicItem = ({
                 <ChevronRightIcon className="size-5" />
               )}
             </motion.div>
-          </div>
+          </div> */}
         </button>
       </div>
       {/* </CopyToClipboard> */}
@@ -258,7 +255,7 @@ export function TrendingTopicsPage({
                 ) : error ? (
                   <TrendingTopicError />
                 ) : (
-                  trendingTopics.map((topic: TrendingTopic, index: number) => (
+                  trendingTopics.map((topic: ITrendingTopic, index: number) => (
                     <TrendingTopicItem
                       key={`${topic.title}-${index}`}
                       topic={topic}

@@ -18,14 +18,14 @@ import ReactFlow, {
 import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
-import type { Outline } from '@/types/outline';
+import type { IOutline } from '@/types/outline';
 
 import MindmapNode from './MindmapNode';
 
 interface EditableContentMindmapProps {
   nodes: MindmapNodeData[];
   edges: MindmapEdgeData[];
-  originalOutline?: Outline; // 添加原始outline数据用于API调用
+  originalOutline?: IOutline; // 添加原始outline数据用于API调用
   onNodeSelect?: (nodeId: string | null) => void;
   onNodeHover?: (nodeId: string | null) => void;
   onNodesChange?: (nodes: MindmapNodeData[]) => void;
@@ -59,7 +59,7 @@ export function MindmapRenderer({
   const modifyTweetMutation = useModifyTweet();
 
   // 存储当前的outline数据，用于API调用
-  const [currentOutline, setCurrentOutline] = useState<Outline | null>(
+  const [currentOutline, setCurrentOutline] = useState<IOutline | null>(
     originalOutline || null,
   );
 
@@ -629,7 +629,7 @@ export function MindmapRenderer({
     if (currentOutline) {
       const updatedOutline = JSON.parse(
         JSON.stringify(currentOutline),
-      ) as Outline;
+      ) as IOutline;
 
       // 根据节点类型更新对应的数据
       if (targetNode.level === 1) {
@@ -709,7 +709,7 @@ export function MindmapRenderer({
         // 1. 更新currentOutline中对应的tweet内容
         const updatedOutline = JSON.parse(
           JSON.stringify(currentOutline),
-        ) as Outline;
+        ) as IOutline;
         let tweetFound = false;
 
         for (const outlineNode of updatedOutline.nodes) {

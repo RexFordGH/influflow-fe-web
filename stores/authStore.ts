@@ -3,7 +3,7 @@ import { ITone } from '@/utils/profileStorage';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface User {
+export interface IUser {
   id: string;
   name: string;
   email: string;
@@ -18,19 +18,19 @@ export interface User {
   tweet_example_urls?: string[];
 }
 
-interface AuthState {
-  user: User | null;
+interface IAuthState {
+  user: IUser | null;
   isAuthenticated: boolean;
   isLoginModalOpen: boolean;
   authError: string | null;
 
   // Actions
   setSession: (
-    user: User | null,
+    user: IUser | null,
     accessToken?: string | null,
     expiresAt?: number,
   ) => void;
-  updateUser: (userData: Partial<User>) => void;
+  updateUser: (userData: Partial<IUser>) => void;
   syncProfileFromSupabase: () => Promise<void>;
   logout: () => Promise<void>;
   openLoginModal: (error?: string) => void;
@@ -53,7 +53,7 @@ let tokenCache: TokenCache = {
   expiresAt: null,
 };
 
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore = create<IAuthState>()(
   persist(
     (set) => ({
       user: null,
@@ -187,7 +187,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           const supabaseUser = session.user;
-          const user: User = {
+          const user: IUser = {
             id: supabaseUser.id,
             name:
               supabaseUser.user_metadata?.full_name ||

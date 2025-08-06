@@ -1,7 +1,7 @@
-import { ModifyOutlineData, ModifyTweetData } from '@/types/api';
-import type { Outline } from '@/types/outline';
+import { IModifyOutlineData, IModifyTweetData } from '@/types/api';
+import type { IOutline } from '@/types/outline';
 
-export const localGenerateThreadResponse: Outline = {
+export const localGenerateThreadResponse: IOutline = {
   id: '123',
   topic: "What's AI?",
   content_format: 'longform',
@@ -89,10 +89,10 @@ export const localGenerateThreadResponse: Outline = {
 
 // 本地模拟 ModifyTweet 响应数据
 export const createLocalModifyTweetResponse = (
-  originalOutline: Outline,
+  originalOutline: IOutline,
   tweetNumber: number,
   prompt: string,
-): ModifyTweetData => {
+): IModifyTweetData => {
   // 找到对应的tweet并生成AI增强的内容
   let originalContent = '';
   let tweetFound = false;
@@ -129,9 +129,9 @@ export const createLocalModifyTweetResponse = (
 
 // 本地模拟 ModifyOutline 响应数据
 export const createLocalModifyOutlineResponse = (
-  originalOutline: Outline,
-  newOutlineStructure: Outline,
-): ModifyOutlineData => {
+  originalOutline: IOutline,
+  newOutlineStructure: IOutline,
+): IModifyOutlineData => {
   // 模拟API对大纲进行智能优化
   const enhancedNodes = newOutlineStructure.nodes.map((node, index) => ({
     title: `${node.title}（已优化）`,

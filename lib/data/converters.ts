@@ -4,12 +4,12 @@ import {
   type MindmapEdgeData,
   type MindmapNodeData,
 } from '@/types/content';
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 
 /**
  * 将API返回的Outline转换为思维导图数据结构
  */
-export function convertThreadDataToMindmap(data: Outline): {
+export function convertThreadDataToMindmap(data: IOutline): {
   nodes: MindmapNodeData[];
   edges: MindmapEdgeData[];
 } {
@@ -86,7 +86,7 @@ export function convertThreadDataToMindmap(data: Outline): {
  * 将API数据转换为完整的GeneratedContent
  */
 export function convertAPIDataToGeneratedContent(
-  data: Outline,
+  data: IOutline,
 ): GeneratedContent {
   const mindmap = convertThreadDataToMindmap(data);
 

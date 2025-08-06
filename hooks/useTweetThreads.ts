@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
-import { Tweet } from '@/types/outline';
+import { ITweet } from '@/types/outline';
 
 export interface TweetThread {
   id: string;
   uid: string;
   topic: string;
-  tweets: Tweet[];
+  tweets: ITweet[];
   created_at: string;
   updated_at: string;
 }

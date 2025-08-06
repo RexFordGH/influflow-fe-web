@@ -1,7 +1,6 @@
-import { User } from '@/stores/authStore';
-import { Outline } from './outline';
+import { IOutline } from './outline';
 
-export interface BaseResponse<T> {
+export interface IBaseResponse<T> {
   code: number;
   status: string;
   message: string;
@@ -9,65 +8,67 @@ export interface BaseResponse<T> {
   error?: null | string;
 }
 
-export interface HealthData {
+export interface IHealthData {
   timestamp: string;
   version?: string;
 }
 
-export type HealthResponse = BaseResponse<HealthData>;
+export type IHealthResponse = IBaseResponse<IHealthData>;
 
-export type ContentFormat = 'longform' | 'thread';
+export type IContentFormat = 'longform' | 'thread';
+export type IMode = 'lite' | 'analysis' | 'draft';
 
-export interface GenerateThreadRequest {
+/**
+ * @example 参考 lib/api/api.md 里的参数说明
+ */
+export interface IGenerateThreadRequest {
+  session_id?: string;
   user_input: string;
-  content_format: ContentFormat;
-  personalization?: Pick<
-    User,
-    'account_name' | 'tone' | 'bio' | 'tweet_examples'
-  >;
+  content_format: IContentFormat;
+  mode: IMode;
 }
 
-export type GenerateThreadResponse = BaseResponse<Outline>;
+export type IGenerateThreadResponse = IBaseResponse<IOutline>;
 
-export interface ModifyTweetRequest {
-  outline: Outline;
+export interface IModifyTweetRequest {
+  outline: IOutline;
   tweet_number: number;
   modification_prompt: string;
 }
 
-export interface ModifyTweetData {
+export interface IModifyTweetData {
   updated_tweet_content: string;
 }
 
-export type ModifyTweetResponse = BaseResponse<ModifyTweetData>;
+export type IModifyTweetResponse = IBaseResponse<IModifyTweetData>;
 
-export interface ModifyOutlineRequest {
-  original_outline: Outline;
-  new_outline_structure: Outline;
+export interface IModifyOutlineRequest {
+  original_outline: IOutline;
+  new_outline_structure: IOutline;
 }
 
-export interface ModifyOutlineData {
-  updated_outline: Outline;
+export interface IModifyOutlineData {
+  updated_outline: IOutline;
 }
 
-export type ModifyOutlineResponse = BaseResponse<ModifyOutlineData>;
+export type IModifyOutlineResponse = IBaseResponse<IModifyOutlineData>;
 
 // Trending Topics 相关类型
-export interface TrendingTopic {
+export interface ITrendingTopic {
   id: string;
   title: string;
   type: string;
   value: number;
 }
 
-export interface SuggestedTopic {
+export interface ISuggestedTopic {
   topic: string;
   type: string;
 }
 
-export interface TrendingTopicsResponse {
-  trending_topics: TrendingTopic[];
-  suggested_topics: SuggestedTopic[];
+export interface ITrendingTopicsResponse {
+  trending_topics: ITrendingTopic[];
+  suggested_topics: ISuggestedTopic[];
 }
 
 export interface ITrendsRecommendTweet {
@@ -85,29 +86,29 @@ export interface ITrendsRecommendTweet {
 }
 
 // 图片生成相关类型
-export interface GenerateImageRequest {
+export interface IGenerateImageRequest {
   target_tweet: string;
   tweet_thread: string;
 }
 
-export interface GenerateImageData {
+export interface IGenerateImageData {
   image_url: string;
 }
 
-export type GenerateImageResponse = BaseResponse<GenerateImageData>;
+export type IGenerateImageResponse = IBaseResponse<IGenerateImageData>;
 
 // 邀请码验证相关类型
-export interface CheckInvitationCodeRequest {
+export interface ICheckInvitationCodeRequest {
   code: string;
 }
 
-export interface CheckInvitationCodeResponse {
+export interface ICheckInvitationCodeResponse {
   valid: boolean;
   error?: string;
 }
 
 // API 错误响应类型
-export interface ApiErrorResponse {
+export interface IApiErrorResponse {
   detail:
     | string
     | Array<{

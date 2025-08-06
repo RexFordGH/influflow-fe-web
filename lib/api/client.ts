@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/constants/env';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
-import { type ApiErrorResponse, type BaseResponse } from '@/types/api';
+import { type IApiErrorResponse, type IBaseResponse } from '@/types/api';
 
 const supabase = createClient();
 
@@ -9,7 +9,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
-    public response?: ApiErrorResponse,
+    public response?: IApiErrorResponse,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -92,7 +92,7 @@ export async function apiRequest<T>(
         }
       }
 
-      let errorData: ApiErrorResponse;
+      let errorData: IApiErrorResponse;
       let responseText = '';
       try {
         responseText = await response.text();
@@ -125,7 +125,7 @@ export async function apiRequest<T>(
       'data' in parsed &&
       'code' in parsed
     ) {
-      const baseResponse = parsed as BaseResponse<unknown>;
+      const baseResponse = parsed as IBaseResponse<unknown>;
 
       if (baseResponse?.status !== 'success') {
         throw new ApiError(
@@ -217,7 +217,7 @@ export async function apiDirectRequest<T>(
     const response = await fetch(fullUrl, config);
 
     if (!response.ok) {
-      let errorData: ApiErrorResponse;
+      let errorData: IApiErrorResponse;
       let responseText = '';
       try {
         responseText = await response.text();
@@ -250,7 +250,7 @@ export async function apiDirectRequest<T>(
       'data' in parsed &&
       'code' in parsed
     ) {
-      const baseResponse = parsed as BaseResponse<unknown>;
+      const baseResponse = parsed as IBaseResponse<unknown>;
 
       if (baseResponse?.status !== 'success') {
         throw new ApiError(

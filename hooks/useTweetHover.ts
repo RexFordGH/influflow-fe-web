@@ -1,6 +1,6 @@
 'use client';
 
-import { TweetData } from '@/types/tweets';
+import { ITweetData } from '@/types/tweets';
 import { useEffect, useRef, useState } from 'react';
 
 interface UseTweetHoverProps {
@@ -16,7 +16,7 @@ export function useTweetHover({
 }: UseTweetHoverProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tweets, setTweets] = useState<TweetData[]>([]);
+  const [tweets, setTweets] = useState<ITweetData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,7 +99,7 @@ export function useTweetHover({
   };
 
   // 处理选择推文
-  const handleConfirm = (selectedTweets: TweetData[]) => {
+  const handleConfirm = (selectedTweets: ITweetData[]) => {
     console.log('Selected tweets:', selectedTweets);
     // 这里可以添加实际的选择逻辑，比如复制到剪贴板、添加到收藏等
     setIsModalOpen(false);

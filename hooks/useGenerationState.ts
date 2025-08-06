@@ -1,17 +1,23 @@
 import { addToast } from '@/components/base/toast';
 import { getErrorMessage, useGenerateThread } from '@/lib/api/services';
 import { convertAPIDataToGeneratedContent } from '@/lib/data/converters';
+import { ModeHandlerFactory } from '@/services/mode-handlers';
 import { useAuthStore } from '@/stores/authStore';
-import { ContentFormat } from '@/types/api';
+import { IContentFormat, IMode } from '@/types/api';
 import { GeneratedContent } from '@/types/content';
-import { Outline } from '@/types/outline';
+import { GenerationParams } from '@/types/generation';
+import { IOutline } from '@/types/outline';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useGenerationOrchestrator } from './useGenerationOrchestrator';
 
 interface UseGenerationStateProps {
+  mode?: IMode;
   topic: string;
-  contentFormat: ContentFormat;
-  initialData?: Outline;
-  onGenerationComplete?: (data: Outline) => void;
+  contentFormat: IContentFormat;
+  initialData?: IOutline;
+  sessionId?: string;
+  userInput?: string;
+  onGenerationComplete?: (data: IOutline) => void;
   onGenerationError?: (error: Error) => void;
 }
 
@@ -22,13 +28,16 @@ interface UseGenerationStateReturn {
   generationSteps: string[];
   hasStartedGeneration: boolean;
   apiError: string | null;
-  rawAPIData: Outline | null;
+  rawAPIData: IOutline | null;
   generatedContent: GeneratedContent | null;
+  currentMode: IMode;
 
   // 方法
-  startGeneration: () => void;
+  startGeneration: (params?: GenerationParams) => void;
   resetGeneration: () => void;
-  setRawAPIData: (data: Outline) => void;
+  setRawAPIData: (data: IOutline) => void;
+  setMode: (mode: IMode) => void;
+  retryGeneration: () => void;
 }
 
 // 生成步骤配置
@@ -48,9 +57,12 @@ const STEP_TIMINGS = [
 ];
 
 export function useGenerationState({
+  mode: initialMode,
   topic,
   contentFormat,
   initialData,
+  sessionId,
+  userInput,
   onGenerationComplete,
   onGenerationError,
 }: UseGenerationStateProps): UseGenerationStateReturn {
@@ -58,7 +70,7 @@ export function useGenerationState({
   const [generationStep, setGenerationStep] = useState(0);
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [rawAPIData, setRawAPIData] = useState<Outline | null>(
+  const [rawAPIData, setRawAPIData] = useState<IOutline | null>(
     initialData || null,
   );
 
@@ -71,6 +83,16 @@ export function useGenerationState({
   // API调用hook
   const { mutate: generateThread } = useGenerateThread();
 
+  // 使用生成流程编排器
+  const {
+    context,
+    transitionToPhase,
+    changeMode,
+    startGeneration: orchestratorStart,
+    resetGeneration: orchestratorReset,
+    retryGeneration: orchestratorRetry,
+  } = useGenerationOrchestrator();
+
   // 生成步骤数组
   const generationSteps = useMemo(() => GENERATION_STEPS, []);
 
@@ -79,6 +101,13 @@ export function useGenerationState({
     if (!rawAPIData) return null;
     return convertAPIDataToGeneratedContent(rawAPIData);
   }, [rawAPIData]);
+
+  // 处理来自WelcomeScreen的模式参数
+  useEffect(() => {
+    if (initialMode && context.mode !== initialMode) {
+      changeMode(initialMode);
+    }
+  }, [initialMode, context.mode, changeMode]);
 
   // 解析topic中的参考推文
   const parseTopicWithReferences = useCallback((topicInput: string) => {
@@ -100,25 +129,48 @@ export function useGenerationState({
     return { userInput, referenceUrls };
   }, []);
 
-  // 构建请求数据
-  const buildGenerationRequest = useCallback(
-    (topicInput: string) => {
-      const { userInput } = parseTopicWithReferences(topicInput);
+  // 构建请求数据 - 使用新的架构
+  const buildGenerationRequest = useCallback(() => {
+    try {
+      const handler = ModeHandlerFactory.getHandler(context.mode);
 
+      // 根据不同模式准备参数
+      let params: any = {};
+
+      if (context.mode === 'draft') {
+        params = {
+          sessionId: sessionId || context.sessionId,
+          userInput: userInput || context.userInput,
+        };
+      } else {
+        // lite 和 analysis 模式
+        const { userInput: parsedInput } = parseTopicWithReferences(
+          userInput || context.userInput || topic,
+        );
+        params = {
+          userInput: parsedInput,
+        };
+      }
+
+      const request = handler.buildRequest(topic, contentFormat, params);
+
+      // 添加mode字段确保兼容性
       return {
-        user_input: userInput,
-        content_format: contentFormat,
-        ...(user && {
-          personalization: {
-            tone: user.tone,
-            bio: user.bio,
-            tweet_examples: user.tweet_examples,
-          },
-        }),
+        ...request,
+        mode: context.mode,
       };
-    },
-    [contentFormat, user, parseTopicWithReferences],
-  );
+    } catch (error) {
+      console.error('Failed to build generation request:', error);
+      throw error;
+    }
+  }, [
+    context,
+    topic,
+    contentFormat,
+    sessionId,
+    userInput,
+    parseTopicWithReferences,
+  ]);
 
   // 动画步骤推进
   const animateGenerationSteps = useCallback(
@@ -155,97 +207,134 @@ export function useGenerationState({
     [],
   );
 
-  // 开始生成
-  const startGeneration = useCallback(() => {
-    // 防止重复请求
-    if (hasStartedGeneration) return;
+  // 开始生成 - 重构版本
+  const startGeneration = useCallback(
+    (params?: GenerationParams) => {
+      // 如果提供了参数，使用orchestrator开始生成
+      if (params) {
+        orchestratorStart(params);
+      }
 
-    const currentRequestId = `${topic}-${Date.now()}`;
+      // 防止重复请求
+      if (hasStartedGeneration || context.phase !== 'generating') return;
 
-    if (requestIdRef.current === currentRequestId) return;
+      const currentRequestId = `${topic}-${context.mode}-${Date.now()}`;
 
-    console.log('开始API生成，topic:', topic, 'requestId:', currentRequestId);
-    requestIdRef.current = currentRequestId;
-    setHasStartedGeneration(true);
-    setApiError(null);
-    setGenerationStep(0);
-    setIsGenerating(true);
+      if (requestIdRef.current === currentRequestId) return;
 
-    const isAPICompleted = { current: false };
+      console.log(
+        '开始API生成，topic:',
+        topic,
+        'mode:',
+        context.mode,
+        'requestId:',
+        currentRequestId,
+      );
+      requestIdRef.current = currentRequestId;
+      setHasStartedGeneration(true);
+      setApiError(null);
+      setGenerationStep(0);
+      setIsGenerating(true);
 
-    // 启动智能UI进度动画
-    const cleanup = animateGenerationSteps(setGenerationStep, isAPICompleted);
+      const isAPICompleted = { current: false };
 
-    // 准备请求数据
-    const requestData = buildGenerationRequest(topic);
+      // 启动智能UI进度动画
+      const cleanup = animateGenerationSteps(setGenerationStep, isAPICompleted);
 
-    // 调用API
-    generateThread(requestData, {
-      onSuccess: (response) => {
-        // 检查请求是否还是当前请求
-        if (requestIdRef.current !== currentRequestId) {
-          console.log('忽略过期的API响应');
-          cleanup();
-          return;
-        }
+      try {
+        // 准备请求数据
+        const requestData = buildGenerationRequest();
 
-        isAPICompleted.current = true;
+        // 调用API
+        generateThread(requestData, {
+          onSuccess: (response) => {
+            // 检查请求是否还是当前请求
+            if (requestIdRef.current !== currentRequestId) {
+              console.log('忽略过期的API响应');
+              cleanup();
+              return;
+            }
+
+            isAPICompleted.current = true;
+            cleanup();
+            console.log('API生成成功:', response);
+
+            // 快速完成所有步骤
+            const completeSteps = async () => {
+              for (let i = 4; i < generationSteps.length; i++) {
+                setGenerationStep(i);
+                await new Promise((resolve) => setTimeout(resolve, 500));
+              }
+
+              setRawAPIData(response);
+              setIsGenerating(false);
+              setGenerationStep(generationSteps.length - 1);
+              transitionToPhase('completed');
+              onGenerationComplete?.(response);
+            };
+
+            completeSteps();
+          },
+          onError: (error) => {
+            // 检查请求是否还是当前请求
+            if (requestIdRef.current !== currentRequestId) {
+              console.log('忽略过期的API错误');
+              cleanup();
+              return;
+            }
+
+            isAPICompleted.current = true;
+            cleanup();
+            console.error('API生成失败:', error);
+            const errorMessage = getErrorMessage(error);
+
+            setApiError(errorMessage);
+            setIsGenerating(false);
+            transitionToPhase('error');
+
+            addToast({
+              title: 'Failed to generate content',
+              description: errorMessage,
+              color: 'danger',
+              timeout: 3000,
+            });
+
+            onGenerationError?.(error as Error);
+          },
+        });
+      } catch (error) {
+        // 处理构建请求时的错误
         cleanup();
-        console.log('API生成成功:', response);
-
-        // 快速完成所有步骤
-        const completeSteps = async () => {
-          for (let i = 4; i < generationSteps.length; i++) {
-            setGenerationStep(i);
-            await new Promise((resolve) => setTimeout(resolve, 500));
-          }
-
-          setRawAPIData(response);
-          setIsGenerating(false);
-          setGenerationStep(generationSteps.length - 1);
-          onGenerationComplete?.(response);
-        };
-
-        completeSteps();
-      },
-      onError: (error) => {
-        // 检查请求是否还是当前请求
-        if (requestIdRef.current !== currentRequestId) {
-          console.log('忽略过期的API错误');
-          cleanup();
-          return;
-        }
-
-        isAPICompleted.current = true;
-        cleanup();
-        console.error('API生成失败:', error);
-        const errorMessage = getErrorMessage(error);
-
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to build request';
         setApiError(errorMessage);
         setIsGenerating(false);
+        transitionToPhase('error');
 
         addToast({
-          title: 'Failed to generate content',
+          title: 'Failed to start generation',
           description: errorMessage,
           color: 'danger',
           timeout: 3000,
         });
+      }
 
-        onGenerationError?.(error as Error);
-      },
-    });
-
-    return cleanup;
-  }, [
-    topic,
-    hasStartedGeneration,
-    generateThread,
-    generationSteps.length,
-    buildGenerationRequest,
-    animateGenerationSteps,
-    onGenerationComplete,
-    onGenerationError,
-  ]);
+      return cleanup;
+    },
+    [
+      topic,
+      hasStartedGeneration,
+      context,
+      generateThread,
+      generationSteps.length,
+      buildGenerationRequest,
+      animateGenerationSteps,
+      orchestratorStart,
+      transitionToPhase,
+      onGenerationComplete,
+      onGenerationError,
+    ],
+  );
 
   // 重置生成状态
   const resetGeneration = useCallback(() => {
@@ -255,7 +344,8 @@ export function useGenerationState({
     setApiError(null);
     setRawAPIData(null);
     requestIdRef.current = null;
-  }, []);
+    orchestratorReset();
+  }, [orchestratorReset]);
 
   // 当topic变化时重置状态
   useEffect(() => {
@@ -273,12 +363,12 @@ export function useGenerationState({
     }
   }, [initialData]);
 
-  // 自动启动生成流程
+  // 监听生成阶段变化，自动启动生成流程
   useEffect(() => {
-    if (isGenerating && !hasStartedGeneration) {
+    if (context.phase === 'generating' && !hasStartedGeneration) {
       startGeneration();
     }
-  }, [isGenerating, hasStartedGeneration, startGeneration]);
+  }, [context.phase, hasStartedGeneration, startGeneration]);
 
   return {
     // 状态
@@ -289,10 +379,13 @@ export function useGenerationState({
     apiError,
     rawAPIData,
     generatedContent,
+    currentMode: context.mode,
 
     // 方法
     startGeneration,
     resetGeneration,
     setRawAPIData,
+    setMode: changeMode,
+    retryGeneration: orchestratorRetry,
   };
 }

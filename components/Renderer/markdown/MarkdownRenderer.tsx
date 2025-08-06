@@ -4,7 +4,7 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Outline } from '@/types/outline';
+import { IOutline } from '@/types/outline';
 import { devLog } from '@/utils/devLog';
 import {
   MarkdownSection,
@@ -17,7 +17,7 @@ import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
 
 interface MarkdownRendererProps {
-  content: Outline;
+  content: IOutline;
   onSectionHover?: (sectionId: string | null) => void;
   onSourceClick?: (sectionId: string) => void;
   onImageClick?: (image: {
@@ -122,7 +122,8 @@ export function MarkdownRenderer({
   const sections = useMemo(() => {
     try {
       // 使用统一的格式判断逻辑
-      const contentFormat = tweetData?.content_format || content.content_format || 'longform';
+      const contentFormat =
+        tweetData?.content_format || content.content_format || 'longform';
       return processSectionsFromOutline(content, {
         contentFormat: contentFormat,
       });
@@ -136,11 +137,11 @@ export function MarkdownRenderer({
     if (tweetData?.content_format) {
       return tweetData.content_format;
     }
-    
+
     if (content?.content_format) {
       return content.content_format;
     }
-    
+
     return 'longform';
   }, [tweetData?.content_format, content?.content_format, sections]);
 

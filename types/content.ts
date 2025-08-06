@@ -17,10 +17,10 @@ export interface Category {
 }
 
 // 导入API中统一的类型定义
-import type { Outline, Tweet } from '@/types/outline';
+import type { IOutline, ITweet } from '@/types/outline';
 
 // 重新导出类型供其他模块使用
-export type { Outline, Tweet };
+export type { IOutline as Outline, ITweet as Tweet };
 
 // 后端返回的内容生成数据格式
 export interface GeneratedContent {
@@ -38,7 +38,7 @@ export interface GeneratedContent {
   tweets: SimpleTweet[];
 
   // 大纲数据
-  outline: Outline;
+  outline: IOutline;
 
   // 图片信息
   image: {

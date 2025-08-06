@@ -1,21 +1,21 @@
-import { ContentFormat } from './api';
+import { IContentFormat } from './api';
 
-export interface TweetContentItem {
+export interface ITweetContentItem {
   tweet_number: number;
   content: string;
   title: string;
   image_url?: string | null;
 }
 
-export interface Tweet {
+export interface ITweet {
   title: string;
-  tweets: TweetContentItem[];
+  tweets: ITweetContentItem[];
 }
 
-export interface Outline {
+export interface IOutline {
   id: string;
-  content_format: ContentFormat;
-  nodes: Tweet[];
+  content_format: IContentFormat;
+  nodes: ITweet[];
   topic: string;
   total_tweets: number;
   updatedAt?: Date | number;
