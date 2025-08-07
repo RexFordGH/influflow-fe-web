@@ -1,10 +1,8 @@
 'use client';
 
-import { Button } from '@heroui/react';
-import Tooltip from '@mui/material/Tooltip';
+import { Button, Tooltip } from '@heroui/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { IDraftData } from '@/types/draft';
 import ReactFlow, {
   Background,
   Controls,
@@ -20,6 +18,7 @@ import ReactFlow, {
 import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
+import type { IDraftData } from '@/types/draft';
 import type { IOutline } from '@/types/outline';
 import { copyTwitterContent } from '@/utils/twitter';
 
@@ -42,13 +41,19 @@ interface EditableContentMindmapProps {
 }
 
 // 提示词历史展示组件
-const PromptHistoryDisplay: React.FC<{
+const DraftInfoDisplay: React.FC<{
   draft: IDraftData;
-}> = ({ draft }) => {
+  isThinking?: boolean;
+}> = ({ draft, isThinking }) => {
   const sections = [
     {
+      emoji: '📝',
+      title: 'Topic',
+      content: draft.topic,
+    },
+    {
       emoji: '💬',
-      title: 'Main Point of View',
+      title: 'Content Angel',
       content: draft.content_angle,
     },
     {
@@ -58,20 +63,46 @@ const PromptHistoryDisplay: React.FC<{
         draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
     },
     {
+      emoji: '👥',
+      title: 'Target Audience',
+      content: draft.target_audience,
+    },
+    {
+      emoji: '🌐',
+      title: 'Output Language',
+      content: draft.output_language || 'Chinese',
+    },
+    {
+      emoji: '🎯',
+      title: 'Purpose',
+      content: draft.purpose || '',
+    },
+    {
       emoji: '📏',
       title: 'Estimated Length',
       content: draft.content_length,
     },
     {
-      emoji: '✍️',
-      title: 'Tone & Style',
-      content: draft.purpose      || 'Chinese',
+      emoji: '📊',
+      title: 'Content Depth',
+      content: draft.content_depth || '',
     },
     {
       emoji: '🔗',
       title: 'Add link to improve accuracy?',
-      content: draft.references,
-    }
+      content:
+        draft.references?.length > 0
+          ? draft.references.join('\n')
+          : "You can add any reference articles or links that reflect your style or include specific facts you'd like us to use.",
+    },
+    {
+      emoji: '📋',
+      title: 'Special Requirements',
+      content:
+        draft.requirements?.length > 0
+          ? draft.requirements.map((req) => `• ${req}`).join('\n')
+          : 'No special requirements',
+    },
   ];
 
   return (
@@ -92,7 +123,7 @@ const PromptHistoryDisplay: React.FC<{
               className="whitespace-pre-line text-base text-black"
               style={{ fontFamily: 'Poppins' }}
             >
-              {false && index === 0 ? (
+              {isThinking && index === 0 ? (
                 <span className="text-gray-400">Generating...</span>
               ) : (
                 section.content
@@ -145,10 +176,12 @@ export function MindmapRenderer({
   const [showAIEditModal, setShowAIEditModal] = useState(false);
   const [aiEditInstruction, setAiEditInstruction] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
-  
+
   // PromptHistoryDisplay 相关状态
   const [showPromptHistory, setShowPromptHistory] = useState(false);
-  const [promptHistoryData, setPromptHistoryData] = useState<IDraftData | null>(null);
+  const [draftInfoDisplay, setPromptHistoryData] = useState<IDraftData | null>(
+    null,
+  );
 
   const handleEditWithAI = useCallback((nodeId: string) => {
     setSelectedNodeForAI(nodeId);
@@ -906,53 +939,31 @@ export function MindmapRenderer({
           position="bottom-center"
           className="mb-[24px] flex flex-col gap-[10px]"
         >
-
-        {/* 为按钮添 Prompt History */}
-        <div className="flex items-center gap-3">
-          
-          <Tooltip 
-            title="Prompt History" 
-            arrow 
-            slotProps={{
-              tooltip: {
-                sx: {
-                  bgcolor: '#333',       // 背景
-                  color: '#fff',         // 文字
-                  fontSize: '1rem',
-                  px: 1.9,               // 左右 1.9*8px = 15.2px
-                  py: 0.8,               // 上下 0.8*8px = 6.4px
-                  borderRadius: '9999px', // 圆角
-                },
-              },
-              arrow: {
-                sx: {
-                  color: '#333',         // 箭头颜色要和背景色一致
-                },
-              },
-            }}
-            placement="top"
-          >
-            <Button
-              size="sm"
-              color="primary"
-              variant="solid"
-              onPress={() => {
-                // 模拟获取draft数据
-                console.log('prompt history', originalOutline?.draft);
-                
-                setPromptHistoryData(originalOutline?.draft || null);
-                setShowPromptHistory(true);
-              }}
-              className={`rounded-full w-10 h-10 min-w-10 p-0 flex items-center justify-center hover:bg-[#DDE9FF] transition-colors duration-200`}
+          {/* 为按钮添 Prompt History */}
+          <div className="flex items-center gap-3">
+            <Tooltip
+              content="Prompt History"
+              showArrow={true}
+              placement="top"
+              color="foreground"
             >
-              <img
-                  src="/icons/vector.svg"
-                  alt="check"
-                  className="size-6"
-              />
-            </Button>
-          </Tooltip>
-            
+              <Button
+                size="sm"
+                color="primary"
+                variant="solid"
+                onPress={() => {
+                  // 模拟获取draft数据
+                  console.log('prompt history', originalOutline?.draft);
+
+                  setPromptHistoryData(originalOutline?.draft || null);
+                  setShowPromptHistory(true);
+                }}
+                className={`flex size-10 min-w-10 items-center justify-center rounded-full p-0 transition-colors duration-200 hover:bg-[#DDE9FF]`}
+              >
+                <img src="/icons/vector.svg" alt="check" className="size-6" />
+              </Button>
+            </Tooltip>
+
             <Button
               size="md"
               color="primary"
@@ -975,7 +986,7 @@ export function MindmapRenderer({
             >
               {isRegenerating ? 'Regenerating...' : 'Regenerate'}
             </Button>
-        </div>
+          </div>
         </Panel>
 
         {/* 调试面板 */}
@@ -1061,83 +1072,70 @@ export function MindmapRenderer({
       )}
 
       {/* PromptHistoryDisplay 模态框 */}
-      {showPromptHistory && promptHistoryData && (
+      {showPromptHistory && draftInfoDisplay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="max-w-4xl w-full mx-4 bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl">
             <div className="p-8">
               {/* 顶部 */}
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Prompt History</h2>
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Prompt History
+                </h2>
                 <Button
                   size="sm"
                   variant="light"
                   onPress={() => setShowPromptHistory(false)}
-                  className="rounded-full w-9 h-9 min-w-9 p-0"
+                  className="size-9 min-w-9 rounded-full p-0"
                 >
-                  <span className="text-gray-400 font-bold text-xl">✕</span>
+                  <span className="text-xl font-bold text-gray-400">✕</span>
                 </Button>
               </div>
-              
-              {/* 内容复制框 */}
-                <div className="mb-9">
-                  <div className="flex items-end justify-end gap-3">
-                    <Tooltip 
-                      title="Copy" 
-                      arrow 
-                      slotProps={{
-                        tooltip: {
-                          sx: {
-                            bgcolor: '#333',       // 背景
-                            color: '#fff',         // 文字
-                            fontSize: '1rem',
-                            px: 1.9,               // 左右 1.5*8px = 12px
-                            py: 0.8,              // 上下 0.75*8px = 6px
-                            borderRadius: '9999px', // 圆角
-                          },
-                        },
-                        arrow: {
-                          sx: {
-                            color: '#333',         // 箭头颜色要和背景色一致
-                          },
-                        },
-                      }}
-                      placement="top"
-                    >
-                      <Button
-                        size="sm"
-                        color="primary"
-                        variant="solid"
-                        onPress={async () => {
-                          await copyTwitterContent(promptHistoryData.topic);
-                        }}
-                        className="rounded-lg w-10 h-10 min-w-10 p-0 hover:bg-[#EFEFEF]"
-                      > 
-                        <img
-                          src="/icons/copy.svg"
-                          alt="copy"
-                          className="size-5"
-                        />
-                      </Button>
-                    </Tooltip>
 
-                    <div className="bg-[#F8F8F8] rounded-lg px-3 py-2 max-w-md">
-                      <span className="text-gray-900 font-medium text-base">
-                          {originalOutline?.userInput || 'No user input'}
-                      </span>
-                    </div>
+              {/* 内容复制框 */}
+              <div className="mb-9">
+                <div className="flex items-end justify-end gap-3">
+                  <Tooltip
+                    content="Copy"
+                    showArrow={true}
+                    placement="top"
+                    color="foreground"
+                  >
+                    <Button
+                      size="sm"
+                      color="primary"
+                      variant="solid"
+                      onPress={async () => {
+                        await copyTwitterContent(draftInfoDisplay.topic);
+                      }}
+                      className="size-10 min-w-10 rounded-lg p-0 hover:bg-[#EFEFEF]"
+                    >
+                      <img
+                        src="/icons/copy.svg"
+                        alt="copy"
+                        className="size-5"
+                      />
+                    </Button>
+                  </Tooltip>
+
+                  <div className="max-w-md rounded-lg bg-[#F8F8F8] px-3 py-2">
+                    <span className="text-base font-medium text-gray-900">
+                      {originalOutline?.userInput || 'No user input'}
+                    </span>
                   </div>
                 </div>
-              
+              </div>
+
               {/* 写作意图部分 */}
               <div className="mb-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 className="mb-2 text-xl font-bold text-gray-900">
                   Let's Confirm Your Writing Intent
                 </h3>
-                <p className="text-gray-600 mb-8 text-base">
-                  Here's a quick overview of how we plan to structure your article based on your topic:
+                <p className="mb-8 text-base text-gray-600">
+                  Here's a quick overview of how we plan to structure your
+                  article based on your topic:
                 </p>
-                
-                <PromptHistoryDisplay draft={promptHistoryData} />
+
+                <DraftInfoDisplay draft={draftInfoDisplay} />
               </div>
             </div>
           </div>

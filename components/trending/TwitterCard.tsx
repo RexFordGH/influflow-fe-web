@@ -118,7 +118,7 @@ export function TwitterCard({ html, className = '' }: TwitterCardProps) {
         }}
       ></div>
 
-      <div className="absolute top-[12px] left-[1px] rounded-t-[8px] w-[288px] h-[56px] bg-white overflow-hidden">
+      <div className="absolute left-px top-[12px] h-[56px] w-[288px] overflow-hidden rounded-t-[8px] bg-white">
         <Image
           src="/images/twitter.png"
           width={288}

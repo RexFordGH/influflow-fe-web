@@ -1,6 +1,6 @@
 // AppSidebar 轻量化改造 - 类型定义
 
-import { IDraftData } from "@/types/draft";
+import { IDraftData } from '@/types/draft';
 
 // 分页参数接口
 export interface PaginationParams {

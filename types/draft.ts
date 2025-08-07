@@ -121,7 +121,11 @@ export interface DraftConfirmationContextType {
   // 动作
   generateDraft: (userInput: string) => Promise<void>;
   optimizeDraft: (userInput: string) => Promise<void>;
-  generateTwitterContent: (userInput: string, sessionId: string, contentFormat: IContentFormat) => Promise<any>;
+  generateTwitterContent: (
+    userInput: string,
+    sessionId: string,
+    contentFormat: IContentFormat,
+  ) => Promise<any>;
   addMessage: (message: Omit<IChatMessage, 'id' | 'timestamp'>) => void;
   clearState: () => void;
 
