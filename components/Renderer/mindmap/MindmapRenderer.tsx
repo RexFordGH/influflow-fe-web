@@ -1112,11 +1112,13 @@ export function MindmapRenderer({
       {/* PromptHistoryDisplay 模态框 */}
       {showPromptHistory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl">
-            <div className="p-8">
+          <div
+            className={`mx-4 max-h-[90vh] w-full overflow-y-auto rounded-lg bg-white shadow-xl ${draftInfoDisplay ? 'max-w-4xl' : 'max-w-[555px]'}`}
+          >
+            <div className="px-8 pt-[20px] pb-1">
               {/* 顶部 */}
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="mb-1 flex items-center justify-between">
+                <h2 className="text-1xl font-bold text-gray-900">
                   Prompt History
                 </h2>
                 <Button
@@ -1130,7 +1132,7 @@ export function MindmapRenderer({
               </div>
 
               {/* 内容复制框 */}
-              <div className="mb-9">
+              <div className="mb-6">
                 <div className="flex items-end justify-end gap-3">
                   <Tooltip
                     content="Copy"
@@ -1167,14 +1169,10 @@ export function MindmapRenderer({
 
               {/* 写作意图部分 */}
               {draftInfoDisplay && (
-                <div className="mb-8">
+                <div className="mb-6">
                   <h3 className="mb-2 text-xl font-medium text-gray-900">
                     Final Draft
                   </h3>
-                  {/* <p className="mb-8 text-base text-gray-600">
-                    Here's a quick overview of how we plan to structure your
-                    article based on your topic:
-                  </p> */}
 
                   <DraftInfoDisplay draft={draftInfoDisplay} />
                 </div>
