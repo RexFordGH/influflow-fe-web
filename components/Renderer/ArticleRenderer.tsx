@@ -104,6 +104,7 @@ export function ArticleRenderer({
     sessionId,
     initialData,
     generation.hasStartedGeneration,
+    generation,
   ]);
 
   const images = useImageManagement({

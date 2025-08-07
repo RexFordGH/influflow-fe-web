@@ -36,10 +36,10 @@ export function GenerationOrchestrator({
   // 草案确认完成处理
   const handleDraftConfirmed = useCallback(
     (
-      _topic: string, 
-      _format: IContentFormat, 
+      _topic: string,
+      _format: IContentFormat,
       _mode?: IMode,
-      sessionId?: string
+      sessionId?: string,
     ) => {
       setDraftSessionId(sessionId);
       setCurrentPhase('generation');

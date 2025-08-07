@@ -2,8 +2,8 @@
 
 import { useDraftGeneration, useGenerateThread } from '@/lib/api/services';
 import { draftReducer, initialState } from '@/reducers/draftReducer';
-import { DraftConfirmationContextType, IChatMessage } from '@/types/draft';
 import { IContentFormat } from '@/types/api';
+import { DraftConfirmationContextType, IChatMessage } from '@/types/draft';
 import React, {
   createContext,
   useCallback,
@@ -96,12 +96,18 @@ export const DraftConfirmationProvider: React.FC<{
 
   // 生成Twitter内容
   const generateTwitterContent = useCallback(
-    async (userInput: string, sessionId: string, contentFormat: IContentFormat) => {
+    async (
+      userInput: string,
+      sessionId: string,
+      contentFormat: IContentFormat,
+    ) => {
       // 参数验证
       if (!contentFormat) {
-        throw new Error('Content format is required for Twitter content generation');
+        throw new Error(
+          'Content format is required for Twitter content generation',
+        );
       }
-      
+
       try {
         const response = await twitterMutation.mutateAsync({
           user_input: userInput,
@@ -197,7 +203,7 @@ export const DraftConfirmationProvider: React.FC<{
             status: 'sent',
           };
           dispatch({ type: 'ADD_MESSAGE', payload: confirmMessage });
-          
+
           // 确认指令：仅设置确认状态，触发跳转到 ArticleRenderer
           dispatch({ type: 'SET_CONFIRMED', payload: true });
         } else {

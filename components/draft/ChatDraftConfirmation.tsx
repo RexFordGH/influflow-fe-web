@@ -82,7 +82,15 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
     if (isConfirmed && !isLoading) {
       onConfirm(topic, contentFormat, mode || 'draft', session_id || undefined);
     }
-  }, [isConfirmed, isLoading, topic, contentFormat, mode, onConfirm, session_id]);
+  }, [
+    isConfirmed,
+    isLoading,
+    topic,
+    contentFormat,
+    mode,
+    onConfirm,
+    session_id,
+  ]);
 
   // 错误提示
   useEffect(() => {
