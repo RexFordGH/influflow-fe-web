@@ -54,6 +54,10 @@ export interface IChatMessage {
   metadata?: {
     draftUpdated?: boolean;
     isConfirmation?: boolean;
+    // 新增：草稿数据快照
+    draftSnapshot?: IDraftData;
+    // 新增：快照版本号
+    snapshotVersion?: number;
   };
 }
 
