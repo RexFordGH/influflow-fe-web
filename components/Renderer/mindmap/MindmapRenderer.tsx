@@ -93,8 +93,19 @@ const DraftInfoDisplay: React.FC<{
       title: 'Add link to improve accuracy?',
       content:
         draft.references?.length > 0
-          ? draft.references.join('\n')
-          : "You can add any reference articles or links that reflect your style or include specific facts you'd like us to use.",
+          ? draft.references.map((ref, idx) => (
+              <a
+                key={idx}
+                href={ref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block break-all text-blue-600 underline"
+                style={{ wordBreak: 'break-all' }}
+              >
+                {ref}
+              </a>
+            ))
+          : '-',
     },
     {
       emoji: '📋',
@@ -102,7 +113,7 @@ const DraftInfoDisplay: React.FC<{
       content:
         draft.requirements?.length > 0
           ? draft.requirements.map((req) => `• ${req}`).join('\n')
-          : 'No special requirements',
+          : '-',
     },
   ];
 
@@ -958,11 +969,10 @@ export function MindmapRenderer({
                 size="sm"
                 color="primary"
                 variant="solid"
-                isLoading={isLoadingDraft}
                 onPress={async () => {
                   // 实时获取draft数据
-                  console.log('prompt history', originalOutline?.id);
-                  console.log('user', user?.id);
+                  // console.log('prompt history', originalOutline?.id);
+                  // console.log('user', user?.id);
 
                   if (!originalOutline?.id || !user?.id) {
                     console.warn(
@@ -977,13 +987,13 @@ export function MindmapRenderer({
                     user.id,
                   );
 
-                  if (draftData?.draft) {
-                    setPromptHistoryData(draftData.draft);
-                    setUserInputFromSupabase(draftData.user_input || '');
-                    setShowPromptHistory(true);
-                  } else {
+                  // 无论是否有draft数据，都打开模态框
+                  setPromptHistoryData(draftData?.draft || null);
+                  setUserInputFromSupabase(draftData?.user_input || '');
+                  setShowPromptHistory(true);
+
+                  if (!draftData?.draft) {
                     console.warn('No draft data available in Supabase');
-                    // 可以在这里添加一个提示或者从其他地方获取数据
                   }
                 }}
                 className={`flex size-10 min-w-10 items-center justify-center rounded-full p-0 transition-colors duration-200 hover:bg-[#DDE9FF]`}
@@ -1148,7 +1158,7 @@ export function MindmapRenderer({
                   </Tooltip>
 
                   <div className="max-w-md rounded-lg bg-[#F8F8F8] px-3 py-2">
-                    <span className="text-base text-gray-900">
+                    <span className="whitespace-pre-wrap break-words text-base text-gray-900">
                       {userInputFromSupabase || 'No user input'}
                     </span>
                   </div>
@@ -1158,7 +1168,7 @@ export function MindmapRenderer({
               {/* 写作意图部分 */}
               {draftInfoDisplay && (
                 <div className="mb-8">
-                  <h3 className="mb-2 text-xl font-bold text-gray-900">
+                  <h3 className="mb-2 text-xl font-medium text-gray-900">
                     Final Draft
                   </h3>
                   {/* <p className="mb-8 text-base text-gray-600">
