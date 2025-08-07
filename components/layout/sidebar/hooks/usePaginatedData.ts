@@ -160,27 +160,34 @@ export const usePaginatedData = (
     if (!userId) return;
 
     try {
-      setCurrentPage(initialPage);
+      // 重置分页状态到第一页，但保留现有数据展示避免闪烁
+      const resetPage = 1;
+      setCurrentPage(resetPage);
       setHasMore(true);
+      setError(null);
+      // 注意：不清空 data，保持现有数据展示，避免闪烁
 
-      const refreshedData = await refreshSidebarData(userId, pageSize);
+      // 调用API时明确传递重置后的页码
+      const refreshedData = await refreshSidebarData(userId, pageSize, resetPage);
 
+      // 直接替换数据，而不是先清空再设置
       setData(refreshedData.data);
       setTotal(refreshedData.total);
       setHasMore(refreshedData.hasMore);
-      setCurrentPage(1);
+      // 不再重复设置 currentPage，保持一致性
 
       // 预加载下一页
       if (refreshedData.hasMore) {
-        preloadNextPage({ page: 2, pageSize, userId });
+        preloadNextPage({ page: resetPage + 1, pageSize, userId });
       }
     } catch (err) {
       const error = err as Error;
       const errorMessage = `刷新失败: ${error.message}`;
       setError(errorMessage);
       console.error('数据刷新错误:', error);
+      // 失败时保留原有数据，让用户可以继续查看
     }
-  }, [userId, pageSize, initialPage]);
+  }, [userId, pageSize]);
 
   // 重试函数
   const retry = useCallback(async (): Promise<void> => {
