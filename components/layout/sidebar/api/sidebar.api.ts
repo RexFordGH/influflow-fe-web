@@ -111,9 +111,7 @@ export async function fetchPaginatedSidebarData(
           content_format: item.content_format || 'longform',
           tweets: item.tweets || [],
           updated_at: item.updated_at || item.created_at,
-          created_at: item.created_at,
-          user_input: item.user_input,
-          draft: item.draft,
+          created_at: item.created_at
         },
       }));
 

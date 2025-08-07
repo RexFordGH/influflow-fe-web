@@ -33,10 +33,6 @@ export interface SidebarItem {
     tweets: any[];
     updated_at: string;
     created_at: string;
-    // 新增用户输入和draft数据
-    // 用于传递到prompt history
-    user_input: string;
-    draft: IDraftData | null;
   };
 }
 
