@@ -15,6 +15,7 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
+import { useDraftData } from '@/hooks/useDraftData';
 import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
@@ -109,14 +110,14 @@ const DraftInfoDisplay: React.FC<{
     <div className="space-y-4">
       {sections.map((section, index) => (
         <div key={index} className="flex gap-10">
-          <div className="flex w-[400px] items-start gap-2">
+          <div className="flex w-1/3 items-start gap-3">
             <span className="text-xl">{section.emoji}</span>
-            <h3
-              className="text-xl font-medium"
+            <p
+              className="whitespace-pre-line text-base text-black"
               style={{ fontFamily: 'Poppins' }}
             >
               {section.title}
-            </h3>
+            </p>
           </div>
           <div className="flex-1">
             <p
@@ -140,6 +141,7 @@ export function MindmapRenderer({
   nodes: mindmapNodes,
   edges: mindmapEdges,
   originalOutline,
+  user,
   onNodeSelect,
   onNodeHover,
   onNodesChange,
@@ -182,6 +184,11 @@ export function MindmapRenderer({
   const [draftInfoDisplay, setPromptHistoryData] = useState<IDraftData | null>(
     null,
   );
+  const [userInputFromSupabase, setUserInputFromSupabase] =
+    useState<string>('');
+
+  // 使用draft数据hook
+  const { fetchDraftFromSupabase, isLoadingDraft } = useDraftData();
 
   const handleEditWithAI = useCallback((nodeId: string) => {
     setSelectedNodeForAI(nodeId);
@@ -951,12 +958,33 @@ export function MindmapRenderer({
                 size="sm"
                 color="primary"
                 variant="solid"
-                onPress={() => {
-                  // 模拟获取draft数据
-                  console.log('prompt history', originalOutline?.draft);
+                isLoading={isLoadingDraft}
+                onPress={async () => {
+                  // 实时获取draft数据
+                  console.log('prompt history', originalOutline?.id);
+                  console.log('user', user?.id);
 
-                  setPromptHistoryData(originalOutline?.draft || null);
-                  setShowPromptHistory(true);
+                  if (!originalOutline?.id || !user?.id) {
+                    console.warn(
+                      'Missing outlineId or userId for fetching draft data',
+                    );
+                    return;
+                  }
+
+                  // 从 Supabase 获取 draft 数据
+                  const draftData = await fetchDraftFromSupabase(
+                    originalOutline.id,
+                    user.id,
+                  );
+
+                  if (draftData?.draft) {
+                    setPromptHistoryData(draftData.draft);
+                    setUserInputFromSupabase(draftData.user_input || '');
+                    setShowPromptHistory(true);
+                  } else {
+                    console.warn('No draft data available in Supabase');
+                    // 可以在这里添加一个提示或者从其他地方获取数据
+                  }
                 }}
                 className={`flex size-10 min-w-10 items-center justify-center rounded-full p-0 transition-colors duration-200 hover:bg-[#DDE9FF]`}
               >
@@ -1072,7 +1100,7 @@ export function MindmapRenderer({
       )}
 
       {/* PromptHistoryDisplay 模态框 */}
-      {showPromptHistory && draftInfoDisplay && (
+      {showPromptHistory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl">
             <div className="p-8">
@@ -1105,7 +1133,9 @@ export function MindmapRenderer({
                       color="primary"
                       variant="solid"
                       onPress={async () => {
-                        await copyTwitterContent(draftInfoDisplay.topic);
+                        await copyTwitterContent(
+                          userInputFromSupabase || 'No user input',
+                        );
                       }}
                       className="size-10 min-w-10 rounded-lg p-0 hover:bg-[#EFEFEF]"
                     >
@@ -1118,25 +1148,27 @@ export function MindmapRenderer({
                   </Tooltip>
 
                   <div className="max-w-md rounded-lg bg-[#F8F8F8] px-3 py-2">
-                    <span className="text-base font-medium text-gray-900">
-                      {originalOutline?.userInput || 'No user input'}
+                    <span className="text-base text-gray-900">
+                      {userInputFromSupabase || 'No user input'}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* 写作意图部分 */}
-              <div className="mb-8">
-                <h3 className="mb-2 text-xl font-bold text-gray-900">
-                  Let's Confirm Your Writing Intent
-                </h3>
-                <p className="mb-8 text-base text-gray-600">
-                  Here's a quick overview of how we plan to structure your
-                  article based on your topic:
-                </p>
+              {draftInfoDisplay && (
+                <div className="mb-8">
+                  <h3 className="mb-2 text-xl font-bold text-gray-900">
+                    Final Draft
+                  </h3>
+                  {/* <p className="mb-8 text-base text-gray-600">
+                    Here's a quick overview of how we plan to structure your
+                    article based on your topic:
+                  </p> */}
 
-                <DraftInfoDisplay draft={draftInfoDisplay} />
-              </div>
+                  <DraftInfoDisplay draft={draftInfoDisplay} />
+                </div>
+              )}
             </div>
           </div>
         </div>

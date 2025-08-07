@@ -1,5 +1,4 @@
 import { IContentFormat } from './api';
-import { IDraftData } from './draft';
 
 export interface ITweetContentItem {
   tweet_number: number;
@@ -20,8 +19,4 @@ export interface IOutline {
   topic: string;
   total_tweets: number;
   updatedAt?: Date | number;
-  // 新增用户输入和draft数据
-  // 用于传递到prompt history
-  userInput?: string;
-  draft?: IDraftData | null;
 }
