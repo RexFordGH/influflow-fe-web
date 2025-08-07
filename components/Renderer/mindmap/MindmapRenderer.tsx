@@ -1118,7 +1118,7 @@ export function MindmapRenderer({
             <div className="px-8 pt-[20px] pb-1">
               {/* 顶部 */}
               <div className="mb-1 flex items-center justify-between">
-                <h2 className="text-1xl font-bold text-gray-900">
+                <h2 className="text-[20px] font-bold text-gray-900">
                   Prompt History
                 </h2>
                 <Button
@@ -1170,7 +1170,7 @@ export function MindmapRenderer({
               {/* 写作意图部分 */}
               {draftInfoDisplay && (
                 <div className="mb-6">
-                  <h3 className="mb-2 text-xl font-medium text-gray-900">
+                  <h3 className="text-[16px] font-bold text-gray-900">
                     Final Draft
                   </h3>
 
