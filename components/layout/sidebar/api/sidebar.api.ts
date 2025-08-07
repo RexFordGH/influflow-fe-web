@@ -60,6 +60,7 @@ const fetchWithRetry = async <T>(
 // 分页查询 TweetThread 数据
 export async function fetchPaginatedSidebarData(
   params: PaginationParams,
+  isRecoveryAttempt: boolean = false, // 添加标记防止无限递归
 ): Promise<PaginationResponse<SidebarItem>> {
   const { page, pageSize, userId } = params;
 
@@ -84,6 +85,11 @@ export async function fetchPaginatedSidebarData(
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
+      // 新增：参数合理性预检查
+      if (from < 0) {
+        throw new Error('分页参数异常：起始位置不能为负数');
+      }
+
       // 执行分页查询 - 获取完整数据
       const { data, count, error } = await supabase
         .from('tweet_thread')
@@ -93,6 +99,26 @@ export async function fetchPaginatedSidebarData(
         .range(from, to);
 
       if (error) {
+        // 检查是否为 offset 超出范围错误（PGRST103）
+        if (
+          !isRecoveryAttempt && // 防止无限递归
+          (error.code === 'PGRST103' || 
+           (error.message && 
+            error.message.toLowerCase().includes('offset') && 
+            error.message.toLowerCase().includes('rows')))
+        ) {
+          console.warn('Offset 超出范围，自动降级到第一页');
+          // 自动降级：重新请求第一页
+          return await fetchPaginatedSidebarData(
+            {
+              page: 1,
+              pageSize,
+              userId,
+            },
+            true, // 标记为恢复尝试
+          );
+        }
+        
         console.error('Supabase query error:', error);
         throw new Error(`数据查询失败: ${error.message}`);
       }
@@ -140,9 +166,10 @@ export async function fetchPaginatedSidebarData(
 export async function refreshSidebarData(
   userId: string,
   pageSize: number = 20,
+  forcePage: number = 1, // 新增强制页码参数，确保刷新时重置到指定页
 ): Promise<PaginationResponse<SidebarItem>> {
   return await fetchPaginatedSidebarData({
-    page: 1,
+    page: forcePage, // 使用强制页码而非硬编码的1
     pageSize,
     userId,
   });
