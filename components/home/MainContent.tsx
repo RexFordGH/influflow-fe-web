@@ -17,9 +17,6 @@ import { WelcomeScreen } from './WelcomeScreen';
 export interface IMainContentProps {
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
-  showTrendingTopics: boolean;
-  onScrollToTrending: () => void;
-  onBackFromTrending: () => void;
   onTrendingTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onTrendingSearchConfirm?: (
@@ -36,9 +33,6 @@ export interface IMainContentProps {
 export const MainContent = ({
   sidebarCollapsed,
   onToggleSidebar,
-  showTrendingTopics,
-  onScrollToTrending,
-  onBackFromTrending,
   onTrendingTopicSelect,
   onTrendingTweetsSelect,
   onTrendingSearchConfirm,
@@ -81,9 +75,6 @@ export const MainContent = ({
 
       <div className="size-full">
         <WelcomeScreen
-          showTrendingTopics={showTrendingTopics}
-          onScrollToTrending={onScrollToTrending}
-          onBackFromTrending={onBackFromTrending}
           onTrendingTopicSelect={onTrendingTopicSelect}
           onTrendingTweetsSelect={onTrendingTweetsSelect}
           onTrendingSearchConfirm={onTrendingSearchConfirm}

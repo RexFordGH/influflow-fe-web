@@ -66,7 +66,6 @@ function HomeContent() {
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
   const [topicInput, setTopicInput] = useState('');
-  const [showTrendingTopics, setShowTrendingTopics] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hasCreatedContentGeneration, setHasCreatedContentGeneration] =
     useState(false);
@@ -245,23 +244,14 @@ function HomeContent() {
     setShowGenerationOrchestrator(false);
   };
 
-  const handleScrollToTrending = () => {
-    setShowTrendingTopics(true);
-  };
-
-  const handleBackFromTrending = () => {
-    setShowTrendingTopics(false);
-  };
-
   const handleTrendingTopicSelect = (
     topic: ITrendingTopic | ISuggestedTopic,
   ) => {
-    setShowTrendingTopics(false);
-    setTimeout(() => {
-      // TrendingTopic 使用 title 字段，SuggestedTopic 使用 topic 字段
-      const topicText = 'title' in topic ? topic.title : topic.topic;
-      setTopicInput(topicText);
-    }, 350);
+    // TrendingTopic 使用 title 字段，SuggestedTopic 使用 topic 字段
+    const topicText = 'title' in topic ? topic.title : topic.topic;
+    setTopicInput(topicText);
+    // 清除之前选中的推文
+    setSelectedTweets([]);
   };
 
   const handleTrendingTweetsSelect = (tweets: any[], topicTitle: string) => {
@@ -424,9 +414,6 @@ function HomeContent() {
           <MainContent
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed(false)}
-            showTrendingTopics={showTrendingTopics}
-            onScrollToTrending={handleScrollToTrending}
-            onBackFromTrending={handleBackFromTrending}
             onTrendingTopicSelect={handleTrendingTopicSelect}
             onTrendingTweetsSelect={handleTrendingTweetsSelect}
             onTrendingSearchConfirm={handleTrendingSearchConfirm}

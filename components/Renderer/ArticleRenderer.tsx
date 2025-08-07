@@ -104,6 +104,7 @@ export function ArticleRenderer({
     sessionId,
     initialData,
     generation.hasStartedGeneration,
+    generation,
   ]);
 
   const images = useImageManagement({
@@ -238,6 +239,7 @@ export function ArticleRenderer({
               nodes={currentNodes}
               edges={currentEdges}
               originalOutline={generation.rawAPIData || undefined}
+              user={user}
               onNodeSelect={mindmap.handleNodeSelect}
               onNodeHover={mindmap.handleNodeHover}
               onNodesChange={mindmap.handleNodesChange}

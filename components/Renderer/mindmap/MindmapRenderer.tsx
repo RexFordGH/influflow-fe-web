@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@heroui/react';
+import { Button, Tooltip } from '@heroui/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
@@ -15,10 +15,13 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
+import { useDraftData } from '@/hooks/useDraftData';
 import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
+import type { IDraftData } from '@/types/draft';
 import type { IOutline } from '@/types/outline';
+import { copyTwitterContent } from '@/utils/twitter';
 
 import MindmapNode from './MindmapNode';
 
@@ -35,12 +38,121 @@ interface EditableContentMindmapProps {
   highlightedNodeId?: string | null;
   hoveredTweetId?: string | null;
   isRegenerating?: boolean; // 新增：regenerate loading 状态
+  user?: any; // 新增：user属性
 }
+
+// 提示词历史展示组件
+const DraftInfoDisplay: React.FC<{
+  draft: IDraftData;
+  isThinking?: boolean;
+}> = ({ draft, isThinking }) => {
+  const sections = [
+    {
+      emoji: '📝',
+      title: 'Topic',
+      content: draft.topic,
+    },
+    {
+      emoji: '💬',
+      title: 'Content Angel',
+      content: draft.content_angle,
+    },
+    {
+      emoji: '🔑',
+      title: 'Key Points to Cover',
+      content:
+        draft.key_points?.map((string) => `• ${string}`).join('\n') || '',
+    },
+    {
+      emoji: '👥',
+      title: 'Target Audience',
+      content: draft.target_audience,
+    },
+    {
+      emoji: '🌐',
+      title: 'Output Language',
+      content: draft.output_language || 'Chinese',
+    },
+    {
+      emoji: '🎯',
+      title: 'Purpose',
+      content: draft.purpose || '',
+    },
+    {
+      emoji: '📏',
+      title: 'Estimated Length',
+      content: draft.content_length,
+    },
+    {
+      emoji: '📊',
+      title: 'Content Depth',
+      content: draft.content_depth || '',
+    },
+    {
+      emoji: '🔗',
+      title: 'Add link to improve accuracy?',
+      content:
+        draft.references?.length > 0
+          ? draft.references.map((ref, idx) => (
+              <a
+                key={idx}
+                href={ref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block break-all text-blue-600 underline"
+                style={{ wordBreak: 'break-all' }}
+              >
+                {ref}
+              </a>
+            ))
+          : '-',
+    },
+    {
+      emoji: '📋',
+      title: 'Special Requirements',
+      content:
+        draft.requirements?.length > 0
+          ? draft.requirements.map((req) => `• ${req}`).join('\n')
+          : '-',
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {sections.map((section, index) => (
+        <div key={index} className="flex gap-10">
+          <div className="flex w-1/3 items-start gap-3">
+            <span className="text-xl">{section.emoji}</span>
+            <p
+              className="whitespace-pre-line text-base text-black"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              {section.title}
+            </p>
+          </div>
+          <div className="flex-1">
+            <p
+              className="whitespace-pre-line text-base text-black"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              {isThinking && index === 0 ? (
+                <span className="text-gray-400">Generating...</span>
+              ) : (
+                section.content
+              )}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export function MindmapRenderer({
   nodes: mindmapNodes,
   edges: mindmapEdges,
   originalOutline,
+  user,
   onNodeSelect,
   onNodeHover,
   onNodesChange,
@@ -77,6 +189,17 @@ export function MindmapRenderer({
   const [showAIEditModal, setShowAIEditModal] = useState(false);
   const [aiEditInstruction, setAiEditInstruction] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+
+  // PromptHistoryDisplay 相关状态
+  const [showPromptHistory, setShowPromptHistory] = useState(false);
+  const [draftInfoDisplay, setPromptHistoryData] = useState<IDraftData | null>(
+    null,
+  );
+  const [userInputFromSupabase, setUserInputFromSupabase] =
+    useState<string>('');
+
+  // 使用draft数据hook
+  const { fetchDraftFromSupabase, isLoadingDraft } = useDraftData();
 
   const handleEditWithAI = useCallback((nodeId: string) => {
     setSelectedNodeForAI(nodeId);
@@ -834,28 +957,74 @@ export function MindmapRenderer({
           position="bottom-center"
           className="mb-[24px] flex flex-col gap-[10px]"
         >
-          <Button
-            size="md"
-            color="primary"
-            variant="solid"
-            isLoading={isRegenerating}
-            isDisabled={isRegenerating}
-            onPress={async () => {
-              // 调用父组件的 API 重生成回调
-              if (onRegenerateClick) {
-                await onRegenerateClick();
-              } else {
-                console.warn('没有提供 onRegenerateClick 回调');
-              }
-            }}
-            className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
-              isRegenerating
-                ? 'cursor-not-allowed bg-gray-400'
-                : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
-            }`}
-          >
-            {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-          </Button>
+          {/* 为按钮添 Prompt History */}
+          <div className="flex items-center gap-3">
+            <Tooltip
+              content="Prompt History"
+              showArrow={true}
+              placement="top"
+              color="foreground"
+            >
+              <Button
+                size="sm"
+                color="primary"
+                variant="solid"
+                onPress={async () => {
+                  // 实时获取draft数据
+                  // console.log('prompt history', originalOutline?.id);
+                  // console.log('user', user?.id);
+
+                  if (!originalOutline?.id || !user?.id) {
+                    console.warn(
+                      'Missing outlineId or userId for fetching draft data',
+                    );
+                    return;
+                  }
+
+                  // 从 Supabase 获取 draft 数据
+                  const draftData = await fetchDraftFromSupabase(
+                    originalOutline.id,
+                    user.id,
+                  );
+
+                  // 无论是否有draft数据，都打开模态框
+                  setPromptHistoryData(draftData?.draft || null);
+                  setUserInputFromSupabase(draftData?.user_input || '');
+                  setShowPromptHistory(true);
+
+                  if (!draftData?.draft) {
+                    console.warn('No draft data available in Supabase');
+                  }
+                }}
+                className={`flex size-10 min-w-10 items-center justify-center rounded-full p-0 transition-colors duration-200 hover:bg-[#DDE9FF]`}
+              >
+                <img src="/icons/vector.svg" alt="check" className="size-6" />
+              </Button>
+            </Tooltip>
+
+            <Button
+              size="md"
+              color="primary"
+              variant="solid"
+              isLoading={isRegenerating}
+              isDisabled={isRegenerating}
+              onPress={async () => {
+                // 调用父组件的 API 重生成回调
+                if (onRegenerateClick) {
+                  await onRegenerateClick();
+                } else {
+                  console.warn('没有提供 onRegenerateClick 回调');
+                }
+              }}
+              className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
+                isRegenerating
+                  ? 'cursor-not-allowed bg-gray-400'
+                  : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
+              }`}
+            >
+              {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+            </Button>
+          </div>
         </Panel>
 
         {/* 调试面板 */}
@@ -935,6 +1104,79 @@ export function MindmapRenderer({
                   {isAIProcessing ? 'Generating...' : 'Submit'}
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PromptHistoryDisplay 模态框 */}
+      {showPromptHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div
+            className={`mx-4 max-h-[90vh] w-full overflow-y-auto rounded-lg bg-white shadow-xl ${draftInfoDisplay ? 'max-w-4xl' : 'max-w-[555px]'}`}
+          >
+            <div className="px-8 pt-[20px] pb-1">
+              {/* 顶部 */}
+              <div className="mb-1 flex items-center justify-between">
+                <h2 className="text-1xl font-bold text-gray-900">
+                  Prompt History
+                </h2>
+                <Button
+                  size="sm"
+                  variant="light"
+                  onPress={() => setShowPromptHistory(false)}
+                  className="size-9 min-w-9 rounded-full p-0"
+                >
+                  <span className="text-xl font-bold text-gray-400">✕</span>
+                </Button>
+              </div>
+
+              {/* 内容复制框 */}
+              <div className="mb-6">
+                <div className="flex items-end justify-end gap-3">
+                  <Tooltip
+                    content="Copy"
+                    showArrow={true}
+                    placement="top"
+                    color="foreground"
+                  >
+                    <Button
+                      size="sm"
+                      color="primary"
+                      variant="solid"
+                      onPress={async () => {
+                        await copyTwitterContent(
+                          userInputFromSupabase || 'No user input',
+                        );
+                      }}
+                      className="size-10 min-w-10 rounded-lg p-0 hover:bg-[#EFEFEF]"
+                    >
+                      <img
+                        src="/icons/copy.svg"
+                        alt="copy"
+                        className="size-5"
+                      />
+                    </Button>
+                  </Tooltip>
+
+                  <div className="max-w-md rounded-lg bg-[#F8F8F8] px-3 py-2">
+                    <span className="whitespace-pre-wrap break-words text-base text-gray-900">
+                      {userInputFromSupabase || 'No user input'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 写作意图部分 */}
+              {draftInfoDisplay && (
+                <div className="mb-6">
+                  <h3 className="mb-2 text-xl font-medium text-gray-900">
+                    Final Draft
+                  </h3>
+
+                  <DraftInfoDisplay draft={draftInfoDisplay} />
+                </div>
+              )}
             </div>
           </div>
         </div>
