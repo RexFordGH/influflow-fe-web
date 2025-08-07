@@ -304,8 +304,6 @@ function HomeContent() {
       ),
       id: tweetData.id,
       updatedAt: tweetData.updated_at ?? new Date(),
-      userInput: tweetData.user_input,
-      draft: tweetData.draft,
     };
 
     // 2. 设置 initialData 和 topic

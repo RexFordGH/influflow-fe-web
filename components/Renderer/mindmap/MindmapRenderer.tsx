@@ -15,13 +15,13 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
+import { useDraftData } from '@/hooks/useDraftData';
 import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import type { IDraftData } from '@/types/draft';
 import type { IOutline } from '@/types/outline';
 import { copyTwitterContent } from '@/utils/twitter';
-import { useDraftData } from '@/hooks/useDraftData';
 
 import MindmapNode from './MindmapNode';
 
@@ -108,18 +108,18 @@ const DraftInfoDisplay: React.FC<{
 
   return (
     <div className="space-y-4">
-              {sections.map((section, index) => (
-          <div key={index} className="flex gap-10">
-            <div className="flex w-1/3 items-start gap-3">
-              <span className="text-xl">{section.emoji}</span>
-              <p
-                className="whitespace-pre-line text-base text-black"
-                style={{ fontFamily: 'Poppins' }}
-              >
-                {section.title}
-              </p>
-            </div>
-            <div className="flex-1">
+      {sections.map((section, index) => (
+        <div key={index} className="flex gap-10">
+          <div className="flex w-1/3 items-start gap-3">
+            <span className="text-xl">{section.emoji}</span>
+            <p
+              className="whitespace-pre-line text-base text-black"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              {section.title}
+            </p>
+          </div>
+          <div className="flex-1">
             <p
               className="whitespace-pre-line text-base text-black"
               style={{ fontFamily: 'Poppins' }}
@@ -184,7 +184,8 @@ export function MindmapRenderer({
   const [draftInfoDisplay, setPromptHistoryData] = useState<IDraftData | null>(
     null,
   );
-  const [userInputFromSupabase, setUserInputFromSupabase] = useState<string>('');
+  const [userInputFromSupabase, setUserInputFromSupabase] =
+    useState<string>('');
 
   // 使用draft数据hook
   const { fetchDraftFromSupabase, isLoadingDraft } = useDraftData();
@@ -962,15 +963,20 @@ export function MindmapRenderer({
                   // 实时获取draft数据
                   console.log('prompt history', originalOutline?.id);
                   console.log('user', user?.id);
-                  
+
                   if (!originalOutline?.id || !user?.id) {
-                    console.warn('Missing outlineId or userId for fetching draft data');
+                    console.warn(
+                      'Missing outlineId or userId for fetching draft data',
+                    );
                     return;
                   }
 
                   // 从 Supabase 获取 draft 数据
-                  const draftData = await fetchDraftFromSupabase(originalOutline.id, user.id);
-                  
+                  const draftData = await fetchDraftFromSupabase(
+                    originalOutline.id,
+                    user.id,
+                  );
+
                   if (draftData?.draft) {
                     setPromptHistoryData(draftData.draft);
                     setUserInputFromSupabase(draftData.user_input || '');
@@ -1127,7 +1133,9 @@ export function MindmapRenderer({
                       color="primary"
                       variant="solid"
                       onPress={async () => {
-                        await copyTwitterContent(userInputFromSupabase || 'No user input');
+                        await copyTwitterContent(
+                          userInputFromSupabase || 'No user input',
+                        );
                       }}
                       className="size-10 min-w-10 rounded-lg p-0 hover:bg-[#EFEFEF]"
                     >

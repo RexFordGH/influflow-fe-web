@@ -1,5 +1,4 @@
 import { IContentFormat } from './api';
-import { IDraftData } from './draft';
 
 export interface ITweetContentItem {
   tweet_number: number;

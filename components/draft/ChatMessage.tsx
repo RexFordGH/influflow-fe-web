@@ -140,7 +140,11 @@ export const ChatMessage = memo<ChatMessageProps>(
     }
 
     // AI消息 - 显示草案信息
-    if (showDraftDisplay && message.metadata?.draftUpdated && message.metadata?.draftSnapshot) {
+    if (
+      showDraftDisplay &&
+      message.metadata?.draftUpdated &&
+      message.metadata?.draftSnapshot
+    ) {
       const draftToDisplay = message.metadata.draftSnapshot;
 
       // 判断是否是更新后的草案（基于消息索引或其他逻辑）

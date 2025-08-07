@@ -168,7 +168,11 @@ export const usePaginatedData = (
       // 注意：不清空 data，保持现有数据展示，避免闪烁
 
       // 调用API时明确传递重置后的页码
-      const refreshedData = await refreshSidebarData(userId, pageSize, resetPage);
+      const refreshedData = await refreshSidebarData(
+        userId,
+        pageSize,
+        resetPage,
+      );
 
       // 直接替换数据，而不是先清空再设置
       setData(refreshedData.data);

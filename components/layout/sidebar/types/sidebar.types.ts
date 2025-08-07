@@ -1,7 +1,5 @@
 // AppSidebar 轻量化改造 - 类型定义
 
-import { IDraftData } from '@/types/draft';
-
 // 分页参数接口
 export interface PaginationParams {
   page: number; // 当前页码（从1开始）

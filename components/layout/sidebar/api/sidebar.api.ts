@@ -102,10 +102,10 @@ export async function fetchPaginatedSidebarData(
         // 检查是否为 offset 超出范围错误（PGRST103）
         if (
           !isRecoveryAttempt && // 防止无限递归
-          (error.code === 'PGRST103' || 
-           (error.message && 
-            error.message.toLowerCase().includes('offset') && 
-            error.message.toLowerCase().includes('rows')))
+          (error.code === 'PGRST103' ||
+            (error.message &&
+              error.message.toLowerCase().includes('offset') &&
+              error.message.toLowerCase().includes('rows')))
         ) {
           console.warn('Offset 超出范围，自动降级到第一页');
           // 自动降级：重新请求第一页
@@ -118,7 +118,7 @@ export async function fetchPaginatedSidebarData(
             true, // 标记为恢复尝试
           );
         }
-        
+
         console.error('Supabase query error:', error);
         throw new Error(`数据查询失败: ${error.message}`);
       }
@@ -137,7 +137,7 @@ export async function fetchPaginatedSidebarData(
           content_format: item.content_format || 'longform',
           tweets: item.tweets || [],
           updated_at: item.updated_at || item.created_at,
-          created_at: item.created_at
+          created_at: item.created_at,
         },
       }));
 
