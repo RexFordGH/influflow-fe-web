@@ -11,6 +11,7 @@ import {
   GenerationProvider,
 } from '@/components/generation';
 import { MainContent } from '@/components/home/MainContent';
+import { ScrollProgressIndicator } from '@/components/home/ScrollProgressIndicator';
 import {
   AppSidebar,
   AppSidebarRef,
@@ -96,6 +97,9 @@ function HomeContent() {
 
   // 侧边栏 ref
   const sidebarRef = useRef<AppSidebarRef | null>(null);
+
+  // 滚动进度状态
+  const [scrollProgress, setScrollProgress] = useState<any>(null);
 
   useEffect(() => {
     checkAuthStatus();
@@ -328,9 +332,18 @@ function HomeContent() {
     }
   };
 
+  // 判断是否显示首页（即MainContent）
+  const isShowingHomePage = !showGenerationOrchestrator && 
+                            !showDraftConfirmation && 
+                            !(hasCreatedContentGeneration && showContentGeneration && currentTopic);
+
   return (
     <GenerationProvider initialMode={currentMode}>
       <div className="relative h-screen overflow-hidden">
+        {/* 滚动进度指示器 - 仅在首页显示 */}
+        {isShowingHomePage && scrollProgress && (
+          <ScrollProgressIndicator scrollProgress={scrollProgress} />
+        )}
         {/* Profile Complete Prompt */}
         <ProfileCompletePrompt
           isVisible={showProfileCompletePrompt}
@@ -422,6 +435,7 @@ function HomeContent() {
             topicInput={topicInput}
             onTopicInputChange={setTopicInput}
             onTopicSubmit={handleTopicSubmit}
+            onScrollProgressChange={setScrollProgress}
           />
         </div>
       </div>

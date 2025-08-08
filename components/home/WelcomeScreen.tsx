@@ -46,6 +46,7 @@ interface WelcomeScreenProps {
   topicInput: string;
   onTopicInputChange: (value: string) => void;
   onTopicSubmit: (contentFormat: IContentFormat, mode: IMode) => void;
+  onScrollProgressChange?: (progress: any) => void;
 }
 
 const ContentFormatOptions = [
@@ -68,6 +69,7 @@ export const WelcomeScreen = ({
   topicInput,
   onTopicInputChange,
   onTopicSubmit,
+  onScrollProgressChange,
 }: WelcomeScreenProps) => {
   const { user, isAuthenticated } = useAuthStore();
   const [selectedContentFormat, setSelectedContentFormat] =
@@ -82,6 +84,16 @@ export const WelcomeScreen = ({
   const { scrollY, scrollYProgress } = useScroll({
     container: scrollContainerRef,
   });
+
+  // 传递滚动进度给父组件
+  useEffect(() => {
+    if (onScrollProgressChange) {
+      const unsubscribe = scrollYProgress.on('change', () => {
+        onScrollProgressChange(scrollYProgress);
+      });
+      return unsubscribe;
+    }
+  }, [scrollYProgress, onScrollProgressChange]);
 
   // 自动调整textarea高度
   const adjustTextareaHeight = () => {
@@ -135,9 +147,6 @@ export const WelcomeScreen = ({
 
   return (
     <div className="relative size-full min-w-[1000px]">
-      {/* 滚动进度指示器 */}
-      <ScrollProgressIndicator scrollProgress={scrollYProgress} />
-
       {/* 主滚动容器 */}
       <div
         ref={scrollContainerRef}
@@ -386,20 +395,6 @@ export const WelcomeScreen = ({
         </motion.div>
       </div>
     </div>
-  );
-};
-
-// 滚动进度指示器组件
-const ScrollProgressIndicator: React.FC<{
-  scrollProgress: any;
-}> = ({ scrollProgress }) => {
-  const scaleX = useTransform(scrollProgress, [0, 1], [0, 1]);
-
-  return (
-    <motion.div
-      className="fixed inset-x-0 top-0 z-50 h-1 origin-left bg-black"
-      style={{ scaleX }}
-    />
   );
 };
 
