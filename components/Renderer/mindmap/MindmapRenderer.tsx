@@ -1115,7 +1115,7 @@ export function MindmapRenderer({
           <div
             className={`mx-4 max-h-[90vh] w-full overflow-y-auto rounded-lg bg-white shadow-xl ${draftInfoDisplay ? 'max-w-4xl' : 'max-w-[555px]'}`}
           >
-            <div className="px-8 pt-[20px] pb-1">
+            <div className="px-8 pb-1 pt-[20px]">
               {/* 顶部 */}
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-[20px] medium text-gray-900">

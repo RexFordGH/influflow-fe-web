@@ -26,7 +26,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   className = '',
 }) => {
   const [message, setMessage] = useState('');
-  const [contentFormat, setContentFormat] = useState('Threads');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 自动调整高度
@@ -70,16 +69,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className={`mx-auto w-full ${className}`}>
-      <div
-        className="relative mx-auto bg-white"
-        style={{
-          width: '600px',
-          minHeight: '120px',
-          borderRadius: '20px',
-          boxShadow: '0 0 12px rgba(0, 0, 0, 0.25)',
-          padding: '24px 12px 12px 24px',
-        }}
-      >
+      <div className="relative mx-auto bg-white w-[600px] min-h-[120px] rounded-[20px] shadow-[0_0_12px_rgba(0,0,0,0.25)] pt-6 pr-3 pb-3 pl-6">
         <textarea
           ref={textareaRef}
           value={message}
@@ -87,41 +77,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full resize-none border-none bg-transparent outline-none placeholder:text-[#8C8C8C]"
-          style={{
-            fontFamily: 'Poppins',
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '24px',
-            color: message ? '#000000' : '#8C8C8C',
-            minHeight: '24px',
-            height: 'auto',
-            maxHeight: '200px',
-            overflow: 'auto',
-            paddingRight: '60px',
-          }}
+          className={`w-full resize-none border-none bg-transparent outline-none placeholder:text-[#8C8C8C] font-poppins text-base font-normal leading-6 min-h-[24px] h-auto max-h-[200px] overflow-auto pr-[60px] ${
+            message ? 'text-black' : 'text-[#8C8C8C]'
+          }`}
         />
 
         {/* 发送按钮 - 绝对定位 */}
-        <div
-          className="absolute"
-          style={{
-            right: '12px',
-            bottom: '12px',
-          }}
-        >
+        <div className="absolute right-3 bottom-3">
           <Button
             isIconOnly
             disabled={disabled || !message.trim()}
-            onClick={handleSend}
-            className="rounded-full"
-            style={{
-              width: '40px',
-              height: '40px',
-              minWidth: '40px',
-              backgroundColor: '#448AFF',
-              padding: '6px 12px',
-            }}
+            onPress={handleSend}
+            className="rounded-full w-10 h-10 min-w-[40px] bg-[#448AFF] p-[6px_12px]"
             aria-label="Send message"
           >
             <PaperAirplaneIcon className="size-5 -rotate-45 text-white" />

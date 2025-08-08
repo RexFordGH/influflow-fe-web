@@ -40,7 +40,6 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   className = '',
 }) => {
   const {
-    draft,
     session_id,
     messages,
     isLoading,
@@ -137,28 +136,27 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   return (
     <div className={`flex h-screen flex-col bg-white ${className}`}>
       {/* 顶部导航栏 */}
-      <div className="flex items-center justify-between bg-white px-20 py-14">
+      <div className="flex items-center justify-between bg-white py-[24px] px-20 gap-[38px]">
         <Button
           isIconOnly
           size="sm"
           variant="light"
           onPress={handleBack}
           aria-label="Back"
-          className="h-6 min-w-6 p-0"
+          className="p-0 w-6 h-6 min-w-[24px]"
           isDisabled={isLoading || isThinking}
         >
-          <ArrowLeftIcon className="size-6" />
+          <ArrowLeftIcon className="size-6 text-black" />
         </Button>
 
         <button
           onClick={handleSkip}
           disabled={isLoading || isThinking}
-          className={`text-base font-medium transition-colors ${
+          className={`font-poppins text-base font-medium rounded-[20px] py-1 transition-colors ${
             isLoading || isThinking
-              ? 'cursor-not-allowed text-gray-400'
-              : 'text-[#8C8C8C] hover:text-gray-700'
+              ? 'cursor-not-allowed text-gray-300'
+              : 'text-[#8C8C8C] hover:opacity-80'
           }`}
-          style={{ fontFamily: 'Poppins' }}
         >
           SKIP
         </button>
@@ -170,11 +168,8 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
         <div className="flex-1 overflow-y-auto pb-6">
           {/* 初始欢迎信息 或 消息列表 */}
           {messages.length === 0 && !isLoading ? (
-            <div className="py-8 text-center">
-              <div
-                className="mb-6 inline-block rounded-xl bg-[#F8F8F8] p-3 text-base text-[#8C8C8C]"
-                style={{ fontFamily: 'Poppins' }}
-              >
+            <div className="flex justify-end">
+              <div className="inline-block font-poppins text-base font-normal text-black bg-[#F8F8F8] rounded-xl p-3 max-w-[635px]">
                 {topic}
               </div>
             </div>
@@ -191,7 +186,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
         </div>
 
         {/* 输入框区域 */}
-        <div className=" py-6">
+        <div className="py-6">
           <ChatInput
             onSend={handleSendMessage}
             disabled={!canSendMessage || isConfirmed}
