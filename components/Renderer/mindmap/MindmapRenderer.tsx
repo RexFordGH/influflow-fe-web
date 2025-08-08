@@ -1115,10 +1115,10 @@ export function MindmapRenderer({
           <div
             className={`mx-4 max-h-[90vh] w-full overflow-y-auto rounded-lg bg-white shadow-xl ${draftInfoDisplay ? 'max-w-4xl' : 'max-w-[555px]'}`}
           >
-            <div className="px-8 pt-[20px] pb-1">
+            <div className="px-8 pb-1 pt-[20px]">
               {/* 顶部 */}
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-[20px] medium text-gray-900">
+                <h2 className="medium text-[20px] text-gray-900">
                   Prompt History
                 </h2>
                 <Button
@@ -1133,7 +1133,9 @@ export function MindmapRenderer({
 
               {/* 内容复制框 */}
               <div className="mb-6">
-                <div className={`flex items-end gap-3 ${draftInfoDisplay ? '' : 'flex-row-reverse'} ${userInputFromSupabase ? 'justify-end' : 'justify-center'}`}>
+                <div
+                  className={`flex items-end gap-3 ${draftInfoDisplay ? '' : 'flex-row-reverse'} ${userInputFromSupabase ? 'justify-end' : 'justify-center'}`}
+                >
                   {userInputFromSupabase && (
                     <Tooltip
                       content="Copy"
@@ -1166,7 +1168,9 @@ export function MindmapRenderer({
                       </span>
                     </div>
                   ) : (
-                    <span className="text-base text-gray-400">No user input.</span>
+                    <span className="text-base text-gray-400">
+                      No user input.
+                    </span>
                   )}
                 </div>
               </div>
@@ -1174,7 +1178,7 @@ export function MindmapRenderer({
               {/* 写作意图部分 */}
               {draftInfoDisplay && (
                 <div className="mb-6">
-                  <h3 className="text-[16px] medium text-gray-900">
+                  <h3 className="medium text-[16px] text-gray-900">
                     Final Draft
                   </h3>
 

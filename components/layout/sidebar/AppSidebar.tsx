@@ -4,6 +4,7 @@ import { UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import Link from 'next/link';
 
 import { useAuthStore } from '@/stores/authStore';
 
@@ -163,23 +164,10 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto"
+          className="relative flex-1 overflow-y-auto"
           id="sidebar-scroll-container"
         >
           <div className="p-4">
-            {/* 刷新按钮 */}
-            {/* {!loading && (
-            <div className="mb-4">
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="w-full rounded-md px-3 py-2 text-xs text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-700"
-              >
-                {refreshing ? '刷新中...' : '↻ 刷新列表'}
-              </button>
-            </div>
-          )} */}
-
             {/* 内容区域 */}
             {isInitialLoading ? (
               <LoadingIndicator type="initial" itemCount={10} />
@@ -187,8 +175,8 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
               <ErrorMessage error={new Error(error!)} onRetry={retry} />
             ) : isEmpty ? (
               <EmptyState
-                title="暂无内容"
-                description="还没有任何推文内容，开始创建你的第一个内容吧"
+                title="No content yet"
+                description="There are no tweets yet, start creating your first content"
               />
             ) : (
               <div className="">
@@ -210,6 +198,23 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
               </div>
             )}
           </div>
+        </div>
+
+        <div className="w-full px-[24px] py-[12px]">
+          <Link
+            href="/profile"
+            className="flex items-center justify-center gap-[10px] rounded-[12px] bg-[#EFEFEF] px-[12px] py-[8px] hover:bg-[#c1c1c1]"
+          >
+            <Image
+              src="/icons/enhancement.svg"
+              width={16}
+              height={16}
+              className="rounded-none"
+            />
+            <span className="text-[14px] leading-[21px] text-black">
+              Customize My Style
+            </span>
+          </Link>
         </div>
       </div>
     );

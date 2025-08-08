@@ -1,4 +1,4 @@
-// 空状态组件 - 友好的空数据提示
+// Empty state component - Friendly empty data prompts
 
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import React from 'react';
@@ -11,27 +11,27 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  title = '暂无内容',
-  description = '还没有任何内容，开始创建你的第一个内容吧',
+  title = 'No content yet',
+  description = 'There is no content yet, start creating your first one',
   actionText,
   onAction,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12">
-      {/* 图标 */}
+      {/* Icon */}
       <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-gray-100">
         <DocumentTextIcon className="size-8 text-gray-400" />
       </div>
 
-      {/* 标题 */}
+      {/* Title */}
       <h3 className="mb-2 text-lg font-medium text-gray-900">{title}</h3>
 
-      {/* 描述 */}
+      {/* Description */}
       <p className="mb-6 max-w-sm text-center text-sm text-gray-500">
         {description}
       </p>
 
-      {/* 操作按钮 */}
+      {/* Action button */}
       {actionText && onAction && (
         <button
           onClick={onAction}
@@ -44,7 +44,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   );
 };
 
-// 结束提示组件
+// End of list component
 export const EndOfList: React.FC = () => {
   return (
     <div className="flex items-center justify-center py-6">
@@ -52,7 +52,7 @@ export const EndOfList: React.FC = () => {
         <div className="mx-auto mb-2 flex size-8 items-center justify-center rounded-full bg-gray-100">
           <div className="size-2 rounded-full bg-gray-400"></div>
         </div>
-        <p className="text-sm text-gray-500">没有更多内容了</p>
+        <p className="text-sm text-gray-500">No more content</p>
       </div>
     </div>
   );

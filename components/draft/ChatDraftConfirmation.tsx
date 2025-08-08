@@ -40,7 +40,6 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   className = '',
 }) => {
   const {
-    draft,
     session_id,
     messages,
     isLoading,
@@ -57,11 +56,17 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   const [showDialog, setShowDialog] = useState(false);
   const [dialogType, setDialogType] = useState<DialogType>('exit');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const latestMessageRef = useRef<HTMLDivElement>(null!);
   const hasInitialized = useRef(false);
 
-  // 滚动到底部
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // 滚动到最新消息
+  const scrollToLatestMessage = useCallback(() => {
+    if (latestMessageRef.current) {
+      latestMessageRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start', // 滚动到消息的顶部位置
+      });
+    }
   }, []);
 
   // 初始化生成草案
@@ -72,10 +77,13 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
     }
   }, [topic, generateDraft]);
 
-  // 消息更新时滚动到底部
+  // 消息更新时滚动到最新消息
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    // 只在有新消息时滚动
+    if (messages.length > 0) {
+      scrollToLatestMessage();
+    }
+  }, [messages, scrollToLatestMessage]);
 
   // 确认完成后跳转
   useEffect(() => {
@@ -137,28 +145,27 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   return (
     <div className={`flex h-screen flex-col bg-white ${className}`}>
       {/* 顶部导航栏 */}
-      <div className="flex items-center justify-between bg-white px-20 py-14">
+      <div className="flex items-center justify-between gap-[38px] bg-white px-20 py-[24px]">
         <Button
           isIconOnly
           size="sm"
           variant="light"
           onPress={handleBack}
           aria-label="Back"
-          className="h-6 min-w-6 p-0"
+          className="size-6 min-w-[24px] p-0"
           isDisabled={isLoading || isThinking}
         >
-          <ArrowLeftIcon className="size-6" />
+          <ArrowLeftIcon className="size-6 text-black" />
         </Button>
 
         <button
           onClick={handleSkip}
           disabled={isLoading || isThinking}
-          className={`text-base font-medium transition-colors ${
+          className={`font-poppins rounded-[20px] py-1 text-base font-medium transition-colors ${
             isLoading || isThinking
-              ? 'cursor-not-allowed text-gray-400'
-              : 'text-[#8C8C8C] hover:text-gray-700'
+              ? 'cursor-not-allowed text-gray-300'
+              : 'text-[#8C8C8C] hover:opacity-80'
           }`}
-          style={{ fontFamily: 'Poppins' }}
         >
           SKIP
         </button>
@@ -170,11 +177,8 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
         <div className="flex-1 overflow-y-auto pb-6">
           {/* 初始欢迎信息 或 消息列表 */}
           {messages.length === 0 && !isLoading ? (
-            <div className="py-8 text-center">
-              <div
-                className="mb-6 inline-block rounded-xl bg-[#F8F8F8] p-3 text-base text-[#8C8C8C]"
-                style={{ fontFamily: 'Poppins' }}
-              >
+            <div className="flex justify-end">
+              <div className="font-poppins inline-block max-w-[635px] rounded-xl bg-[#F8F8F8] p-3 text-base font-normal text-black">
                 {topic}
               </div>
             </div>
@@ -183,6 +187,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
               messages={messages}
               isThinking={isThinking}
               className="mx-auto max-w-6xl"
+              latestMessageRef={latestMessageRef}
             />
           )}
 
@@ -191,7 +196,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
         </div>
 
         {/* 输入框区域 */}
-        <div className=" py-6">
+        <div className="py-6">
           <ChatInput
             onSend={handleSendMessage}
             disabled={!canSendMessage || isConfirmed}

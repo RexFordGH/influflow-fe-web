@@ -251,7 +251,7 @@ export function SectionRendererOfLongForm({
         <div
           key={section.id}
           ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mb-[28px] !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0`}
+          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative !mb-[36px] !mt-0 !scale-100 border-none !py-[4px] px-[8px] pb-0`}
           onMouseEnter={handleEnter}
           onMouseLeave={handleLeave}
         >

@@ -74,25 +74,19 @@ const DraftInfoDisplay: React.FC<{
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-0">
       {sections.map((section, index) => (
-        <div key={index} className="flex gap-10">
-          <div className="flex w-[400px] items-start gap-2">
-            <span className="text-xl">{section.emoji}</span>
-            <h3
-              className="text-xl font-medium"
-              style={{ fontFamily: 'Poppins' }}
-            >
+        <div key={index} className="flex gap-2.5 px-12 py-3">
+          <div className="flex w-[400px] shrink-0 items-start gap-0">
+            <span className="mr-1 text-base">{section.emoji}</span>
+            <h3 className="font-poppins text-[16px] font-medium text-black">
               {section.title}
             </h3>
           </div>
-          <div className="flex-1">
-            <p
-              className="whitespace-pre-line text-base text-black"
-              style={{ fontFamily: 'Poppins' }}
-            >
+          <div className="flex flex-1 items-center">
+            <p className="font-poppins whitespace-pre-line text-[16px] font-[400] text-black">
               {isThinking && index === 0 ? (
-                <span className="text-gray-400">Generating...</span>
+                <span className="text-[#8C8C8C]">Generating...</span>
               ) : (
                 section.content
               )}
@@ -108,7 +102,6 @@ export const ChatMessage = memo<ChatMessageProps>(
   ({ message, isThinking = false, showDraftDisplay = false }) => {
     const isUser = message.type === 'user';
     const isError = message.status === 'error';
-    const isSending = message.status === 'sending';
 
     // 思考动画组件
     const ThinkingIndicator = () => (
@@ -132,7 +125,7 @@ export const ChatMessage = memo<ChatMessageProps>(
     if (isUser) {
       return (
         <div className="mb-6 flex justify-end">
-          <div className="font-poppins max-w-[60%] overflow-auto rounded-xl bg-[#F8F8F8] p-3 text-base text-black">
+          <div className="font-poppins max-w-[635px] rounded-xl bg-[#F8F8F8] p-3 text-base font-normal text-black">
             {message.content}
           </div>
         </div>
@@ -153,42 +146,33 @@ export const ChatMessage = memo<ChatMessageProps>(
 
       return (
         <div className="mb-6">
-          <div className="mb-4">
+          <div className="mb-3">
             {isUpdatedDraft ? (
-              <p
-                className="mb-4 text-base text-black"
-                style={{ fontFamily: 'Arial' }}
-              >
+              <p className="font-poppins mb-3 text-xl font-semibold text-black">
                 Here is your new overview of the post to be generated.
               </p>
             ) : (
               <>
-                <h2
-                  className="mb-1 text-xl font-medium"
-                  style={{ fontFamily: 'Arial' }}
-                >
-                  Let's Confirm Your Writing Intent
-                </h2>
-                <p
-                  className="text-base text-black"
-                  style={{ fontFamily: 'Arial' }}
-                >
-                  Here's a quick overview of how we plan to structure your
-                  article based on your topic:
-                </p>
+                <div className="font-sans text-black">
+                  <span className="tex-[20px] font-[600]">
+                    Let's Confirm Your Writing Intent
+                  </span>
+                  <br />
+                  <span className="tex-[16px]">
+                    Here's a quick overview of how we plan to structure your
+                    article based on your topic:
+                  </span>
+                </div>
               </>
             )}
           </div>
 
-          <div className="py-3">
+          <div className="my-3">
             <DraftInfoDisplay draft={draftToDisplay} isThinking={isThinking} />
           </div>
 
           <div className="mt-8">
-            <p
-              className="text-xl font-medium"
-              style={{ fontFamily: 'Poppins' }}
-            >
+            <p className="font-poppins text-[20px] font-medium text-black">
               If you're happy with it, type OK to continue. If not, feel free to
               tell me what you'd like to change.
             </p>
@@ -205,11 +189,11 @@ export const ChatMessage = memo<ChatMessageProps>(
         )}
 
         {isThinking && !message.content ? (
-          <div className="rounded-xl bg-gray-50 p-3">
+          <div className="rounded-xl bg-[#F8F8F8] p-3">
             <ThinkingIndicator />
           </div>
         ) : (
-          <div className="text-base text-black" style={{ fontFamily: 'Arial' }}>
+          <div className="font-sans text-base font-normal text-black">
             {message.content}
           </div>
         )}
@@ -225,28 +209,37 @@ interface ChatMessageListProps {
   messages: ChatMessageType[];
   isThinking?: boolean;
   className?: string;
+  latestMessageRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
   isThinking = false,
   className = '',
+  latestMessageRef,
 }) => {
   return (
     <div className={`${className}`}>
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         // 判断是否需要显示草案信息
         const showDraftDisplay =
           message.type === 'assistant' &&
           message.metadata?.draftUpdated &&
           message.metadata?.draftSnapshot !== undefined;
 
+        // 判断是否是最新消息
+        const isLatestMessage = index === messages.length - 1;
+
         return (
-          <ChatMessage
+          <div
             key={message.id}
-            message={message}
-            showDraftDisplay={showDraftDisplay}
-          />
+            ref={isLatestMessage ? latestMessageRef : undefined}
+          >
+            <ChatMessage
+              message={message}
+              showDraftDisplay={showDraftDisplay}
+            />
+          </div>
         );
       })}
 
