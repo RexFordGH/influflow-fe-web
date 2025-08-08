@@ -5,12 +5,14 @@ import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { IOutline } from '@/types/outline';
+import { IContentFormat } from '@/types/api';
 import { devLog } from '@/utils/devLog';
 import {
   MarkdownSection,
   processSectionsFromOutline,
 } from '@/utils/markdownUtils';
 import { copyImageToClipboard } from '@/utils/twitter';
+import { isLongformType } from '@/utils/contentFormat';
 
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
@@ -133,7 +135,7 @@ export function MarkdownRenderer({
     }
   }, [content, tweetData?.content_format]);
 
-  const getContentFormat = useCallback((): 'longform' | 'thread' => {
+  const getContentFormat = useCallback((): IContentFormat => {
     if (tweetData?.content_format) {
       return tweetData.content_format;
     }
@@ -245,7 +247,7 @@ export function MarkdownRenderer({
 
     // 根据 content_format 选择渲染器
     const RendererSectionComponent =
-      getContentFormat() === 'longform'
+      isLongformType(getContentFormat())
         ? SectionRendererOfLongForm
         : SectionRenderer;
 
@@ -288,7 +290,7 @@ export function MarkdownRenderer({
         </div>
 
         {/* 图片画廊 - 仅在 longform 模式下显示 */}
-        {tweetData?.content_format === 'longform' &&
+        {isLongformType(tweetData?.content_format || content?.content_format || 'longform') &&
           collectedImages.length > 0 && (
             <div className="mt-[48px] flex w-[580px]  flex-col justify-center gap-[16px] overflow-hidden">
               {collectedImages.map((image, index) => (

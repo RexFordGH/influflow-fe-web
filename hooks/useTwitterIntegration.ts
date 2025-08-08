@@ -9,6 +9,7 @@ import {
 import { IOutline } from '@/types/outline';
 import { getEmojiNumber } from '@/utils/markdownUtils';
 import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
+import { isLongformType } from '@/utils/contentFormat';
 import { useCallback, useState } from 'react';
 
 interface CollectedImage {
@@ -129,7 +130,7 @@ export function useTwitterIntegration({
       }
 
       // 根据 content_format 决定处理方式
-      if (rawAPIData.content_format === 'longform') {
+      if (isLongformType(rawAPIData.content_format || 'thread')) {
         // longform 模式：从第二个大标题开始复制
         rawAPIData.nodes.forEach((group: any, groupIndex: number) => {
           // 从第二个大标题开始展示（groupIndex >= 1）

@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { IContentFormat, IMode } from '@/types/api';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { IOutline } from '@/types/outline';
+import { isLongformType } from '@/utils/contentFormat';
 
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
@@ -266,7 +267,7 @@ export function ArticleRenderer({
             </div>
 
             {/* Twitter Thread内容区域 */}
-            {contentFormat === 'longform' ? (
+            {isLongformType(contentFormat) ? (
               <div className="mt-[50px] flex items-start justify-center">
                 <div className="size-[40px] shrink-0 overflow-hidden rounded-full">
                   <Image
