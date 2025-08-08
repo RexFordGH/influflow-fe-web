@@ -7,9 +7,9 @@ import {
   type TwitterTweetData,
 } from '@/lib/api/services';
 import { IOutline } from '@/types/outline';
+import { isLongformType } from '@/utils/contentFormat';
 import { getEmojiNumber } from '@/utils/markdownUtils';
 import { convertToTwitterFormat, copyTwitterContent } from '@/utils/twitter';
-import { isLongformType } from '@/utils/contentFormat';
 import { useCallback, useState } from 'react';
 
 interface CollectedImage {

@@ -23,7 +23,9 @@ export const isThreadType = (contentFormat: IContentFormat): boolean => {
  * @param contentFormat 内容格式
  * @returns 显示名称
  */
-export const getContentFormatDisplayName = (contentFormat: IContentFormat): string => {
+export const getContentFormatDisplayName = (
+  contentFormat: IContentFormat,
+): string => {
   switch (contentFormat) {
     case 'longform':
       return 'Article';
@@ -59,9 +61,13 @@ export const getContentFormatIcon = (contentFormat: IContentFormat): string => {
  * @param format 待验证的格式
  * @returns 是否为有效的内容格式
  */
-export const validateContentFormat = (format: unknown): format is IContentFormat => {
-  return typeof format === 'string' && 
-    ['longform', 'thread', 'deep_research'].includes(format);
+export const validateContentFormat = (
+  format: unknown,
+): format is IContentFormat => {
+  return (
+    typeof format === 'string' &&
+    ['longform', 'thread', 'deep_research'].includes(format)
+  );
 };
 
 /**
