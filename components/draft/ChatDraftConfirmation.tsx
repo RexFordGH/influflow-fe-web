@@ -56,11 +56,17 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   const [showDialog, setShowDialog] = useState(false);
   const [dialogType, setDialogType] = useState<DialogType>('exit');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const latestMessageRef = useRef<HTMLDivElement>(null!);
   const hasInitialized = useRef(false);
 
-  // 滚动到底部
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // 滚动到最新消息
+  const scrollToLatestMessage = useCallback(() => {
+    if (latestMessageRef.current) {
+      latestMessageRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start' // 滚动到消息的顶部位置
+      });
+    }
   }, []);
 
   // 初始化生成草案
@@ -71,10 +77,13 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
     }
   }, [topic, generateDraft]);
 
-  // 消息更新时滚动到底部
+  // 消息更新时滚动到最新消息
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    // 只在有新消息时滚动
+    if (messages.length > 0) {
+      scrollToLatestMessage();
+    }
+  }, [messages, scrollToLatestMessage]);
 
   // 确认完成后跳转
   useEffect(() => {
@@ -178,6 +187,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
               messages={messages}
               isThinking={isThinking}
               className="mx-auto max-w-6xl"
+              latestMessageRef={latestMessageRef}
             />
           )}
 

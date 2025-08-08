@@ -209,28 +209,37 @@ interface ChatMessageListProps {
   messages: ChatMessageType[];
   isThinking?: boolean;
   className?: string;
+  latestMessageRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
   isThinking = false,
   className = '',
+  latestMessageRef,
 }) => {
   return (
     <div className={`${className}`}>
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         // 判断是否需要显示草案信息
         const showDraftDisplay =
           message.type === 'assistant' &&
           message.metadata?.draftUpdated &&
           message.metadata?.draftSnapshot !== undefined;
+        
+        // 判断是否是最新消息
+        const isLatestMessage = index === messages.length - 1;
 
         return (
-          <ChatMessage
-            key={message.id}
-            message={message}
-            showDraftDisplay={showDraftDisplay}
-          />
+          <div 
+            key={message.id} 
+            ref={isLatestMessage ? latestMessageRef : undefined}
+          >
+            <ChatMessage
+              message={message}
+              showDraftDisplay={showDraftDisplay}
+            />
+          </div>
         );
       })}
 
