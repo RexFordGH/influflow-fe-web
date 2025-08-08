@@ -136,14 +136,14 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   return (
     <div className={`flex h-screen flex-col bg-white ${className}`}>
       {/* 顶部导航栏 */}
-      <div className="flex items-center justify-between bg-white py-[24px] px-20 gap-[38px]">
+      <div className="flex items-center justify-between gap-[38px] bg-white px-20 py-[24px]">
         <Button
           isIconOnly
           size="sm"
           variant="light"
           onPress={handleBack}
           aria-label="Back"
-          className="p-0 w-6 h-6 min-w-[24px]"
+          className="size-6 min-w-[24px] p-0"
           isDisabled={isLoading || isThinking}
         >
           <ArrowLeftIcon className="size-6 text-black" />
@@ -152,7 +152,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
         <button
           onClick={handleSkip}
           disabled={isLoading || isThinking}
-          className={`font-poppins text-base font-medium rounded-[20px] py-1 transition-colors ${
+          className={`font-poppins rounded-[20px] py-1 text-base font-medium transition-colors ${
             isLoading || isThinking
               ? 'cursor-not-allowed text-gray-300'
               : 'text-[#8C8C8C] hover:opacity-80'
@@ -169,7 +169,7 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
           {/* 初始欢迎信息 或 消息列表 */}
           {messages.length === 0 && !isLoading ? (
             <div className="flex justify-end">
-              <div className="inline-block font-poppins text-base font-normal text-black bg-[#F8F8F8] rounded-xl p-3 max-w-[635px]">
+              <div className="font-poppins inline-block max-w-[635px] rounded-xl bg-[#F8F8F8] p-3 text-base font-normal text-black">
                 {topic}
               </div>
             </div>

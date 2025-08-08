@@ -333,9 +333,10 @@ function HomeContent() {
   };
 
   // 判断是否显示首页（即MainContent）
-  const isShowingHomePage = !showGenerationOrchestrator && 
-                            !showDraftConfirmation && 
-                            !(hasCreatedContentGeneration && showContentGeneration && currentTopic);
+  const isShowingHomePage =
+    !showGenerationOrchestrator &&
+    !showDraftConfirmation &&
+    !(hasCreatedContentGeneration && showContentGeneration && currentTopic);
 
   return (
     <GenerationProvider initialMode={currentMode}>

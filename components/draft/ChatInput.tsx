@@ -69,7 +69,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className={`mx-auto w-full ${className}`}>
-      <div className="relative mx-auto bg-white w-[600px] min-h-[120px] rounded-[20px] shadow-[0_0_12px_rgba(0,0,0,0.25)] pt-6 pr-3 pb-3 pl-6">
+      <div className="relative mx-auto min-h-[120px] w-[600px] rounded-[20px] bg-white pb-3 pl-6 pr-3 pt-6 shadow-[0_0_12px_rgba(0,0,0,0.25)]">
         <textarea
           ref={textareaRef}
           value={message}
@@ -77,18 +77,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full resize-none border-none bg-transparent outline-none placeholder:text-[#8C8C8C] font-poppins text-base font-normal leading-6 min-h-[24px] h-auto max-h-[200px] overflow-auto pr-[60px] ${
+          className={`font-poppins h-auto max-h-[200px] min-h-[24px] w-full resize-none overflow-auto border-none bg-transparent pr-[60px] text-base font-normal leading-6 outline-none placeholder:text-[#8C8C8C] ${
             message ? 'text-black' : 'text-[#8C8C8C]'
           }`}
         />
 
         {/* 发送按钮 - 绝对定位 */}
-        <div className="absolute right-3 bottom-3">
+        <div className="absolute bottom-3 right-3">
           <Button
             isIconOnly
             disabled={disabled || !message.trim()}
             onPress={handleSend}
-            className="rounded-full w-10 h-10 min-w-[40px] bg-[#448AFF] p-[6px_12px]"
+            className="size-10 min-w-[40px] rounded-full bg-[#448AFF] p-[6px_12px]"
             aria-label="Send message"
           >
             <PaperAirplaneIcon className="size-5 -rotate-45 text-white" />

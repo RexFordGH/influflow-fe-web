@@ -76,15 +76,15 @@ const DraftInfoDisplay: React.FC<{
   return (
     <div className="space-y-0">
       {sections.map((section, index) => (
-        <div key={index} className="flex py-3 px-12 gap-2.5">
-          <div className="flex items-start shrink-0 w-[400px] gap-0">
-            <span className="text-base mr-1">{section.emoji}</span>
+        <div key={index} className="flex gap-2.5 px-12 py-3">
+          <div className="flex w-[400px] shrink-0 items-start gap-0">
+            <span className="mr-1 text-base">{section.emoji}</span>
             <h3 className="font-poppins text-[16px] font-medium text-black">
               {section.title}
             </h3>
           </div>
-          <div className="flex-1 flex items-center">
-            <p className="whitespace-pre-line font-poppins text-[16px] font-[400] text-black">
+          <div className="flex flex-1 items-center">
+            <p className="font-poppins whitespace-pre-line text-[16px] font-[400] text-black">
               {isThinking && index === 0 ? (
                 <span className="text-[#8C8C8C]">Generating...</span>
               ) : (
@@ -124,8 +124,8 @@ export const ChatMessage = memo<ChatMessageProps>(
     // 如果是用户消息
     if (isUser) {
       return (
-        <div className="flex justify-end mb-6">
-          <div className="font-poppins text-base font-normal text-black bg-[#F8F8F8] rounded-xl p-3 max-w-[635px]">
+        <div className="mb-6 flex justify-end">
+          <div className="font-poppins max-w-[635px] rounded-xl bg-[#F8F8F8] p-3 text-base font-normal text-black">
             {message.content}
           </div>
         </div>
@@ -148,7 +148,7 @@ export const ChatMessage = memo<ChatMessageProps>(
         <div className="mb-6">
           <div className="mb-3">
             {isUpdatedDraft ? (
-              <p className="font-poppins text-xl font-semibold text-black mb-3">
+              <p className="font-poppins mb-3 text-xl font-semibold text-black">
                 Here is your new overview of the post to be generated.
               </p>
             ) : (
