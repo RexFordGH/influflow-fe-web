@@ -4,10 +4,10 @@ import { UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import Link from 'next/link';
 
 import { useAuthStore } from '@/stores/authStore';
 
-import Link from 'next/link';
 import {
   EmptyState,
   EndOfList,
@@ -164,7 +164,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto relative"
+          className="relative flex-1 overflow-y-auto"
           id="sidebar-scroll-container"
         >
           <div className="p-4">
@@ -200,10 +200,10 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
           </div>
         </div>
 
-        <div className="w-full py-[12px] px-[24px]">
+        <div className="w-full px-[24px] py-[12px]">
           <Link
             href="/profile"
-            className="flex justify-center items-center gap-[10px] bg-[#EFEFEF] py-[8px] px-[12px] rounded-[12px] hover:bg-[#c1c1c1]"
+            className="flex items-center justify-center gap-[10px] rounded-[12px] bg-[#EFEFEF] px-[12px] py-[8px] hover:bg-[#c1c1c1]"
           >
             <Image
               src="/icons/enhancement.svg"

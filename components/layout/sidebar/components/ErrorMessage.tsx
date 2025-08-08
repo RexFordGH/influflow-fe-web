@@ -33,7 +33,9 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       </div>
 
       {/* Error title */}
-      <h3 className="mb-2 text-lg font-medium text-gray-900">Something went wrong</h3>
+      <h3 className="mb-2 text-lg font-medium text-gray-900">
+        Something went wrong
+      </h3>
 
       {/* Error message */}
       <p className="mb-6 max-w-sm text-center text-sm text-gray-500">

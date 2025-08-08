@@ -62,9 +62,9 @@ const ChatDraftConfirmationInner: React.FC<ChatDraftConfirmationProps> = ({
   // 滚动到最新消息
   const scrollToLatestMessage = useCallback(() => {
     if (latestMessageRef.current) {
-      latestMessageRef.current.scrollIntoView({ 
+      latestMessageRef.current.scrollIntoView({
         behavior: 'smooth',
-        block: 'start' // 滚动到消息的顶部位置
+        block: 'start', // 滚动到消息的顶部位置
       });
     }
   }, []);

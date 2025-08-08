@@ -285,7 +285,7 @@ export function TrendingTopicsPage({
                     <button
                       key={`${topic.topic}-${index}`}
                       onClick={() => onTopicSelect(topic)}
-                      className={`w-full rounded-xl px-[24px] py-[10px] text-left transition-colors duration-150 border border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-100 `}
+                      className={`w-full rounded-xl border border-gray-300 bg-white px-[24px] py-[10px] text-left transition-colors duration-150 hover:border-blue-400 hover:bg-blue-100 `}
                     >
                       <div className="">
                         <span className="text-[18px] font-normal leading-[27px] text-black">

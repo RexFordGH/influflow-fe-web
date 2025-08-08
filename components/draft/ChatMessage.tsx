@@ -226,13 +226,13 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
           message.type === 'assistant' &&
           message.metadata?.draftUpdated &&
           message.metadata?.draftSnapshot !== undefined;
-        
+
         // 判断是否是最新消息
         const isLatestMessage = index === messages.length - 1;
 
         return (
-          <div 
-            key={message.id} 
+          <div
+            key={message.id}
             ref={isLatestMessage ? latestMessageRef : undefined}
           >
             <ChatMessage
