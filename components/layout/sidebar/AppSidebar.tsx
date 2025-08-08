@@ -175,8 +175,8 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
               <ErrorMessage error={new Error(error!)} onRetry={retry} />
             ) : isEmpty ? (
               <EmptyState
-                title="暂无内容"
-                description="还没有任何推文内容，开始创建你的第一个内容吧"
+                title="No content yet"
+                description="There are no tweets yet, start creating your first content"
               />
             ) : (
               <div className="">

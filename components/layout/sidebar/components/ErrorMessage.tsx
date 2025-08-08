@@ -1,4 +1,4 @@
-// 错误消息组件 - 友好的错误提示和重试功能
+// Error message component - Friendly error prompts and retry functionality
 
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import React from 'react';
@@ -11,48 +11,48 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 }) => {
   const getErrorMessage = (error: Error): string => {
     if (error.message.includes('network') || error.message.includes('fetch')) {
-      return '网络连接失败，请检查您的网络设置';
+      return 'Network connection failed, please check your network settings';
     }
     if (
       error.message.includes('permission') ||
       error.message.includes('auth')
     ) {
-      return '您没有权限访问此内容';
+      return 'You do not have permission to access this content';
     }
     if (error.message.includes('timeout')) {
-      return '请求超时，请稍后重试';
+      return 'Request timed out, please try again later';
     }
-    return '加载失败，请稍后重试';
+    return 'Failed to load, please try again later';
   };
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-8">
-      {/* 错误图标 */}
+      {/* Error icon */}
       <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-red-50">
         <ExclamationTriangleIcon className="size-6 text-red-500" />
       </div>
 
-      {/* 错误标题 */}
-      <h3 className="mb-2 text-lg font-medium text-gray-900">出现了一些问题</h3>
+      {/* Error title */}
+      <h3 className="mb-2 text-lg font-medium text-gray-900">Something went wrong</h3>
 
-      {/* 错误消息 */}
+      {/* Error message */}
       <p className="mb-6 max-w-sm text-center text-sm text-gray-500">
         {getErrorMessage(error)}
       </p>
 
-      {/* 重试按钮 */}
+      {/* Retry button */}
       <button
         onClick={onRetry}
         className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
-        重试
+        Retry
       </button>
 
-      {/* 详细错误信息（开发环境） */}
+      {/* Detailed error information (development environment) */}
       {process.env.NODE_ENV === 'development' && (
         <details className="mt-4 w-full max-w-sm">
           <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600">
-            查看详细错误信息
+            View detailed error information
           </summary>
           <pre className="mt-2 overflow-x-auto rounded bg-gray-50 p-2 text-xs text-gray-600">
             {error.stack || error.message}
