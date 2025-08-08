@@ -52,6 +52,7 @@ interface WelcomeScreenProps {
 const ContentFormatOptions = [
   { key: 'longform', label: 'Article', icon: '≣' },
   { key: 'thread', label: 'Threads', icon: '≡' },
+  { key: 'deep_research', label: 'Deep Research', icon: '≡' },
 ];
 
 const ModeOptions = [

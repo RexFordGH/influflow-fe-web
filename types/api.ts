@@ -15,7 +15,7 @@ export interface IHealthData {
 
 export type IHealthResponse = IBaseResponse<IHealthData>;
 
-export type IContentFormat = 'longform' | 'thread';
+export type IContentFormat = 'longform' | 'thread' | 'deep_research';
 export type IMode = 'lite' | 'analysis' | 'draft';
 
 /**

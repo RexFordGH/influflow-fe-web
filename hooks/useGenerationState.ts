@@ -213,6 +213,9 @@ export function useGenerationState({
       // 如果提供了参数，使用orchestrator开始生成
       if (params) {
         orchestratorStart(params);
+        // 当传入参数时，orchestratorStart会处理phase转换
+        // 不需要继续执行下面的逻辑，避免重复调用
+        return;
       }
 
       // 防止重复请求
