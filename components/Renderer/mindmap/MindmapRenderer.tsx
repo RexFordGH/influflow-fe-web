@@ -1117,8 +1117,8 @@ export function MindmapRenderer({
           >
             <div className="px-8 pt-[20px] pb-1">
               {/* 顶部 */}
-              <div className="mb-1 flex items-center justify-between">
-                <h2 className="text-[20px] font-bold text-gray-900">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-[20px] medium text-gray-900">
                   Prompt History
                 </h2>
                 <Button
@@ -1133,44 +1133,48 @@ export function MindmapRenderer({
 
               {/* 内容复制框 */}
               <div className="mb-6">
-                <div className="flex items-end justify-end gap-3">
-                  <Tooltip
-                    content="Copy"
-                    showArrow={true}
-                    placement="top"
-                    color="foreground"
-                  >
-                    <Button
-                      size="sm"
-                      color="primary"
-                      variant="solid"
-                      onPress={async () => {
-                        await copyTwitterContent(
-                          userInputFromSupabase || 'No user input',
-                        );
-                      }}
-                      className="size-10 min-w-10 rounded-lg p-0 hover:bg-[#EFEFEF]"
+                <div className={`flex items-end gap-3 ${draftInfoDisplay ? '' : 'flex-row-reverse'} ${userInputFromSupabase ? 'justify-end' : 'justify-center'}`}>
+                  {userInputFromSupabase && (
+                    <Tooltip
+                      content="Copy"
+                      showArrow={true}
+                      placement="top"
+                      color="foreground"
                     >
-                      <img
-                        src="/icons/copy.svg"
-                        alt="copy"
-                        className="size-5"
-                      />
-                    </Button>
-                  </Tooltip>
+                      <Button
+                        size="sm"
+                        color="primary"
+                        variant="solid"
+                        onPress={async () => {
+                          await copyTwitterContent(userInputFromSupabase);
+                        }}
+                        className="size-10 min-w-10 rounded-lg p-0 hover:bg-[#EFEFEF]"
+                      >
+                        <img
+                          src="/icons/copy.svg"
+                          alt="copy"
+                          className="size-5"
+                        />
+                      </Button>
+                    </Tooltip>
+                  )}
 
-                  <div className="max-w-md rounded-lg bg-[#F8F8F8] px-3 py-2">
-                    <span className="whitespace-pre-wrap break-words text-base text-gray-900">
-                      {userInputFromSupabase || 'No user input'}
-                    </span>
-                  </div>
+                  {userInputFromSupabase ? (
+                    <div className="max-w-md rounded-lg bg-[#F8F8F8] px-3 py-2">
+                      <span className="whitespace-pre-wrap break-words text-base text-gray-900">
+                        {userInputFromSupabase}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-base text-gray-400">No user input.</span>
+                  )}
                 </div>
               </div>
 
               {/* 写作意图部分 */}
               {draftInfoDisplay && (
                 <div className="mb-6">
-                  <h3 className="text-[16px] font-bold text-gray-900">
+                  <h3 className="text-[16px] medium text-gray-900">
                     Final Draft
                   </h3>
 
