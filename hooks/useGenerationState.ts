@@ -155,9 +155,10 @@ export function useGenerationState({
       const request = handler.buildRequest(topic, contentFormat, params);
 
       // 添加mode字段确保兼容性
+      // 当content_format为deep_research时，mode置为'analysis',仅为后端校验，实质无用
       return {
         ...request,
-        mode: context.mode,
+        mode: context.contentFormat === 'deep_research' ? 'analysis' : context.mode,
       };
     } catch (error) {
       console.error('Failed to build generation request:', error);

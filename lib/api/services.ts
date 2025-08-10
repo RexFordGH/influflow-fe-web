@@ -48,7 +48,7 @@ export function useHealth() {
 export function useGenerateThread() {
   return useMutation({
     mutationFn: async (data: IGenerateThreadRequest): Promise<IOutline> => {
-      return apiPost<IOutline>('/api/twitter/generate', data, 1000 * 60 * 5);
+      return apiPost<IOutline>('/api/twitter/generate', data, 1000 * 60 * 10);
     },
     onSuccess: (data) => {
       console.log('Thread generated successfully:', data);
