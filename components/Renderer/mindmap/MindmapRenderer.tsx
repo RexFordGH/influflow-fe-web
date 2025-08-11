@@ -15,7 +15,7 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 
-import { useDraftData } from '@/hooks/useDraftData';
+import { useTweetThreadData } from '@/hooks/useTweetThreadData';
 import { useModifyTweet } from '@/lib/api/services';
 import { convertMindmapToMarkdown } from '@/lib/data/converters';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
@@ -199,7 +199,7 @@ export function MindmapRenderer({
     useState<string>('');
 
   // 使用draft数据hook
-  const { fetchDraftFromSupabase, isLoadingDraft } = useDraftData();
+  const { fetchTweetThreadFromSupabase, isLoadingTweetThread } = useTweetThreadData();
 
   const handleEditWithAI = useCallback((nodeId: string) => {
     setSelectedNodeForAI(nodeId);
@@ -982,9 +982,8 @@ export function MindmapRenderer({
                   }
 
                   // 从 Supabase 获取 draft 数据
-                  const draftData = await fetchDraftFromSupabase(
-                    originalOutline.id,
-                    user.id,
+                  const draftData = await fetchTweetThreadFromSupabase(
+                    originalOutline.id
                   );
 
                   // 无论是否有draft数据，都打开模态框
