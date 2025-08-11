@@ -30,6 +30,28 @@ export interface IGenerateThreadRequest {
 
 export type IGenerateThreadResponse = IBaseResponse<IOutline>;
 
+// 异步生成任务：提交请求与响应
+export interface IGenerateAsyncRequest {
+  user_input: string;
+  mode?: IMode; // 默认 analysis
+  content_format?: IContentFormat; // 默认 deep_research
+}
+
+export interface IAsyncJobResponse {
+  job_id: string;
+}
+
+// 异步任务状态
+export type IJobStatus = 'running' | 'completed' | 'failed';
+
+export interface IJobStatusResponse {
+  job_id: string;
+  status: IJobStatus;
+  tweet_id?: string; // 完成后包含推文线程ID
+  error?: string; // 失败时错误信息
+}
+// ================================
+
 export interface IModifyTweetRequest {
   outline: IOutline;
   tweet_number: number;

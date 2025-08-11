@@ -1,5 +1,5 @@
 import { addToast } from '@/components/base/toast';
-import { getErrorMessage, useGenerateThread } from '@/lib/api/services';
+import { getErrorMessage, useAsyncThreadGeneration } from '@/lib/api/services';
 import { convertAPIDataToGeneratedContent } from '@/lib/data/converters';
 import { ModeHandlerFactory } from '@/services/mode-handlers';
 import { useAuthStore } from '@/stores/authStore';
@@ -81,7 +81,7 @@ export function useGenerationState({
   const { user } = useAuthStore();
 
   // API调用hook
-  const { mutate: generateThread } = useGenerateThread();
+  const { mutate: startAsyncGeneration } = useAsyncThreadGeneration();
 
   // 使用生成流程编排器
   const {
@@ -249,8 +249,8 @@ export function useGenerationState({
         // 准备请求数据
         const requestData = buildGenerationRequest();
 
-        // 调用API
-        generateThread(requestData, {
+        // 异步任务：提交并在成功后写入数据
+        startAsyncGeneration(requestData as any, {
           onSuccess: (response) => {
             // 检查请求是否还是当前请求
             if (requestIdRef.current !== currentRequestId) {
@@ -329,7 +329,6 @@ export function useGenerationState({
       topic,
       hasStartedGeneration,
       context,
-      generateThread,
       generationSteps.length,
       buildGenerationRequest,
       animateGenerationSteps,
