@@ -6,16 +6,21 @@ import {
   type ICheckInvitationCodeResponse,
   type IGenerateImageRequest,
   type IGenerateThreadRequest,
+  type IGenerateAsyncRequest,
   type IHealthData,
   type IModifyOutlineData,
   type IModifyOutlineRequest,
   type IModifyTweetData,
   type IModifyTweetRequest,
+  type IAsyncJobResponse,
+  type IJobStatusResponse,
 } from '@/types/api';
+import { } from 'react';
 import { IGenerateDraftRequest, IGenerateDraftResponse } from '@/types/draft';
 import { IOutline } from '@/types/outline';
-
+import { useTweetThreadData } from '@/hooks/useTweetThreadData';
 import { apiGet, apiPost, generateImage } from './client';
+import { useAsyncJob } from '@/hooks/useAsyncJob';
 
 export const QUERY_KEYS = {
   HEALTH: ['health'] as const,
@@ -59,6 +64,120 @@ export function useGenerateThread() {
     },
   });
 }
+
+// 新增内容：兼容后端接口，1先获取jobid，2轮询任务状态,3获取job_id对应的推文线程，4获取推文数据组装成outline返回
+// 组合式 Hook：提交异步生成并轮询任务状态
+export function useAsyncThreadGeneration() {
+  const { mutateAsync: generateAsync } = useGenerateThreadAsync();
+  const { fetchTweetThreadFromSupabase } = useTweetThreadData();
+  const { fetchAsyncJobById } = useAsyncJob();
+
+  return useMutation({
+    mutationFn: async (data: IGenerateThreadRequest): Promise<IOutline> => {
+      const asyncPayload = {
+        user_input: data.user_input,
+        mode: data.mode,
+        content_format: data.content_format,
+      };
+
+      const job = await generateAsync(asyncPayload);
+
+      // 轮询任务状态直至完成或失败
+      // 最长等待约 10 分钟（5s * 200 次）
+      let isCompleted = false;
+      for (let attempt = 0; attempt < 200; attempt++) {
+        const status = await getJobStatus(job.job_id);
+        if (status.status === 'completed') {
+          isCompleted = true;
+          break;
+        }
+        if (status.status === 'failed') {
+          throw new Error(status.error || 'Async generation job failed');
+        }
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+      if (!isCompleted) {
+        throw new Error('Async generation timed out');
+      }
+
+      // 获取job_id对应的推文线程
+      const asyncJob = await fetchAsyncJobById(job.job_id);
+      if (!asyncJob) {
+        throw new Error('Failed to fetch async job from storage');
+      }
+
+      const tweetId = asyncJob.tweet_id;
+      if (!tweetId) {
+        throw new Error('Tweet ID not found in async job');
+      }
+
+      // 获取推文线程数据
+      const tweetThread = await fetchTweetThreadFromSupabase(tweetId);
+      if (!tweetThread) {
+        throw new Error('Failed to fetch generated thread from storage');
+      }
+
+      // 组装outline
+      const totalTweets = (tweetThread.tweets || []).reduce(
+        (sum, group) => sum + (group.tweets?.length || 0),
+        0,
+      );
+
+      const outline: IOutline = {
+        id: tweetThread.id,
+        content_format: tweetThread.content_format,
+        nodes: tweetThread.tweets,
+        topic: tweetThread.topic,
+        total_tweets: totalTweets,
+        updatedAt: Date.parse(tweetThread.updated_at),
+      };
+
+      return outline;
+    },
+    onSuccess: (data) => {
+      console.log('Thread generated successfully:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to generate thread:', error);
+    },
+  });
+}
+
+// 异步生成 Twitter 内容（支持深度研究等耗时任务）
+export function useGenerateThreadAsync() {
+  return useMutation({
+    mutationFn: async (
+      data: IGenerateAsyncRequest,
+    ): Promise<IAsyncJobResponse> => {
+      // 默认值：mode=analysis, content_format=deep_research
+      const payload: IGenerateAsyncRequest = {
+        mode: 'analysis',
+        content_format: 'deep_research',
+        ...data,
+      };
+
+      return apiPost<IAsyncJobResponse>(
+        '/api/twitter/generate-async',
+        payload,
+        30_000,
+      );
+    },
+    onSuccess: (data) => {
+      console.log('Async generation job submitted:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to submit async generation job:', error);
+    },
+  });
+}
+
+// 查询异步任务状态
+export async function getJobStatus(jobId: string): Promise<IJobStatusResponse> {
+  return apiGet<IJobStatusResponse>(
+    `/api/job/status?job_id=${encodeURIComponent(jobId)}`,
+  );
+}
+// ================================
 
 // 修改单个 Tweet
 export function useModifyTweet() {
