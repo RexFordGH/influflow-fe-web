@@ -255,7 +255,7 @@ export function ArticleRenderer({
 
         {/* 右侧内容区域 */}
         <div className="flex flex-1 justify-center bg-white">
-          <div className="font-inter mx-auto flex w-[700px] flex-col overflow-scroll px-[24px] pb-[60px]">
+          <div className="font-inter mx-auto flex w-[770px] flex-col overflow-scroll px-[24px] pb-[60px]">
             {/* 标题区域 */}
             <div className="pt-[24px]">
               <h1 className="font-inter text-[32px] font-[700] leading-none text-black">
