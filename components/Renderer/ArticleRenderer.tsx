@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { IContentFormat, IMode } from '@/types/api';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { IOutline } from '@/types/outline';
+import { isLongformType } from '@/utils/contentFormat';
 
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
@@ -253,11 +254,16 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="flex flex-1 justify-center bg-white">
-          <div className="font-inter mx-auto flex w-[628px] flex-col overflow-scroll px-[24px] pb-[60px]">
+        <div className="flex flex-1 justify-center bg-white min-w-0">
+          <div
+            className="font-inter mx-auto flex w-[628px] flex-col overflow-y-auto overflow-x-hidden break-words min-w-0 px-[24px] pb-[60px]"
+            style={{
+              width: '800px',
+            }}
+          >
             {/* 标题区域 */}
             <div className="pt-[24px]">
-              <h1 className="font-inter text-[32px] font-[700] leading-none text-black">
+              <h1 className="font-inter text-[32px] font-[700] leading-none text-black break-words">
                 {generation.rawAPIData?.topic}
               </h1>
               <p className="font-inter mt-[10px] text-[14px] font-[400] leading-none text-[#8C8C8C]">
@@ -266,8 +272,8 @@ export function ArticleRenderer({
             </div>
 
             {/* Twitter Thread内容区域 */}
-            {contentFormat === 'longform' ? (
-              <div className="mt-[50px] flex items-start justify-center">
+            {isLongformType(contentFormat) ? (
+              <div className="mt-[50px] flex items-start justify-center min-w-0">
                 <div className="size-[40px] shrink-0 overflow-hidden rounded-full">
                   <Image
                     src={user?.avatar}
@@ -278,7 +284,7 @@ export function ArticleRenderer({
                   />
                 </div>
 
-                <div>
+                <div className="min-w-0 break-words">
                   <div className="ml-[12px] flex gap-[4px] pb-[12px] text-[16px] leading-none">
                     <span className="font-[600] text-black">{user?.name}</span>
                     {user?.account_name && (
@@ -318,8 +324,8 @@ export function ArticleRenderer({
                 </div>
               </div>
             ) : (
-              <div className="mt-[50px] flex items-start justify-center">
-                <div>
+              <div className="mt-[50px] flex items-start justify-center min-w-0">
+                <div className="min-w-0 break-words">
                   {/* Thread 内容 */}
                   {generation.rawAPIData && (
                     <MarkdownRenderer
