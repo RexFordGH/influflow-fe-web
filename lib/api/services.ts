@@ -83,7 +83,7 @@ export function useAsyncThreadGeneration() {
       const job = await generateAsync(asyncPayload);
 
       // 轮询任务状态直至完成或失败
-      // 最长等待约 10 分钟（3s * 200 次）
+      // 最长等待约（5s * 200 次）分钟
       let isCompleted = false;
       for (let attempt = 0; attempt < 200; attempt++) {
         const status = await getJobStatus(job.job_id);
@@ -94,7 +94,7 @@ export function useAsyncThreadGeneration() {
         if (status.status === 'failed') {
           throw new Error(status.error || 'Async generation job failed');
         }
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
       if (!isCompleted) {
         throw new Error('Async generation timed out');
@@ -173,9 +173,14 @@ export function useGenerateThreadAsync() {
 
 // 查询异步任务状态
 export async function getJobStatus(jobId: string): Promise<IJobStatusResponse> {
-  return apiGet<IJobStatusResponse>(
-    `/api/job/status?job_id=${encodeURIComponent(jobId)}`,
-  );
+  // 增加退避重试机制，保证请求成功
+  for (let attempt = 0; attempt < 5; attempt++) {
+  const response = await apiGet<IJobStatusResponse>(
+      `/api/job/status?job_id=${encodeURIComponent(jobId)}`,
+    );
+    return response;
+  }
+  throw new Error('Failed to get job status');
 }
 // ================================
 
