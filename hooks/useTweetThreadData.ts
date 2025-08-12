@@ -44,8 +44,6 @@ export const useTweetThreadData = () => {
           console.error('Error fetching tweet thread from Supabase:', error);
           return null;
         }
-
-        console.log('Fetched tweet thread from Supabase:', data);
         return data as TweetThreadRow;
       } catch (error) {
         console.error('Failed to fetch tweet thread data:', error);

@@ -1,5 +1,5 @@
 import { addToast } from '@/components/base/toast';
-import { getErrorMessage, useAsyncThreadGeneration } from '@/lib/api/services';
+import { getErrorMessage, useAsyncThreadGeneration, useGenerateThread } from '@/lib/api/services';
 import { convertAPIDataToGeneratedContent } from '@/lib/data/converters';
 import { ModeHandlerFactory } from '@/services/mode-handlers';
 import { useAuthStore } from '@/stores/authStore';
@@ -9,6 +9,9 @@ import { GenerationParams } from '@/types/generation';
 import { IOutline } from '@/types/outline';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGenerationOrchestrator } from './useGenerationOrchestrator';
+
+// 使用模块级去重集合，避免在 React.StrictMode 开发环境的双挂载下重复发起相同请求
+const inFlightRequestKeys = new Set<string>();
 
 interface UseGenerationStateProps {
   mode?: IMode;
@@ -76,11 +79,14 @@ export function useGenerationState({
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
+  // 同步级别的启动防抖，避免同一渲染帧重入
+  const isStartingRef = useRef<boolean>(false);
 
   // 获取用户信息用于个性化设置
   const { user } = useAuthStore();
 
   // API调用hook
+  const { mutate: startSyncGeneration } = useGenerateThread();
   const { mutate: startAsyncGeneration } = useAsyncThreadGeneration();
 
   // 使用生成流程编排器
@@ -222,19 +228,26 @@ export function useGenerationState({
       // 防止重复请求
       if (hasStartedGeneration || context.phase !== 'generating') return;
 
-      const currentRequestId = `${topic}-${context.mode}-${Date.now()}`;
-
-      if (requestIdRef.current === currentRequestId) return;
-
-      console.log(
-        '开始API生成，topic:',
+      // 生成稳定的请求键，去除时间戳，确保同一输入只发一次
+      const stableRequestKey = [
         topic,
-        'mode:',
         context.mode,
-        'requestId:',
-        currentRequestId,
-      );
-      requestIdRef.current = currentRequestId;
+        contentFormat,
+        sessionId || context.sessionId || '',
+        userInput || context.userInput || '',
+      ].join('|');
+
+      // 同步级别防抖与全局去重（覆盖 StrictMode 双挂载场景）
+      if (isStartingRef.current) return;
+      if (inFlightRequestKeys.has(stableRequestKey)) {
+        console.log('检测到重复生成请求，已忽略:', stableRequestKey);
+        return;
+      }
+      isStartingRef.current = true;
+      inFlightRequestKeys.add(stableRequestKey);
+
+      console.log('开始API生成，topic:', topic, 'mode:', context.mode);
+      requestIdRef.current = stableRequestKey;
       setHasStartedGeneration(true);
       setApiError(null);
       setGenerationStep(0);
@@ -248,63 +261,81 @@ export function useGenerationState({
       try {
         // 准备请求数据
         const requestData = buildGenerationRequest();
+        // 工具函数：释放锁
+        const releaseLock = () => {
+          isStartingRef.current = false;
+          inFlightRequestKeys.delete(stableRequestKey);
+        };
 
-        // 异步任务：提交并在成功后写入数据
-        startAsyncGeneration(requestData as any, {
-          onSuccess: (response) => {
-            // 检查请求是否还是当前请求
-            if (requestIdRef.current !== currentRequestId) {
-              console.log('忽略过期的API响应');
-              cleanup();
-              return;
-            }
+        // 工具函数：快速补齐步骤
+        const completeSteps = async () => {
+          for (let i = 4; i < generationSteps.length; i++) {
+            setGenerationStep(i);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+        };
 
-            isAPICompleted.current = true;
+        // 统一的成功处理
+        const handleSuccess = (response: any) => {
+          if (requestIdRef.current !== stableRequestKey) {
+            console.log('忽略过期的API响应');
             cleanup();
-            console.log('API生成成功:', response);
+            releaseLock();
+            return;
+          }
 
-            // 快速完成所有步骤
-            const completeSteps = async () => {
-              for (let i = 4; i < generationSteps.length; i++) {
-                setGenerationStep(i);
-                await new Promise((resolve) => setTimeout(resolve, 500));
-              }
+          isAPICompleted.current = true;
+          cleanup();
+          console.log('API生成成功:', response);
 
-              setRawAPIData(response);
-              setIsGenerating(false);
-              setGenerationStep(generationSteps.length - 1);
-              transitionToPhase('completed');
-              onGenerationComplete?.(response);
-            };
+          // 先补齐步骤，再写入数据并完成
+          completeSteps();
+          setRawAPIData(response);
+          setIsGenerating(false);
+          setGenerationStep(generationSteps.length - 1);
+          transitionToPhase('completed');
+          onGenerationComplete?.(response);
 
-            completeSteps();
-          },
-          onError: (error) => {
-            // 检查请求是否还是当前请求
-            if (requestIdRef.current !== currentRequestId) {
-              console.log('忽略过期的API错误');
-              cleanup();
-              return;
-            }
+          releaseLock();
+        };
 
-            isAPICompleted.current = true;
+        // 统一的失败处理
+        const handleError = (error: unknown) => {
+          if (requestIdRef.current !== stableRequestKey) {
+            console.log('忽略过期的API错误');
             cleanup();
-            console.error('API生成失败:', error);
-            const errorMessage = getErrorMessage(error);
+            releaseLock();
+            return;
+          }
 
-            setApiError(errorMessage);
-            setIsGenerating(false);
-            transitionToPhase('error');
+          isAPICompleted.current = true;
+          cleanup();
+          console.error('API生成失败:', error);
+          const errorMessage = getErrorMessage(error);
 
-            addToast({
-              title: 'Failed to generate content',
-              description: errorMessage,
-              color: 'danger',
-              timeout: 3000,
-            });
+          setApiError(errorMessage);
+          setIsGenerating(false);
+          transitionToPhase('error');
 
-            onGenerationError?.(error as Error);
-          },
+          addToast({
+            title: 'Failed to generate content',
+            description: errorMessage,
+            color: 'danger',
+            timeout: 3000,
+          });
+
+          onGenerationError?.(error as Error);
+          releaseLock();
+        };
+
+        // 选择同步/异步生成入口
+        const mutate = contentFormat === 'deep_research'
+          ? startAsyncGeneration
+          : startSyncGeneration;
+
+        mutate(requestData as any, {
+          onSuccess: handleSuccess,
+          onError: handleError,
         });
       } catch (error) {
         // 处理构建请求时的错误
@@ -321,6 +352,10 @@ export function useGenerationState({
           color: 'danger',
           timeout: 3000,
         });
+
+        // 释放锁
+        isStartingRef.current = false;
+        inFlightRequestKeys.delete(stableRequestKey);
       }
 
       return cleanup;
@@ -347,6 +382,7 @@ export function useGenerationState({
     setApiError(null);
     setRawAPIData(null);
     requestIdRef.current = null;
+    isStartingRef.current = false;
     orchestratorReset();
   }, [orchestratorReset]);
 
