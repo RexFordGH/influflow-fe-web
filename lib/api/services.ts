@@ -83,7 +83,7 @@ export function useAsyncThreadGeneration() {
       const job = await generateAsync(asyncPayload);
 
       // 轮询任务状态直至完成或失败
-      // 最长等待约（5s * 200 次）分钟
+      // 最长等待约（10s * 200 次）分钟
       let isCompleted = false;
       for (let attempt = 0; attempt < 200; attempt++) {
         const status = await getJobStatus(job.job_id);
@@ -94,7 +94,7 @@ export function useAsyncThreadGeneration() {
         if (status.status === 'failed') {
           throw new Error(status.error || 'Async generation job failed');
         }
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
       if (!isCompleted) {
         throw new Error('Async generation timed out');
