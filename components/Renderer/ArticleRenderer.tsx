@@ -257,8 +257,9 @@ export function ArticleRenderer({
         <div className="flex flex-1 justify-center bg-white min-w-0">
           <div
             className="font-inter mx-auto flex w-[628px] flex-col overflow-y-auto overflow-x-hidden break-words min-w-0 px-[24px] pb-[60px]"
+            //保证与正式环境尺寸一致
             style={{
-              width: '800px',
+              width: '628px',
             }}
           >
             {/* 标题区域 */}
