@@ -2,9 +2,9 @@
 
 import { UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import Link from 'next/link';
 
 import { useAuthStore } from '@/stores/authStore';
 

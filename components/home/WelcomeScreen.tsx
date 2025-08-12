@@ -2,7 +2,6 @@
 
 import {
   Button,
-  cn,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -15,7 +14,6 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -52,9 +50,8 @@ interface WelcomeScreenProps {
 }
 
 const ContentFormatOptions = [
-  { key: 'longform', label: 'Long-form Tweet', icon: '≣' },
+  { key: 'longform', label: 'Article', icon: '≣' },
   { key: 'thread', label: 'Threads', icon: '≡' },
-  { key: 'deep_research', label: 'Deep Research', icon: '≡' },
 ];
 
 const ModeOptions = [
@@ -82,10 +79,6 @@ export const WelcomeScreen = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const homepageRef = useRef<HTMLDivElement>(null);
   const trendingRef = useRef<HTMLDivElement>(null);
-
-  const isDeepResearch = useMemo(() => {
-    return selectedContentFormat === 'deep_research';
-  }, [selectedContentFormat]);
 
   // 滚动相关
   const { scrollY, scrollYProgress } = useScroll({
@@ -253,54 +246,50 @@ export const WelcomeScreen = ({
                   </DropdownMenu>
                 </Dropdown>
 
-                {!isDeepResearch && (
-                  <Dropdown placement="bottom-end">
-                    <DropdownTrigger>
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        className={cn(
-                          'min-w-[100px] rounded-full border-none bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50',
-                        )}
-                        endContent={
-                          <svg
-                            className="ml-1 size-3 opacity-60"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        }
-                      >
-                        {
-                          ModeOptions.find((opt) => opt.key === selectedMode)
-                            ?.label
-                        }
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu
-                      aria-label="mode selection"
-                      selectedKeys={[selectedMode]}
-                      selectionMode="single"
-                      onSelectionChange={(keys) => {
-                        const selectedKey = Array.from(keys)[0] as IMode;
-                        if (selectedKey) {
-                          setSelectedMode(selectedKey);
-                        }
-                      }}
+                <Dropdown placement="bottom-end">
+                  <DropdownTrigger>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      className="min-w-[100px] rounded-full border-none bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50"
+                      endContent={
+                        <svg
+                          className="ml-1 size-3 opacity-60"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      }
                     >
-                      {ModeOptions.map((option) => (
-                        <DropdownItem key={option.key}>
-                          {option.label}
-                        </DropdownItem>
-                      ))}
-                    </DropdownMenu>
-                  </Dropdown>
-                )}
+                      {
+                        ModeOptions.find((opt) => opt.key === selectedMode)
+                          ?.label
+                      }
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    aria-label="mode selection"
+                    selectedKeys={[selectedMode]}
+                    selectionMode="single"
+                    onSelectionChange={(keys) => {
+                      const selectedKey = Array.from(keys)[0] as IMode;
+                      if (selectedKey) {
+                        setSelectedMode(selectedKey);
+                      }
+                    }}
+                  >
+                    {ModeOptions.map((option) => (
+                      <DropdownItem key={option.key}>
+                        {option.label}
+                      </DropdownItem>
+                    ))}
+                  </DropdownMenu>
+                </Dropdown>
               </div>
 
               <Button

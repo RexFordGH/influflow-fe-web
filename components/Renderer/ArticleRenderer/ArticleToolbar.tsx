@@ -3,7 +3,6 @@ import { Button } from '@heroui/react';
 import React from 'react';
 
 import { IContentFormat } from '@/types/api';
-import { isLongformType } from '@/utils/contentFormat';
 
 interface ArticleToolbarProps {
   topic: string;
@@ -49,7 +48,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
           </div>
           <div className="flex items-center space-x-4">
             {/* 如果是 longform 模式，显示复制全文按钮 */}
-            {isLongformType(contentFormat) && (
+            {contentFormat === 'longform' && (
               <Button
                 size="sm"
                 variant="light"

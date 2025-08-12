@@ -4,9 +4,7 @@ import { Button, cn, Image } from '@heroui/react';
 import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { IContentFormat } from '@/types/api';
 import { IOutline } from '@/types/outline';
-import { isLongformType } from '@/utils/contentFormat';
 import { devLog } from '@/utils/devLog';
 import {
   MarkdownSection,
@@ -135,7 +133,7 @@ export function MarkdownRenderer({
     }
   }, [content, tweetData?.content_format]);
 
-  const getContentFormat = useCallback((): IContentFormat => {
+  const getContentFormat = useCallback((): 'longform' | 'thread' => {
     if (tweetData?.content_format) {
       return tweetData.content_format;
     }
@@ -246,9 +244,10 @@ export function MarkdownRenderer({
     }
 
     // 根据 content_format 选择渲染器
-    const RendererSectionComponent = isLongformType(getContentFormat())
-      ? SectionRendererOfLongForm
-      : SectionRenderer;
+    const RendererSectionComponent =
+      getContentFormat() === 'longform'
+        ? SectionRendererOfLongForm
+        : SectionRenderer;
 
     return (
       <RendererSectionComponent
@@ -289,9 +288,7 @@ export function MarkdownRenderer({
         </div>
 
         {/* 图片画廊 - 仅在 longform 模式下显示 */}
-        {isLongformType(
-          tweetData?.content_format || content?.content_format || 'longform',
-        ) &&
+        {tweetData?.content_format === 'longform' &&
           collectedImages.length > 0 && (
             <div className="mt-[48px] flex w-[580px]  flex-col justify-center gap-[16px] overflow-hidden">
               {collectedImages.map((image, index) => (

@@ -1,6 +1,5 @@
 import { IContentFormat } from '@/types/api';
 import { IOutline, ITweet } from '@/types/outline';
-import { isLongformType } from '@/utils/contentFormat';
 
 /**
  * 验证数据是否为有效的 Outline 格式
@@ -102,7 +101,7 @@ export function processSectionsFromOutline(
     options?.contentFormat || outline.content_format || 'thread';
 
   // 根据内容格式选择处理逻辑
-  if (isLongformType(contentFormat)) {
+  if (contentFormat === 'longform') {
     return processLongformSections(outline);
   } else {
     return processStandardSections(outline);
