@@ -1077,7 +1077,7 @@ export function MindmapRenderer({
                 value={aiEditInstruction}
                 onChange={(e) => setAiEditInstruction(e.target.value)}
                 placeholder="Please limit to 300 words."
-                maxLength={300}
+                maxLength={1000}
                 className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 rows={4}
               />
