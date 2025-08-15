@@ -23,6 +23,7 @@ import type { IDraftData } from '@/types/draft';
 import type { IOutline } from '@/types/outline';
 import { copyTwitterContent } from '@/utils/twitter';
 
+import FreeConversation from './FreeConversation';
 import MindmapNode from './MindmapNode';
 
 interface EditableContentMindmapProps {
@@ -197,6 +198,25 @@ export function MindmapRenderer({
   );
   const [userInputFromSupabase, setUserInputFromSupabase] =
     useState<string>('');
+
+  // 覆盖层显示状态
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+
+  // 以事件方式控制覆盖层的显示/隐藏，交由 MindmapOverlay 组件处理广播
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ open: boolean }>;
+      if (custom?.detail && typeof custom.detail.open === 'boolean') {
+        setIsOverlayVisible(custom.detail.open);
+      }
+    };
+    window.addEventListener('mindmapOverlayState', handler as EventListener);
+    return () =>
+      window.removeEventListener(
+        'mindmapOverlayState',
+        handler as EventListener,
+      );
+  }, []);
 
   // 使用draft数据hook
   const { fetchTweetThreadFromSupabase, isLoadingTweetThread } =
@@ -975,36 +995,45 @@ export function MindmapRenderer({
 
         <Background gap={20} size={1} className="opacity-30" />
 
+        {/* 下方输入框 用于AI编辑 */}
         <Panel
           position="bottom-center"
           className="mb-[24px] flex flex-col gap-[10px]"
+          style={{
+            bottom: 10,
+          }}
         >
-          {/* 为按钮添 Prompt History */}
-          <div className="flex items-center gap-3">
+          <div className="relative w-[640px] h-[40px]">
+            <textarea
+              placeholder="How would you like to improve this content?"
+              className="h-full resize-none w-full rounded-full border border-gray-300 bg-white px-4 py-2 pr-14 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-[#4285F4]"
+            />
             <Button
-              size="md"
+              isIconOnly
               color="primary"
-              variant="solid"
-              isLoading={isRegenerating}
-              isDisabled={isRegenerating}
-              onPress={async () => {
-                // 调用父组件的 API 重生成回调
-                if (onRegenerateClick) {
-                  await onRegenerateClick();
-                } else {
-                  console.warn('没有提供 onRegenerateClick 回调');
-                }
+              aria-label="Send"
+              className="absolute right-0 top-1/2 size-10 min-w-0 -translate-y-1/2 rounded-full shadow-md"
+              onPress={() => {
+                const textarea = document.querySelector('textarea');
+                console.log('已经点击了发送按钮', textarea?.value);
+                // 通过事件打开覆盖层，由 MindmapOverlay 维护其内部状态与广播
+                window.dispatchEvent(new CustomEvent('openMindmapOverlay'));
               }}
-              className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
-                isRegenerating
-                  ? 'cursor-not-allowed bg-gray-400'
-                  : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
-              }`}
             >
-              {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+              <img
+                src="/icons/send.svg"
+                alt="发送"
+                width={40}
+                height={40}
+                className="pointer-events-none"
+              />
             </Button>
           </div>
         </Panel>
+
+        {/* 覆盖层 覆盖在reactflow上（通过全局事件进行显示/隐藏） */}
+        <FreeConversation />
+
         {/* 调试面板 */}
         {/* <Panel
           position="bottom-right"
@@ -1054,6 +1083,7 @@ export function MindmapRenderer({
             <div>
               <textarea
                 value={aiEditInstruction}
+                // TODO:发现这里限制了字数，但是空格无法输入，所以这里不限制字数
                 onChange={(e) => {
                   setAiEditInstruction(e.target.value);
                 }}

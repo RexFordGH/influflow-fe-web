@@ -59,8 +59,8 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
               size="sm"
               variant="light"
               onPress={onBack}
-              className="text-gray-500"
-              startContent={<ChevronLeftIcon className="size-4 !text-black font-bold" />}
+              className="text-gray-600"
+              startContent={<ChevronLeftIcon className="size-4" />}
             >
               Back
             </Button>
@@ -90,28 +90,27 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
                 </Button>
               </Tooltip>
             ) : (
-              <Button
-                size="sm"
-                color="primary"
-                variant="solid"
-                onPress={() => {
-                  // 通过自定义事件通知 Mindmap 打开 Prompt History
-                  window.dispatchEvent(new CustomEvent('openPromptHistory'));
-                }}
-                className={`text-gray-500 flex h-8 min-w-1 items-center rounded-md px-2 transition-colors duration-20 hover:bg-[#EFEFEF]`}
-                style={{
-                  marginLeft: '0px',
-                }}
-                startContent={
+              <Tooltip content="Prompts" showArrow={true} color="foreground">
+                <Button
+                  size="sm"
+                  color="primary"
+                  variant="solid"
+                  onPress={() => {
+                    // 通过自定义事件通知 Mindmap 打开 Prompt History
+                    window.dispatchEvent(new CustomEvent('openPromptHistory'));
+                  }}
+                  className={`flex size-8 min-w-1 items-center justify-center rounded-md p-0 transition-colors duration-20 hover:bg-[#EFEFEF]`}
+                  style={{
+                    marginLeft: '0px',
+                  }}
+                >
                   <img
                     src="/icons/vector.svg"
                     alt="Prompt History"
-                    className="size-3 pointer-events-none opacity-60"
+                    className="size-4"
                   />
-                }
-              >
-                Prompts
-              </Button>
+                </Button>
+              </Tooltip>
             )}
           </div>
           <div className="flex items-center space-x-4">
@@ -134,7 +133,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
               onPress={onPostToTwitter}
               isLoading={isPostingToTwitter}
               disabled={isPostingToTwitter || isGenerating}
-              className="bg-[#4285f4] text-white hover:bg-[#1991DB]"
+              className="bg-[#1DA1F2] text-white hover:bg-[#1991DB]"
             >
               {isPostingToTwitter ? 'Posting...' : 'Post'}
             </Button>
