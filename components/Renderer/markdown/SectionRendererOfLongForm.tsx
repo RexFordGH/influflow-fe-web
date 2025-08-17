@@ -257,7 +257,8 @@ export function SectionRendererOfLongForm({
         >
           {isLoading && (
             <div className="absolute left-2 top-2">
-              <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              {/* 加入透明度 隐藏加载动画 */}
+              <div className="opacity-0 size-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
             </div>
           )}
 
