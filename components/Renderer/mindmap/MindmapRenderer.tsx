@@ -1075,10 +1075,11 @@ export function MindmapRenderer({
             <div>
               <textarea
                 value={aiEditInstruction}
-                // TODO:发现这里限制了字数，但是空格无法输入，所以这里不限制字数
                 onChange={(e) => {
-                  setAiEditInstruction(e.target.value)
-                }}
+                  const words = e.target.value.trim().split(/\s+/);
+                  const clipped = words.slice(0, 1000).join(' ');
+                  setAiEditInstruction(clipped)}
+                }
                 placeholder="Please limit to 1000 words."
                 //maxLength={1000}
                 className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
