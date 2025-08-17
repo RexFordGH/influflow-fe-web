@@ -33,9 +33,10 @@ export const AIEditDialog: React.FC<AIEditDialogProps> = React.memo(
             <div className="flex-1">
               <textarea
                 value={instruction}
-                // TODO:发现这里限制了字数，但是空格无法输入，所以这里不限制字数
                 onChange={(e) => {
-                  onInstructionChange(e.target.value)}
+                  const words = e.target.value.trim().split(/\s+/);
+                  const clipped = words.slice(0, 1000).join(' ');
+                  onInstructionChange(clipped)}
                 }
                 placeholder="Please limit to 1000 words."
                 // maxLength={1000}
