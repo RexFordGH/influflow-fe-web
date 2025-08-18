@@ -271,6 +271,55 @@ export function MindmapRenderer({
 
   // 转换数据格式为 React Flow 格式（稳定版本，不包含hover状态）
   const convertToFlowDataStable = useCallback(() => {
+    // 计算整棵树中的“最后一个叶子节点”
+    // 依据与 markdown 渲染一致的顺序：level 2 依据 outlineIndex，level 3+ 依据 tweetId
+    const childMap = new Map<string, string[]>();
+    mindmapEdges.forEach((edge) => {
+      const children = childMap.get(edge.source) || [];
+      children.push(edge.target);
+      childMap.set(edge.source, children);
+    });
+
+    const hasChildren = (nodeId: string) =>
+      (childMap.get(nodeId) || []).length > 0;
+
+    const sortChildren = (ids: string[]) => {
+      const nodes = ids
+        .map((id) => mindmapNodes.find((n) => n.id === id)!)
+        .filter(Boolean);
+      nodes.sort((a, b) => {
+        if (
+          a.data?.outlineIndex !== undefined &&
+          b.data?.outlineIndex !== undefined
+        ) {
+          return (
+            (a.data.outlineIndex as number) - (b.data.outlineIndex as number)
+          );
+        }
+        if (a.data?.tweetId !== undefined && b.data?.tweetId !== undefined) {
+          return (a.data.tweetId as number) - (b.data.tweetId as number);
+        }
+        return a.id.localeCompare(b.id);
+      });
+      return nodes.map((n) => n.id);
+    };
+
+    let lastLeafId: string | null = null;
+    const root = mindmapNodes.find((n) => n.level === 1);
+    if (root) {
+      const dfs = (nodeId: string) => {
+        const children = sortChildren(childMap.get(nodeId) || []);
+        if (children.length === 0) {
+          lastLeafId = nodeId;
+          return;
+        }
+        for (const childId of children) {
+          dfs(childId);
+        }
+      };
+      dfs(root.id);
+    }
+
     const flowNodes: Node[] = mindmapNodes.map((node) => ({
       id: node.id,
       type: 'editableMindmapNode',
@@ -332,6 +381,10 @@ export function MindmapRenderer({
         },
         onNodeHover: onNodeHover, // 传递hover回调
         hoveredTweetId: hoveredTweetId, // 传递hover状态
+        isLastLeaf: !hasChildren(node.id) && node.id === lastLeafId,
+        // 传递重生成相关属性到节点
+        isRegenerating: isRegenerating,
+        onRegenerateClick: onRegenerateClick,
         onEditWithAI: handleEditWithAI,
         ...node.data,
       },
@@ -365,6 +418,8 @@ export function MindmapRenderer({
     onNodesChange,
     onEdgesChange,
     onNodeHover,
+    onRegenerateClick,
+    isRegenerating,
     handleEditWithAI,
   ]);
 
@@ -683,6 +738,19 @@ export function MindmapRenderer({
       })),
     );
   }, [hoveredTweetId, setNodes]);
+
+  // 同步全局 Regenerate 加载状态到各节点数据，以便节点上的按钮实时显示 loading
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isRegenerating: isRegenerating,
+        },
+      })),
+    );
+  }, [isRegenerating, setNodes]);
 
   // 处理键盘删除事件
   useEffect(() => {

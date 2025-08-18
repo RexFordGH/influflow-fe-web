@@ -1,6 +1,7 @@
 'use client';
 
 import { Input } from '@heroui/react';
+import { Button } from '@/components/base/Button';
 import { PlusIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Handle, Position } from 'reactflow';
@@ -339,6 +340,36 @@ const MindmapNode = ({
           pointerEvents: 'none', // 禁用鼠标事件，避免光标变化
         }}
       />
+
+      {/* 最后一个叶子节点下方的独立 Regenerate 按钮（不依赖 hover/level） */}
+      {data?.isLastLeaf && (
+        <div className="pointer-events-auto absolute right-0 top-[calc(100%+16px)] z-10">
+          <Button
+            size="sm"
+            color="primary"
+            variant="solid"
+            isLoading={data?.isRegenerating}
+            isDisabled={data?.isRegenerating}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            onPress={async () => {
+              if (data?.onRegenerateClick) {
+                await data.onRegenerateClick();
+              } else {
+                console.warn('没有提供 onRegenerateClick 回调');
+              }
+            }}
+            className={`text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
+              data?.isRegenerating
+                ? 'cursor-not-allowed bg-gray-400'
+                : 'bg-[#4285F4] hover:scale-105 hover:bg-[#3367D6]'
+            }`}
+          >
+            {data?.isRegenerating ? 'Regenerating' : 'Regenerate'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
