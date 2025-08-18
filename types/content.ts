@@ -82,6 +82,10 @@ export interface MindmapNodeData {
     outlineIndex?: number; // 关联的大纲点索引
     groupIndex?: number; // 分组索引用于hover联动
     tweetIndex?: number; // tweet索引用于hover联动
+    // 运行时辅助字段
+    parentId?: string; // 父节点ID（在运行时添加子节点时使用）
+    level?: number; // 可选：冗余层级信息（在运行时添加子节点时使用）
+    isLastLeaf?: boolean; // 是否为整棵树中的最后一个叶子节点
   };
 }
 
