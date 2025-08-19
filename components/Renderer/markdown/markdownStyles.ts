@@ -22,7 +22,7 @@ export const markdownStyles = {
   states: {
     highlighted: 'bg-blue-50 transform scale-[1.02]',
     hover: 'hover:bg-gray-50 hover:shadow-md',
-    loading: '', // 'opacity-60 cursor-wait', // 隐藏保存时的加载
+    loading: 'opacity-60 cursor-wait',
   },
 
   // 标题样式
