@@ -9,7 +9,6 @@ import ReactFlow, {
   Edge,
   Node,
   NodeTypes,
-  Panel,
   useEdgesState,
   useNodesState,
   useReactFlow,
@@ -23,7 +22,6 @@ import type { IDraftData } from '@/types/draft';
 import type { IOutline } from '@/types/outline';
 import { copyTwitterContent } from '@/utils/twitter';
 
-import FreeConversation from './FreeConversation';
 import MindmapNode from './MindmapNode';
 
 interface EditableContentMindmapProps {
@@ -1045,98 +1043,7 @@ export function MindmapRenderer({
           className="rounded-lg border border-gray-200 bg-white"
         />
 
-        {/* <MiniMap
-          nodeColor={(node) => {
-            const level = node.data?.level || 1;
-            const colors = [
-              '#EF4444',
-              '#3B82F6',
-              '#10B981',
-              '#8B5CF6',
-              '#F59E0B',
-              '#6B7280',
-            ];
-            return colors[level - 1] || colors[5];
-          }}
-          className="bg-white border border-gray-200 rounded-lg"
-        /> */}
-
         <Background gap={20} size={1} className="opacity-30" />
-
-        {/* 下方输入框 用于AI编辑 */}
-        <Panel
-          position="bottom-center"
-          className="mb-[24px] flex flex-col gap-[10px]"
-          style={{
-            bottom: 10,
-          }}
-        >
-          <div className="relative w-[640px] h-[40px]">
-            <textarea
-              placeholder="How would you like to improve this content?"
-              className="h-full resize-none w-full rounded-full border border-gray-300 bg-white px-4 py-2 pr-14 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-[#4285F4]"
-            />
-            <Button
-              isIconOnly
-              color="primary"
-              aria-label="Send"
-              className="absolute right-0 top-1/2 size-10 min-w-0 -translate-y-1/2 rounded-full shadow-md"
-              onPress={() => {
-                const textarea = document.querySelector('textarea');
-                console.log('已经点击了发送按钮', textarea?.value);
-                // 通过事件打开覆盖层，由 MindmapOverlay 维护其内部状态与广播
-                window.dispatchEvent(new CustomEvent('openMindmapOverlay'));
-              }}
-            >
-              <img
-                src="/icons/send.svg"
-                alt="发送"
-                width={40}
-                height={40}
-                className="pointer-events-none"
-              />
-            </Button>
-          </div>
-        </Panel>
-
-        {/* 覆盖层 覆盖在reactflow上（通过全局事件进行显示/隐藏） */}
-        <FreeConversation />
-
-        {/* 调试面板 */}
-        {/* <Panel
-          position="bottom-right"
-          className="max-w-[200px] space-y-1 rounded bg-white p-2 text-xs shadow"
-        >
-          <div>选中节点: {selectedNodeForAI || '无'}</div>
-          <div>应显示按钮: {selectedNodeForAI ? '是' : '否'}</div>
-          <Button
-            size="sm"
-            onPress={() => {
-              const firstNode = nodes[0];
-              if (firstNode) {
-                console.log('强制选择节点:', firstNode.id);
-                setSelectedNodeForAI(firstNode.id);
-              }
-            }}
-          >
-            测试选择
-          </Button>
-          <Button size="sm" onPress={() => setSelectedNodeForAI(null)}>
-            清除选择
-          </Button>
-        </Panel> */}
-
-        {/* <Panel position="bottom-left" className="flex flex-col gap-2">
-          <Button
-            size="sm"
-            color="secondary"
-            variant="flat"
-            onPress={autoLayout}
-            className=" rounded-full p-[16px] font-medium text-white hover:scale-110"
-          >
-            Auto Layout
-          </Button>
-        </Panel> */}
       </ReactFlow>
 
       {/* AI编辑对话框 - 固定在底部 */}
