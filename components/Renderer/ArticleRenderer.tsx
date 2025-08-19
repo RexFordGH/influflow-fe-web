@@ -24,6 +24,7 @@ import { CreateArticleLoading } from './CreateLoading';
 import { ImageEditModal } from './markdown/ImageEditModal';
 import { MarkdownRenderer } from './markdown/MarkdownRenderer';
 import EditableContentMindmap from './mindmap/MindmapRenderer';
+import FreeConversation from './sseChat/FreeConversation';
 
 interface ArticleRendererProps {
   topic: string;
@@ -254,9 +255,9 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="flex flex-1 justify-center bg-white min-w-0">
+        <div className="flex min-w-0 flex-1 justify-center bg-white">
           <div
-            className="font-inter mx-auto flex w-[628px] flex-col overflow-y-auto overflow-x-hidden break-words min-w-0 px-[24px] pb-[60px]"
+            className="font-inter mx-auto flex w-[628px] min-w-0 flex-col overflow-y-auto overflow-x-hidden break-words px-[24px] pb-[60px]"
             //保证与正式环境尺寸一致
             style={{
               width: '628px',
@@ -264,7 +265,7 @@ export function ArticleRenderer({
           >
             {/* 标题区域 */}
             <div className="pt-[24px]">
-              <h1 className="font-inter text-[32px] font-[700] leading-none text-black break-words">
+              <h1 className="font-inter break-words text-[32px] font-[700] leading-none text-black">
                 {generation.rawAPIData?.topic}
               </h1>
               <p className="font-inter mt-[10px] text-[14px] font-[400] leading-none text-[#8C8C8C]">
@@ -274,7 +275,7 @@ export function ArticleRenderer({
 
             {/* Twitter Thread内容区域 */}
             {isLongformType(contentFormat) ? (
-              <div className="mt-[50px] flex items-start justify-center min-w-0">
+              <div className="mt-[50px] flex min-w-0 items-start justify-center">
                 <div className="size-[40px] shrink-0 overflow-hidden rounded-full">
                   <Image
                     src={user?.avatar}
@@ -325,7 +326,7 @@ export function ArticleRenderer({
                 </div>
               </div>
             ) : (
-              <div className="mt-[50px] flex items-start justify-center min-w-0">
+              <div className="mt-[50px] flex min-w-0 items-start justify-center">
                 <div className="min-w-0 break-words">
                   {/* Thread 内容 */}
                   {generation.rawAPIData && (
@@ -361,6 +362,19 @@ export function ArticleRenderer({
           </div>
         </div>
       </div>
+
+      {/* AI 自由对话功能 */}
+      <FreeConversation
+        docId={sessionId || generation.rawAPIData?.id || 'default'}
+        documentContext={generation.rawAPIData || undefined}
+        onContentUpdate={(updatedData) => {
+          generation.setRawAPIData(updatedData);
+          const { nodes, edges } = convertThreadDataToMindmap(updatedData);
+          setCurrentNodes(nodes);
+          setCurrentEdges(edges);
+        }}
+        onDataUpdate={onDataUpdate}
+      />
 
       {/* AI 编辑对话框 */}
       <AIEditDialog
