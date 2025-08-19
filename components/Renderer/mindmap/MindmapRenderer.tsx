@@ -199,7 +199,29 @@ export function MindmapRenderer({
     useState<string>('');
 
   // 使用draft数据hook
-  const { fetchTweetThreadFromSupabase, isLoadingTweetThread } = useTweetThreadData();
+  const { fetchTweetThreadFromSupabase, isLoadingTweetThread } =
+    useTweetThreadData();
+
+  // 监听来自顶部工具栏的打开事件
+  useEffect(() => {
+    const handler = async () => {
+      if (!originalOutline?.id || !user?.id) {
+        console.warn('Missing outlineId or userId for fetching draft data');
+        setShowPromptHistory(true); // 仍然打开以提示无数据
+        return;
+      }
+      const draftData = await fetchTweetThreadFromSupabase(originalOutline.id);
+      setPromptHistoryData(draftData?.draft || null);
+      setUserInputFromSupabase(draftData?.user_input || '');
+      setShowPromptHistory(true);
+      if (!draftData?.draft) {
+        console.warn('No draft data available in Supabase');
+      }
+    };
+    window.addEventListener('openPromptHistory', handler as EventListener);
+    return () =>
+      window.removeEventListener('openPromptHistory', handler as EventListener);
+  }, [fetchTweetThreadFromSupabase, originalOutline?.id, user?.id]);
 
   const handleEditWithAI = useCallback((nodeId: string) => {
     setSelectedNodeForAI(nodeId);
@@ -959,48 +981,6 @@ export function MindmapRenderer({
         >
           {/* 为按钮添 Prompt History */}
           <div className="flex items-center gap-3">
-            <Tooltip
-              content="Prompt History"
-              showArrow={true}
-              placement="top"
-              color="foreground"
-            >
-              <Button
-                size="sm"
-                color="primary"
-                variant="solid"
-                onPress={async () => {
-                  // 实时获取draft数据
-                  // console.log('prompt history', originalOutline?.id);
-                  // console.log('user', user?.id);
-
-                  if (!originalOutline?.id || !user?.id) {
-                    console.warn(
-                      'Missing outlineId or userId for fetching draft data',
-                    );
-                    return;
-                  }
-
-                  // 从 Supabase 获取 draft 数据
-                  const draftData = await fetchTweetThreadFromSupabase(
-                    originalOutline.id
-                  );
-
-                  // 无论是否有draft数据，都打开模态框
-                  setPromptHistoryData(draftData?.draft || null);
-                  setUserInputFromSupabase(draftData?.user_input || '');
-                  setShowPromptHistory(true);
-
-                  if (!draftData?.draft) {
-                    console.warn('No draft data available in Supabase');
-                  }
-                }}
-                className={`flex size-10 min-w-10 items-center justify-center rounded-full p-0 transition-colors duration-200 hover:bg-[#DDE9FF]`}
-              >
-                <img src="/icons/vector.svg" alt="check" className="size-6" />
-              </Button>
-            </Tooltip>
-
             <Button
               size="md"
               color="primary"
@@ -1025,7 +1005,6 @@ export function MindmapRenderer({
             </Button>
           </div>
         </Panel>
-
         {/* 调试面板 */}
         {/* <Panel
           position="bottom-right"
@@ -1076,10 +1055,8 @@ export function MindmapRenderer({
               <textarea
                 value={aiEditInstruction}
                 onChange={(e) => {
-                  const words = e.target.value.trim().split(/\s+/);
-                  const clipped = words.slice(0, 1000).join(' ');
-                  setAiEditInstruction(clipped)}
-                }
+                  setAiEditInstruction(e.target.value);
+                }}
                 placeholder="Please limit to 1000 words."
                 //maxLength={1000}
                 className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
