@@ -19,7 +19,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
   return (
     <div
       className={cn(
-        'absolute left-0 top-1/2 z-[45] flex h-full w-1/2 -translate-y-1/2 flex-col gap-2.5',
+        'absolute left-0 top-[41px] bottom-[0] z-[45] flex w-1/2  flex-col gap-2.5',
         'border-r border-black/10 bg-gray-50 p-[24px]',
       )}
     >
