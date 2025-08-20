@@ -9,7 +9,6 @@ import ReactFlow, {
   Edge,
   Node,
   NodeTypes,
-  Panel,
   useEdgesState,
   useNodesState,
   useReactFlow,
@@ -1045,37 +1044,6 @@ export function MindmapRenderer({
         />
 
         <Background gap={20} size={1} className="opacity-30" />
-
-        <Panel
-          position="bottom-center"
-          className="mb-[24px] flex flex-col gap-[10px]"
-        >
-          {/* 为按钮添 Prompt History */}
-          <div className="flex items-center gap-3">
-            <Button
-              size="md"
-              color="primary"
-              variant="solid"
-              isLoading={isRegenerating}
-              isDisabled={isRegenerating}
-              onPress={async () => {
-                // 调用父组件的 API 重生成回调
-                if (onRegenerateClick) {
-                  await onRegenerateClick();
-                } else {
-                  console.warn('没有提供 onRegenerateClick 回调');
-                }
-              }}
-              className={`rounded-full p-[16px] font-medium text-white shadow-[0px_0px_12px_0px_#448AFF80] ${
-                isRegenerating
-                  ? 'cursor-not-allowed bg-gray-400'
-                  : 'bg-[#4285F4] hover:scale-110 hover:bg-[#3367D6]'
-              }`}
-            >
-              {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-            </Button>
-          </div>
-        </Panel>
       </ReactFlow>
 
       {/* AI编辑对话框 - 固定在底部 */}
