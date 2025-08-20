@@ -30,15 +30,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter') {
-        if (e.shiftKey) {
-          // Shift+Enter 换行
-          return;
-        } else {
-          // Enter 发送
-          e.preventDefault();
-          handleSend();
-        }
+      if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+        e.preventDefault();
+        handleSend();
       }
     },
     [handleSend],

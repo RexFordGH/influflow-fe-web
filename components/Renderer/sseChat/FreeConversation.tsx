@@ -1,7 +1,6 @@
 'use client';
 
-import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
-import { cn } from '@heroui/react';
+import { cn, Image } from '@heroui/react';
 import { useCallback, useState } from 'react';
 
 import { useChatStreaming } from '@/hooks/useChatStreaming';
@@ -99,17 +98,26 @@ export default function FreeConversation({
         <button
           onClick={() => setIsOpen(true)}
           className={cn(
-            'flex items-center gap-2 px-4 py-3',
-            'bg-gradient-to-r from-blue-500 to-blue-600',
-            'text-white font-medium text-sm',
-            'rounded-full shadow-lg',
-            'hover:from-blue-600 hover:to-blue-700',
-            'transition-all duration-200 transform hover:scale-105',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+            'flex items-center justify-between gap-[10px]',
+            'h-[40px]',
+            'p-[12px] pr-0',
+            'text-[#8C8C8C] font-[14px] font-poppins',
+            'bg-white',
+            'rounded-[20px]',
+            'shadow-[0_0_12px_rgba(68,138,255,0.15)]',
+            'transition-all duration-200',
+            'hover:shadow-[0_0_16px_rgba(68,138,255,0.25)]',
+            'focus:outline-none focus:ring-2 focus:ring-[rgb(68,138,255)] focus:ring-offset-2',
           )}
         >
-          <ChatBubbleBottomCenterTextIcon className="size-5" />
           <span>Chat to edit the content</span>
+          <Image
+            src="/icons/send.svg"
+            alt="发送"
+            width={40}
+            height={40}
+            className="pointer-events-none"
+          />
         </button>
       </div>
 
@@ -126,11 +134,11 @@ export default function FreeConversation({
         )}
 
         {/* 输入框 */}
-        <div className="px-4 pb-4">
+        <div className="px-4">
           <ChatInput
             onSendMessage={handleSendMessage}
             disabled={isStreaming}
-            placeholder="输入您的问题或编辑需求..."
+            placeholder="How would you like to improve this content?"
             maxLength={5000}
           />
         </div>
