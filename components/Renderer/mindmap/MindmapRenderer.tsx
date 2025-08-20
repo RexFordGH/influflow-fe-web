@@ -1058,6 +1058,7 @@ export function MindmapRenderer({
             <div>
               <textarea
                 value={aiEditInstruction}
+                // TODO:发现这里限制了字数，但是空格无法输入，所以这里不限制字数
                 onChange={(e) => {
                   setAiEditInstruction(e.target.value);
                 }}
