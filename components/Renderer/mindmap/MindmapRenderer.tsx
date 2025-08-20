@@ -198,6 +198,25 @@ export function MindmapRenderer({
   const [userInputFromSupabase, setUserInputFromSupabase] =
     useState<string>('');
 
+  // 覆盖层显示状态
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+
+  // 以事件方式控制覆盖层的显示/隐藏，交由 MindmapOverlay 组件处理广播
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ open: boolean }>;
+      if (custom?.detail && typeof custom.detail.open === 'boolean') {
+        setIsOverlayVisible(custom.detail.open);
+      }
+    };
+    window.addEventListener('mindmapOverlayState', handler as EventListener);
+    return () =>
+      window.removeEventListener(
+        'mindmapOverlayState',
+        handler as EventListener,
+      );
+  }, []);
+
   // 使用draft数据hook
   const { fetchTweetThreadFromSupabase, isLoadingTweetThread } =
     useTweetThreadData();
@@ -251,6 +270,55 @@ export function MindmapRenderer({
 
   // 转换数据格式为 React Flow 格式（稳定版本，不包含hover状态）
   const convertToFlowDataStable = useCallback(() => {
+    // 计算整棵树中的“最后一个叶子节点”
+    // 依据与 markdown 渲染一致的顺序：level 2 依据 outlineIndex，level 3+ 依据 tweetId
+    const childMap = new Map<string, string[]>();
+    mindmapEdges.forEach((edge) => {
+      const children = childMap.get(edge.source) || [];
+      children.push(edge.target);
+      childMap.set(edge.source, children);
+    });
+
+    const hasChildren = (nodeId: string) =>
+      (childMap.get(nodeId) || []).length > 0;
+
+    const sortChildren = (ids: string[]) => {
+      const nodes = ids
+        .map((id) => mindmapNodes.find((n) => n.id === id)!)
+        .filter(Boolean);
+      nodes.sort((a, b) => {
+        if (
+          a.data?.outlineIndex !== undefined &&
+          b.data?.outlineIndex !== undefined
+        ) {
+          return (
+            (a.data.outlineIndex as number) - (b.data.outlineIndex as number)
+          );
+        }
+        if (a.data?.tweetId !== undefined && b.data?.tweetId !== undefined) {
+          return (a.data.tweetId as number) - (b.data.tweetId as number);
+        }
+        return a.id.localeCompare(b.id);
+      });
+      return nodes.map((n) => n.id);
+    };
+
+    let lastLeafId: string | null = null;
+    const root = mindmapNodes.find((n) => n.level === 1);
+    if (root) {
+      const dfs = (nodeId: string) => {
+        const children = sortChildren(childMap.get(nodeId) || []);
+        if (children.length === 0) {
+          lastLeafId = nodeId;
+          return;
+        }
+        for (const childId of children) {
+          dfs(childId);
+        }
+      };
+      dfs(root.id);
+    }
+
     const flowNodes: Node[] = mindmapNodes.map((node) => ({
       id: node.id,
       type: 'editableMindmapNode',
@@ -312,6 +380,10 @@ export function MindmapRenderer({
         },
         onNodeHover: onNodeHover, // 传递hover回调
         hoveredTweetId: hoveredTweetId, // 传递hover状态
+        isLastLeaf: !hasChildren(node.id) && node.id === lastLeafId,
+        // 传递重生成相关属性到节点
+        isRegenerating: isRegenerating,
+        onRegenerateClick: onRegenerateClick,
         onEditWithAI: handleEditWithAI,
         ...node.data,
       },
@@ -345,6 +417,8 @@ export function MindmapRenderer({
     onNodesChange,
     onEdgesChange,
     onNodeHover,
+    onRegenerateClick,
+    isRegenerating,
     handleEditWithAI,
   ]);
 
@@ -664,6 +738,19 @@ export function MindmapRenderer({
     );
   }, [hoveredTweetId, setNodes]);
 
+  // 同步全局 Regenerate 加载状态到各节点数据，以便节点上的按钮实时显示 loading
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isRegenerating: isRegenerating,
+        },
+      })),
+    );
+  }, [isRegenerating, setNodes]);
+
   // 处理键盘删除事件
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -957,22 +1044,6 @@ export function MindmapRenderer({
           className="rounded-lg border border-gray-200 bg-white"
         />
 
-        {/* <MiniMap
-          nodeColor={(node) => {
-            const level = node.data?.level || 1;
-            const colors = [
-              '#EF4444',
-              '#3B82F6',
-              '#10B981',
-              '#8B5CF6',
-              '#F59E0B',
-              '#6B7280',
-            ];
-            return colors[level - 1] || colors[5];
-          }}
-          className="bg-white border border-gray-200 rounded-lg"
-        /> */}
-
         <Background gap={20} size={1} className="opacity-30" />
 
         <Panel
@@ -1005,41 +1076,6 @@ export function MindmapRenderer({
             </Button>
           </div>
         </Panel>
-        {/* 调试面板 */}
-        {/* <Panel
-          position="bottom-right"
-          className="max-w-[200px] space-y-1 rounded bg-white p-2 text-xs shadow"
-        >
-          <div>选中节点: {selectedNodeForAI || '无'}</div>
-          <div>应显示按钮: {selectedNodeForAI ? '是' : '否'}</div>
-          <Button
-            size="sm"
-            onPress={() => {
-              const firstNode = nodes[0];
-              if (firstNode) {
-                console.log('强制选择节点:', firstNode.id);
-                setSelectedNodeForAI(firstNode.id);
-              }
-            }}
-          >
-            测试选择
-          </Button>
-          <Button size="sm" onPress={() => setSelectedNodeForAI(null)}>
-            清除选择
-          </Button>
-        </Panel> */}
-
-        {/* <Panel position="bottom-left" className="flex flex-col gap-2">
-          <Button
-            size="sm"
-            color="secondary"
-            variant="flat"
-            onPress={autoLayout}
-            className=" rounded-full p-[16px] font-medium text-white hover:scale-110"
-          >
-            Auto Layout
-          </Button>
-        </Panel> */}
       </ReactFlow>
 
       {/* AI编辑对话框 - 固定在底部 */}
