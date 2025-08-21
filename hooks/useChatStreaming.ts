@@ -6,6 +6,7 @@ import type {
   MessageDoneData,
   WriteDoneData,
 } from '@/types/agent-chat';
+import { devLog } from '@/utils/devLog';
 import { processChatOutline } from '@/utils/outlineCompatibility';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -34,6 +35,8 @@ interface SSEController {
   abort: () => void;
   isFinished: () => boolean;
 }
+
+const ShowMessageAsTitle = false;
 
 // 内容累积处理器
 class StreamContentAccumulator {
@@ -185,33 +188,32 @@ export const useChatStreaming = ({
       const aiMessageId = currentAiMessageId.current;
       if (!aiMessageId) return;
 
-      console.log('handleSSEEvent', event);
-      console.log('当前更新的AI消息ID:', aiMessageId);
+      devLog('handleSSEEvent, aiMessageId + event', aiMessageId, event);
 
       // 根据事件类型更新消息
       switch (event.event_type) {
         case 'response.created':
-          console.log('响应创建:', event.message);
+          devLog('response.created', event);
           setIsConnected(true);
           break;
 
         case 'response.in_progress':
-          console.log('响应进行中:', event.message);
+          devLog('response.in_progress', event);
           break;
 
         case 'reasoning.start':
-          console.log('推理开始:', event.message);
+          devLog('reasoning.start', event);
           const reasoningStartData = event as any;
           const step =
             reasoningStartData.data?.index !== undefined
-              ? `步骤 ${reasoningStartData.data.index + 1}`
+              ? `Step ${reasoningStartData.data.index + 1}`
               : '';
 
           // message 作为标题，步骤信息作为内容
           updateMessageContent(
             aiMessageId,
             {
-              title: event.message || '开始思考',
+              title: event.message || 'Start thinking...',
               text: step,
             },
             'reasoning',
@@ -219,7 +221,7 @@ export const useChatStreaming = ({
           break;
 
         case 'reasoning.done':
-          console.log('推理完成:', event.message);
+          devLog('reasoning.done', event);
           const reasoningData = event as any;
 
           // 提取推理内容
@@ -228,14 +230,10 @@ export const useChatStreaming = ({
 
           // message 作为标题，text 作为内容
           if (event.message || reasoningText) {
-            console.log('推理内容:', {
-              title: event.message,
-              text: reasoningText,
-            });
             updateMessageContent(
               aiMessageId,
               {
-                title: event.message || '思考完成',
+                title: event.message || 'Thinking done.',
                 text: reasoningText,
               },
               'reasoning',
@@ -244,16 +242,16 @@ export const useChatStreaming = ({
           break;
 
         case 'web_search.start':
-          console.log('网络搜索开始:', event.message);
+          devLog('web_search.start', event);
           updateMessageContent(
             aiMessageId,
-            { title: event.message || '开始搜索' },
+            { title: event.message || 'Start Web Searching...' },
             'search',
           );
           break;
 
         case 'web_search.done':
-          console.log('网络搜索完成:', event.message);
+          devLog('web_search.done', event);
           const searchData = event as any;
           const searchResults =
             searchData.data?.results || searchData.data?.text || '';
@@ -262,13 +260,13 @@ export const useChatStreaming = ({
             typeof searchResults === 'string'
               ? searchResults
               : searchResults.length
-                ? `找到 ${searchResults.length} 个结果`
+                ? `find ${searchResults.length} results`
                 : '';
 
           updateMessageContent(
             aiMessageId,
             {
-              title: event.message || '搜索完成',
+              title: event.message || 'Search done.',
               text: resultsText,
             },
             'search',
@@ -276,7 +274,7 @@ export const useChatStreaming = ({
           break;
 
         case 'message.start':
-          console.log('开始消息流式输出:', event.message);
+          devLog('message.start', event);
           setIsStreaming(true);
           setIsConnected(true);
 
@@ -302,23 +300,17 @@ export const useChatStreaming = ({
             MessageDoneData
           >;
 
-          console.log('message.done 完整数据:', messageData);
+          devLog('message.done', event);
 
           // 提取内容文本（不包括message字段，那是标题）
           const contentText =
-            (messageData.data as any)?.message || // data.message（这个是内容）
-            messageData.data?.text || // data.text
-            (messageData.data as any)?.data?.text || // data.data.text
+            messageData.data?.text || 
+            (messageData.data as any)?.data?.text ||
+            (messageData.data as any)?.message ||
             '';
-
-          console.log('提取的内容:', {
-            title: messageData.message,
-            text: contentText,
-          });
 
           if (!contentText && !messageData.message) {
             console.warn('message.done 没有提取到任何内容');
-            // 不return，保持之前累积的内容
           }
 
           // 清除打字机效果
@@ -352,13 +344,21 @@ export const useChatStreaming = ({
                   setMessages((prev) =>
                     prev.map((msg) => {
                       if (msg.id !== aiMessageId) return msg;
-                      
-                      const isComplete = currentIndex === accumulatedContent.length;
+
+                      const isComplete =
+                        currentIndex === accumulatedContent.length;
                       return {
                         ...msg,
                         streamingContent: displayText,
-                        status: msg.status === 'complete' ? 'complete' : (isComplete ? 'complete' : 'streaming'),
-                        content: isComplete ? accumulatedContent : msg.content || '',
+                        status:
+                          msg.status === 'complete'
+                            ? 'complete'
+                            : isComplete
+                              ? 'complete'
+                              : 'streaming',
+                        content: isComplete
+                          ? accumulatedContent
+                          : msg.content || '',
                       };
                     }),
                   );
@@ -368,7 +368,7 @@ export const useChatStreaming = ({
                   // 打字机完成，清理
                   clearInterval(typewriterIntervalRef.current!);
                   typewriterIntervalRef.current = null;
-                  
+
                   // 确保最终状态正确
                   setMessages((prev) =>
                     prev.map((msg) =>
@@ -403,10 +403,10 @@ export const useChatStreaming = ({
           break;
 
         case 'write.start':
-          console.log('开始写入 write.start:', event);
+          devLog('write.start', event);
           updateMessageContent(
             aiMessageId,
-            { title: event.message || '开始生成内容' },
+            { title: event.message || 'Start generating content...' },
             'write',
           );
           break;
@@ -416,7 +416,7 @@ export const useChatStreaming = ({
             'write.done',
             WriteDoneData
           >;
-          console.log('write.done 完整数据:', writeData);
+          devLog('write.done', event);
 
           // 提取各种可能的内容
           const writeText =
@@ -425,7 +425,6 @@ export const useChatStreaming = ({
             '';
           const writeOutline = writeData.data?.outline;
 
-          // message 作为标题，其他作为内容
           if (event.message || writeText || writeOutline) {
             let contentText = writeText;
 
@@ -460,9 +459,8 @@ export const useChatStreaming = ({
             'chat.done',
             WriteDoneData
           >;
-          console.log('chat.done', event, aiMessageId);
+          devLog('chat.done', event);
 
-          // 如果有最终的message，添加为标题
           if (event.message) {
             updateMessageContent(
               aiMessageId,
@@ -475,10 +473,10 @@ export const useChatStreaming = ({
           setMessages((prev) => {
             const updated = prev.map((msg) => {
               if (msg.id !== aiMessageId) return msg;
-              
+
               // 如果打字机效果还在进行中，不要改变 streamingContent
               const isTypewriterActive = typewriterIntervalRef.current !== null;
-              
+
               // 如果没有打字机效果或已经完成，将内容转移到 content
               if (!isTypewriterActive && msg.streamingContent) {
                 return {
@@ -488,14 +486,14 @@ export const useChatStreaming = ({
                   streamingContent: undefined,
                 };
               }
-              
+
               // 如果打字机还在进行，只更新状态，保留 streamingContent
               return {
                 ...msg,
                 status: 'complete' as const,
               };
             });
-            console.log('chat.done 后的消息列表:', updated);
+            devLog('chat.done 后的消息列表:', updated);
             return updated;
           });
           setIsStreaming(false);
@@ -525,7 +523,7 @@ export const useChatStreaming = ({
           break;
 
         case 'chat.start':
-          console.log('chat.start 事件:', event);
+          devLog('chat.start 事件:', event);
           // chat.start 的 message 作为标题
           if (event.message) {
             updateMessageContent(
@@ -585,13 +583,11 @@ export const useChatStreaming = ({
         content: '',
         timestamp: new Date(),
         status: 'streaming',
-        streamingContent: '连接中...',
+        streamingContent: 'connecting...',
       };
 
-      console.log('创建新的AI消息:', aiMessage);
       setMessages((prev) => {
         const newMessages = [...prev, aiMessage];
-        console.log('添加AI消息后的消息列表:', newMessages);
         return newMessages;
       });
 
@@ -643,11 +639,8 @@ export const useChatStreaming = ({
 
         setMessages((prev) => [...prev, userMessage]);
 
-        // 每次都创建新的聊天会话，确保用户输入的内容传递给后端
-        console.log('创建新的聊天会话，内容:', content);
         const chatThreadId = await createChatSession(content);
         setCurrentChatId(chatThreadId);
-        console.log('新的 chatThreadId:', chatThreadId);
 
         // 更新用户消息状态
         setMessages((prev) =>
