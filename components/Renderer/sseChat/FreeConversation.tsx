@@ -189,7 +189,7 @@ export default function FreeConversation({
   // 将历史消息转换为 ChatMessage 格式并设置到消息列表
   useEffect(() => {
     if (!isOpen || allHistoryMessages.length === 0) return;
-    
+
     // 只在初次加载且没有设置过历史时设置消息
     if (hasSetInitialHistoryRef.current && offset === 0) return;
 
@@ -206,7 +206,7 @@ export default function FreeConversation({
 
     // 反转数组，因为 API 返回的是倒序
     const reversedHistory = formattedHistory.reverse();
-    
+
     if (!hasSetInitialHistoryRef.current) {
       // 第一次加载：直接设置历史消息
       setMessages(reversedHistory);
@@ -215,9 +215,11 @@ export default function FreeConversation({
       // 分页加载更多：只添加新的历史消息到开头
       setMessages((prev) => {
         // 过滤掉可能的重复消息（基于ID）
-        const existingIds = new Set(prev.map(m => m.id));
-        const newHistoryMessages = reversedHistory.filter(m => !existingIds.has(m.id));
-        
+        const existingIds = new Set(prev.map((m) => m.id));
+        const newHistoryMessages = reversedHistory.filter(
+          (m) => !existingIds.has(m.id),
+        );
+
         // 将新的历史消息添加到开头
         return [...newHistoryMessages, ...prev];
       });
@@ -281,7 +283,6 @@ export default function FreeConversation({
             'flex items-center justify-between gap-[10px]',
             'h-[40px]',
             'p-[12px] pr-0',
-            'text-[#8C8C8C] font-[14px] font-poppins',
             'bg-white',
             'rounded-[20px]',
             'shadow-[0_0_12px_rgba(68,138,255,0.15)]',
@@ -290,7 +291,9 @@ export default function FreeConversation({
             'focus:outline-none focus:ring-2 focus:ring-[rgb(68,138,255)] focus:ring-offset-2',
           )}
         >
-          <span>Chat to edit the content</span>
+          <span className="text-[#8C8C8C] text-[13px] font-poppins">
+            Chat to edit the content
+          </span>
           <Image
             src="/icons/send.svg"
             alt="发送"

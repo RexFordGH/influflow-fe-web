@@ -26,7 +26,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           <div className="space-y-2">
             {/* 流式标题 - 小标题样式，使用打字机效果 */}
             {message.streamingTitle && (
-              <div className="font-medium text-black">
+              <div className="text-black">
                 <StreamingTypewriter
                   streamingContent={message.streamingTitle}
                   isStreaming={true}
