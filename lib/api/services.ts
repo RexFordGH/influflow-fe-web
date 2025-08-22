@@ -493,7 +493,7 @@ export interface IChatHistoryResponse {
   hasMore: boolean;
 }
 
-export function getChatHistory(params: IChatHistoryParams) {
+export function useGetChatHistory(params: IChatHistoryParams) {
   const {
     docId,
     offset = 0,

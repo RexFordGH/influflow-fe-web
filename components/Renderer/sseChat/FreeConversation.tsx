@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useChatStreaming } from '@/hooks/useChatStreaming';
 import {
-  getChatHistory,
+  useGetChatHistory,
   type IChatHistoryMessage,
   type IChatHistoryParams,
 } from '@/lib/api/services';
@@ -102,7 +102,7 @@ export default function FreeConversation({
     data: historyData,
     isLoading: isLoadingHistory,
     error: historyError,
-  } = getChatHistory(historyParams);
+  } = useGetChatHistory(historyParams);
 
   // 使用 useChatStreaming Hook
   const {
