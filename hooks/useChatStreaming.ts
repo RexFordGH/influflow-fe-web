@@ -42,7 +42,10 @@ const ShowMessageAsTitle = false;
 
 // 内容处理器 - 替换模式而非累积模式
 class StreamContentProcessor {
-  private currentContent: Map<string, { title?: string; text?: string; type?: string }> = new Map();
+  private currentContent: Map<
+    string,
+    { title?: string; text?: string; type?: string }
+  > = new Map();
 
   // 设置内容（替换模式）
   set(
@@ -53,12 +56,14 @@ class StreamContentProcessor {
     if (!content) return this.get(messageId);
 
     const key = messageId;
-    let processedContent: { title?: string; text?: string; type?: string } = { type };
+    let processedContent: { title?: string; text?: string; type?: string } = {
+      type,
+    };
 
     if (typeof content === 'object') {
       // 对象格式：包含标题和内容
       const { title, text } = content;
-      
+
       if (title) {
         // 添加图标前缀
         switch (type) {
@@ -75,7 +80,7 @@ class StreamContentProcessor {
             processedContent.title = title;
         }
       }
-      
+
       if (text) {
         processedContent.text = text;
       }
@@ -195,17 +200,16 @@ export const useChatStreaming = ({
         case 'reasoning.start':
           devLog('reasoning.start', event);
           const reasoningStartData = event as any;
-          const step =
-            reasoningStartData.data?.index !== undefined
-              ? `Step ${reasoningStartData.data.index + 1}`
-              : '';
 
           // message 作为标题，步骤信息作为内容
           updateMessageContent(
             aiMessageId,
             {
               title: event.message || 'Start thinking...',
-              text: step,
+              text:
+                reasoningStartData.data.text ||
+                reasoningStartData.data?.data?.text ||
+                '',
             },
             'reasoning',
           );
@@ -419,7 +423,6 @@ export const useChatStreaming = ({
           const writeOutline = writeData.data?.outline;
 
           if (event.message || writeText || writeOutline) {
-
             updateMessageContent(
               aiMessageId,
               {

@@ -24,10 +24,15 @@ export const AIMessage: React.FC<AIMessageProps> = ({
       <div className={cn('text-[14px]')}>
         {message.status === 'streaming' ? (
           <div className="space-y-2">
-            {/* 流式标题 - 小标题样式 */}
+            {/* 流式标题 - 小标题样式，使用打字机效果 */}
             {message.streamingTitle && (
               <div className="font-medium text-black">
-                {message.streamingTitle}
+                <StreamingTypewriter
+                  streamingContent={message.streamingTitle}
+                  isStreaming={true}
+                  typeSpeed={15} // 标题打字速度更快
+                  showCursor={false} // 标题不显示光标
+                />
               </div>
             )}
             {/* 流式内容 - 正文样式 */}

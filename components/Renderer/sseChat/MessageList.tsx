@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import type { ChatMessage } from '@/types/agent-chat';
 
 import { AIMessage } from './AIMessage';
+import { AIMessageWithTransition } from './AIMessageWithTransition';
 import { UserMessage } from './UserMessage';
 
 interface MessageListProps {
@@ -27,12 +28,25 @@ export const MessageList: React.FC<MessageListProps> = ({
     }
   }, [messages, isStreaming]);
 
+  // 使用过渡效果的开关（可以通过环境变量或配置控制）
+  const useTransitionEffect = false;
+
   const renderMessage = (message: ChatMessage) => {
     if (message.type === 'user') {
       return <UserMessage key={message.id} message={message} />;
     }
+
+    // 根据开关选择使用哪个组件
+    const AIMessageComponent = useTransitionEffect
+      ? AIMessageWithTransition
+      : AIMessage;
+
     return (
-      <AIMessage key={message.id} message={message} isStreaming={isStreaming} />
+      <AIMessageComponent
+        key={message.id}
+        message={message}
+        isStreaming={isStreaming}
+      />
     );
   };
 

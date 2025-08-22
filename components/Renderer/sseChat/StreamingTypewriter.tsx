@@ -6,20 +6,31 @@ interface StreamingTypewriterProps {
   streamingContent: string;
   isStreaming: boolean;
   onComplete?: () => void;
+  typeSpeed?: number; // 可配置打字速度
+  showCursor?: boolean; // 是否显示光标
 }
 
 export const StreamingTypewriter: React.FC<StreamingTypewriterProps> = ({
   streamingContent,
   isStreaming,
   onComplete,
+  typeSpeed = 30, // 默认 30ms
+  showCursor: shouldShowCursor = true, // 默认显示光标
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
-  const [showCursor, setShowCursor] = useState(true);
+  const [cursorVisible, setCursorVisible] = useState(true);
   const contentRef = useRef(streamingContent);
   const indexRef = useRef(0);
+  const prevContentRef = useRef(streamingContent);
 
   // 更新内容引用
   useEffect(() => {
+    // 如果内容完全改变（不是追加），重置索引
+    if (!streamingContent.startsWith(prevContentRef.current)) {
+      indexRef.current = 0;
+      setDisplayedContent('');
+    }
+    prevContentRef.current = streamingContent;
     contentRef.current = streamingContent;
   }, [streamingContent]);
 
@@ -27,12 +38,11 @@ export const StreamingTypewriter: React.FC<StreamingTypewriterProps> = ({
   useEffect(() => {
     if (!isStreaming) {
       setDisplayedContent(streamingContent);
-      setShowCursor(false);
+      setCursorVisible(false);
       onComplete?.();
       return;
     }
 
-    const typeSpeed = 30; // 每个字符 30ms
     let timeoutId: NodeJS.Timeout;
 
     const typeNextChar = () => {
@@ -53,30 +63,30 @@ export const StreamingTypewriter: React.FC<StreamingTypewriterProps> = ({
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [isStreaming, streamingContent, onComplete]);
+  }, [isStreaming, streamingContent, onComplete, typeSpeed]);
 
   // 光标闪烁效果
   useEffect(() => {
-    if (!isStreaming) {
-      setShowCursor(false);
+    if (!isStreaming || !shouldShowCursor) {
+      setCursorVisible(false);
       return;
     }
 
     const intervalId = setInterval(() => {
-      setShowCursor((prev) => !prev);
+      setCursorVisible((prev) => !prev);
     }, 500);
 
     return () => clearInterval(intervalId);
-  }, [isStreaming]);
+  }, [isStreaming, shouldShowCursor]);
 
   return (
     <span className="whitespace-pre-wrap break-words">
       {displayedContent}
-      {isStreaming && (
+      {isStreaming && shouldShowCursor && (
         <span
           className="ml-0.5 inline-block h-4 w-0.5 bg-gray-800"
           style={{
-            opacity: showCursor ? 1 : 0,
+            opacity: cursorVisible ? 1 : 0,
             transition: 'opacity 0.1s',
           }}
         />
