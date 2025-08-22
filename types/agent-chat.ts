@@ -55,7 +55,9 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   status: 'sending' | 'sent' | 'streaming' | 'complete' | 'error';
-  streamingContent?: string;
+  streamingTitle?: string;    // 流式标题
+  streamingContent?: string;   // 流式内容
+  streamingType?: string;      // 消息类型
   outline?: IOutline
 }
 

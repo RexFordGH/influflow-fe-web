@@ -40,82 +40,68 @@ interface SSEController {
 
 const ShowMessageAsTitle = false;
 
-// 内容累积处理器
-class StreamContentAccumulator {
-  private contents: Map<string, string[]> = new Map();
+// 内容处理器 - 替换模式而非累积模式
+class StreamContentProcessor {
+  private currentContent: Map<string, { title?: string; text?: string; type?: string }> = new Map();
 
-  // 添加内容到指定消息（支持标题+内容格式）
-  append(
+  // 设置内容（替换模式）
+  set(
     messageId: string,
     content: string | { title?: string; text?: string },
     type: 'reasoning' | 'write' | 'message' | 'search' | 'general' = 'general',
-  ): string {
+  ): { title?: string; text?: string; type?: string } {
     if (!content) return this.get(messageId);
 
     const key = messageId;
-    if (!this.contents.has(key)) {
-      this.contents.set(key, []);
-    }
-
-    const contentList = this.contents.get(key)!;
-
-    // 处理标题和内容
-    let formattedContent = '';
+    let processedContent: { title?: string; text?: string; type?: string } = { type };
 
     if (typeof content === 'object') {
       // 对象格式：包含标题和内容
       const { title, text } = content;
-
+      
       if (title) {
-        // 标题部分（作为小标题显示）
+        // 添加图标前缀
         switch (type) {
           case 'reasoning':
-            formattedContent = `🤔 ${title}`;
+            processedContent.title = `🤔 ${title}`;
             break;
           case 'write':
-            formattedContent = `✍️ ${title}`;
+            processedContent.title = `✍️ ${title}`;
             break;
           case 'search':
-            formattedContent = `🔍 ${title}`;
+            processedContent.title = `🔍 ${title}`;
             break;
           default:
-            formattedContent = `${title}`;
+            processedContent.title = title;
         }
-
-        // 如果有内容，添加到标题后面
-        if (text) {
-          formattedContent += `\n${text}`;
-        }
-      } else if (text) {
-        // 只有内容，没有标题
-        formattedContent = text;
+      }
+      
+      if (text) {
+        processedContent.text = text;
       }
     } else {
       // 字符串格式：直接作为内容
-      formattedContent = content;
+      processedContent.text = content;
     }
 
-    if (formattedContent) {
-      contentList.push(formattedContent);
-    }
-
-    return contentList.join('\n\n');
+    // 替换当前内容
+    this.currentContent.set(key, processedContent);
+    return processedContent;
   }
 
-  // 获取累积的内容
-  get(messageId: string): string {
-    const contentList = this.contents.get(messageId);
-    return contentList ? contentList.join('\n\n') : '';
+  // 获取当前内容
+  get(messageId: string): { title?: string; text?: string; type?: string } {
+    return this.currentContent.get(messageId) || {};
   }
 
   // 清除指定消息的内容
   clear(messageId: string): void {
-    this.contents.delete(messageId);
+    this.currentContent.delete(messageId);
   }
 
   // 清除所有内容
   clearAll(): void {
-    this.contents.clear();
+    this.currentContent.clear();
   }
 }
 
@@ -137,7 +123,7 @@ export const useChatStreaming = ({
   const sseControllerRef = useRef<SSEController | null>(null);
   const currentAiMessageId = useRef<string | null>(null);
   const typewriterIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const contentAccumulator = useRef(new StreamContentAccumulator());
+  const contentProcessor = useRef(new StreamContentProcessor());
 
   // 创建聊天会话
   const createChatSession = async (userMessage: string): Promise<string> => {
@@ -149,7 +135,7 @@ export const useChatStreaming = ({
     }
   };
 
-  // 更新消息内容的辅助函数
+  // 更新消息内容的辅助函数（替换模式）
   const updateMessageContent = useCallback(
     (
       messageId: string,
@@ -162,7 +148,7 @@ export const useChatStreaming = ({
         | 'general' = 'general',
       status: ChatMessage['status'] = 'streaming',
     ) => {
-      const accumulatedContent = contentAccumulator.current.append(
+      const processedContent = contentProcessor.current.set(
         messageId,
         content,
         type,
@@ -173,14 +159,16 @@ export const useChatStreaming = ({
           msg.id === messageId
             ? {
                 ...msg,
-                streamingContent: accumulatedContent,
+                streamingTitle: processedContent.title,
+                streamingContent: processedContent.text,
+                streamingType: processedContent.type,
                 status,
               }
             : msg,
         ),
       );
 
-      return accumulatedContent;
+      return processedContent;
     },
     [],
   );
@@ -307,7 +295,7 @@ export const useChatStreaming = ({
 
           // 提取内容文本（不包括message字段，那是标题）
           const contentText =
-            messageData.data?.text || 
+            messageData.data?.text ||
             (messageData.data as any)?.data?.text ||
             (messageData.data as any)?.message ||
             '';
@@ -324,8 +312,8 @@ export const useChatStreaming = ({
 
           // message 作为标题，data中的内容作为文本
           if (messageData.message || contentText) {
-            // 累积消息内容
-            const accumulatedContent = updateMessageContent(
+            // 更新消息内容（替换模式）
+            const processedContent = updateMessageContent(
               aiMessageId,
               {
                 title: messageData.message || '',
@@ -335,33 +323,31 @@ export const useChatStreaming = ({
             );
 
             if (enableTypewriter && contentText) {
-              // 打字机效果：从累积内容的当前长度开始
-              const previousLength =
-                accumulatedContent.length - contentText.length;
-              let currentIndex = previousLength;
+              // 打字机效果
+              let currentIndex = 0;
+              const fullText = contentText;
 
               typewriterIntervalRef.current = setInterval(() => {
-                if (currentIndex <= accumulatedContent.length) {
-                  const displayText = accumulatedContent.slice(0, currentIndex);
+                if (currentIndex <= fullText.length) {
+                  const displayText = fullText.slice(0, currentIndex);
 
                   setMessages((prev) =>
                     prev.map((msg) => {
                       if (msg.id !== aiMessageId) return msg;
 
-                      const isComplete =
-                        currentIndex === accumulatedContent.length;
+                      const isComplete = currentIndex === fullText.length;
                       return {
                         ...msg,
+                        streamingTitle: processedContent.title,
                         streamingContent: displayText,
+                        streamingType: processedContent.type,
                         status:
                           msg.status === 'complete'
                             ? 'complete'
                             : isComplete
                               ? 'complete'
                               : 'streaming',
-                        content: isComplete
-                          ? accumulatedContent
-                          : msg.content || '',
+                        content: isComplete ? fullText : msg.content || '',
                       };
                     }),
                   );
@@ -378,8 +364,10 @@ export const useChatStreaming = ({
                       msg.id === aiMessageId
                         ? {
                             ...msg,
-                            content: accumulatedContent,
+                            content: fullText,
+                            streamingTitle: undefined,
                             streamingContent: undefined,
+                            streamingType: undefined,
                             status: 'complete' as const,
                           }
                         : msg,
@@ -388,14 +376,16 @@ export const useChatStreaming = ({
                 }
               }, typewriterSpeed);
             } else {
-              // 直接显示累积内容
+              // 直接显示内容
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === aiMessageId
                     ? {
                         ...msg,
-                        content: accumulatedContent,
-                        streamingContent: accumulatedContent,
+                        content: contentText,
+                        streamingTitle: processedContent.title,
+                        streamingContent: contentText,
+                        streamingType: processedContent.type,
                         status: 'complete' as const,
                       }
                     : msg,
@@ -522,7 +512,7 @@ export const useChatStreaming = ({
             ),
           );
           setIsStreaming(false);
-          setError(new Error(errorData.data.error || '生成失败'));
+          setError(new Error(errorData.data.error || 'generate failed'));
           break;
 
         case 'chat.start':
@@ -577,8 +567,8 @@ export const useChatStreaming = ({
       const aiMessageId = crypto.randomUUID();
       currentAiMessageId.current = aiMessageId;
 
-      // 清除该消息之前的累积内容
-      contentAccumulator.current.clear(aiMessageId);
+      // 清除该消息之前的内容
+      contentProcessor.current.clear(aiMessageId);
 
       const aiMessage: ChatMessage = {
         id: aiMessageId,
@@ -694,7 +684,7 @@ export const useChatStreaming = ({
   const clearMessages = useCallback(() => {
     setMessages([]);
     setCurrentChatId(null);
-    contentAccumulator.current.clearAll();
+    contentProcessor.current.clearAll();
     disconnect();
   }, [disconnect]);
 

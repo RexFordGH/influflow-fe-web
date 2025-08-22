@@ -21,21 +21,50 @@ export const AIMessage: React.FC<AIMessageProps> = ({
       <Image src={'/icons/influxy.svg'} width={84} height={24} />
 
       {/* 消息内容 */}
-      <div className={cn('text-[14px] text-black')}>
+      <div className={cn('text-[14px]')}>
         {message.status === 'streaming' ? (
-          <StreamingTypewriter
-            streamingContent={message.streamingContent || ''}
-            isStreaming={true}
-          />
+          <div className="space-y-2">
+            {/* 流式标题 - 小标题样式 */}
+            {message.streamingTitle && (
+              <div className="font-medium text-black">
+                {message.streamingTitle}
+              </div>
+            )}
+            {/* 流式内容 - 正文样式 */}
+            {message.streamingContent && (
+              <div className="text-black/70">
+                <StreamingTypewriter
+                  streamingContent={message.streamingContent}
+                  isStreaming={true}
+                />
+              </div>
+            )}
+            {/* 如果没有内容，显示加载中 */}
+            {!message.streamingTitle && !message.streamingContent && (
+              <div className="text-gray-400">
+                connecting...
+              </div>
+            )}
+          </div>
         ) : (
-          <div className="whitespace-pre-wrap break-words">
-            {message.content || message.streamingContent}
+          <div className="space-y-2">
+            {/* 完成状态 - 如果有标题和内容，分开显示 */}
+            {message.streamingTitle && (
+              <div className="font-medium text-black">
+                {message.streamingTitle}
+              </div>
+            )}
+            <div className="whitespace-pre-wrap break-words text-black/70">
+              {message.content || message.streamingContent}
+            </div>
           </div>
         )}
 
         {/* 错误状态 */}
         {message.status === 'error' && (
-          <div className="mt-2 text-sm text-red-500">发送失败，请重试</div>
+          <div className="mt-2 text-sm text-red-500">
+            Network error, please retry
+          </div>
         )}
       </div>
     </div>
