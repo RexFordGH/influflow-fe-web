@@ -42,6 +42,7 @@ export default function FreeConversation({
   // 使用 ref 跟踪上一个 docId
   const prevDocIdRef = useRef<string>(docId);
   const hasLoadedHistoryRef = useRef(false);
+  const hasSetInitialHistoryRef = useRef(false); // 添加标记，防止重复设置历史消息
 
   // 分页状态
   const [offset, setOffset] = useState(0);
@@ -138,6 +139,7 @@ export default function FreeConversation({
       setOffset(0);
       setHasMore(true);
       hasLoadedHistoryRef.current = false;
+      hasSetInitialHistoryRef.current = false; // 重置初始历史标记
       prevDocIdRef.current = docId;
     }
   }, [docId, clearMessages]);
@@ -187,10 +189,14 @@ export default function FreeConversation({
   // 将历史消息转换为 ChatMessage 格式并设置到消息列表
   useEffect(() => {
     if (!isOpen || allHistoryMessages.length === 0) return;
+    
+    // 只在初次加载且没有设置过历史时设置消息
+    if (hasSetInitialHistoryRef.current && offset === 0) return;
 
     const formattedHistory: ChatMessage[] = allHistoryMessages.map(
-      (msg: IChatHistoryMessage) => ({
-        id: crypto.randomUUID(),
+      (msg: IChatHistoryMessage, index) => ({
+        // 使用稳定的 ID，避免重新生成导致重复
+        id: `history-${msg.type}-${index}-${msg.content.substring(0, 10)}`,
         type: msg.type === 'human' ? 'user' : 'ai',
         content: msg.content,
         timestamp: new Date(),
@@ -199,8 +205,24 @@ export default function FreeConversation({
     );
 
     // 反转数组，因为 API 返回的是倒序
-    setMessages(formattedHistory.reverse());
-  }, [allHistoryMessages, isOpen, setMessages]);
+    const reversedHistory = formattedHistory.reverse();
+    
+    if (!hasSetInitialHistoryRef.current) {
+      // 第一次加载：直接设置历史消息
+      setMessages(reversedHistory);
+      hasSetInitialHistoryRef.current = true;
+    } else if (offset > 0) {
+      // 分页加载更多：只添加新的历史消息到开头
+      setMessages((prev) => {
+        // 过滤掉可能的重复消息（基于ID）
+        const existingIds = new Set(prev.map(m => m.id));
+        const newHistoryMessages = reversedHistory.filter(m => !existingIds.has(m.id));
+        
+        // 将新的历史消息添加到开头
+        return [...newHistoryMessages, ...prev];
+      });
+    }
+  }, [allHistoryMessages, isOpen, setMessages, offset]);
 
   // 加载更多历史消息
   const loadMoreHistory = useCallback(() => {
@@ -245,6 +267,8 @@ export default function FreeConversation({
   // 处理关闭对话框
   const handleClose = useCallback(() => {
     setIsOpen(false);
+    // 关闭对话框时不重置历史标记，保持消息状态
+    // 这样重新打开时不会重新加载历史
   }, [setIsOpen]);
 
   return (
