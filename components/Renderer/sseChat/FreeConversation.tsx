@@ -4,13 +4,18 @@ import { cn, Image } from '@heroui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useChatStreaming } from '@/hooks/useChatStreaming';
-import { getChatHistory, type IChatHistoryMessage } from '@/lib/api/services';
+import {
+  getChatHistory,
+  type IChatHistoryMessage,
+  type IChatHistoryParams,
+} from '@/lib/api/services';
 import { saveOutlineToSupabase } from '@/services/supabase-save';
 import type { ChatMessage } from '@/types/agent-chat';
 import type { IOutline } from '@/types/outline';
 
 import { ChatDialog } from './ChatDialog';
 import { ChatInput } from './ChatInput';
+import { LoadingIndicator } from './LoadingIndicator';
 import { MessageList } from './MessageList';
 
 interface FreeConversationProps {
@@ -37,6 +42,18 @@ export default function FreeConversation({
   // 使用 ref 跟踪上一个 docId
   const prevDocIdRef = useRef<string>(docId);
   const hasLoadedHistoryRef = useRef(false);
+
+  // 分页状态
+  const [offset, setOffset] = useState(0);
+  const [allHistoryMessages, setAllHistoryMessages] = useState<
+    IChatHistoryMessage[]
+  >([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // 使用 IntersectionObserver 的 refs
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const setIsOpen = useCallback(
     (open: boolean) => {
@@ -72,13 +89,20 @@ export default function FreeConversation({
     );
   };
 
-  // 只在 docId 变化且打开时获取历史记录
-  const shouldFetchHistory =
-    isOpen && (prevDocIdRef.current !== docId || !hasLoadedHistoryRef.current);
-  const { data: historyMessages, isLoading: isLoadingHistory } = getChatHistory(
+  // 分页获取历史记录
+  const historyParams: IChatHistoryParams = {
     docId,
-    shouldFetchHistory,
-  );
+    offset,
+    limit: 20,
+    order: 'desc',
+    enabled: isOpen && !isLoadingMore,
+  };
+
+  const {
+    data: historyData,
+    isLoading: isLoadingHistory,
+    error: historyError,
+  } = getChatHistory(historyParams);
 
   // 使用 useChatStreaming Hook
   const {
@@ -104,45 +128,119 @@ export default function FreeConversation({
     [sendMessage],
   );
 
-  // 检测 docId 变化并处理历史记录
+  // 检测 docId 变化并重置状态
   useEffect(() => {
     // 如果 docId 发生变化
     if (prevDocIdRef.current !== docId) {
-      // 清理之前的消息
+      // 清理所有状态
       clearMessages();
-      // 重置加载标记
+      setAllHistoryMessages([]);
+      setOffset(0);
+      setHasMore(true);
       hasLoadedHistoryRef.current = false;
-      // 更新 ref
       prevDocIdRef.current = docId;
     }
   }, [docId, clearMessages]);
 
-  // 加载历史记录
+  // 处理历史记录加载
   useEffect(() => {
-    if (!shouldFetchHistory || isLoadingHistory || hasLoadedHistoryRef.current)
+    // 如果有错误，停止loading并标记为已加载
+    if (historyError) {
+      setIsLoadingMore(false);
+      setHasMore(false);
+      hasLoadedHistoryRef.current = true;
+      console.error('Failed to load chat history:', historyError);
       return;
-
-    if (historyMessages && historyMessages.length > 0) {
-      // 将历史记录转换为 ChatMessage 格式
-      const formattedHistory: ChatMessage[] = historyMessages.map(
-        (msg: IChatHistoryMessage) => ({
-          id: crypto.randomUUID(),
-          type: msg.type === 'human' ? 'user' : 'ai',
-          content: msg.content,
-          timestamp: new Date(),
-          status: 'complete' as const,
-        }),
-      );
-
-      // 设置历史消息
-      setMessages(formattedHistory);
-      // 标记已加载
-      hasLoadedHistoryRef.current = true;
-    } else if (historyMessages !== undefined) {
-      // 如果已经获取到数据（无论是空数组还是有数据），都标记为已加载
-      hasLoadedHistoryRef.current = true;
     }
-  }, [shouldFetchHistory, historyMessages, isLoadingHistory, setMessages]);
+
+    if (!historyData || isLoadingHistory) return;
+
+    const { messages: newMessages = [], hasMore: moreAvailable = false } =
+      historyData;
+
+    if (newMessages.length > 0) {
+      // 保存当前滚动位置
+      const container = messagesContainerRef.current;
+      const previousScrollHeight = container?.scrollHeight || 0;
+      const previousScrollTop = container?.scrollTop || 0;
+
+      // 累加历史消息（反向添加，因为是向上加载）
+      setAllHistoryMessages((prev) => [...newMessages, ...prev]);
+      setHasMore(moreAvailable);
+
+      // 使用 requestAnimationFrame 保持滚动位置
+      requestAnimationFrame(() => {
+        if (container) {
+          const newScrollHeight = container.scrollHeight;
+          const scrollDiff = newScrollHeight - previousScrollHeight;
+          container.scrollTop = previousScrollTop + scrollDiff;
+        }
+      });
+    } else {
+      setHasMore(false);
+    }
+
+    setIsLoadingMore(false);
+    hasLoadedHistoryRef.current = true;
+  }, [historyData, isLoadingHistory, historyError]);
+
+  // 将历史消息转换为 ChatMessage 格式并设置到消息列表
+  useEffect(() => {
+    if (!isOpen || allHistoryMessages.length === 0) return;
+
+    const formattedHistory: ChatMessage[] = allHistoryMessages.map(
+      (msg: IChatHistoryMessage) => ({
+        id: crypto.randomUUID(),
+        type: msg.type === 'human' ? 'user' : 'ai',
+        content: msg.content,
+        timestamp: new Date(),
+        status: 'complete' as const,
+      }),
+    );
+
+    // 反转数组，因为 API 返回的是倒序
+    setMessages(formattedHistory.reverse());
+  }, [allHistoryMessages, isOpen, setMessages]);
+
+  // 加载更多历史消息
+  const loadMoreHistory = useCallback(() => {
+    if (isLoadingMore || !hasMore || isLoadingHistory) return;
+
+    setIsLoadingMore(true);
+    setOffset((prev) => prev + 20);
+  }, [isLoadingMore, hasMore, isLoadingHistory]);
+
+  // 使用 IntersectionObserver 监听加载触发器
+  useEffect(() => {
+    if (!isOpen || !loadMoreTriggerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        // 当加载触发器进入视口时加载更多
+        if (entry.isIntersecting && hasMore && !isLoadingMore) {
+          loadMoreHistory();
+        }
+      },
+      {
+        root: messagesContainerRef.current,
+        rootMargin: '100px', // 提前100px触发加载
+        threshold: 0.1,
+      },
+    );
+
+    const triggerElement = loadMoreTriggerRef.current;
+    if (triggerElement) {
+      observer.observe(triggerElement);
+    }
+
+    return () => {
+      if (triggerElement) {
+        observer.unobserve(triggerElement);
+      }
+      observer.disconnect();
+    };
+  }, [isOpen, hasMore, isLoadingMore, loadMoreHistory]);
 
   // 处理关闭对话框
   const handleClose = useCallback(() => {
@@ -181,15 +279,51 @@ export default function FreeConversation({
 
       {/* 对话界面 */}
       <ChatDialog isOpen={isOpen} onClose={handleClose}>
-        {/* 加载历史记录时显示提示 */}
-        {/* {isLoadingHistory && shouldFetchHistory && (
-          <div className="flex justify-center p-4">
-            <span className="text-sm text-gray-500">Loading Chat History...</span>
-          </div>
-        )} */}
+        {/* 消息列表容器 */}
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
+          {/* IntersectionObserver 触发器 - 哨兵元素 */}
+          {hasMore && !historyError && (
+            <div ref={loadMoreTriggerRef} className="py-3">
+              {isLoadingMore || (isLoadingHistory && offset > 0) ? (
+                <LoadingIndicator
+                  text="Loading earlier messages..."
+                  size="sm"
+                />
+              ) : null}
+            </div>
+          )}
 
-        {/* 消息列表 */}
-        <MessageList messages={messages} isStreaming={isStreaming} />
+          {/* 加载历史记录错误提示 */}
+          {/* {historyError && offset > 0 && (
+            <div className="flex justify-center py-2">
+              <span className="text-xs text-red-400">Failed to load messages</span>
+            </div>
+          )} */}
+
+          {/* 初次加载指示器或错误提示 */}
+          {offset === 0 && messages.length === 0 && (
+            <div className="flex min-h-[200px] items-center justify-center">
+              {historyError ? (
+                <div className="text-center">
+                  {/* <p className="mb-1 text-sm text-red-400">
+                    Failed to load history
+                  </p> */}
+                  <p className="text-xs text-gray-400">
+                    Start a new conversation below
+                  </p>
+                </div>
+              ) : isLoadingHistory ? (
+                <LoadingIndicator
+                  text="Loading conversation history..."
+                  size="sm"
+                />
+              ) : null}
+            </div>
+          )}
+
+          {/* 消息列表 */}
+          <MessageList messages={messages} isStreaming={isStreaming} />
+        </div>
 
         {/* 错误提示 */}
         {error && (

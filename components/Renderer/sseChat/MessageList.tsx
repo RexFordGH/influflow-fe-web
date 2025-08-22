@@ -18,10 +18,14 @@ export const MessageList: React.FC<MessageListProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 自动滚动到最新消息
+  // 只在有新消息时滚动到底部（不干扰向上加载）
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // 只在流式输出或有新用户消息时滚动
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && (lastMessage.type === 'user' || isStreaming)) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isStreaming]);
 
   const renderMessage = (message: ChatMessage) => {
     if (message.type === 'user') {
@@ -33,12 +37,12 @@ export const MessageList: React.FC<MessageListProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4">
+    <div className="p-4">
       {messages.length === 0 ? (
-        <div className="flex h-full items-center justify-center text-gray-400">
+        <div className="flex min-h-[200px] items-center justify-center">
           {/* <div className="text-center">
-            <p className="mb-2 text-lg">开始对话</p>
-            <p className="text-sm">输入您的问题或编辑需求</p>
+            <p className="mb-1 text-sm text-gray-400">No messages yet</p>
+            <p className="text-xs text-gray-300">Start a conversation below</p>
           </div> */}
         </div>
       ) : (

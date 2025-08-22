@@ -41,8 +41,9 @@ export const AIMessage: React.FC<AIMessageProps> = ({
             )}
             {/* 如果没有内容，显示加载中 */}
             {!message.streamingTitle && !message.streamingContent && (
-              <div className="text-gray-400">
-                connecting...
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                <span className="text-sm text-gray-400">Thinking...</span>
               </div>
             )}
           </div>

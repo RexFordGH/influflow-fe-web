@@ -1,25 +1,25 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
+import { useAsyncJob } from '@/hooks/useAsyncJob';
+import { useTweetThreadData } from '@/hooks/useTweetThreadData';
 import {
   ITrendingTopicsResponse,
   ITrendsRecommendTweet,
+  type IAsyncJobResponse,
   type ICheckInvitationCodeResponse,
+  type IGenerateAsyncRequest,
   type IGenerateImageRequest,
   type IGenerateThreadRequest,
-  type IGenerateAsyncRequest,
   type IHealthData,
+  type IJobStatusResponse,
   type IModifyOutlineData,
   type IModifyOutlineRequest,
   type IModifyTweetData,
   type IModifyTweetRequest,
-  type IAsyncJobResponse,
-  type IJobStatusResponse,
 } from '@/types/api';
-import { } from 'react';
 import { IGenerateDraftRequest, IGenerateDraftResponse } from '@/types/draft';
 import { IOutline } from '@/types/outline';
-import { useTweetThreadData } from '@/hooks/useTweetThreadData';
-import { useAsyncJob } from '@/hooks/useAsyncJob';
+import {} from 'react';
 
 import { apiGet, apiPost, generateImage } from './client';
 
@@ -177,7 +177,7 @@ export function useGenerateThreadAsync() {
 export async function getJobStatus(jobId: string): Promise<IJobStatusResponse> {
   // 增加退避重试机制，保证请求成功
   for (let attempt = 0; attempt < 5; attempt++) {
-  const response = await apiGet<IJobStatusResponse>(
+    const response = await apiGet<IJobStatusResponse>(
       `/api/job/status?job_id=${encodeURIComponent(jobId)}`,
     );
     return response;
@@ -476,17 +476,39 @@ export function getErrorMessage(error: unknown): string {
 }
 
 export interface IChatHistoryMessage {
-  type: 'human' | 'ai',
-  content: string
+  type: 'human' | 'ai';
+  content: string;
 }
 
-export function getChatHistory(docId: string, enabled?: boolean) {
+export interface IChatHistoryParams {
+  docId: string;
+  offset?: number;
+  limit?: number;
+  order?: 'asc' | 'desc';
+  enabled?: boolean;
+}
+
+export interface IChatHistoryResponse {
+  messages: IChatHistoryMessage[];
+  hasMore: boolean;
+}
+
+export function getChatHistory(params: IChatHistoryParams) {
+  const {
+    docId,
+    offset = 0,
+    limit = 10,
+    order = 'desc',
+    enabled = true,
+  } = params;
+
   return useQuery({
-    queryKey: [...QUERY_KEYS.CHAT_HISTORY, docId],
-    queryFn: () => apiGet<{ messages: IChatHistoryMessage[] }>(`/api/agent/chat/history?doc_id=${docId}`),
-    select(data) {
-      return data.messages
-    },
-    enabled: enabled
-  })
+    queryKey: [...QUERY_KEYS.CHAT_HISTORY, docId, offset, limit, order],
+    queryFn: () =>
+      apiGet<IChatHistoryResponse>(
+        `/api/agent/chat/history?doc_id=${docId}&offset=${offset}&limit=${limit}&order=${order}`,
+      ),
+    enabled: enabled,
+    retry: false,
+  });
 }
