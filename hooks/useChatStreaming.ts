@@ -419,17 +419,12 @@ export const useChatStreaming = ({
           const writeOutline = writeData.data?.outline;
 
           if (event.message || writeText || writeOutline) {
-            let contentText = writeText;
-
-            if (writeOutline && !writeText) {
-              contentText = `大纲主题: ${writeOutline.topic || '新内容'}\n节点数: ${writeOutline.nodes?.length || 0}`;
-            }
 
             updateMessageContent(
               aiMessageId,
               {
                 title: event.message || '内容生成完成',
-                text: contentText,
+                text: writeText,
               },
               'write',
             );
