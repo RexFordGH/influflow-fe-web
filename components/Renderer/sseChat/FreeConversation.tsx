@@ -1,10 +1,12 @@
 'use client';
 
 import { cn, Image } from '@heroui/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useChatStreaming } from '@/hooks/useChatStreaming';
+import { getChatHistory, type IChatHistoryMessage } from '@/lib/api/services';
 import { saveOutlineToSupabase } from '@/services/supabase-save';
+import type { ChatMessage } from '@/types/agent-chat';
 import type { IOutline } from '@/types/outline';
 
 import { ChatDialog } from './ChatDialog';
@@ -31,6 +33,10 @@ export default function FreeConversation({
   // 使用内部状态或外部控制
   const [isOpenInternal, setIsOpenInternal] = useState(false);
   const isOpen = isOpenProp || isOpenInternal;
+
+  // 使用 ref 跟踪上一个 docId
+  const prevDocIdRef = useRef<string>(docId);
+  const hasLoadedHistoryRef = useRef(false);
 
   const setIsOpen = useCallback(
     (open: boolean) => {
@@ -66,15 +72,29 @@ export default function FreeConversation({
     );
   };
 
+  // 只在 docId 变化且打开时获取历史记录
+  const shouldFetchHistory =
+    isOpen && (prevDocIdRef.current !== docId || !hasLoadedHistoryRef.current);
+  const { data: historyMessages, isLoading: isLoadingHistory } = getChatHistory(
+    docId,
+    shouldFetchHistory,
+  );
+
   // 使用 useChatStreaming Hook
-  const { messages, isStreaming, error, sendMessage, clearMessages } =
-    useChatStreaming({
-      docId,
-      onError: (error) => {
-        console.error('对话错误:', error);
-      },
-      onComplete: onComplete,
-    });
+  const {
+    messages,
+    isStreaming,
+    error,
+    sendMessage,
+    clearMessages,
+    setMessages,
+  } = useChatStreaming({
+    docId,
+    onError: (error) => {
+      console.error('对话错误:', error);
+    },
+    onComplete: onComplete,
+  });
 
   // 处理发送消息
   const handleSendMessage = useCallback(
@@ -84,12 +104,50 @@ export default function FreeConversation({
     [sendMessage],
   );
 
+  // 检测 docId 变化并处理历史记录
+  useEffect(() => {
+    // 如果 docId 发生变化
+    if (prevDocIdRef.current !== docId) {
+      // 清理之前的消息
+      clearMessages();
+      // 重置加载标记
+      hasLoadedHistoryRef.current = false;
+      // 更新 ref
+      prevDocIdRef.current = docId;
+    }
+  }, [docId, clearMessages]);
+
+  // 加载历史记录
+  useEffect(() => {
+    if (!shouldFetchHistory || isLoadingHistory || hasLoadedHistoryRef.current)
+      return;
+
+    if (historyMessages && historyMessages.length > 0) {
+      // 将历史记录转换为 ChatMessage 格式
+      const formattedHistory: ChatMessage[] = historyMessages.map(
+        (msg: IChatHistoryMessage) => ({
+          id: crypto.randomUUID(),
+          type: msg.type === 'human' ? 'user' : 'ai',
+          content: msg.content,
+          timestamp: new Date(),
+          status: 'complete' as const,
+        }),
+      );
+
+      // 设置历史消息
+      setMessages(formattedHistory);
+      // 标记已加载
+      hasLoadedHistoryRef.current = true;
+    } else if (historyMessages !== undefined) {
+      // 如果已经获取到数据（无论是空数组还是有数据），都标记为已加载
+      hasLoadedHistoryRef.current = true;
+    }
+  }, [shouldFetchHistory, historyMessages, isLoadingHistory, setMessages]);
+
   // 处理关闭对话框
   const handleClose = useCallback(() => {
     setIsOpen(false);
-    // 清除对话记录
-    clearMessages();
-  }, [setIsOpen, clearMessages]);
+  }, [setIsOpen]);
 
   return (
     <>
@@ -123,6 +181,13 @@ export default function FreeConversation({
 
       {/* 对话界面 */}
       <ChatDialog isOpen={isOpen} onClose={handleClose}>
+        {/* 加载历史记录时显示提示 */}
+        {/* {isLoadingHistory && shouldFetchHistory && (
+          <div className="flex justify-center p-4">
+            <span className="text-sm text-gray-500">Loading Chat History...</span>
+          </div>
+        )} */}
+
         {/* 消息列表 */}
         <MessageList messages={messages} isStreaming={isStreaming} />
 

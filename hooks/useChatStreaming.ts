@@ -18,6 +18,7 @@ interface UseChatStreamingOptions {
   retryInterval?: number;
   enableTypewriter?: boolean; // 是否启用打字机效果
   typewriterSpeed?: number; // 打字机速度（毫秒/字符）
+  initialMessages?: ChatMessage[]; // 初始消息列表
 }
 
 interface UseChatStreamingReturn {
@@ -29,6 +30,7 @@ interface UseChatStreamingReturn {
   disconnect: () => void;
   reconnect: () => void;
   clearMessages: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>; // 暴露 setMessages
 }
 
 interface SSEController {
@@ -125,8 +127,9 @@ export const useChatStreaming = ({
   retryInterval = 2000,
   enableTypewriter = true,
   typewriterSpeed = 20,
+  initialMessages = [],
 }: UseChatStreamingOptions): UseChatStreamingReturn => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isConnected, setIsConnected] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -711,5 +714,6 @@ export const useChatStreaming = ({
     disconnect,
     reconnect,
     clearMessages,
+    setMessages,
   };
 };

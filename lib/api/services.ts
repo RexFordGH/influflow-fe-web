@@ -34,6 +34,7 @@ export const QUERY_KEYS = {
   TRENDING_RECOMMEND: ['trending', 'recommend'] as const,
   TRENDING_SEARCH: ['trending', 'query'] as const,
   VERIFY_INVITATION_CODE: ['verify', 'invitation-code'] as const,
+  CHAT_HISTORY: ['agent', 'chat', 'history'] as const,
 } as const;
 
 export function useHealth() {
@@ -472,4 +473,20 @@ export function getErrorMessage(error: unknown): string {
   }
 
   return 'An unknown error occurred';
+}
+
+export interface IChatHistoryMessage {
+  type: 'human' | 'ai',
+  content: string
+}
+
+export function getChatHistory(docId: string, enabled?: boolean) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.CHAT_HISTORY, docId],
+    queryFn: () => apiGet<{ messages: IChatHistoryMessage[] }>(`/api/agent/chat/history?doc_id=${docId}`),
+    select(data) {
+      return data.messages
+    },
+    enabled: enabled
+  })
 }
