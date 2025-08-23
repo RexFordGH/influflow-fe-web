@@ -10,9 +10,12 @@ interface UserMessageProps {
 
 export const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
   return (
-    <div className="mb-6 flex justify-end">
+    <div className="mb-6 flex justify-end w-full">
       {/* 消息内容 */}
-      <div className={cn('p-[12px] rounded-lg', 'bg-[#EFEFEF] text-black')}>
+      <div
+        className={cn('p-[12px] rounded-lg', 'bg-[#EFEFEF] text-black')}
+        style={{ maxWidth: '80%' }}
+      >
         <div className="whitespace-pre-wrap break-words text-[14px]">
           {message.content}
         </div>

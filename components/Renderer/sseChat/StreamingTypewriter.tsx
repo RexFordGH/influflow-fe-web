@@ -80,7 +80,7 @@ export const StreamingTypewriter: React.FC<StreamingTypewriterProps> = ({
   }, [isStreaming, shouldShowCursor]);
 
   return (
-    <span className="whitespace-pre-wrap break-words">
+    <span className="whitespace-pre-wrap break-words break-all">
       {displayedContent}
       {isStreaming && shouldShowCursor && (
         <span
