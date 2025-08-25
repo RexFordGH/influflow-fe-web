@@ -73,9 +73,24 @@ export function useGenerationState({
   const [generationStep, setGenerationStep] = useState(0);
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [rawAPIData, setRawAPIData] = useState<IOutline | null>(
+  const [rawAPIData, setRawAPIDataInternal] = useState<IOutline | null>(
     initialData || null,
   );
+  
+  // 包装 setRawAPIData 以确保创建新对象引用触发重新渲染
+  const setRawAPIData = useCallback((data: IOutline | null) => {
+    if (data) {
+      // 创建新对象确保触发重新渲染
+      const newData = {
+        ...data,
+        // 保持 updatedAt 字段更新
+        updatedAt: data.updatedAt || Date.now()
+      };
+      setRawAPIDataInternal(newData);
+    } else {
+      setRawAPIDataInternal(null);
+    }
+  }, []);
 
   // 使用 ref 来追踪请求状态，避免严格模式下的重复执行
   const requestIdRef = useRef<string | null>(null);
@@ -380,7 +395,7 @@ export function useGenerationState({
     setGenerationStep(0);
     setHasStartedGeneration(false);
     setApiError(null);
-    setRawAPIData(null);
+    setRawAPIDataInternal(null);
     requestIdRef.current = null;
     isStartingRef.current = false;
     orchestratorReset();
@@ -400,7 +415,7 @@ export function useGenerationState({
       setRawAPIData(initialData);
       setIsGenerating(false);
     }
-  }, [initialData]);
+  }, [initialData, setRawAPIData]);
 
   // 监听生成阶段变化，自动启动生成流程
   useEffect(() => {

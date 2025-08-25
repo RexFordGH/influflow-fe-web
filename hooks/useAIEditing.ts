@@ -1,6 +1,6 @@
 import { addToast } from '@/components/base/toast';
 import { useModifyTweet } from '@/lib/api/services';
-import { createClient } from '@/lib/supabase/client';
+import { saveTweetsToSupabase } from '@/services/supabase-save';
 import { MindmapNodeData } from '@/types/content';
 import { IOutline } from '@/types/outline';
 import { useCallback, useState } from 'react';
@@ -114,35 +114,16 @@ export function useAIEditing({
         onContentUpdate?.(updatedOutline);
 
         // 3. 保存到 Supabase
-        try {
-          const supabase = createClient();
-          const { error } = await supabase
-            .from('tweet_thread')
-            .update({ tweets: updatedOutline.nodes })
-            .eq('id', rawAPIData.id);
-
-          if (error) {
-            throw error;
+        await saveTweetsToSupabase(
+          updatedOutline,
+          () => {
+            // 成功保存后，触发侧边栏数据刷新
+            onDataUpdate?.();
+          },
+          (error) => {
+            console.error('Error saving AI edited content to Supabase:', error);
           }
-          console.log('AI edited content saved successfully to Supabase.');
-
-          // 成功保存后，触发侧边栏数据刷新
-          onDataUpdate?.();
-        } catch (saveError) {
-          console.error(
-            'Error saving AI edited content to Supabase:',
-            saveError,
-          );
-          addToast({
-            title: 'Warning',
-            description: 'Content updated locally but failed to save to server',
-          });
-        }
-
-        addToast({
-          title: 'Success',
-          description: 'Content updated successfully',
-        });
+        );
       }
     } catch (error) {
       console.error('AI编辑失败:', error);
