@@ -52,11 +52,11 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           <div className="space-y-2">
             {/* 完成状态 - 如果有标题和内容，分开显示 */}
             {message.streamingTitle && (
-              <div className="font-medium text-black break-words break-all">
+              <div className="font-medium text-black break-all">
                 {message.streamingTitle}
               </div>
             )}
-            <div className="whitespace-pre-wrap break-words break-all text-black/70">
+            <div className="break-all text-black/70">
               {message.content || message.streamingContent}
             </div>
           </div>
