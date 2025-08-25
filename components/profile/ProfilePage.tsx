@@ -245,7 +245,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     // 强制重新计算布局，确保driver.js能正确计算位置
-    document.body.offsetHeight;
+    void document.body.offsetHeight;
 
     // 等待额外的帧以确保所有样式变化都已应用
     await new Promise((resolve) => requestAnimationFrame(resolve));
