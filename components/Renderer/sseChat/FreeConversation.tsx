@@ -138,6 +138,7 @@ export default function FreeConversation({
       setAllHistoryMessages([]);
       setOffset(0);
       setHasMore(true);
+      setIsLoadingMore(false); // 重要：重置加载状态，确保新文章能触发接口
       hasLoadedHistoryRef.current = false;
       hasSetInitialHistoryRef.current = false; // 重置初始历史标记
       prevDocIdRef.current = docId;
@@ -211,6 +212,14 @@ export default function FreeConversation({
       // 第一次加载：直接设置历史消息
       setMessages(reversedHistory);
       hasSetInitialHistoryRef.current = true;
+      
+      // 首次加载历史记录后，自动滚动到底部
+      requestAnimationFrame(() => {
+        const container = messagesContainerRef.current;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      });
     } else if (offset > 0) {
       // 分页加载更多：只添加新的历史消息到开头
       setMessages((prev) => {
@@ -229,10 +238,26 @@ export default function FreeConversation({
   // 加载更多历史消息
   const loadMoreHistory = useCallback(() => {
     if (isLoadingMore || !hasMore || isLoadingHistory) return;
+    
+    // 防止在切换文章过程中触发加载
+    if (prevDocIdRef.current !== docId) return;
 
     setIsLoadingMore(true);
     setOffset((prev) => prev + 20);
-  }, [isLoadingMore, hasMore, isLoadingHistory]);
+  }, [isLoadingMore, hasMore, isLoadingHistory, docId]);
+
+  // 对话框打开时自动滚动到底部
+  useEffect(() => {
+    if (isOpen && messages.length > 0 && !isLoadingHistory) {
+      // 使用 setTimeout 确保 DOM 已经更新
+      setTimeout(() => {
+        const container = messagesContainerRef.current;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 100);
+    }
+  }, [isOpen, messages.length, isLoadingHistory]);
 
   // 使用 IntersectionObserver 监听加载触发器
   useEffect(() => {
@@ -269,8 +294,9 @@ export default function FreeConversation({
   // 处理关闭对话框
   const handleClose = useCallback(() => {
     setIsOpen(false);
-    // 关闭对话框时不重置历史标记，保持消息状态
-    // 这样重新打开时不会重新加载历史
+    // 关闭对话框时重置加载状态，避免重新打开时被阻塞
+    setIsLoadingMore(false);
+    // 保持消息状态，这样重新打开时不会重新加载历史
   }, [setIsOpen]);
 
   return (
