@@ -157,7 +157,7 @@ export default function FreeConversation({
 
     if (!historyData || isLoadingHistory) return;
 
-    const { messages: newMessages = [], hasMore: moreAvailable = false } =
+    const { messages: newMessages = [], has_more: moreAvailable = false } =
       historyData;
 
     if (newMessages.length > 0) {

@@ -490,7 +490,10 @@ export interface IChatHistoryParams {
 
 export interface IChatHistoryResponse {
   messages: IChatHistoryMessage[];
-  hasMore: boolean;
+  has_more: boolean;
+  limit: number;
+  offset: number;
+  total_count: number;
 }
 
 export function useGetChatHistory(params: IChatHistoryParams) {
