@@ -26,23 +26,19 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           <div className="space-y-2">
             {/* 流式标题 - 小标题样式，使用打字机效果 */}
             {message.streamingTitle && (
-              <div className="text-black">
-                <StreamingTypewriter
-                  streamingContent={message.streamingTitle}
-                  isStreaming={true}
-                  typeSpeed={15} // 标题打字速度更快
-                  showCursor={false} // 标题不显示光标
-                />
-              </div>
+              <StreamingTypewriter
+                streamingContent={message.streamingTitle}
+                isStreaming={true}
+                typeSpeed={15} // 标题打字速度更快
+                showCursor={false} // 标题不显示光标
+              />
             )}
             {/* 流式内容 - 正文样式 */}
             {message.streamingContent && (
-              <div className="text-black/70">
-                <StreamingTypewriter
-                  streamingContent={message.streamingContent}
-                  isStreaming={true}
-                />
-              </div>
+              <StreamingTypewriter
+                streamingContent={message.streamingContent}
+                isStreaming={true}
+              />
             )}
             {/* 如果没有内容，显示加载中 */}
             {!message.streamingTitle && !message.streamingContent && (

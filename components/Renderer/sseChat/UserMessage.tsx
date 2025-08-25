@@ -13,12 +13,12 @@ export const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
     <div className="mb-6 flex justify-end w-full">
       {/* 消息内容 */}
       <div
-        className={cn('p-[12px] rounded-lg', 'bg-[#EFEFEF] text-black')}
-        style={{ maxWidth: '80%' }}
+        className={cn(
+          'p-[12px] rounded-lg max-w-[400px]',
+          'bg-[#EFEFEF] text-black text-left',
+        )}
       >
-        <div className="whitespace-pre-wrap break-words text-[14px]">
-          {message.content}
-        </div>
+        <div className="break-all text-[14px]">{message.content}</div>
 
         {/* 错误状态 */}
         {message.status === 'error' && (

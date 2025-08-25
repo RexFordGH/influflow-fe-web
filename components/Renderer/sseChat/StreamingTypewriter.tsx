@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface StreamingTypewriterProps {
   streamingContent: string;
@@ -80,7 +80,7 @@ export const StreamingTypewriter: React.FC<StreamingTypewriterProps> = ({
   }, [isStreaming, shouldShowCursor]);
 
   return (
-    <span className="whitespace-pre-wrap break-words break-all">
+    <span className="whitespace-pre-wrap break-words break-all text-[#8C8C8C]">
       {displayedContent}
       {isStreaming && shouldShowCursor && (
         <span
