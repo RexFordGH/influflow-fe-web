@@ -1,6 +1,10 @@
 'use client';
 
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
@@ -25,6 +29,7 @@ interface TrendingTopicsProps {
     searchTerm: string,
     selectedTweets: ITrendsRecommendTweet[],
   ) => void;
+  hasCompletedOnboarding?: boolean | null;
 }
 
 const TrendingTopicSkeleton = ({ index }: { index: number }) => (
@@ -58,13 +63,14 @@ const TrendingTopicItem = ({
   topic: any;
   index: number;
   isOpen: boolean;
-  onToggle: () => void;
+  onToggle: (isOpen: boolean) => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleToggle = () => {
-    onToggle();
+    // 传递布尔值来控制展开/收起状态
+    onToggle(!isOpen);
   };
 
   return (
@@ -87,11 +93,8 @@ const TrendingTopicItem = ({
           <span className="text-left text-lg font-medium text-black">
             {topic.title}
           </span>
-          {/* 对topic.value 进行隐藏*/}
-          {/* <div className="flex items-center gap-[10px]">
-            <span className="text-lg font-medium text-gray-600">
-              {topic.value}
-            </span>
+          {/* 显示展开/收起图标 */}
+          <div className="flex items-center gap-[10px]">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{
@@ -107,13 +110,14 @@ const TrendingTopicItem = ({
                 <ChevronRightIcon className="size-5" />
               )}
             </motion.div>
-          </div> */}
+          </div>
         </button>
       </div>
       {/* </CopyToClipboard> */}
 
       {/* Trending Topic Tweets 展开区域 */}
       <motion.div
+        id="viral-tweets"
         className="mt-3"
         animate={{
           opacity: isOpen ? 1 : 0,
@@ -144,11 +148,12 @@ export function TrendingTopicsPage({
   onTopicSelect,
   onTweetsSelect,
   onSearchConfirm,
+  hasCompletedOnboarding,
 }: TrendingTopicsProps) {
   const [selectedCategory, setSelectedCategory] = useState('ai');
   const [expandedTopicIndex, setExpandedTopicIndex] = useState<number | null>(
-    0,
-  ); // 默认展开第一个
+    null, // 改为null，让useEffect来控制初始状态
+  );
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchWidgetsLoaded, setSearchWidgetsLoaded] = useState<
@@ -172,15 +177,47 @@ export function TrendingTopicsPage({
     label: type.label,
   }));
 
-  // 处理话题展开/收起的逻辑
-  const handleTopicToggle = (index: number) => {
-    setExpandedTopicIndex(expandedTopicIndex === index ? null : index);
+  // 手动展开特定话题
+  const expandTopic = (index: number) => {
+    setExpandedTopicIndex(index);
   };
 
-  // 当切换分类时，重置展开状态到第一个
+  // 手动收起特定话题
+  const collapseTopic = (index: number) => {
+    if (expandedTopicIndex === index) {
+      setExpandedTopicIndex(null);
+    }
+  };
+
+
+  // 处理话题展开/收起的逻辑，使用布尔值控制
+  const handleTopicToggle = (index: number, isOpen: boolean) => {
+    if (expandedTopicIndex === index) {
+      // 如果当前点击的是已展开的条目，则收起
+      setExpandedTopicIndex(null);
+    } else {
+      // 如果当前点击的是未展开的条目，则展开它
+      setExpandedTopicIndex(index);
+    }
+  };
+
+  // 根据 onboarding 状态决定是否展开第0个话题
   useEffect(() => {
-    setExpandedTopicIndex(0);
-  }, [selectedCategory]);
+    if (hasCompletedOnboarding === null) return; // 等待初始化完成
+    
+    if (hasCompletedOnboarding) {
+      expandTopic(0);
+    } else {
+      collapseTopic(0);
+    }
+  }, [hasCompletedOnboarding]);
+
+  // 当数据加载完成且已完成onboarding时，确保第一条默认展开
+  useEffect(() => {
+    if (hasCompletedOnboarding === true && trendingTopics.length > 0 && expandedTopicIndex === null) {
+      setExpandedTopicIndex(0);
+    }
+  }, [hasCompletedOnboarding, trendingTopics.length, expandedTopicIndex]);
 
   // 优化回调函数
   const handleSearchModalClose = useCallback(() => {
@@ -214,7 +251,7 @@ export function TrendingTopicsPage({
       <div className="flex min-h-full flex-col">
         <div className="flex-1 px-[30px] py-14">
           <div className="mx-auto w-full max-w-4xl">
-            <div className="mb-10">
+            <div id="trending-topics" className='mb-10'>
               <div className="flex items-center justify-between">
                 <h2 className="mb-4 text-lg font-medium text-black">
                   Trending Topics
@@ -229,7 +266,7 @@ export function TrendingTopicsPage({
               </div>
 
               {/* type */}
-              <div className="mb-4 flex gap-3">
+              <div id="trending-topics-type" className="mb-4 flex gap-3">
                 {categories?.map((category: { id: string; label: string }) => (
                   <Button
                     key={category.id}
@@ -262,7 +299,7 @@ export function TrendingTopicsPage({
                       index={index}
                       id={topic.id}
                       isOpen={expandedTopicIndex === index}
-                      onToggle={() => handleTopicToggle(index)}
+                      onToggle={(isOpen) => handleTopicToggle(index, isOpen)}
                       onTweetsSelect={onTweetsSelect}
                     />
                   ))
@@ -271,7 +308,7 @@ export function TrendingTopicsPage({
             </div>
 
             {/* Suggested Topics */}
-            <div className="mb-8">
+            <div id="suggested-topics" className="mb-8">
               <h3 className="mb-4 text-lg font-medium text-black">
                 Suggested Topics
               </h3>

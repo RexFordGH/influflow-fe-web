@@ -29,6 +29,7 @@ export interface IMainContentProps {
   onTopicInputChange: (value: string) => void;
   onTopicSubmit: (contentFormat: IContentFormat, mode: IMode) => void;
   onScrollProgressChange?: (progress: any) => void;
+  hasCompletedOnboarding?: boolean | null;
 }
 
 export const MainContent = ({
@@ -43,6 +44,7 @@ export const MainContent = ({
   onTopicInputChange,
   onTopicSubmit,
   onScrollProgressChange,
+  hasCompletedOnboarding,
 }: IMainContentProps) => {
   const { isAuthenticated } = useAuthStore();
 
@@ -86,6 +88,7 @@ export const MainContent = ({
           onTopicInputChange={onTopicInputChange}
           onTopicSubmit={onTopicSubmit}
           onScrollProgressChange={onScrollProgressChange}
+          hasCompletedOnboarding={hasCompletedOnboarding}
         />
       </div>
     </motion.div>

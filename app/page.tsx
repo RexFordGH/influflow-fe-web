@@ -100,10 +100,23 @@ function HomeContent() {
 
   // 滚动进度状态
   const [scrollProgress, setScrollProgress] = useState<any>(null);
+  
+  // Onboarding 状态
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
     checkAuthStatus();
   }, [checkAuthStatus]);
+
+  // 检查 onboarding 状态
+  useEffect(() => {
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    
+    if (typeof window === 'undefined') return;
+    
+    const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
+    setHasCompletedOnboarding(hasCompleted);
+  }, []);
 
   // 检查URL中的错误参数
   useEffect(() => {
@@ -437,6 +450,7 @@ function HomeContent() {
             onTopicInputChange={setTopicInput}
             onTopicSubmit={handleTopicSubmit}
             onScrollProgressChange={setScrollProgress}
+            hasCompletedOnboarding={hasCompletedOnboarding}
           />
         </div>
       </div>
