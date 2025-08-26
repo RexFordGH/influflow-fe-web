@@ -91,30 +91,8 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
                   />
                 </Button>
               </Tooltip>
-            ) : (
-              <Button
-                size="sm"
-                color="primary"
-                variant="solid"
-                onPress={() => {
-                  // 通过自定义事件通知 Mindmap 打开 Prompt History
-                  window.dispatchEvent(new CustomEvent('openPromptHistory'));
-                }}
-                className={`prompt-history-button duration-20 flex h-8 min-w-1 items-center rounded-md px-2 text-gray-500 transition-colors hover:bg-[#EFEFEF]`}
-                style={{
-                  marginLeft: '0px',
-                }}
-                startContent={
-                  <img
-                    src="/icons/vector.svg"
-                    alt="Prompt History"
-                    className="pointer-events-none size-3 opacity-60"
-                  />
-                }
-              >
-                Prompts
-              </Button>
-            )}
+            ) : null
+            }
           </div>
           <div className="flex items-center space-x-4">
             {/* 如果是 longform 模式，显示复制全文按钮 */}
