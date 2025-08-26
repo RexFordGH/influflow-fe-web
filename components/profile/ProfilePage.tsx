@@ -267,7 +267,6 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           )
         ) {
           tour.destroy();
-
           const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
           // Set ONBOARDING_KEY
           window.localStorage.setItem(ONBOARDING_KEY, 'true');
@@ -358,9 +357,11 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           },
         },
       ],
-      onDestroyStarted: () => {
-        // 什么都不做，禁止用户点击非高亮处
+      onHighlightStarted: (el) => {
+        (el as HTMLElement).setAttribute('inert', ''); // 禁用交互/焦点
+        (el as HTMLElement).classList.add('tour-noninteractive'); // 叠加指针禁用（双保险）
       },
+      onDestroyStarted: () => {}, // 什么都不做，禁止用户点击非高亮处
     });
 
     tour.drive();
@@ -557,7 +558,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           </p>
 
           {/* Style Options */}
-          <div className="mb-6 flex justify-center gap-4">
+          <div className="mb-6 flex gap-4">
             {STYLE_OPTIONS.map((option) => {
               const isYourStyleDisabled =
                 option.value === 'YourStyle' && !hasTweetData;

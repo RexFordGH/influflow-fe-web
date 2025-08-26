@@ -294,10 +294,11 @@ export const WelcomeScreen = ({
           },
         },
       ],
-
-      onDestroyStarted: () => {
-        // 什么都不做，禁止用户点击非高亮处
+      onHighlightStarted: (el) => {
+        (el as HTMLElement).setAttribute('inert', ''); // 禁用交互/焦点
+        (el as HTMLElement).classList.add('tour-noninteractive'); // 叠加指针禁用（双保险）
       },
+      onDestroyStarted: () => {}, // 什么都不做，禁止用户点击非高亮处
     });
 
     tour.drive();

@@ -96,8 +96,7 @@ export default function ArticleDirectPage() {
     window.history.back();
   };
 
-  const handleDataUpdate = () => {
-  };
+  const handleDataUpdate = () => {};
 
   // 初始化新手引导
   // 如果已经完成新手引导，进入该页面时直接返回主页，否则开始新手引导
@@ -136,108 +135,110 @@ export default function ArticleDirectPage() {
     };
 
     const tour = driver({
-    stagePadding: 10,
-    stageRadius: 12,
-    showButtons: ['close', 'next'], // 显示关闭按钮
-    nextBtnText: 'NEXT',
-    prevBtnText: 'BACK',
-    onCloseClick: async () => {
-      if (
-        !tour.hasNextStep() ||
-        confirm(
-          'Are you sure you want to skip the onboarding? You might miss helpful tips for getting started.',
-        )
-      ) {
-        tour.destroy();
-        const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
-        window.location.href = '/';
-        // Set ONBOARDING_KEY
-        window.localStorage.setItem(ONBOARDING_KEY, 'true');
-      }
-    },
-    steps: [
-      {
-        element: '.mindmap-container',
-        popover: {
-          title: 'Edit With Mindmap',
-          description:
-            'Edit, add, or remove nodes to refine your ideas—then click Regenerate to instantly create a new article that follows your updated structure.',
-          side: 'right',
-          align: 'center',
-          popoverClass: 'mindmap-container driverjs-basic',
-        },
+      stagePadding: 10,
+      stageRadius: 12,
+      showButtons: ['close', 'next'], // 显示关闭按钮
+      nextBtnText: 'NEXT',
+      prevBtnText: 'BACK',
+      onCloseClick: async () => {
+        if (
+          !tour.hasNextStep() ||
+          confirm(
+            'Are you sure you want to skip the onboarding? You might miss helpful tips for getting started.',
+          )
+        ) {
+          tour.destroy();
+          const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+          // Set ONBOARDING_KEY
+          window.localStorage.setItem(ONBOARDING_KEY, 'true');
+          window.location.href = '/';
+        }
       },
-      {
-        element: '.prompt-history-button',
-        popover: {
-          title: 'Prompts History',
-          description:
-            'Click to view all your past prompts—revisit, reuse, or refine them anytime.',
-          side: 'bottom',
-          align: 'start',
-          popoverClass: 'prompt-history-button driverjs-basic',
-        },
-      },
-      {
-        element: '.twtter-data',
-        popover: {
-          title: 'Edit with AI',
-          description:
-            'After your article is generated, you can select any paragraph and use Edit with AI. Simply tell the AI how you’d like that section improved, and it will refine the paragraph based on your feedback.',
-          side: 'bottom',
-          align: 'end',
-          popoverClass: 'twtter-data twtter-data-start driverjs-basic',
-          onNextClick: async () => {
-            await goToStepAfterStableSameAnchor(tour, '#twtter-data', {
-              expectChange: false,
-              timeout: 300,
-              frames: 1,
-              minDelay: 50,
-            });
+      steps: [
+        {
+          element: '.mindmap-container',
+          popover: {
+            title: 'Edit With Mindmap',
+            description:
+              'Edit, add, or remove nodes to refine your ideas—then click Regenerate to instantly create a new article that follows your updated structure.',
+            side: 'right',
+            align: 'center',
+            popoverClass: 'mindmap-container driverjs-basic',
           },
         },
-      },
-      {
-        element: '.twtter-data',
-        popover: {
-          title: 'Upload Image',
-          description:
-            'You can upload a local image to make your post more engaging. Each article currently supports one image.',
-          side: 'bottom',
-          align: 'end',
-          popoverClass: 'twtter-data twtter-data-center driverjs-basic',
-          onNextClick: async () => {
-            await goToStepAfterStableSameAnchor(tour, '#twtter-data', {
-              expectChange: false,
-              timeout: 300,
-              frames: 1,
-              minDelay: 50,
-            });
+        {
+          element: '.prompt-history-button',
+          popover: {
+            title: 'Prompts History',
+            description:
+              'Click to view all your past prompts—revisit, reuse, or refine them anytime.',
+            side: 'bottom',
+            align: 'start',
+            popoverClass: 'prompt-history-button driverjs-basic',
           },
         },
-      },
-      {
-        element: '.twtter-data',
-        popover: {
-          title: 'Generate Image',
-          description:
-            'Instantly create a unique image with AI to match your article. This helps your post stand out and feel more personalized. ',
-          side: 'bottom',
-          align: 'end',
-          popoverClass: 'twtter-data twtter-data-end driverjs-basic',
-          onNextClick: async () => {
-            const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
-            window.location.href = '/';
-            // Set ONBOARDING_KEY
-            window.localStorage.setItem(ONBOARDING_KEY, 'true');
+        {
+          element: '.twtter-data',
+          popover: {
+            title: 'Edit with AI',
+            description:
+              'After your article is generated, you can select any paragraph and use Edit with AI. Simply tell the AI how you’d like that section improved, and it will refine the paragraph based on your feedback.',
+            side: 'bottom',
+            align: 'end',
+            popoverClass: 'twtter-data twtter-data-start driverjs-basic',
+            onNextClick: async () => {
+              await goToStepAfterStableSameAnchor(tour, '#twtter-data', {
+                expectChange: false,
+                timeout: 300,
+                frames: 1,
+                minDelay: 50,
+              });
+            },
           },
         },
+        {
+          element: '.twtter-data',
+          popover: {
+            title: 'Upload Image',
+            description:
+              'You can upload a local image to make your post more engaging. Each article currently supports one image.',
+            side: 'bottom',
+            align: 'end',
+            popoverClass: 'twtter-data twtter-data-center driverjs-basic',
+            onNextClick: async () => {
+              await goToStepAfterStableSameAnchor(tour, '#twtter-data', {
+                expectChange: false,
+                timeout: 300,
+                frames: 1,
+                minDelay: 50,
+              });
+            },
+          },
+        },
+        {
+          element: '.twtter-data',
+          popover: {
+            title: 'Generate Image',
+            description:
+              'Instantly create a unique image with AI to match your article. This helps your post stand out and feel more personalized. ',
+            side: 'bottom',
+            align: 'end',
+            popoverClass: 'twtter-data twtter-data-end driverjs-basic',
+            onNextClick: async () => {
+              const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+              // Set ONBOARDING_KEY
+              window.localStorage.setItem(ONBOARDING_KEY, 'true');
+              window.location.href = '/';
+            },
+          },
+        },
+      ],
+      onHighlightStarted: (el) => {
+        (el as HTMLElement).setAttribute('inert', ''); // 禁用交互/焦点
+        (el as HTMLElement).classList.add('tour-noninteractive'); // 叠加指针禁用（双保险）
       },
-    ],
-    onDestroyStarted: () => {
-      // 什么都不做，禁止用户点击非高亮处
-    },
-  });
+      onDestroyStarted: () => {}, // 什么都不做，禁止用户点击非高亮处
+    });
 
     // 启动新手引导
     checkElementExists();
