@@ -222,7 +222,7 @@ export const WelcomeScreen = ({
                 });
                 setTimeout(() => {
                   driver.moveNext();
-                }, 350);
+                }, 400);
               },
             },
           },
@@ -251,7 +251,7 @@ export const WelcomeScreen = ({
                 });
                 setTimeout(() => {
                   driver.moveNext();
-                }, 350);
+                }, 400);
               },
             },
           },
@@ -269,7 +269,7 @@ export const WelcomeScreen = ({
                 setHasCompletedOnboardingLocal(false);
                 setTimeout(() => {
                   driver.moveNext();
-                }, 350);
+                }, 400);
               },
             },
           },
