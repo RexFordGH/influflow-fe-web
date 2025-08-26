@@ -1,26 +1,27 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
+import { useAsyncJob } from '@/hooks/useAsyncJob';
+import { useTweetThreadData } from '@/hooks/useTweetThreadData';
 import {
   ITrendingTopicsResponse,
   ITrendsRecommendTweet,
+  type IAsyncJobResponse,
   type ICheckInvitationCodeResponse,
+  type IGenerateAsyncRequest,
   type IGenerateImageRequest,
   type IGenerateThreadRequest,
-  type IGenerateAsyncRequest,
   type IHealthData,
+  type IJobStatusResponse,
   type IModifyOutlineData,
   type IModifyOutlineRequest,
   type IModifyTweetData,
   type IModifyTweetRequest,
-  type IAsyncJobResponse,
-  type IJobStatusResponse,
 } from '@/types/api';
-import { } from 'react';
 import { IGenerateDraftRequest, IGenerateDraftResponse } from '@/types/draft';
 import { IOutline } from '@/types/outline';
-import { useTweetThreadData } from '@/hooks/useTweetThreadData';
+import {} from 'react';
+
 import { apiGet, apiPost, generateImage } from './client';
-import { useAsyncJob } from '@/hooks/useAsyncJob';
 
 export const QUERY_KEYS = {
   HEALTH: ['health'] as const,
@@ -33,6 +34,7 @@ export const QUERY_KEYS = {
   TRENDING_RECOMMEND: ['trending', 'recommend'] as const,
   TRENDING_SEARCH: ['trending', 'query'] as const,
   VERIFY_INVITATION_CODE: ['verify', 'invitation-code'] as const,
+  CHAT_HISTORY: ['agent', 'chat', 'history'] as const,
 } as const;
 
 export function useHealth() {
@@ -175,7 +177,7 @@ export function useGenerateThreadAsync() {
 export async function getJobStatus(jobId: string): Promise<IJobStatusResponse> {
   // 增加退避重试机制，保证请求成功
   for (let attempt = 0; attempt < 5; attempt++) {
-  const response = await apiGet<IJobStatusResponse>(
+    const response = await apiGet<IJobStatusResponse>(
       `/api/job/status?job_id=${encodeURIComponent(jobId)}`,
     );
     return response;
@@ -471,4 +473,45 @@ export function getErrorMessage(error: unknown): string {
   }
 
   return 'An unknown error occurred';
+}
+
+export interface IChatHistoryMessage {
+  type: 'human' | 'ai';
+  content: string;
+}
+
+export interface IChatHistoryParams {
+  docId: string;
+  offset?: number;
+  limit?: number;
+  order?: 'asc' | 'desc';
+  enabled?: boolean;
+}
+
+export interface IChatHistoryResponse {
+  messages: IChatHistoryMessage[];
+  has_more: boolean;
+  limit: number;
+  offset: number;
+  total_count: number;
+}
+
+export function useGetChatHistory(params: IChatHistoryParams) {
+  const {
+    docId,
+    offset = 0,
+    limit = 10,
+    order = 'desc',
+    enabled = true,
+  } = params;
+
+  return useQuery({
+    queryKey: [...QUERY_KEYS.CHAT_HISTORY, docId, offset, limit, order],
+    queryFn: () =>
+      apiGet<IChatHistoryResponse>(
+        `/api/agent/chat/history?doc_id=${docId}&offset=${offset}&limit=${limit}&order=${order}`,
+      ),
+    enabled: enabled,
+    retry: false,
+  });
 }

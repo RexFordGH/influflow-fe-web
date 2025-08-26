@@ -452,7 +452,13 @@ const EditorPro: React.FC<EditorProProps> = ({
   });
 
   useEffect(() => {
-    if (editor && editorValue.content !== editor.getHTML()) {
+    if (!editor) return;
+
+    // Only sync external content when editor is NOT focused.
+    // This avoids resetting selection or affecting typing/newline behavior.
+    if (editor.isFocused) return;
+
+    if (editorValue.content !== editor.getHTML()) {
       // Check if content contains HTML tags
       const isHTML = /<[^>]+>/.test(editorValue.content);
 
