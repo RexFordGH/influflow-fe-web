@@ -1,10 +1,8 @@
 'use client';
 
-import { UserIcon } from '@heroicons/react/24/outline';
 import { Button, Image } from '@heroui/react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import Link from 'next/link';
 
 import { useAuthStore } from '@/stores/authStore';
 
@@ -18,6 +16,7 @@ import {
 import { useInfiniteScroll } from './hooks/useInfiniteScroll';
 import { usePaginatedData } from './hooks/usePaginatedData';
 import { useScrollPositionRestore } from './hooks/useScrollPositionRestore';
+import { ProfileDropdown } from './ProfileDropdown';
 import { SidebarItem as SidebarItemType } from './types/sidebar.types';
 
 interface AppSidebarProps {
@@ -34,7 +33,6 @@ export interface AppSidebarRef {
 export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
   ({ onItemClick, selectedId, collapsed = false, onToggleCollapse }, ref) => {
     const { user, isAuthenticated } = useAuthStore();
-    const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
 
     // 滚动容器引用
@@ -74,10 +72,6 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         threshold: 50,
         restoreDelay: 16,
       });
-
-    const handleOpenProfile = () => {
-      router.push('/profile');
-    };
 
     const handleItemClick = (item: SidebarItemType) => {
       if (onItemClick) {
@@ -122,25 +116,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
       >
         <div className="p-4">
           <div className="flex items-center justify-between">
-            <div
-              className="-m-2 flex cursor-pointer items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-100"
-              onClick={handleOpenProfile}
-            >
-              {user?.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt="User Avatar"
-                  width={24}
-                  height={24}
-                  className="rounded-full"
-                />
-              ) : (
-                <UserIcon className="size-6 text-gray-600" />
-              )}
-              <span className="font-medium text-gray-900">
-                {user?.name || 'Kelly'}
-              </span>
-            </div>
+            <ProfileDropdown collapsed={collapsed} />
 
             {/* 收起按钮 */}
             {onToggleCollapse && (
