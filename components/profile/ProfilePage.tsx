@@ -1,11 +1,15 @@
 'use client';
 
+import { goToStepAfterStableSameAnchor } from '@/utils/tutorial';
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button, cn, Input, Textarea, Tooltip } from '@heroui/react';
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 import { queryTweetDetail } from '@/lib/api/services';
 import { useAuthStore } from '@/stores/authStore';
@@ -211,7 +215,157 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     };
 
     loadProfileData();
+
+    // 检查是否需要显示新手引导
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
+
+    // 如果新手引导未完成，且当前页面是从新手引导跳转过来的，则显示引导
+    if (!hasCompleted) {
+      // 检查 URL 参数或 sessionStorage 中是否有标记
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromOnboarding =
+        urlParams.get('fromOnboarding') ||
+        sessionStorage.getItem('fromOnboarding');
+
+      if (fromOnboarding) {
+        // 延迟一下确保页面完全加载
+        setTimeout(() => {
+          initProfileOnboarding();
+        }, 1200);
+      }
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 处理样式切换后的等待逻辑
+  const waitForStyleChange = async (newStyle: ITone) => {
+    // 同步更新样式状态
+    flushSync(() => setSelectedStyle(newStyle));
+    // 等待DOM重新渲染完成
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // 强制重新计算布局，确保driver.js能正确计算位置
+    void document.body.offsetHeight;
+
+    // 等待额外的帧以确保所有样式变化都已应用
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  };
+
+  const initProfileOnboarding = () => {
+    const tour = driver({
+      stagePadding: 10,
+      stageRadius: 12,
+      showButtons: ['close', 'next'], // 显示关闭按钮
+      nextBtnText: 'NEXT',
+      prevBtnText: 'BACK',
+      onCloseClick: async () => {
+        if (
+          !tour.hasNextStep() ||
+          confirm(
+            'Are you sure you want to skip the onboarding? You might miss helpful tips for getting started.',
+          )
+        ) {
+          tour.destroy();
+          const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+          // Set ONBOARDING_KEY
+          window.localStorage.setItem(ONBOARDING_KEY, 'true');
+        }
+      },
+      steps: [
+        {
+          element: '#style-section',
+          popover: {
+            title: 'Choose Your Own Style',
+            description:
+              "If you want AI to learn your own Twitter style, choose My Style. We've captured your voice so it can write just like you.",
+            side: 'bottom',
+            align: 'start',
+            popoverClass: 'style-section-start driverjs-basic',
+            onNextClick: async () => {
+              await waitForStyleChange('Expert');
+              // 使用快速路径：不等待变化，最小延迟+1帧稳定
+              await goToStepAfterStableSameAnchor(tour, '#style-section', {
+                expectChange: false,
+                timeout: 300,
+                frames: 1,
+                minDelay: 50,
+              });
+            },
+          },
+        },
+        {
+          element: '#style-section',
+          popover: {
+            title: 'Start Quickly with a Style',
+            description:
+              "If you don't have your own style yet, you can start quickly with our three preset styles (Humorous, Professional, Inspirational).",
+            side: 'bottom',
+            align: 'center',
+            popoverClass: 'style-section-center driverjs-basic',
+            onNextClick: async () => {
+              await waitForStyleChange('Customized');
+              await goToStepAfterStableSameAnchor(tour, '#style-section', {
+                expectChange: false,
+                timeout: 300,
+                frames: 1,
+                minDelay: 50,
+              });
+            },
+          },
+        },
+        {
+          element: '#style-section',
+          popover: {
+            title: 'Mimic Any Tweet Style',
+            description:
+              "If you'd like to write in the style of another creator, simply paste one or more of their tweets into Customize. The AI will learn from them and generate content that closely matches their tone and style.",
+            side: 'bottom',
+            align: 'end',
+            popoverClass: 'style-section-end driverjs-basic',
+            onNextClick: async () => {
+              await waitForStyleChange('Customized');
+              await goToStepAfterStableSameAnchor(tour, '#style-section', {
+                expectChange: false,
+                timeout: 300,
+                frames: 1,
+                minDelay: 50,
+              });
+            },
+          },
+        },
+        {
+          element: '#personal-introduction',
+          popover: {
+            title: 'Tell Us About Yourself',
+            description:
+              'Share a short personal intro—your background, interests, and perspective—so AI can write as you, with your unique voice.',
+            side: 'top',
+            align: 'center',
+            popoverClass: 'personal-introduction driverjs-basic',
+            onNextClick: async () => {
+              await waitForStyleChange('Customized');
+
+              router.push('/article-tutorial');
+            },
+          },
+        },
+        {
+          // 占位步骤，用于跳转
+          popover: {
+            title: 'Happy useing',
+          },
+        },
+      ],
+      onHighlightStarted: (el) => {
+        (el as HTMLElement).setAttribute('inert', ''); // 禁用交互/焦点
+        (el as HTMLElement).classList.add('tour-noninteractive'); // 叠加指针禁用（双保险）
+      },
+      onDestroyStarted: () => {}, // 什么都不做，禁止用户点击非高亮处
+    });
+
+    tour.drive();
+  };
 
   // 处理提交
   const handleSubmit = useCallback(async () => {
@@ -396,7 +550,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       {/* Main Content */}
       <div className="mx-auto max-w-4xl p-12">
         {/* Style Section */}
-        <div className="mb-10">
+        <div id="style-section" className="mb-10">
           <h2 className="mb-2 text-2xl font-semibold text-gray-900">Style</h2>
           <p className="mb-6 text-gray-500">
             Choose a tone for your content, or paste links to match a custom
@@ -526,7 +680,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         </div>
 
         {/* Personal Introduction Section */}
-        <div className="mb-10">
+        <div id="personal-introduction" className="mb-10">
           <h2 className="mb-2 text-2xl font-semibold text-gray-900">
             Personal Introduction
           </h2>

@@ -30,6 +30,10 @@ import {
   ITrendsRecommendTweet,
 } from '@/types/api';
 
+import { goToStepAfterStableSameAnchor } from '@/utils/tutorial';
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
+
 const TrendingTopicsPage = lazy(() =>
   import('@/components/trending/TrendingTopicsPage').then((module) => ({
     default: module.TrendingTopicsPage,
@@ -49,6 +53,7 @@ interface WelcomeScreenProps {
   onTopicInputChange: (value: string) => void;
   onTopicSubmit: (contentFormat: IContentFormat, mode: IMode) => void;
   onScrollProgressChange?: (progress: any) => void;
+  hasCompletedOnboarding?: boolean | null;
 }
 
 const ContentFormatOptions = [
@@ -78,6 +83,8 @@ export const WelcomeScreen = ({
   const [selectedContentFormat, setSelectedContentFormat] =
     useState<IContentFormat>('longform');
   const [selectedMode, setSelectedMode] = useState<IMode>('analysis');
+  const [hasCompletedOnboardingLocal, setHasCompletedOnboardingLocal] =
+    useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const homepageRef = useRef<HTMLDivElement>(null);
@@ -152,6 +159,165 @@ export const WelcomeScreen = ({
     [scrollToTop],
   );
 
+  // 初始化引导，仅在客户端执行，并使用 localStorage 记录是否完成
+  useEffect(() => {
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+
+    if (typeof window === 'undefined') return;
+
+    const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
+
+    // 设置本地状态以反映onboarding完成状态
+    setHasCompletedOnboardingLocal(hasCompleted);
+
+    if (hasCompleted) return;
+
+    const tour = driver({
+      stagePadding: 10,
+      stageRadius: 12,
+      showButtons: ['close', 'next'], // 显示关闭按钮
+      nextBtnText: 'NEXT',
+      prevBtnText: 'BACK',
+      onCloseClick: async () => {
+        if (
+          !tour.hasNextStep() ||
+          confirm(
+            'Are you sure you want to skip the onboarding? You might miss helpful tips for getting started.',
+          )
+        ) {
+          tour.destroy();
+
+          const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+          // Set ONBOARDING_KEY
+          window.localStorage.setItem(ONBOARDING_KEY, 'true');
+        }
+      },
+      steps: [
+        {
+          element: '#textarea-ref',
+          popover: {
+            title: 'Choose Format & Mode',
+            description: `
+                    Before generating, pick how you want your content:<br>
+                    <ul>
+                      <li> Format:<span style="color:#3b82f6;"><em>Threads</em></span> for Twitter threads, <span style="color:#3b82f6;"><em>Long-form Tweet</em></span> for mid-length posts, or <span style="color:#3b82f6;"><em>Deep Research</em></span> for in-depth articles.</li>
+                      <li> Mode:<span style="color:#3b82f6;"><em>Lite Mode</em></span> for quick drafts, <span style="color:#3b82f6;"><em>Analysis Mode</em></span> for deeper insights.</li>
+                    </ul>
+                    `,
+            side: 'bottom',
+            align: 'start',
+            popoverClass: 'driverjs-textarea driverjs-basic',
+            onNextClick: async () => {
+              // trending-topics出现后，再进入下一步
+              await goToStepAfterStableSameAnchor(tour, '#trending-topics');
+            },
+          },
+        },
+        {
+          element: '#trending-topics',
+          popover: {
+            title: 'What’s Trending',
+            description:
+              'Stay up to date with what’s buzzing right now. Discover the hottest topics, each with a collection of popular posts that people are engaging with the most.',
+            side: 'bottom',
+            align: 'center',
+            popoverClass: 'driverjs-trending driverjs-basic',
+            onNextClick: async () => {
+              // 打开第一个trending topics
+              setHasCompletedOnboardingLocal(true);
+              // 滚动到trending-topics-type
+              document.getElementById('trending-topics-type')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+                inline: 'nearest',
+              });
+
+              // viral-tweets出现后，再进入下一步
+              await goToStepAfterStableSameAnchor(tour, '#viral-tweets');
+            },
+          },
+        },
+        {
+          element: '#viral-tweets',
+          popover: {
+            title: 'Use Viral Tweets as References',
+            description:
+              'Click on any trending topic to see the most popular posts under it. Choose as many posts as you like as references, and instantly generate fresh posts inspired by them.',
+            side: 'left',
+            align: 'center',
+            popoverClass: 'viral-tweets driverjs-basic',
+            onNextClick: async () => {
+              // 关闭第一个trending topics
+              setHasCompletedOnboardingLocal(false);
+
+              // viral-tweets出现后，再进入下一步
+              await goToStepAfterStableSameAnchor(tour, '#suggested-topics');
+            },
+          },
+        },
+        {
+          element: '#suggested-topics',
+          popover: {
+            title: 'Pick a Topic, Start Writing',
+            description:
+              'Get instant content ideas based on trending discussions. We’ll recommend ready-to-use titles — just pick one, and it will be added to your chat box for quick editing and fast content generation.',
+            side: 'top',
+            align: 'center',
+            popoverClass: 'suggested-topics driverjs-basic',
+            onNextClick: async () => {
+              // customize-my-style出现后，再进入下一步
+              await goToStepAfterStableSameAnchor(tour, '#customize-my-style');
+            },
+          },
+        },
+        {
+          element: '#customize-my-style',
+          popover: {
+            title: 'Personalize Your Tone',
+            description:
+              'Personalize tone, mimic styles you love, and let AI write as you. Start by adding your intro to unlock fully tailored content.',
+            side: 'top',
+            align: 'center',
+            popoverClass: 'customize-my-style driverjs-basic',
+            onNextClick: async () => {
+              // 设置标记，表示是从新手引导跳转过来的
+              sessionStorage.setItem('fromOnboarding', 'true');
+              // 跳转到/profile页面
+              window.location.href = '/profile?fromOnboarding=true';
+            },
+          },
+        },
+        {
+          // 占位步骤，用于跳转
+          popover: {
+            title: 'Happy useing',
+          },
+        },
+      ],
+      onHighlightStarted: (el) => {
+        (el as HTMLElement).setAttribute('inert', ''); // 禁用交互/焦点
+        (el as HTMLElement).classList.add('tour-noninteractive'); // 叠加指针禁用（双保险）
+      },
+      onDestroyStarted: () => {}, // 什么都不做，禁止用户点击非高亮处
+    });
+
+    tour.drive();
+
+    // 容器滚动时刷新
+    scrollContainerRef.current?.addEventListener('scroll', () => {
+      if (tour.isActive()) {
+        tour.refresh();
+      }
+    });
+
+    // 窗口缩放时刷新
+    window.addEventListener('resize', () => {
+      if (tour.isActive()) {
+        tour.refresh();
+      }
+    });
+  }, []);
+
   return (
     <div className="relative size-full min-w-[1000px]">
       {/* 主滚动容器 */}
@@ -178,7 +344,7 @@ export const WelcomeScreen = ({
               would you like to write about today?
             </h2>
 
-            <div className="relative mt-[24px]">
+            <div id="textarea-ref" className="relative mt-[24px]">
               <textarea
                 ref={textareaRef}
                 placeholder="You can start with a topic or an opinion."
@@ -401,6 +567,7 @@ export const WelcomeScreen = ({
                   selectedTweets,
                 );
               }}
+              hasCompletedOnboarding={hasCompletedOnboardingLocal}
             />
           </Suspense>
         </motion.div>

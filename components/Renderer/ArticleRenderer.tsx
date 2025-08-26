@@ -235,7 +235,7 @@ export function ArticleRenderer({
       {/* 主要内容区域 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 左侧思维导图 */}
-        <div className="relative flex-1 border-r border-gray-200 bg-white">
+        <div className="mindmap-container relative flex-1 border-r border-gray-200 bg-white">
           <ReactFlowProvider>
             <EditableContentMindmap
               nodes={currentNodes}
@@ -248,14 +248,14 @@ export function ArticleRenderer({
               onEdgesChange={mindmap.handleEdgesChange}
               onRegenerateClick={content.handleRegenerateClick}
               highlightedNodeId={mindmap.selectedNodeId}
-              hoveredTweetId={mindmap.hoveredTweetId}
+              hoveredTweetId={mindmap.selectedNodeId}
               isRegenerating={content.isRegenerating}
             />
           </ReactFlowProvider>
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="flex min-w-0 flex-1 justify-center bg-white">
+        <div className="article-content flex min-w-0 flex-1 justify-center bg-white">
           <div
             className="font-inter mx-auto flex w-[628px] min-w-0 flex-col overflow-y-auto overflow-x-hidden break-words px-[24px] pb-[60px]"
             //保证与正式环境尺寸一致
