@@ -21,67 +21,49 @@ const articleData: IOutline = {
       title: 'Opening Hook',
       tweets: [
         {
-          title: 'OKX DEX收费调整引发关注',
-          content: 'OKX DEX这个收费调整，说实话挺有意思的',
+          title: 'Welcome from the Influxy Team',
+          content:
+            'Welcome to Influxy！ What does it look like when an AI understands your voice and supports your creative process end to end?That’s exactly what Influxy is built for. This isn’t just another AI writing tool—it’s your dedicated creative partner that learns how you think, understands your voice, and amplifies your unique perspective without replacing it.',
           image_url: null,
           tweet_number: 1,
         },
       ],
     },
     {
-      title: 'OKX DEX产品特点与用户体验',
+      title: 'Core Features and Innovative Experience',
       tweets: [
         {
-          title: '聚合器与智能路由优势',
+          title: 'Digital Twin and Personalized Learning',
           content:
-            '不是传统DEX，是个聚合器，通过智能路由在100+个DEX里给你找最优价格',
+            '✨ More than a tool—built to learn your voice\n\nInfluxy analyzes your existing content to learn tone, style, and phrasing patterns. The intention is not to overwrite your voice, but to reliably reproduce it so you can focus on the ideas. Think of it as a dependable companion that stays consistent and available whenever you need it.',
           image_url: null,
           tweet_number: 2,
         },
         {
-          title: '零滑点和免Gas费优势',
+          title: 'End‑to‑End Intelligent Creation Flow',
           content:
-            '零滑点优势确实牛逼，正向滑点不收你的，这对大额交易太重要了\n\n免Gas费也是真香，小白进DeFi门槛直接降到最低',
+            '🔥 From trends to publishing, in one place\n\nA typical flow looks like this:\n\n• Real‑time awareness of trends in your field\n• Suggestions for topics with clear potential\n• Automatically generated mind maps and content structures\n• Image‑and‑text drafts in seconds\n• One‑click publishing across platforms\n\nEverything is designed to make the process clearer and more manageable.',
           image_url: null,
           tweet_number: 3,
         },
-      ],
-    },
-    {
-      title: '收费策略与市场对比',
-      tweets: [
         {
-          title: '分层收费策略',
+          title: 'Domain Optimization and Quality Uplift',
           content:
-            '现在收费策略也很精明：\n\n主流币0费率 - 保住基础用户群体，BTC、ETH这些大家都在交易的\n\nMEME币0.85% - 这些币投机性强，用户对价格敏感度低，但要求速度快防MEV，收费合理',
+            '💡 Built with professional domains in mind\n\nInfluxy supports creators in AI, Web3, and finance with domain‑aware language, timely topics, and structured viewpoints.\n\nIt’s not only about speed; it’s about maintaining consistency and raising the baseline quality.',
           image_url: null,
           tweet_number: 4,
         },
-        {
-          title: '与竞争对手的对比分析',
-          content:
-            '跟竞争对手比：\n- vs Uniswap这些传统DEX：价格更优、有Gas补贴、界面简洁\n- vs 1inch、Matcha这些聚合器：关键看综合成本，OKX通过Gas补贴+零正向滑点在某些场景下确实更划算',
-          image_url: null,
-          tweet_number: 5,
-        },
       ],
     },
     {
-      title: '综合评价与未来展望',
+      title: 'Sustained Empowerment and a New Era of Creation',
       tweets: [
         {
-          title: '商业化转型与综合体验',
+          title: 'Your Always‑On Partner and What’s Next',
           content:
-            '总的来说，从免费引流进入商业化成熟阶段了\n\n现在不是看"免不免费"，而是看"综合成本和体验是不是最优"',
+            '🎯 Your 24/7 creative partner\n\nInfluxy is designed for sustainable creation. It keeps learning from your preferences, adapts over time, and supports iterative workflows so you can maintain pace without sacrificing quality.\n\nIf you’re building influence in the digital space, we hope Influxy can be a steady part of your process.\n\nWelcome aboard.',
           image_url: null,
-          tweet_number: 6,
-        },
-        {
-          title: '对不同用户群体的吸引力与执行质量',
-          content:
-            '算上滑点节省、Gas补贴这些，对高频交易者、MEME币玩家、怕麻烦的用户来说，还是很有竞争力的\n\n关键是执行质量确实不错，最优价格、防MEV保护、界面简洁，该收的费也收得明白',
-          image_url: null,
-          tweet_number: 7,
+          tweet_number: 5,
         },
       ],
     },
@@ -89,6 +71,8 @@ const articleData: IOutline = {
 };
 
 export default function ArticleDirectPage() {
+  const [isTooltipOpenNum, setIsTooltipOpenNum] = useState(0);
+  const [isOnboarding, setIsOnboarding] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   const handleBack = () => {
@@ -164,19 +148,18 @@ export default function ArticleDirectPage() {
             side: 'right',
             align: 'center',
             popoverClass: 'mindmap-container driverjs-basic',
+            onNextClick: async () => {
+              setIsOnboarding(true);
+              setIsTooltipOpenNum(1);
+              await goToStepAfterStableSameAnchor(tour, '#twtter-data', {
+                expectChange: false,
+                timeout: 300,
+                frames: 1,
+                minDelay: 50,
+              });
+            },
           },
         },
-        // {
-        //   element: '.prompt-history-button',
-        //   popover: {
-        //     title: 'Prompts History',
-        //     description:
-        //       'Click to view all your past prompts—revisit, reuse, or refine them anytime.',
-        //     side: 'bottom',
-        //     align: 'start',
-        //     popoverClass: 'prompt-history-button driverjs-basic',
-        //   },
-        // },
         {
           element: '.twtter-data',
           popover: {
@@ -187,6 +170,7 @@ export default function ArticleDirectPage() {
             align: 'end',
             popoverClass: 'twtter-data twtter-data-start driverjs-basic',
             onNextClick: async () => {
+              setIsTooltipOpenNum(2);
               await goToStepAfterStableSameAnchor(tour, '#twtter-data', {
                 expectChange: false,
                 timeout: 300,
@@ -206,6 +190,7 @@ export default function ArticleDirectPage() {
             align: 'end',
             popoverClass: 'twtter-data twtter-data-center driverjs-basic',
             onNextClick: async () => {
+              setIsTooltipOpenNum(3);
               await goToStepAfterStableSameAnchor(tour, '#twtter-data', {
                 expectChange: false,
                 timeout: 300,
@@ -252,6 +237,8 @@ export default function ArticleDirectPage() {
       initialData={articleData}
       onDataUpdate={handleDataUpdate}
       sessionId="okx-dex-session"
+      isOnboarding={isOnboarding}
+      isTooltipOpenNum={isTooltipOpenNum}
     />
   );
 }
