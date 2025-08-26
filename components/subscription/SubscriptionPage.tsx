@@ -5,6 +5,7 @@ import { Button } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
+import CreditsUsageModal from './CreditsUsageModal';
 import PlanCard from './PlanCard';
 
 interface SubscriptionPageProps {
@@ -16,6 +17,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   const [remainingCredits] = useState(1400);
   const [totalCredits] = useState(1900);
   const [planExpiry] = useState('September 22, 2025');
+  const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
 
   const handleSwitchPlan = (plan: 'free' | 'starter' | 'pro') => {
     console.log('Switching to plan:', plan);
@@ -79,14 +81,17 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               <h2 className="text-[20px] font-medium text-black">
                 Remaining Credits
               </h2>
-              <div className="group relative">
+              <button
+                onClick={() => setIsCreditsModalOpen(true)}
+                className="group relative rounded-full p-1 transition-colors hover:bg-gray-100"
+              >
                 <svg
                   width="20"
                   height="20"
                   viewBox="0 0 20 20"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="cursor-help text-gray-400"
+                  className="cursor-help text-gray-400 transition-colors group-hover:text-gray-600"
                 >
                   <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
                   <text
@@ -99,11 +104,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                     ?
                   </text>
                 </svg>
-                <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-lg bg-black p-2 text-xs text-white shadow-lg group-hover:block">
-                  Credits are used for generating content
+                <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-black p-2 text-xs text-white shadow-lg group-hover:block">
+                  Click to see credits usage rules
                   <div className="absolute left-1/2 top-full size-0 -translate-x-1/2 -translate-y-1 border-x-[5px] border-t-[5px] border-x-transparent border-t-black"></div>
                 </div>
-              </div>
+              </button>
             </div>
 
             <div className="mb-1 text-[32px] font-medium text-black">
@@ -218,6 +223,12 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Credits Usage Modal */}
+      <CreditsUsageModal
+        isOpen={isCreditsModalOpen}
+        onClose={() => setIsCreditsModalOpen(false)}
+      />
     </motion.div>
   );
 };

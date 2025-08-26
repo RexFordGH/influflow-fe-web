@@ -67,7 +67,9 @@ const PlanCard = ({
         ) : (
           <div className="flex items-baseline">
             <span className="text-[32px] font-medium text-black">${price}</span>
-            <span className="text-[16px] font-medium text-black">{priceUnit}</span>
+            <span className="text-[16px] font-medium text-black">
+              {priceUnit}
+            </span>
           </div>
         )}
       </div>
@@ -78,7 +80,7 @@ const PlanCard = ({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex h-[48px] items-center justify-center rounded-[16px] bg-[#EFEFEF] px-14"
+            className="flex h-[48px] items-center justify-center rounded-[16px] bg-[#EFEFEF]"
           >
             <span className="text-[16px] font-medium text-[#8C8C8C]">
               Your Current Plan
