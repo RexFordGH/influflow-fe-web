@@ -228,11 +228,37 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         urlParams.get('fromOnboarding') ||
         sessionStorage.getItem('fromOnboarding');
 
+      //当按钮变为Save Changes时进入新手引导
       if (fromOnboarding) {
-        // 延迟一下确保页面完全加载
+        // 使用 MutationObserver 监听按钮文本变化
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+              const button = document.querySelector(
+                'button[class*="rounded-full bg-black"]',
+              );
+              if (button && button.textContent?.trim() === 'Save Changes') {
+                // 按钮变为 Save Changes 时，延迟启动新手引导
+                setTimeout(() => {
+                  initProfileOnboarding();
+                }, 300);
+                observer.disconnect(); // 停止观察
+              }
+            }
+          });
+        });
+
+        // 开始观察 DOM 变化
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        });
+
+        // 设置超时，防止无限等待,如果超时，则跳转到首页
         setTimeout(() => {
-          initProfileOnboarding();
-        }, 1500);
+          observer.disconnect();
+          window.location.href = '/';
+        }, 10000);
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -254,6 +280,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
   const initProfileOnboarding = () => {
     const tour = driver({
+      smoothScroll: true,
       stagePadding: 10,
       stageRadius: 12,
       showButtons: ['close', 'next'], // 显示关闭按钮
