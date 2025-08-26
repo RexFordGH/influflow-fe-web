@@ -38,6 +38,7 @@ interface ArticleRendererProps {
   onGenerationComplete?: (data: IOutline) => void; // 添加生成完成回调
   onGenerationError?: (error: Error) => void; // 添加错误回调
   isOnboarding?: boolean;
+  isTooltipOpenNum?: number;
 }
 
 export function ArticleRenderer({
@@ -52,6 +53,7 @@ export function ArticleRenderer({
   onGenerationComplete,
   onGenerationError,
   isOnboarding = false,
+  isTooltipOpenNum=0,
 }: ArticleRendererProps) {
   // 状态：思维导图节点和边
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
@@ -324,6 +326,7 @@ export function ArticleRenderer({
                       collectedImages={images.collectedImages}
                       onDeleteImage={images.handleDeleteImage}
                       isOnboarding={isOnboarding}
+                      isTooltipOpenNum={isTooltipOpenNum}
                     />
                   )}
                 </div>
@@ -358,6 +361,7 @@ export function ArticleRenderer({
                       collectedImages={images.collectedImages}
                       onDeleteImage={images.handleDeleteImage}
                       isOnboarding={isOnboarding}
+                      isTooltipOpenNum={isTooltipOpenNum}
                     />
                   )}
                 </div>

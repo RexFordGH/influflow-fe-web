@@ -232,7 +232,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         // 延迟一下确保页面完全加载
         setTimeout(() => {
           initProfileOnboarding();
-        }, 1200);
+        }, 1500);
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -345,7 +345,8 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             popoverClass: 'personal-introduction driverjs-basic',
             onNextClick: async () => {
               await waitForStyleChange('Customized');
-
+              // 清理弹窗
+              tour.destroy();
               router.push('/article-tutorial');
             },
           },

@@ -54,6 +54,7 @@ export interface SectionRendererProps {
   };
   setSectionRef?: (sectionId: string, element: HTMLDivElement | null) => void;
   isOnboarding?: boolean;
+  isTooltipOpenNum?: number;
 }
 
 export function SectionRenderer({
@@ -77,6 +78,7 @@ export function SectionRenderer({
   imageData,
   setSectionRef,
   isOnboarding,
+  isTooltipOpenNum,
 }: SectionRendererProps) {
   const [currentEditorContent, setCurrentEditorContent] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>();

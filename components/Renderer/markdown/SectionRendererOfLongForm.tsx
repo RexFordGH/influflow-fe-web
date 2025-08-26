@@ -13,6 +13,7 @@ import {
   markdownStyles,
   shouldEnableInteraction,
 } from './markdownStyles';
+import { Onboarding } from './Onboarding';
 import {
   EditWithAIButton,
   SectionRendererProps,
@@ -36,6 +37,7 @@ export function SectionRendererOfLongForm({
   tweetData,
   setSectionRef,
   isOnboarding,
+  isTooltipOpenNum,
 }: SectionRendererProps) {
   // 移除未使用的状态
 
@@ -278,6 +280,7 @@ export function SectionRendererOfLongForm({
                     'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
                 }}
               />
+            
             </div>
           )}
 
@@ -289,46 +292,42 @@ export function SectionRendererOfLongForm({
           )} */}
 
           {/* Image rendering is removed from here */}
-
-          {isOnboarding ? (
-            <div>
-              <div>
-                <div>
-                  
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div
-              className={`absolute bottom-[-32px] right-[4px] flex items-center justify-end gap-1 transition-opacity ${
-                // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
-                editingNodeId &&
-                ((section.tweetId &&
-                  (section.tweetId === editingNodeId ||
-                    section.tweetId.toString() === editingNodeId.toString())) ||
-                  editingNodeId === section.id)
-                  ? 'opacity-100'
-                  : 'opacity-0 group-hover:opacity-100'
-              }`}
-            >
-              <EditWithAIButton
-                nodeId={section.tweetId || section.id}
-                onEditWithAI={onEditWithAI}
-                isOnboarding={isOnboarding}
-              />
-              <LocalImageUploader
-                tweetData={currentTweetData}
-                onUploadSuccess={onLocalImageUploadSuccess}
-                onImageSelect={onImageSelect}
-              />
-              <TweetImageButton
-                currentTweetData={currentTweetData}
-                onTweetImageEdit={onTweetImageEdit}
-                isGeneratingImage={isGeneratingImage}
-                onDirectGenerate={onDirectGenerate}
-              />
-            </div>
-          )}
+  
+          {isOnboarding && section.id === 'tweet-section-1' ? (
+            <Onboarding
+              isOpen={isTooltipOpenNum || 0}
+            />
+          ) : null}
+          
+          <div
+            className={`absolute bottom-[-32px] right-[4px] flex items-center justify-end gap-1 transition-opacity ${
+              // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
+              editingNodeId &&
+              ((section.tweetId &&
+                (section.tweetId === editingNodeId ||
+                  section.tweetId.toString() === editingNodeId.toString())) ||
+                editingNodeId === section.id)
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-100'
+            }`
+          }
+          >
+            <EditWithAIButton
+              nodeId={section.tweetId || section.id}
+              onEditWithAI={onEditWithAI}
+            />
+            <LocalImageUploader
+              tweetData={currentTweetData}
+              onUploadSuccess={onLocalImageUploadSuccess}
+              onImageSelect={onImageSelect}
+            />
+            <TweetImageButton
+              currentTweetData={currentTweetData}
+              onTweetImageEdit={onTweetImageEdit}
+              isGeneratingImage={isGeneratingImage}
+              onDirectGenerate={onDirectGenerate}
+            />
+          </div>
         </div>
       );
 

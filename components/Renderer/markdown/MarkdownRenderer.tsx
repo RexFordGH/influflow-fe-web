@@ -59,6 +59,7 @@ interface MarkdownRendererProps {
   collectedImages?: any[]; // 新增：收集到的图片
   onDeleteImage?: (image: any) => void; // 新增：删除图片回调
   isOnboarding?: boolean;
+  isTooltipOpenNum?: number;
 }
 
 interface CollectedImage {
@@ -93,6 +94,7 @@ export function MarkdownRenderer({
   collectedImages = [],
   onDeleteImage,
   isOnboarding,
+  isTooltipOpenNum,
 }: MarkdownRendererProps) {
   const [copyingImage, setCopyingImage] = useState<string | null>(null);
 
@@ -275,6 +277,7 @@ export function MarkdownRenderer({
         setSectionRef={setSectionRef}
         onDeleteImage={onDeleteImage}
         isOnboarding={isOnboarding}
+        isTooltipOpenNum={isTooltipOpenNum}
       />
     );
   };
