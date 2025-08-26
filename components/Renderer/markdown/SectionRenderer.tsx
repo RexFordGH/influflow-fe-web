@@ -53,6 +53,7 @@ export interface SectionRendererProps {
     prompt?: string;
   };
   setSectionRef?: (sectionId: string, element: HTMLDivElement | null) => void;
+  isOnboarding?: boolean;
 }
 
 export function SectionRenderer({
@@ -75,6 +76,7 @@ export function SectionRenderer({
   tweetData,
   imageData,
   setSectionRef,
+  isOnboarding,
 }: SectionRendererProps) {
   const [currentEditorContent, setCurrentEditorContent] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>();
@@ -449,11 +451,41 @@ export function SectionRenderer({
 export function EditWithAIButton({
   nodeId,
   onEditWithAI,
+  isOnboarding,
 }: {
   nodeId: string;
   onEditWithAI?: (nodeId: string) => void;
+  isOnboarding?: boolean;
 }) {
-  return (
+  return isOnboarding ? (
+    <Tooltip
+      content="Edit with AI"
+      delay={50}
+      closeDelay={0}
+      placement="top"
+      isOpen={true}
+      classNames={{
+        content: 'bg-black text-white',
+        arrow: 'bg-black border-black',
+      }}
+    >
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        className={markdownStyles.source.button}
+        onPress={() => onEditWithAI?.(nodeId)}
+      >
+        <Image
+          src="/icons/Edit.svg"
+          alt="edit"
+          width={20}
+          height={20}
+          className="rounded-none"
+        />
+      </Button>
+    </Tooltip>
+  ) : (
     <Tooltip
       content="Edit with AI"
       delay={50}

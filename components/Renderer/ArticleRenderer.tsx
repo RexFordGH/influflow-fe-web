@@ -37,6 +37,7 @@ interface ArticleRendererProps {
   sessionId?: string;
   onGenerationComplete?: (data: IOutline) => void; // 添加生成完成回调
   onGenerationError?: (error: Error) => void; // 添加错误回调
+  isOnboarding?: boolean;
 }
 
 export function ArticleRenderer({
@@ -50,6 +51,7 @@ export function ArticleRenderer({
   sessionId,
   onGenerationComplete,
   onGenerationError,
+  isOnboarding = false,
 }: ArticleRendererProps) {
   // 状态：思维导图节点和边
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
@@ -321,6 +323,7 @@ export function ArticleRenderer({
                       scrollToSection={mindmap.scrollToSection}
                       collectedImages={images.collectedImages}
                       onDeleteImage={images.handleDeleteImage}
+                      isOnboarding={isOnboarding}
                     />
                   )}
                 </div>
@@ -354,6 +357,7 @@ export function ArticleRenderer({
                       scrollToSection={mindmap.scrollToSection}
                       collectedImages={images.collectedImages}
                       onDeleteImage={images.handleDeleteImage}
+                      isOnboarding={isOnboarding}
                     />
                   )}
                 </div>

@@ -58,6 +58,7 @@ interface MarkdownRendererProps {
   scrollToSection?: string | null; // 新增：滚动到指定section的ID
   collectedImages?: any[]; // 新增：收集到的图片
   onDeleteImage?: (image: any) => void; // 新增：删除图片回调
+  isOnboarding?: boolean;
 }
 
 interface CollectedImage {
@@ -91,6 +92,7 @@ export function MarkdownRenderer({
   scrollToSection,
   collectedImages = [],
   onDeleteImage,
+  isOnboarding,
 }: MarkdownRendererProps) {
   const [copyingImage, setCopyingImage] = useState<string | null>(null);
 
@@ -272,6 +274,7 @@ export function MarkdownRenderer({
         imageData={imageData}
         setSectionRef={setSectionRef}
         onDeleteImage={onDeleteImage}
+        isOnboarding={isOnboarding}
       />
     );
   };

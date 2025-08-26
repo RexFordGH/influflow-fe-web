@@ -140,20 +140,20 @@ export default function ArticleDirectPage() {
       showButtons: ['close', 'next'], // 显示关闭按钮
       nextBtnText: 'NEXT',
       prevBtnText: 'BACK',
-      onCloseClick: async () => {
-        if (
-          !tour.hasNextStep() ||
-          confirm(
-            'Are you sure you want to skip the onboarding? You might miss helpful tips for getting started.',
-          )
-        ) {
-          tour.destroy();
-          const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
-          // Set ONBOARDING_KEY
-          window.localStorage.setItem(ONBOARDING_KEY, 'true');
-          window.location.href = '/';
-        }
-      },
+      // onCloseClick: async () => {
+      //   if (
+      //     !tour.hasNextStep() ||
+      //     confirm(
+      //       'Are you sure you want to skip the onboarding? You might miss helpful tips for getting started.',
+      //     )
+      //   ) {
+      //     tour.destroy();
+      //     const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+      //     // Set ONBOARDING_KEY
+      //     window.localStorage.setItem(ONBOARDING_KEY, 'true');
+      //     window.location.href = '/';
+      //   }
+      // },
       steps: [
         {
           element: '.mindmap-container',
@@ -252,6 +252,7 @@ export default function ArticleDirectPage() {
       initialData={articleData}
       onDataUpdate={handleDataUpdate}
       sessionId="okx-dex-session"
+      isOnboarding={true}
     />
   );
 }
