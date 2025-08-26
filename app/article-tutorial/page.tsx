@@ -11,10 +11,10 @@ import { goToStepAfterStableSameAnchor } from '@/utils/tutorial';
 
 // 将提供的数据转换为IOutline格式
 const articleData: IOutline = {
-  id: 'okx-dex-article',
+  id: 'dab11c13-6547-4387-8b8c-216ef33cd1b7',
   content_format: 'longform' as IContentFormat,
-  topic: 'OKX DEX收费调整引发关注',
-  total_tweets: 7,
+  topic: 'Influxy: An AI Creation Tool Tailored for KOLs',
+  total_tweets: 5,
   updatedAt: Date.now(),
   nodes: [
     {
@@ -75,13 +75,6 @@ export default function ArticleDirectPage() {
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
-  const handleBack = () => {
-    // 可以添加返回逻辑，比如路由跳转
-    window.history.back();
-  };
-
-  const handleDataUpdate = () => {};
-
   // 初始化新手引导
   // 如果已经完成新手引导，进入该页面时直接返回主页，否则开始新手引导
   useEffect(() => {
@@ -99,14 +92,14 @@ export default function ArticleDirectPage() {
 
     // 延迟启动引导，确保页面完全加载
     const timer = setTimeout(() => {
-      initArticleDirectOnboarding(ONBOARDING_KEY);
-    }, 1000);
+      initArticleDirectOnboarding();
+    }, 300);
 
     return () => clearTimeout(timer);
   }, []);
 
   // 新手引导初始化函数
-  const initArticleDirectOnboarding = (onboardingKey: string) => {
+  const initArticleDirectOnboarding = () => {
     // 确保元素存在后再启动新手引导
     const checkElementExists = () => {
       const mindmapElement = document.querySelector('.mindmap-container');
@@ -119,6 +112,7 @@ export default function ArticleDirectPage() {
     };
 
     const tour = driver({
+      smoothScroll: true,
       stagePadding: 10,
       stageRadius: 12,
       showButtons: ['close', 'next'], // 显示关闭按钮
@@ -229,14 +223,17 @@ export default function ArticleDirectPage() {
     checkElementExists();
   };
 
+  const handleBack = () => {};
+  const handleDataUpdate = () => {};
+  
   return (
     <ArticleRenderer
-      topic="OKX DEX收费调整引发关注"
-      contentFormat="longform"
+      topic={articleData.topic}
+      contentFormat={articleData.content_format}
       onBack={handleBack}
       initialData={articleData}
       onDataUpdate={handleDataUpdate}
-      sessionId="okx-dex-session"
+      sessionId={articleData.id}
       isOnboarding={isOnboarding}
       isTooltipOpenNum={isTooltipOpenNum}
     />

@@ -87,6 +87,24 @@ function waitForChangeOnSameElement(el: HTMLElement, timeout = 800, minDelay = 8
   });
 }
 
+const SMOOTH_CLASS = 'driver-smooth-transitioning';
+
+// Ensure we only inject CSS once
+function ensureDriverSmoothCSS() {
+  if (document.getElementById('driver-smooth-style')) return;
+  const style = document.createElement('style');
+  style.id = 'driver-smooth-style';
+  style.textContent = `
+    .driver-overlay,
+    .driver-popover,
+    .driver-stage { transition: opacity 140ms ease, transform 140ms ease; }
+    .${SMOOTH_CLASS} .driver-overlay,
+    .${SMOOTH_CLASS} .driver-popover,
+    .${SMOOTH_CLASS} .driver-stage { opacity: 0 !important; transform: translateZ(0) scale(0.995); pointer-events: none !important; }
+  `;
+  document.head.appendChild(style);
+}
+
 type StableOptions = {
   headerOffset?: number;
   timeout?: number;     // max wait for a change
@@ -100,7 +118,6 @@ export async function goToStepAfterStableSameAnchor(
   selector: string,
   opts: StableOptions = {}
 ) {
-  await delay(300);
   const {
     headerOffset = 0,
     timeout = 800,
@@ -109,10 +126,29 @@ export async function goToStepAfterStableSameAnchor(
     expectChange = true,
   } = opts;
 
+  // Inject smooth CSS once
+  ensureDriverSmoothCSS();
+
+  const root = document.documentElement;
   const el = document.querySelector(selector) as HTMLElement | null;
-  if (!el) {
-    // fallback: nothing to wait, just proceed
+
+  // Soft-hide current driver UI to avoid popover/overlay flicker while we prep next step
+  root.classList.add(SMOOTH_CLASS);
+
+  // Helper to move next while revealing smoothly
+  const smoothMoveNext = async () => {
+    try { tourInstance.refresh(); } catch {}
+    await delay(40);
     tourInstance.moveNext();
+    // Allow the next step to mount behind the fade, then reveal
+    await twoFrames();
+    root.classList.remove(SMOOTH_CLASS);
+  };
+
+  if (!el) {
+    // Fallback: no target to stabilize — still do a smooth transition
+    await delay(80);
+    await smoothMoveNext();
     return;
   }
 
@@ -120,29 +156,31 @@ export async function goToStepAfterStableSameAnchor(
     if (expectChange) {
       await waitForChangeOnSameElement(el, timeout, minDelay);
     } else {
-      // quick path: tiny pause to let setState/microtasks flush
-      await delay(minDelay);
+      await delay(minDelay); // quick path: give microtasks/transitions a beat
     }
 
+    // Give layout a breath, then wait for a few stable frames on the SAME element
     await twoFrames();
     await waitForStableRect(el, frames);
 
-    // 3) optional: if you need to pin to viewport top, hook here (headerOffset kept for API symmetry)
+    // Optional: gently center target to reduce jumpiness
+    try {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      await delay(160);
+    } catch {}
+
     if (headerOffset) {
-      // reserved for future: externally you may call a forceStickToViewportTop here
+      // reserved for future pin-to-top behavior
     }
-    
-    // 强制重新计算布局，确保所有样式变化都已应用
-    el.offsetHeight;
-    
-    tourInstance.refresh();
-    
-    // 再次等待refresh完成
-    await delay(50);
-    
-    tourInstance.moveNext();
+
+    // Force layout flush
+    void el.offsetHeight;
+
+    // Refresh driver measurements and go next; then fade in
+    await smoothMoveNext();
   } catch {
-    tourInstance.moveNext();
+    // Even on failure, proceed without flashing
+    await smoothMoveNext();
   }
 }
 // ---------- /Tutorial helpers ----------
