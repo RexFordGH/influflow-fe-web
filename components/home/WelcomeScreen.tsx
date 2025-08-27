@@ -33,6 +33,8 @@ import {
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
+import { goToStepAfterStableSameAnchor } from '@/utils/tutorial';
+
 const TrendingTopicsPage = lazy(() =>
   import('@/components/trending/TrendingTopicsPage').then((module) => ({
     default: module.TrendingTopicsPage,
@@ -210,18 +212,18 @@ export const WelcomeScreen = ({
               side: 'bottom',
               align: 'start',
               popoverClass: 'driverjs-textarea driverjs-basic',
-              onNextClick: (_, __, { driver }) => {
+              onNextClick: () => {
                 const pop = document.querySelector(
                   '.driver-popover',
                 ) as HTMLElement | null;
-                if (!pop) return driver.moveNext();
+                if (!pop) return tour.moveNext();
 
                 // 1) 先让当前弹窗消失
                 pop.classList.add('fade-out');
 
                 // 等待popover消失后，再滚动到trending-topics
                 const target = document.querySelector('#trending-topics');
-                if (!target) return driver.moveNext();
+                if (!target) return tour.moveNext();
 
                 // 先滚到目标，再进入下一步
                 target.scrollIntoView({
@@ -230,8 +232,8 @@ export const WelcomeScreen = ({
                   inline: 'nearest',
                 });
                 setTimeout(() => {
-                  driver.moveNext();
-                }, 450);
+                  tour.moveNext();
+                }, 500);
               },
             },
           },
@@ -244,32 +246,28 @@ export const WelcomeScreen = ({
               side: 'bottom',
               align: 'center',
               popoverClass: 'driverjs-trending driverjs-basic',
-              onNextClick: async (_, __, { driver }) => {
+              onNextClick: async () => {
                 // 打开第一个trending topics
                 setHasCompletedOnboardingLocal(true);
 
                 const pop = document.querySelector(
                   '.driver-popover',
                 ) as HTMLElement | null;
-                if (!pop) return driver.moveNext();
+                if (!pop) return tour.moveNext();
 
                 // 1) 先让当前弹窗消失
                 pop.classList.add('fade-out');
 
-
                 // 滚动到trending-topics-type
                 const target = document.querySelector('#viral-tweets');
-                if (!target) return driver.moveNext();
+                if (!target) return tour.moveNext();
 
-                // 先滚到目标，再进入下一步
-                target.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'center',
-                  inline: 'nearest',
+                await goToStepAfterStableSameAnchor(tour, '#viral-tweets', {
+                  expectChange: false,
+                  timeout: 300,
+                  frames: 1,
+                  minDelay: 50,
                 });
-                setTimeout(() => {
-                  driver.moveNext();
-                }, 450);
               },
             },
           },
@@ -282,22 +280,25 @@ export const WelcomeScreen = ({
               side: 'left',
               align: 'center',
               popoverClass: 'viral-tweets driverjs-basic',
-              onNextClick: async (_, __, { driver }) => {
-                                
-                const pop = document.querySelector(
-                  '.driver-popover',
-                ) as HTMLElement | null;
-                if (!pop) return driver.moveNext();
+              onNextClick: async () => {
+                // const pop = document.querySelector(
+                //   '.driver-popover',
+                // ) as HTMLElement | null;
+                // if (!pop) return tour.moveNext();
 
-                // 1) 先让当前弹窗消失
-                pop.classList.add('fade-out');
+                // // 1) 先让当前弹窗消失
+                // pop.classList.add('fade-out');
 
-                // 关闭第一个trending topics
-                setHasCompletedOnboardingLocal(false);
+                // // 滚动到trending-topics-type
+                // const target = document.querySelector('#suggested-topics');
+                // if (!target) return tour.moveNext();
 
-                setTimeout(() => {
-                  driver.moveNext();
-                }, 450);
+                await goToStepAfterStableSameAnchor(tour, '#suggested-topics', {
+                  expectChange: false,
+                  timeout: 300,
+                  frames: 1,
+                  minDelay: 50,
+                });
               },
             },
           },
