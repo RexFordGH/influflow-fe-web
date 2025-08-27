@@ -162,6 +162,11 @@ export const WelcomeScreen = ({
 
   // 初始化引导，仅在客户端执行，并使用 localStorage 记录是否完成
   useEffect(() => {
+    // 检查用户是否已登录，未登录用户不显示新手引导
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping onboarding');
+      return;
+    }
     // 在页面等待1300ms后，再进入新手引导
     setTimeout(() => {
       const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
@@ -360,7 +365,7 @@ export const WelcomeScreen = ({
         }
       });
     }, 1300);
-  }, []);
+  }, [isAuthenticated]);
 
   return (
     <div className="relative size-full min-w-[1000px]">
