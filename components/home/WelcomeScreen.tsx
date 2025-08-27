@@ -65,7 +65,7 @@ const ContentFormatOptions = [
 const ModeOptions = [
   { key: 'lite', label: 'Lite Mode' },
   { key: 'analysis', label: 'Analysis Mode' },
-  { key: 'draft', label: 'Chatbot Mode' },
+  // { key: 'draft', label: 'Chatbot Mode' },
 ];
 
 export const WelcomeScreen = ({
