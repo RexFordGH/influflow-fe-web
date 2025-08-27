@@ -254,10 +254,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           subtree: true,
         });
 
-        // 设置超时，防止无限等待,如果超时，则跳转到首页
+        // 设置超时，防止无限等待
         setTimeout(() => {
           observer.disconnect();
-          window.location.href = '/';
         }, 10000);
       }
     }

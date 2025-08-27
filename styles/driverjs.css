@@ -373,3 +373,10 @@
   width: 0;
   height: 0;
 }
+
+/* 全局样式：给 Driver.js 的弹窗加个淡出过渡 */
+.driver-popover.fade-out {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .18s ease, transform .18s ease;
+}
