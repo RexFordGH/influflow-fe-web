@@ -45,14 +45,6 @@
   padding: 20px 20px 20px 20px !important;
 }
 
-/* 关闭按钮 */
-.driver-popover.viral-tweets.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 200px;
-  color: transparent; /* 保险起见再隐藏 */
-}
 
 .driver-popover.viral-tweets.driverjs-basic .driver-popover-arrow {
   border-top: 10px solid transparent;
@@ -88,11 +80,6 @@
   padding: 20px 20px 20px 20px !important;
 }
 
-/* 关闭按钮 */
-.driver-popover.customize-my-style.driverjs-basic .driver-popover-close-btn {
-  translate: -139px 130px;
-}
-
 .driver-popover.customize-my-style.driverjs-basic .driver-popover-arrow {
   left: 100px;
   border-left: 10px solid transparent;
@@ -109,15 +96,6 @@
   width: 381px !important;
   max-width: 381px !important;
   padding: 20px 20px 20px 20px !important;
-}
-
-/* 关闭按钮 */
-.driver-popover.style-section-start.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 130px;
-  color: transparent; /* 保险起见再隐藏 */
 }
 
 /* 箭头 */
@@ -139,15 +117,6 @@
   padding: 20px 20px 20px 20px !important;
 }
 
-/* 关闭按钮 */
-.driver-popover.style-section-center.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 130px;
-  color: transparent; /* 保险起见再隐藏 */
-}
-
 /* 箭头 */
 .driver-popover.style-section-center.driverjs-basic .driver-popover-arrow {
   left: 125px;
@@ -167,18 +136,9 @@
   padding: 20px 20px 20px 20px !important;
 }
 
-/* 关闭按钮 */
-.driver-popover.style-section-end.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 173px;
-  color: transparent; /* 保险起见再隐藏 */
-}
-
 /* 箭头 */
 .driver-popover.style-section-end.driverjs-basic .driver-popover-arrow {
-  left: 190px;
+  right: 175px;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-bottom: 8px solid #ffffff;
@@ -193,15 +153,6 @@
   width: 381px !important;
   max-width: 381px !important;
   padding: 20px 20px 20px 20px !important;
-}
-
-/* 关闭按钮 */
-.driver-popover.personal-introduction.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 130px;
-  color: transparent; /* 保险起见再隐藏 */
 }
 
 .driver-popover.personal-introduction.driverjs-basic .driver-popover-arrow {
@@ -219,15 +170,6 @@
   width: 381px !important;
   max-width: 381px !important;
   padding: 20px 20px 20px 20px !important;
-}
-
-/* 关闭按钮 */
-.driver-popover.mindmap-container.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 130px;
-  color: transparent; /* 保险起见再隐藏 */
 }
 
 /* 箭头 */
@@ -248,13 +190,6 @@
   padding: 20px 20px 20px 20px !important;
 }
 
-.driver-popover.prompt-history-button.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 110px;
-  color: transparent; /* 保险起见再隐藏 */
-}
 /* 箭头 */
 .driver-popover.prompt-history-button.driverjs-basic .driver-popover-arrow {
   translate: 30px;
@@ -274,14 +209,6 @@
   padding: 20px 20px 20px 20px !important;
 }
 
-.driver-popover.twtter-data.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 150px;
-  color: transparent; /* 保险起见再隐藏 */
-}
-
 /* 箭头 */
 .driver-popover.twtter-data-start.driverjs-basic .driver-popover-arrow {
   translate: -85px;
@@ -290,28 +217,12 @@
   border-bottom: 8px solid #ffffff;
 }
 
-.driver-popover.twtter-data-center.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 130px;
-  color: transparent; /* 保险起见再隐藏 */
-}
-
 /* 箭头 */
 .driver-popover.twtter-data-center.driverjs-basic .driver-popover-arrow {
   translate: -45px;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-bottom: 8px solid #ffffff;
-}
-
-.driver-popover.twtter-data-end.driverjs-basic .driver-popover-close-btn {
-  width: 120px !important;
-  height: 32px !important;
-  border-radius: 13px;
-  translate: -139px 130px;
-  color: transparent; /* 保险起见再隐藏 */
 }
 
 /* 箭头 */
@@ -343,8 +254,11 @@
   width: 120px !important;
   height: 32px !important;
   border-radius: 13px;
-  translate: -139px 152px;
   color: transparent; /* 保险起见再隐藏 */
+  top: auto !important;
+  z-index: 1;
+  bottom: 20px;
+  right: 140px;
 }
 
 /* 用伪元素替代显示 SKIP */
@@ -366,12 +280,6 @@
 /* 先确保箭头基础样式与可见性 */
 .driver-popover {
   overflow: visible; /* 避免箭头被裁 */
-}
-
-.driver-popover .driver-popover-arrow {
-  position: absolute;
-  width: 0;
-  height: 0;
 }
 
 /* 全局样式：给 Driver.js 的弹窗加个淡出过渡 */
