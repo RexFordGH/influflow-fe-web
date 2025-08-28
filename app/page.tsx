@@ -20,6 +20,7 @@ import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import {
   type IContentFormat,
   type IMode,
@@ -63,6 +64,7 @@ function HomeContent() {
     openLoginModal,
     setAuthError,
   } = useAuthStore();
+  const { checkCreditsAndShowModal, refreshSubscriptionInfo } = useSubscriptionStore();
   const searchParams = useSearchParams();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
@@ -190,6 +192,11 @@ function HomeContent() {
       return;
     }
 
+    // 检查积分是否足够
+    if (!checkCreditsAndShowModal()) {
+      return;
+    }
+
     if (topicInput.trim()) {
       // 清除之前选择的笔记数据，确保重新生成新内容
       setInitialData(undefined);
@@ -249,10 +256,12 @@ function HomeContent() {
   };
 
   // 生成完成回调
-  const handleGenerationComplete = (data: IOutline) => {
+  const handleGenerationComplete = async (data: IOutline) => {
     console.log('Generation completed:', data);
     // 刷新侧边栏列表
     sidebarRef.current?.refresh();
+    // 刷新订阅信息以更新积分
+    await refreshSubscriptionInfo();
   };
 
   // 生成错误回调

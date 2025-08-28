@@ -16,6 +16,7 @@ interface ISubscriptionState {
   // UI 状态
   isLoading: boolean;
   error: string | null;
+  showNoCreditsModal: boolean;
   
   // Actions
   setSubscriptionInfo: (info: ISubscriptionInfo) => void;
@@ -23,6 +24,10 @@ interface ISubscriptionState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   updateCredits: (credits: number) => void;
+  hasEnoughCredits: (requiredCredits?: number) => boolean;
+  checkCreditsAndShowModal: (requiredCredits?: number) => boolean;
+  setShowNoCreditsModal: (show: boolean) => void;
+  refreshSubscriptionInfo: () => Promise<void>;
   reset: () => void;
 }
 
@@ -35,11 +40,12 @@ const initialState = {
   creditRules: [],
   isLoading: false,
   error: null,
+  showNoCreditsModal: false,
 };
 
 export const useSubscriptionStore = create<ISubscriptionState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
       
       setSubscriptionInfo: (info) =>
@@ -65,6 +71,30 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
       
       updateCredits: (credits) =>
         set({ credits }),
+      
+      hasEnoughCredits: (requiredCredits = 1) => {
+        const state = get();
+        return state.credits >= requiredCredits;
+      },
+      
+      checkCreditsAndShowModal: (requiredCredits = 1) => {
+        const state = get();
+        if (state.credits < requiredCredits) {
+          set({ showNoCreditsModal: true });
+          return false;
+        }
+        return true;
+      },
+      
+      setShowNoCreditsModal: (show) =>
+        set({ showNoCreditsModal: show }),
+      
+      refreshSubscriptionInfo: async () => {
+        // 调用全局的 refetch 方法（由 SubscriptionSync 组件设置）
+        if (typeof window !== 'undefined' && (window as any).refetchSubscriptionInfo) {
+          await (window as any).refetchSubscriptionInfo();
+        }
+      },
       
       reset: () =>
         set(initialState),
