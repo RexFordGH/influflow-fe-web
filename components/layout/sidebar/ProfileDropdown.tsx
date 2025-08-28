@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 interface ProfileDropdownProps {
   collapsed?: boolean;
@@ -18,11 +19,9 @@ interface ProfileDropdownProps {
 
 export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
   const { user, logout } = useAuthStore();
+  const { credits } = useSubscriptionStore();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-
-  // 暂时写死 credits
-  const credits = 1430;
 
   const handleLogout = () => {
     logout();

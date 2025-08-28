@@ -10,6 +10,7 @@ import {
   type IChatHistoryParams,
 } from '@/lib/api/services';
 import { saveOutlineToSupabase } from '@/services/supabase-save';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import type { ChatMessage } from '@/types/agent-chat';
 import type { IOutline } from '@/types/outline';
 
@@ -38,6 +39,9 @@ export default function FreeConversation({
   // 使用内部状态或外部控制
   const [isOpenInternal, setIsOpenInternal] = useState(false);
   const isOpen = isOpenProp || isOpenInternal;
+  
+  // 获取积分检查方法和刷新方法
+  const { checkCreditsAndShowModal, refreshSubscriptionInfo } = useSubscriptionStore();
 
   // 使用 ref 跟踪上一个 docId
   const prevDocIdRef = useRef<string>(docId);
@@ -105,6 +109,14 @@ export default function FreeConversation({
     error: historyError,
   } = useGetChatHistory(historyParams);
 
+  // 包装 onComplete 回调，在完成后刷新订阅信息
+  const handleComplete = useCallback(async (outline: any) => {
+    // 调用原始的 onComplete
+    onComplete?.(outline);
+    // 刷新订阅信息以更新积分
+    await refreshSubscriptionInfo();
+  }, [onComplete, refreshSubscriptionInfo]);
+
   // 使用 useChatStreaming Hook
   const {
     messages,
@@ -118,15 +130,19 @@ export default function FreeConversation({
     onError: (error) => {
       console.error('对话错误:', error);
     },
-    onComplete: onComplete,
+    onComplete: handleComplete,
   });
 
   // 处理发送消息
   const handleSendMessage = useCallback(
     async (message: string) => {
+      // 检查积分是否足够
+      if (!checkCreditsAndShowModal()) {
+        return;
+      }
       await sendMessage(message);
     },
-    [sendMessage],
+    [sendMessage, checkCreditsAndShowModal],
   );
 
   // 检测 docId 变化并重置状态

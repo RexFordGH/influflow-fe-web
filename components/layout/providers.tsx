@@ -4,11 +4,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import NoCreditsModal from '@/components/modals/NoCreditsModal';
+import { SubscriptionSync } from '@/components/subscription/SubscriptionSync';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { showNoCreditsModal, setShowNoCreditsModal } = useSubscriptionStore();
+  
   return (
     <HeroUIProvider navigate={router.push}>
       <QueryClientProvider client={queryClient}>
@@ -32,6 +37,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
           }}
         />
         <AuthProvider>{children}</AuthProvider>
+        <SubscriptionSync />
+        <NoCreditsModal 
+          isOpen={showNoCreditsModal} 
+          onClose={() => setShowNoCreditsModal(false)} 
+        />
       </QueryClientProvider>
     </HeroUIProvider>
   );
