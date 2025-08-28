@@ -177,6 +177,8 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     user?.account_name || user?.name || '',
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [isDataFetch, setIsDataFetch] = useState(false);
+
   const [userStyleSummary, setUserStyleSummary] = useState<
     string | undefined
   >();
@@ -206,6 +208,14 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         if (supabaseProfile && !error) {
           console.log('Loading from Supabase:', supabaseProfile);
           loadProfileToState(supabaseProfile, setters);
+
+          requestAnimationFrame(() => {
+            setIsDataFetch(true);
+          });
+
+          setTimeout(() => {
+            initProfileOnboarding();
+          }, 500);
         }
       } catch (error) {
         console.error('Failed to load profile data:', error);
@@ -228,37 +238,38 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         urlParams.get('fromOnboarding') ||
         sessionStorage.getItem('fromOnboarding');
 
+        // TODO:
       //当按钮变为Save Changes时进入新手引导
-      if (fromOnboarding) {
-        // 使用 MutationObserver 监听按钮文本变化
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            if (mutation.type === 'childList') {
-              const button = document.querySelector(
-                'button[class*="rounded-full bg-black"]',
-              );
-              if (button && button.textContent?.trim() === 'Save Changes') {
-                // 按钮变为 Save Changes 时，延迟启动新手引导
-                setTimeout(() => {
-                  initProfileOnboarding();
-                }, 300);
-                observer.disconnect(); // 停止观察
-              }
-            }
-          });
-        });
+      // if (fromOnboarding) {
+      //   // 使用 MutationObserver 监听按钮文本变化
+      //   const observer = new MutationObserver((mutations) => {
+      //     mutations.forEach((mutation) => {
+      //       if (mutation.type === 'childList') {
+      //         const button = document.querySelector(
+      //           'button[class*="rounded-full bg-black"]',
+      //         );
+      //         if (button && button.textContent?.trim() === 'Save Changes') {
+      //           // 按钮变为 Save Changes 时，延迟启动新手引导
+      //           setTimeout(() => {
+      //             initProfileOnboarding();
+      //           }, 300);
+      //           observer.disconnect(); // 停止观察
+      //         }
+      //       }
+      //     });
+      //   });
 
-        // 开始观察 DOM 变化
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true,
-        });
+      //   // 开始观察 DOM 变化
+      //   observer.observe(document.body, {
+      //     childList: true,
+      //     subtree: true,
+      //   });
 
-        // 设置超时，防止无限等待
-        setTimeout(() => {
-          observer.disconnect();
-        }, 10000);
-      }
+      //   // 设置超时，防止无限等待
+      //   setTimeout(() => {
+      //     observer.disconnect();
+      //   }, 10000);
+      // }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -577,7 +588,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       {/* Main Content */}
       <div className="mx-auto max-w-4xl p-12">
         {/* Style Section */}
-        <div id="style-section" className="mb-10">
+        <div id={isDataFetch ? 'style-section' : ''} className="mb-10">
           <h2 className="mb-2 text-2xl font-semibold text-gray-900">Style</h2>
           <p className="mb-6 text-gray-500">
             Choose a tone for your content, or paste links to match a custom

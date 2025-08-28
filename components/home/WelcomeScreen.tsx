@@ -236,9 +236,10 @@ export const WelcomeScreen = ({
                   block: 'center',
                   inline: 'nearest',
                 });
+                
                 setTimeout(() => {
                   tour.moveNext();
-                }, 500);
+                }, 800);
               },
             },
           },
@@ -286,13 +287,13 @@ export const WelcomeScreen = ({
               align: 'center',
               popoverClass: 'viral-tweets driverjs-basic',
               onNextClick: async () => {
-                // const pop = document.querySelector(
-                //   '.driver-popover',
-                // ) as HTMLElement | null;
-                // if (!pop) return tour.moveNext();
+                const pop = document.querySelector(
+                  '.driver-popover',
+                ) as HTMLElement | null;
+                if (!pop) return tour.moveNext();
 
-                // // 1) 先让当前弹窗消失
-                // pop.classList.add('fade-out');
+                // 1) 先让当前弹窗消失
+                pop.classList.add('fade-out');
 
                 // // 滚动到trending-topics-type
                 // const target = document.querySelector('#suggested-topics');
