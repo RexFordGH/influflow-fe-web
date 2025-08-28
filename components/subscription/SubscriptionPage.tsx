@@ -28,6 +28,24 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
   const [processingPlan, setProcessingPlan] = useState<PlanType | null>(null);
   
+  // 从 store 获取订阅信息
+  const {
+    currentPlan,
+    nextPlan,
+    credits,
+    currentPeriodEnd,
+    setSubscriptionInfo,
+    setCreditRules,
+    setError,
+  } = useSubscriptionStore();
+  
+  // API hooks
+  const { data: subscriptionInfo, isLoading: isLoadingInfo, error: infoError, refetch: refetchSubscriptionInfo } = useSubscriptionInfo();
+  const { data: creditRulesData, isLoading: isLoadingRules } = useCreditRules();
+  const { mutate: createCheckoutSession, isPending: isCreatingCheckout } = useCreateCheckoutSession();
+  const { mutate: createBillingPortal, isPending: isCreatingPortal } = useCreateBillingPortal();
+  const { mutate: updatePlan, isPending: isUpdatingPlan } = useUpdateSubscriptionPlan();
+  
   // 检查 URL 参数中是否有 status 标记
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -38,6 +56,9 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         title: 'Payment successful! Your subscription has been upgraded.', 
         color: 'success' 
       });
+      
+      // 刷新订阅信息以获取最新状态
+      refetchSubscriptionInfo();
       
       // 清理 URL 参数
       const newUrl = window.location.pathname;
@@ -52,25 +73,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, []);
-  
-  // 从 store 获取订阅信息
-  const {
-    currentPlan,
-    nextPlan,
-    credits,
-    currentPeriodEnd,
-    setSubscriptionInfo,
-    setCreditRules,
-    setError,
-  } = useSubscriptionStore();
-  
-  // API hooks
-  const { data: subscriptionInfo, isLoading: isLoadingInfo, error: infoError } = useSubscriptionInfo();
-  const { data: creditRulesData, isLoading: isLoadingRules } = useCreditRules();
-  const { mutate: createCheckoutSession, isPending: isCreatingCheckout } = useCreateCheckoutSession();
-  const { mutate: createBillingPortal, isPending: isCreatingPortal } = useCreateBillingPortal();
-  const { mutate: updatePlan, isPending: isUpdatingPlan } = useUpdateSubscriptionPlan();
+  }, [refetchSubscriptionInfo]);
   
   // 更新 store 中的订阅信息
   useEffect(() => {
@@ -102,9 +105,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
       if (nextPlan) {
         setProcessingPlan(plan);
         updatePlan(plan, {
-          onSuccess: () => {
+          onSuccess: async () => {
             addToast({ title: 'Scheduled plan change has been cancelled', color: 'success' });
             setProcessingPlan(null);
+            // 刷新订阅信息
+            await refetchSubscriptionInfo();
           },
           onError: (error) => {
             addToast({ title: `Failed to cancel plan change: ${error.message}`, color: 'danger' });
@@ -138,7 +143,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     } else {
       // 其他情况使用 update-plan 接口
       updatePlan(plan, {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           const message = plan === 'free' 
             ? `Your subscription will be cancelled at the end of the current period (${data.effective_date})`
             : data.effective_date === new Date().toISOString().split('T')[0]
@@ -146,6 +151,8 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               : `Plan change scheduled for ${data.effective_date}`;
           addToast({ title: message, color: 'success' });
           setProcessingPlan(null);
+          // 刷新订阅信息
+          await refetchSubscriptionInfo();
         },
         onError: (error) => {
           addToast({ title: `Failed to update plan: ${error.message}`, color: 'danger' });
