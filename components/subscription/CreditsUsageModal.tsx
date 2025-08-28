@@ -3,6 +3,7 @@
 import { Modal, ModalContent } from '@heroui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 interface CreditsUsageModalProps {
   isOpen: boolean;
@@ -10,20 +11,28 @@ interface CreditsUsageModalProps {
 }
 
 const CreditsUsageModal = ({ isOpen, onClose }: CreditsUsageModalProps) => {
-  const usageRules = [
-    {
-      title: 'Text generation (standard):',
-      credits: '1 credit / request',
-    },
-    {
-      title: 'Deep research:',
-      credits: '5-10 credit / request',
-    },
-    {
-      title: 'Image generation (standard):',
-      credits: '5 credit / request',
-    },
-  ];
+  const { creditRules } = useSubscriptionStore();
+  
+  // 如果有真实数据则使用真实数据，否则使用默认值
+  const displayRules = creditRules.length > 0 
+    ? creditRules.map(rule => ({
+        title: rule.name,
+        credits: `${rule.credits} credit${rule.credits > 1 ? 's' : ''} / request`,
+      }))
+    : [
+        {
+          title: 'Text generation',
+          credits: '1 credit / request',
+        },
+        {
+          title: 'Deep research',
+          credits: '5-10 credits / request',
+        },
+        {
+          title: 'Image generation',
+          credits: '5 credits / request',
+        },
+      ];
 
   return (
     <Modal
@@ -84,7 +93,7 @@ const CreditsUsageModal = ({ isOpen, onClose }: CreditsUsageModalProps) => {
 
             {/* Usage Rules */}
             <div className="flex flex-col gap-2">
-              {usageRules.map((rule, index) => (
+              {displayRules.map((rule, index) => (
                 <motion.div
                   key={rule.title}
                   initial={{ opacity: 0, x: -10 }}

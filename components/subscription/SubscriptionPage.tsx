@@ -3,7 +3,19 @@
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { addToast } from '@/components/base/toast';
+import {
+  PlanType,
+  useCreateBillingPortal,
+  useCreateCheckoutSession,
+  useCreditRules,
+  useSubscriptionInfo,
+  useUpdateSubscriptionPlan,
+} from '@/lib/api/services';
+import { redirectToCheckout } from '@/lib/stripe';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import CreditsUsageModal from './CreditsUsageModal';
 import PlanCard from './PlanCard';
@@ -13,21 +25,166 @@ interface SubscriptionPageProps {
 }
 
 export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
-  const [currentPlan] = useState<'free' | 'starter' | 'pro'>('free');
-  const [remainingCredits] = useState(1400);
-  const [totalCredits] = useState(1900);
-  const [planExpiry] = useState('September 22, 2025');
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
-
-  const handleSwitchPlan = (plan: 'free' | 'starter' | 'pro') => {
-    console.log('Switching to plan:', plan);
+  const [processingPlan, setProcessingPlan] = useState<PlanType | null>(null);
+  
+  // 检查 URL 参数中是否有 status 标记
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    
+    if (status === 'success') {
+      addToast({ 
+        title: 'Payment successful! Your subscription has been upgraded.', 
+        color: 'success' 
+      });
+      
+      // 清理 URL 参数
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    } else if (status === 'cancel') {
+      addToast({ 
+        title: 'Payment cancelled. You can upgrade anytime.', 
+        color: 'warning' 
+      });
+      
+      // 清理 URL 参数
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+  
+  // 从 store 获取订阅信息
+  const {
+    currentPlan,
+    nextPlan,
+    credits,
+    currentPeriodEnd,
+    setSubscriptionInfo,
+    setCreditRules,
+    setError,
+  } = useSubscriptionStore();
+  
+  // API hooks
+  const { data: subscriptionInfo, isLoading: isLoadingInfo, error: infoError } = useSubscriptionInfo();
+  const { data: creditRulesData, isLoading: isLoadingRules } = useCreditRules();
+  const { mutate: createCheckoutSession, isPending: isCreatingCheckout } = useCreateCheckoutSession();
+  const { mutate: createBillingPortal, isPending: isCreatingPortal } = useCreateBillingPortal();
+  const { mutate: updatePlan, isPending: isUpdatingPlan } = useUpdateSubscriptionPlan();
+  
+  // 更新 store 中的订阅信息
+  useEffect(() => {
+    if (subscriptionInfo) {
+      setSubscriptionInfo(subscriptionInfo);
+    }
+  }, [subscriptionInfo, setSubscriptionInfo]);
+  
+  // 更新积分规则
+  useEffect(() => {
+    if (creditRulesData?.rules) {
+      setCreditRules(creditRulesData.rules);
+    }
+  }, [creditRulesData, setCreditRules]);
+  
+  // 处理错误
+  useEffect(() => {
+    if (infoError) {
+      const errorMessage = 'Failed to load subscription information';
+      setError(errorMessage);
+      addToast({ title: errorMessage, color: 'danger' });
+    }
+  }, [infoError, setError]);
+  
+  // 处理套餐切换
+  const handleSwitchPlan = async (plan: PlanType) => {
+    if (plan === currentPlan) {
+      // 如果选择当前套餐且有预定的变更，取消变更
+      if (nextPlan) {
+        setProcessingPlan(plan);
+        updatePlan(plan, {
+          onSuccess: () => {
+            addToast({ title: 'Scheduled plan change has been cancelled', color: 'success' });
+            setProcessingPlan(null);
+          },
+          onError: (error) => {
+            addToast({ title: `Failed to cancel plan change: ${error.message}`, color: 'danger' });
+            setProcessingPlan(null);
+          },
+        });
+      }
+      return;
+    }
+    
+    // 设置正在处理的套餐
+    setProcessingPlan(plan);
+    
+    // 如果是从 free 升级到付费套餐，创建 Checkout Session
+    if (currentPlan === 'free' && plan !== 'free') {
+      createCheckoutSession(plan, {
+        onSuccess: (data) => {
+          // 直接使用服务端返回的 checkout_url
+          if (data.checkout_url) {
+            redirectToCheckout(data.checkout_url);
+          } else {
+            addToast({ title: 'Checkout URL not found', color: 'danger' });
+            setProcessingPlan(null);
+          }
+        },
+        onError: (error) => {
+          addToast({ title: `Failed to create checkout session: ${error.message}`, color: 'danger' });
+          setProcessingPlan(null);
+        },
+      });
+    } else {
+      // 其他情况使用 update-plan 接口
+      updatePlan(plan, {
+        onSuccess: (data) => {
+          const message = plan === 'free' 
+            ? `Your subscription will be cancelled at the end of the current period (${data.effective_date})`
+            : data.effective_date === new Date().toISOString().split('T')[0]
+              ? 'Plan upgraded successfully!'
+              : `Plan change scheduled for ${data.effective_date}`;
+          addToast({ title: message, color: 'success' });
+          setProcessingPlan(null);
+        },
+        onError: (error) => {
+          addToast({ title: `Failed to update plan: ${error.message}`, color: 'danger' });
+          setProcessingPlan(null);
+        },
+      });
+    }
   };
-
+  
+  // 查看发票
   const handleViewInvoices = () => {
-    console.log('View invoices clicked');
+    createBillingPortal(undefined, {
+      onError: (error) => {
+        addToast({ title: `Failed to open billing portal: ${error.message}`, color: 'danger' });
+      },
+    });
   };
-
-  const creditPercentage = (remainingCredits / totalCredits) * 100;
+  
+  // 计算积分百分比
+  const totalCredits = currentPlan === 'free' ? 50 : currentPlan === 'starter' ? 1000 : 6000;
+  const creditPercentage = Math.min((credits / totalCredits) * 100, 100);
+  
+  // 格式化日期
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+  
+  // 获取套餐显示名称
+  const getPlanDisplayName = (plan: PlanType) => {
+    return plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
+  };
+  
+  const isLoading = isLoadingInfo || isLoadingRules;
+  const isProcessing = isCreatingCheckout || isCreatingPortal || isUpdatingPlan;
 
   return (
     <motion.div
@@ -84,6 +241,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               <button
                 onClick={() => setIsCreditsModalOpen(true)}
                 className="group relative rounded-full p-1 transition-colors hover:bg-gray-100"
+                disabled={isLoading}
               >
                 <svg
                   width="20"
@@ -111,24 +269,38 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               </button>
             </div>
 
-            <div className="mb-1 text-[32px] font-medium text-black">
-              {remainingCredits.toLocaleString()} Credits
-            </div>
-
-            {/* Progress Bar */}
-            <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
-              <div
-                className="absolute left-0 top-0 h-full rounded-full bg-black transition-all duration-300"
-                style={{ width: `${creditPercentage}%` }}
-              />
-            </div>
+            {isLoading ? (
+              <div className="animate-pulse">
+                <div className="mb-1 h-[32px] w-[200px] rounded bg-gray-200"></div>
+                <div className="h-[6px] w-full rounded-full bg-gray-200"></div>
+              </div>
+            ) : (
+              <>
+                <div className="mb-1 text-[32px] font-medium text-black">
+                  {credits.toLocaleString()} / {totalCredits.toLocaleString()} Credits
+                </div>
+                {/* Progress Bar */}
+                <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
+                  <div
+                    className="absolute left-0 top-0 h-full rounded-full bg-black transition-all duration-300"
+                    style={{ width: `${creditPercentage}%` }}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Your Plan */}
           <div className="flex-1 rounded-[24px] bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-[20px] font-medium text-black">Your Plan</h2>
-              <span className="text-[16px] text-black">Free Plan</span>
+              <span className="text-[16px] text-black">
+                {isLoading ? (
+                  <div className="h-[24px] w-[100px] animate-pulse rounded bg-gray-200"></div>
+                ) : (
+                  getPlanDisplayName(currentPlan)
+                )}
+              </span>
             </div>
 
             <div className="space-y-0">
@@ -136,13 +308,28 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 <span className="text-[16px] text-black">
                   Current Plan Active Until:
                 </span>
-                <span className="text-[16px] text-black">{planExpiry}</span>
+                <span className="text-[16px] text-black">
+                  {isLoading ? (
+                    <div className="h-[24px] w-[150px] animate-pulse rounded bg-gray-200"></div>
+                  ) : (
+                    formatDate(currentPeriodEnd)
+                  )}
+                </span>
               </div>
+              {nextPlan && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] text-black">Next Plan:</span>
+                  <span className="text-[16px] font-medium text-orange-600">
+                    {getPlanDisplayName(nextPlan)} (scheduled)
+                  </span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-[16px] text-black">Subscription History:</span>
                 <button
                   onClick={handleViewInvoices}
-                  className="text-[16px] text-black underline transition-opacity hover:opacity-70"
+                  className="text-[16px] text-black underline transition-opacity hover:opacity-70 disabled:opacity-50"
+                  disabled={isProcessing || currentPlan === 'free'}
                 >
                   View Invoices
                 </button>
@@ -173,8 +360,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Access to all features',
                 'Great for trying out and exploring',
               ]}
-              isCurrentPlan={currentPlan === 'free'}
+              isCurrentPlan={currentPlan === 'free' && !nextPlan}
+              isScheduled={nextPlan === 'free'}
               onSwitch={() => handleSwitchPlan('free')}
+              isLoading={processingPlan === 'free'}
             />
           </motion.div>
 
@@ -190,14 +379,16 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               priceUnit="/month"
               features={[
                 'Larger monthly allowance',
-                '1000 free credits / month',
+                '1000 credits / month',
                 'Access to all features',
                 'Perfect for regular creators',
               ]}
-              isCurrentPlan={currentPlan === 'starter'}
+              isCurrentPlan={currentPlan === 'starter' && !nextPlan}
+              isScheduled={nextPlan === 'starter'}
               isMostPopular={true}
               onSwitch={() => handleSwitchPlan('starter')}
               highlighted={true}
+              isLoading={processingPlan === 'starter'}
             />
           </motion.div>
 
@@ -213,12 +404,14 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               priceUnit="/month"
               features={[
                 'Generous credits for heavy usage',
-                '6000 free credits / month',
+                '6000 credits / month',
                 'Access to all features',
                 'Best for professionals',
               ]}
-              isCurrentPlan={currentPlan === 'pro'}
+              isCurrentPlan={currentPlan === 'pro' && !nextPlan}
+              isScheduled={nextPlan === 'pro'}
               onSwitch={() => handleSwitchPlan('pro')}
+              isLoading={processingPlan === 'pro'}
             />
           </motion.div>
         </motion.div>
