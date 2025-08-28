@@ -236,10 +236,10 @@ export const WelcomeScreen = ({
                   block: 'center',
                   inline: 'nearest',
                 });
-                
+
                 setTimeout(() => {
                   tour.moveNext();
-                }, 800);
+                }, 1000);
               },
             },
           },
@@ -263,10 +263,6 @@ export const WelcomeScreen = ({
 
                 // 1) 先让当前弹窗消失
                 pop.classList.add('fade-out');
-
-                // 滚动到trending-topics-type
-                const target = document.querySelector('#viral-tweets');
-                if (!target) return tour.moveNext();
 
                 await goToStepAfterStableSameAnchor(tour, '#viral-tweets', {
                   expectChange: false,
@@ -295,16 +291,19 @@ export const WelcomeScreen = ({
                 // 1) 先让当前弹窗消失
                 pop.classList.add('fade-out');
 
-                // // 滚动到trending-topics-type
-                // const target = document.querySelector('#suggested-topics');
-                // if (!target) return tour.moveNext();
+                // 滚动到trending-topics-type
+                const target = document.querySelector('#suggested-topics');
+                if (!target) return tour.moveNext();
 
-                await goToStepAfterStableSameAnchor(tour, '#suggested-topics', {
-                  expectChange: false,
-                  timeout: 300,
-                  frames: 1,
-                  minDelay: 50,
+                // 先滚到目标，再进入下一步
+                target.scrollIntoView({
+                  block: 'center',
+                  inline: 'nearest',
                 });
+
+                setTimeout(() => {
+                  tour.moveNext();
+                }, 1000);
               },
             },
           },
@@ -317,6 +316,11 @@ export const WelcomeScreen = ({
               side: 'top',
               align: 'center',
               popoverClass: 'suggested-topics driverjs-basic',
+              onNextClick: async () => {
+                setTimeout(() => {
+                  tour.moveNext();
+                }, 1000);
+              },
             },
           },
           {
