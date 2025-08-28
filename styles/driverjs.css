@@ -1,0 +1,290 @@
+#trending-topics-type {
+  scroll-margin-top: 64px; /* 正值 */
+}
+
+/*======================= 第一步 =======================*/
+.driver-popover.driverjs-textarea .driver-popover-description ul {
+  list-style: disc !important;
+  list-style-position: outside;
+  padding-left: 1.25rem; /* 给外圆点留出缩进 */
+}
+
+.driver-popover.driverjs-textarea {
+  translate: 25px 6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 560px !important;
+  max-width: 560px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+/*======================= 第二步 =======================*/
+.driver-popover.driverjs-trending {
+  translate: 0px 6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+.driver-popover.driverjs-trending .driver-popover-arrow {
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/*======================= 第三步 =======================*/
+.driver-popover.viral-tweets {
+  translate: -6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  padding: 20px 20px 20px 20px !important;
+}
+
+
+.driver-popover.viral-tweets.driverjs-basic .driver-popover-arrow {
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 8px solid #ffffff;
+}
+
+/*======================= 第四步 =======================*/
+.driver-popover.suggested-topics {
+  translate: 0px -6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+.driver-popover.suggested-topics .driver-popover-arrow {
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 8px solid #ffffff;
+}
+
+/* =======================第五步======================= */
+.driver-popover.customize-my-style {
+  translate: -10px -6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 377px !important;
+  max-width: 377px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+.driver-popover.customize-my-style.driverjs-basic .driver-popover-arrow {
+  left: 100px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 8px solid #ffffff;
+}
+
+/* ======================= 第六步 ======================= */
+.driver-popover.style-section-start {
+  translate: 0px 6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+/* 箭头 */
+.driver-popover.style-section-start.driverjs-basic .driver-popover-arrow {
+  left: 60px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/* ======================= 第七步 ======================= */
+.driver-popover.style-section-center {
+  translate: 0px 6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+/* 箭头 */
+.driver-popover.style-section-center.driverjs-basic .driver-popover-arrow {
+  left: 125px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/* ======================= 第八步 ======================= */
+.driver-popover.style-section-end {
+  translate: 0px 6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+/* 箭头 */
+.driver-popover.style-section-end.driverjs-basic .driver-popover-arrow {
+  right: 175px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/* ======================= 第九步 ======================= */
+.driver-popover.personal-introduction {
+  translate: 0px -6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+.driver-popover.personal-introduction.driverjs-basic .driver-popover-arrow {
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 8px solid #ffffff;
+}
+
+/* ======================= 第十步 ======================= */
+.driver-popover.mindmap-container {
+  translate: 6px 0px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+/* 箭头 */
+.driver-popover.mindmap-container.driverjs-basic .driver-popover-arrow {
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 8px solid #ffffff;
+}
+
+/* ======================= 第十一步 ======================= */
+.driver-popover.prompt-history-button {
+  translate: 0px 6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+/* 箭头 */
+.driver-popover.prompt-history-button.driverjs-basic .driver-popover-arrow {
+  translate: 30px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/* ======================= 第十二步 ======================= */
+.driver-popover.twtter-data {
+  translate: 0px 6px;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 12px;
+  width: 381px !important;
+  max-width: 381px !important;
+  padding: 20px 20px 20px 20px !important;
+}
+
+/* 箭头 */
+.driver-popover.twtter-data-start.driverjs-basic .driver-popover-arrow {
+  translate: -85px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/* 箭头 */
+.driver-popover.twtter-data-center.driverjs-basic .driver-popover-arrow {
+  translate: -45px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/* 箭头 */
+.driver-popover.twtter-data-end.driverjs-basic .driver-popover-arrow {
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+  translate: -10px;
+}
+
+/* ======================= 公用样式 ======================= */
+/* 下一步按钮 */
+.driver-popover.driverjs-basic .driver-popover-next-btn {
+  width: 120px !important;
+  height: 32px !important;
+  border-radius: 13px;
+  background-color: #448aff;
+  color: #ffffff;
+  font-size: 16px;
+  text-align: center;
+  border: 1px solid #448aff;
+  /* 防止文字重影 */
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
+}
+
+/* 关闭按钮 */
+.driver-popover.driverjs-basic .driver-popover-close-btn {
+  width: 120px !important;
+  height: 32px !important;
+  border-radius: 13px;
+  color: transparent; /* 保险起见再隐藏 */
+  top: auto !important;
+  z-index: 1;
+  bottom: 20px;
+  right: 140px;
+}
+
+/* 用伪元素替代显示 SKIP */
+.driver-popover.driverjs-basic .driver-popover-close-btn::after {
+  content: 'SKIP';
+  font-size: 16px;
+  text-align: center;
+  color: #6b7280; /* 灰色，和你按钮风格统一 */
+}
+
+/* 箭头 */
+.driver-popover.driverjs-textarea .driver-popover-arrow {
+  translate: 30px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 8px solid #ffffff;
+}
+
+/* 先确保箭头基础样式与可见性 */
+.driver-popover {
+  overflow: visible; /* 避免箭头被裁 */
+}
+
+/* 全局样式：给 Driver.js 的弹窗加个淡出过渡 */
+.driver-popover.fade-out {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .18s ease, transform .18s ease;
+}

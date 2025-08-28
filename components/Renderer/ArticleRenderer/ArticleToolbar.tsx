@@ -91,7 +91,8 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
                   />
                 </Button>
               </Tooltip>
-            ) : null}
+            ) : null
+            }
           </div>
           <div className="flex items-center space-x-4">
             {/* 如果是 longform 模式，显示复制全文按钮 */}

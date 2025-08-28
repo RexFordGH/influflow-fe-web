@@ -202,6 +202,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
         <div className="w-full px-[24px] py-[12px]">
           <Link
+            id="customize-my-style"
             href="/profile"
             className="flex items-center justify-center gap-[10px] rounded-[12px] bg-[#EFEFEF] px-[12px] py-[8px] hover:bg-[#c1c1c1]"
           >
