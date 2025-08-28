@@ -333,10 +333,8 @@ export const WelcomeScreen = ({
               align: 'center',
               popoverClass: 'customize-my-style driverjs-basic',
               onNextClick: async () => {
-                // 设置标记，表示是从新手引导跳转过来的
-                sessionStorage.setItem('fromOnboarding', 'true');
                 // 跳转到/profile页面
-                window.location.href = '/profile?fromOnboarding=true';
+                window.location.href = '/profile';
               },
             },
           },

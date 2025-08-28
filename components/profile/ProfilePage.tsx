@@ -215,7 +215,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
           setTimeout(() => {
             initProfileOnboarding();
-          }, 500);
+          }, 1000);
         }
       } catch (error) {
         console.error('Failed to load profile data:', error);
@@ -225,52 +225,6 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
     };
 
     loadProfileData();
-
-    // 检查是否需要显示新手引导
-    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
-    const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
-
-    // 如果新手引导未完成，且当前页面是从新手引导跳转过来的，则显示引导
-    if (!hasCompleted) {
-      // 检查 URL 参数或 sessionStorage 中是否有标记
-      const urlParams = new URLSearchParams(window.location.search);
-      const fromOnboarding =
-        urlParams.get('fromOnboarding') ||
-        sessionStorage.getItem('fromOnboarding');
-
-        // TODO:
-      //当按钮变为Save Changes时进入新手引导
-      // if (fromOnboarding) {
-      //   // 使用 MutationObserver 监听按钮文本变化
-      //   const observer = new MutationObserver((mutations) => {
-      //     mutations.forEach((mutation) => {
-      //       if (mutation.type === 'childList') {
-      //         const button = document.querySelector(
-      //           'button[class*="rounded-full bg-black"]',
-      //         );
-      //         if (button && button.textContent?.trim() === 'Save Changes') {
-      //           // 按钮变为 Save Changes 时，延迟启动新手引导
-      //           setTimeout(() => {
-      //             initProfileOnboarding();
-      //           }, 300);
-      //           observer.disconnect(); // 停止观察
-      //         }
-      //       }
-      //     });
-      //   });
-
-      //   // 开始观察 DOM 变化
-      //   observer.observe(document.body, {
-      //     childList: true,
-      //     subtree: true,
-      //   });
-
-      //   // 设置超时，防止无限等待
-      //   setTimeout(() => {
-      //     observer.disconnect();
-      //   }, 10000);
-      // }
-    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 处理样式切换后的等待逻辑
@@ -289,6 +243,16 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   };
 
   const initProfileOnboarding = () => {
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
+
+    // 如果新手引导未完成显示引导
+    if (hasCompleted) return;
+
+    setTimeout(() => {
+      waitForStyleChange('YourStyle');
+    }, 500);
+
     const tour = driver({
       smoothScroll: true,
       stagePadding: 10,
@@ -320,14 +284,16 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             align: 'start',
             popoverClass: 'style-section-start driverjs-basic',
             onNextClick: async () => {
-              await waitForStyleChange('Expert');
-              // 使用快速路径：不等待变化，最小延迟+1帧稳定
-              await goToStepAfterStableSameAnchor(tour, '#style-section', {
-                expectChange: false,
-                timeout: 300,
-                frames: 1,
-                minDelay: 50,
-              });
+              setTimeout(async () => {
+                await waitForStyleChange('Expert');
+                // 使用快速路径：不等待变化，最小延迟+1帧稳定
+                await goToStepAfterStableSameAnchor(tour, '#style-section', {
+                  expectChange: false,
+                  timeout: 300,
+                  frames: 1,
+                  minDelay: 50,
+                });
+              }, 700);
             },
           },
         },
@@ -341,13 +307,15 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             align: 'center',
             popoverClass: 'style-section-center driverjs-basic',
             onNextClick: async () => {
-              await waitForStyleChange('Customized');
-              await goToStepAfterStableSameAnchor(tour, '#style-section', {
-                expectChange: false,
-                timeout: 300,
-                frames: 1,
-                minDelay: 50,
-              });
+              setTimeout(async () => {
+                await waitForStyleChange('Customized');
+                await goToStepAfterStableSameAnchor(tour, '#style-section', {
+                  expectChange: false,
+                  timeout: 300,
+                  frames: 1,
+                  minDelay: 50,
+                });
+              }, 700);
             },
           },
         },
@@ -361,13 +329,14 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             align: 'end',
             popoverClass: 'style-section-end driverjs-basic',
             onNextClick: async () => {
-              await waitForStyleChange('Customized');
-              await goToStepAfterStableSameAnchor(tour, '#style-section', {
-                expectChange: false,
-                timeout: 300,
-                frames: 1,
-                minDelay: 50,
-              });
+              setTimeout(async () => {
+                await goToStepAfterStableSameAnchor(tour, '#style-section', {
+                  expectChange: false,
+                  timeout: 300,
+                  frames: 1,
+                  minDelay: 50,
+                });
+              },700);
             },
           },
         },
@@ -381,7 +350,6 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
             align: 'center',
             popoverClass: 'personal-introduction driverjs-basic',
             onNextClick: async () => {
-              await waitForStyleChange('Customized');
               // 清理弹窗
               tour.destroy();
               router.push('/article-tutorial');
