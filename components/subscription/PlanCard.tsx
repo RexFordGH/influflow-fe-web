@@ -10,6 +10,7 @@ interface PlanCardProps {
   priceUnit?: string;
   features: string[];
   isCurrentPlan?: boolean;
+  isDowngraded?: boolean;
   isMostPopular?: boolean;
   isRecommended?: boolean;
   highlighted?: boolean;
@@ -23,6 +24,7 @@ const PlanCard = ({
   priceUnit,
   features,
   isCurrentPlan = false,
+  isDowngraded = false,
   isMostPopular = false,
   isRecommended = false,
   highlighted = false,
@@ -81,7 +83,7 @@ const PlanCard = ({
 
       {/* Action Button */}
       <div className="mb-6">
-        {isCurrentPlan ? (
+        {isCurrentPlan && !isDowngraded ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -98,12 +100,14 @@ const PlanCard = ({
               isDisabled={isLoading}
               className={cn(
                 'h-[48px] w-full rounded-[16px] text-[16px] font-medium transition-all hover:shadow-md disabled:opacity-50 ',
-                isFreePlan
-                  ? 'bg-[#EFEFEF] border-none ext-[#8C8C8C]'
-                  : 'bg-black text-white hover:bg-gray-800',
+                isDowngraded
+                  ? 'bg-black text-white hover:bg-gray-800'
+                  : isFreePlan
+                    ? 'bg-[#EFEFEF] border-none ext-[#8C8C8C]'
+                    : 'bg-black text-white hover:bg-gray-800',
               )}
             >
-              {isLoading ? 'Processing...' : 'Switch Plan'}
+              {isLoading ? 'Processing...' : isDowngraded ? 'Continue Subscription' : 'Switch Plan'}
             </Button>
           </motion.div>
         )}
