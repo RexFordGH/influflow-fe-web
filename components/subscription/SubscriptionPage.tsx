@@ -166,7 +166,9 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     // 如果是从 free 升级到付费套餐，创建 Checkout Session
     if (currentPlan === 'free' && plan !== 'free') {
       createCheckoutSession(plan, {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
+          // 先刷新订阅信息
+          await refetchSubscriptionInfo();
           // 直接使用服务端返回的 checkout_url
           if (data.checkout_url) {
             redirectToCheckout(data.checkout_url);
