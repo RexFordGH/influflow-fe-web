@@ -123,7 +123,7 @@ const PlanCard = ({
             >
               <path
                 d="M16.6667 5L7.5 14.1667L3.33333 10"
-                stroke="#00C853"
+                stroke="#FF4500"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
