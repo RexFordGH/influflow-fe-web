@@ -247,6 +247,30 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     return plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
   };
 
+  // 判断是否降级
+  const getPlanLevel = (plan: PlanType): number => {
+    switch (plan) {
+      case 'free':
+        return 0;
+      case 'starter':
+        return 1;
+      case 'pro':
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  const isDowngraded = (targetPlan: PlanType): boolean => {
+    // 如果有 nextPlan 且 nextPlan 等级低于当前 plan，说明用户执行了降级
+    // 而当前显示的 targetPlan 是当前的 plan，则这个 plan card 应该显示 Continue Subscription
+    return (
+      nextPlan !== null &&
+      targetPlan === currentPlan &&
+      getPlanLevel(nextPlan) < getPlanLevel(currentPlan)
+    );
+  };
+
   const isLoading = isLoadingInfo || isLoadingRules;
   const isProcessing = isCreatingCheckout || isCreatingPortal || isUpdatingPlan;
 
@@ -438,6 +462,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Great for trying out and exploring',
               ]}
               isCurrentPlan={currentPlan === 'free'}
+              isDowngraded={isDowngraded('free')}
               onSwitch={() => handleSwitchPlan('free')}
               isLoading={processingPlan === 'free'}
             />
@@ -460,6 +485,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Perfect for regular creators',
               ]}
               isCurrentPlan={currentPlan === 'starter'}
+              isDowngraded={isDowngraded('starter')}
               isMostPopular={currentPlan === 'free'}
               onSwitch={() => handleSwitchPlan('starter')}
               highlighted={currentPlan === 'free'}
@@ -484,6 +510,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Best for professionals',
               ]}
               isCurrentPlan={currentPlan === 'pro'}
+              isDowngraded={isDowngraded('pro')}
               isRecommended={currentPlan === 'starter'}
               onSwitch={() => handleSwitchPlan('pro')}
               highlighted={currentPlan === 'starter'}
