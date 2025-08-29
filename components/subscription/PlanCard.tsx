@@ -94,7 +94,11 @@ const PlanCard = ({
             </span>
           </motion.div>
         ) : (
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{ opacity: 1 }}
+          >
             <Button
               onPress={onSwitch}
               isDisabled={isLoading}
@@ -103,11 +107,15 @@ const PlanCard = ({
                 isDowngraded
                   ? 'bg-black text-white hover:bg-gray-800'
                   : isFreePlan
-                    ? 'bg-[#EFEFEF] border-none ext-[#8C8C8C]'
+                    ? 'bg-[#EFEFEF] border-none text-[#8C8C8C]'
                     : 'bg-black text-white hover:bg-gray-800',
               )}
             >
-              {isLoading ? 'Processing...' : isDowngraded ? 'Continue Subscription' : 'Switch Plan'}
+              {isLoading
+                ? 'Processing...'
+                : isDowngraded
+                  ? 'Continue Subscription'
+                  : 'Switch Plan'}
             </Button>
           </motion.div>
         )}
