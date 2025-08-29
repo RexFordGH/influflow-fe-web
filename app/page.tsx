@@ -10,6 +10,7 @@ import {
   GenerationOrchestrator,
   GenerationProvider,
 } from '@/components/generation';
+import CreditBanner from '@/components/home/CreditBanner';
 import { MainContent } from '@/components/home/MainContent';
 import { ScrollProgressIndicator } from '@/components/home/ScrollProgressIndicator';
 import {
@@ -64,7 +65,8 @@ function HomeContent() {
     openLoginModal,
     setAuthError,
   } = useAuthStore();
-  const { checkCreditsAndShowModal, refreshSubscriptionInfo } = useSubscriptionStore();
+  const { checkCreditsAndShowModal, refreshSubscriptionInfo } =
+    useSubscriptionStore();
   const searchParams = useSearchParams();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
@@ -102,9 +104,11 @@ function HomeContent() {
 
   // 滚动进度状态
   const [scrollProgress, setScrollProgress] = useState<any>(null);
-  
+
   // Onboarding 状态
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     checkAuthStatus();
@@ -113,9 +117,9 @@ function HomeContent() {
   // 检查 onboarding 状态
   useEffect(() => {
     const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
-    
+
     if (typeof window === 'undefined') return;
-    
+
     const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
     setHasCompletedOnboarding(hasCompleted);
   }, []);
@@ -425,6 +429,8 @@ function HomeContent() {
             />
           </div>
         )}
+
+        <CreditBanner />
 
         {/* Main Content */}
         <div

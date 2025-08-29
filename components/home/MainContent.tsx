@@ -2,10 +2,8 @@
 
 import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/stores/authStore';
-import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import {
   IContentFormat,
   IMode,
@@ -49,11 +47,6 @@ export const MainContent = ({
   hasCompletedOnboarding,
 }: IMainContentProps) => {
   const { isAuthenticated } = useAuthStore();
-  const { credits } = useSubscriptionStore();
-  const router = useRouter();
-  
-  // 判断是否显示低积分提醒 banner
-  const showLowCreditsBanner = isAuthenticated && credits <= 10;
 
   return (
     <motion.div
@@ -66,27 +59,6 @@ export const MainContent = ({
         ease: 'easeInOut',
       }}
     >
-      {/* Low Credits Banner */}
-      {showLowCreditsBanner && (
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="relative z-40 flex h-[40px] items-center justify-center bg-black text-white"
-        >
-          <span className="mr-2 text-[14px]">🔥</span>
-          <span className="text-[14px]">
-            Low credits left. Upgrade to create freely.
-          </span>
-          <button
-            onClick={() => router.push('/subscription')}
-            className="ml-3 rounded-md bg-white px-3 py-1 text-[12px] font-medium text-black transition-opacity hover:opacity-90"
-          >
-            Manage Subscription
-          </button>
-        </motion.div>
-      )}
-      
       {isAuthenticated && sidebarCollapsed && (
         <Button
           isIconOnly

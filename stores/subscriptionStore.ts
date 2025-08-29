@@ -18,6 +18,9 @@ interface ISubscriptionState {
   error: string | null;
   showNoCreditsModal: boolean;
   
+  // 计算属性
+  showLowCreditsBanner: boolean;
+  
   // Actions
   setSubscriptionInfo: (info: ISubscriptionInfo) => void;
   setCreditRules: (rules: ICreditRule[]) => void;
@@ -28,6 +31,7 @@ interface ISubscriptionState {
   checkCreditsAndShowModal: (requiredCredits?: number) => boolean;
   setShowNoCreditsModal: (show: boolean) => void;
   refreshSubscriptionInfo: () => Promise<void>;
+  updateShowLowCreditsBanner: () => void;
   reset: () => void;
 }
 
@@ -41,6 +45,7 @@ const initialState = {
   isLoading: false,
   error: null,
   showNoCreditsModal: false,
+  showLowCreditsBanner: false,
 };
 
 export const useSubscriptionStore = create<ISubscriptionState>()(
@@ -48,7 +53,7 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
     (set, get) => ({
       ...initialState,
       
-      setSubscriptionInfo: (info) =>
+      setSubscriptionInfo: (info) => {
         set({
           currentPlan: info.current_plan,
           nextPlan: info.next_plan !== info.current_plan ? info.next_plan : null,
@@ -56,7 +61,9 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
           currentPeriodEnd: info.current_period_end,
           credits: info.credit,
           error: null,
-        }),
+        });
+        get().updateShowLowCreditsBanner();
+      },
       
       setCreditRules: (rules) =>
         set({
@@ -69,8 +76,10 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
       setError: (error) =>
         set({ error }),
       
-      updateCredits: (credits) =>
-        set({ credits }),
+      updateCredits: (credits) => {
+        set({ credits });
+        get().updateShowLowCreditsBanner();
+      },
       
       hasEnoughCredits: (requiredCredits = 1) => {
         const state = get();
@@ -94,6 +103,30 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
         if (typeof window !== 'undefined' && (window as any).refetchSubscriptionInfo) {
           await (window as any).refetchSubscriptionInfo();
         }
+      },
+      
+      updateShowLowCreditsBanner: () => {
+        const state = get();
+        
+        // 只有付费用户才显示横幅
+        if (state.currentPlan === 'free') {
+          set({ showLowCreditsBanner: false });
+          return;
+        }
+        
+        // 检查是否积分不足
+        const lowCredits = state.credits < 10;
+        
+        // 检查是否即将到期（7天内）
+        let nearExpiry = false;
+        if (state.currentPeriodEnd) {
+          const endDate = new Date(state.currentPeriodEnd);
+          const now = new Date();
+          const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          nearExpiry = daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
+        }
+        
+        set({ showLowCreditsBanner: lowCredits || nearExpiry });
       },
       
       reset: () =>
