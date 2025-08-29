@@ -31,7 +31,7 @@ const NoCreditsModal = ({ isOpen, onClose }: NoCreditsModalProps) => {
       isDismissable={false}
       classNames={{
         backdrop: 'bg-black/50',
-        base: 'border-0',
+        base: 'border-0 max-w-[560px]',
         body: 'p-0',
         header: 'p-0 border-0',
         footer: 'border-0',
@@ -69,8 +69,8 @@ const NoCreditsModal = ({ isOpen, onClose }: NoCreditsModalProps) => {
                 </h2>
                 {/* Description */}
                 <p className="text-[16px] text-black">
-                  Oops! You're out of credits. Please upgrade your plan or wait for
-                  your next monthly reset.
+                  Oops! You're out of credits. Please upgrade your plan or wait
+                  for your next monthly reset.
                 </p>
               </div>
             </div>

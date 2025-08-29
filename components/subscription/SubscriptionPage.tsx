@@ -227,7 +227,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
 
   // 计算积分百分比
   const totalCredits =
-    currentPlan === 'free' ? 50 : currentPlan === 'starter' ? 1000 : 6000;
+    currentPlan === 'free' ? 50 : currentPlan === 'starter' ? 2000 : 6000;
   const creditPercentage = Math.min((credits / totalCredits) * 100, 100);
 
   // 格式化日期
@@ -260,9 +260,9 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-3"
+        className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-[8px]"
       >
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center">
           <Button
             size="sm"
             variant="light"
@@ -449,7 +449,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               priceUnit="/month"
               features={[
                 'Larger monthly allowance',
-                '1000 credits / month',
+                '2000 credits / month',
                 'Access to all features',
                 'Perfect for regular creators',
               ]}
