@@ -207,18 +207,6 @@ export default function PlanChangeModal({
                       </span>
                     </div>
                   </div>
-
-                  {/* 今日应付金额（仅在升级时显示） */}
-                  {isUpgrade && amountDue > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-[14px] text-black">
-                        Amount Due Today
-                      </span>
-                      <span className="text-[16px] font-medium text-black">
-                        ${amountDue}
-                      </span>
-                    </div>
-                  )}
                 </div>
               )}
 
