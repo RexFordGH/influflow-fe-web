@@ -54,7 +54,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     error: infoError,
     refetch: refetchSubscriptionInfo,
   } = useSubscriptionInfo();
-  const { data: creditRulesData, isLoading: isLoadingRules, refetch: refetchCreditRules } = useCreditRules();
+  const {
+    data: creditRulesData,
+    isLoading: isLoadingRules,
+    refetch: refetchCreditRules,
+  } = useCreditRules();
   const { mutate: createCheckoutSession, isPending: isCreatingCheckout } =
     useCreateCheckoutSession();
   const { mutate: createBillingPortal, isPending: isCreatingPortal } =
@@ -436,10 +440,12 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 </span>
                 <button
                   onClick={handleViewInvoices}
-                  className="text-[16px] text-black underline transition-opacity hover:opacity-70 disabled:opacity-50"
-                  disabled={isProcessing || currentPlan === 'free'}
+                  className="text-[16px] text-black underline transition-opacity hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={
+                    isProcessing || currentPlan === 'free' || isCreatingPortal
+                  }
                 >
-                  View Invoices
+                  {isCreatingPortal ? 'Loading Invoices ...' : 'View Invoices'}
                 </button>
               </div>
             </div>

@@ -225,7 +225,7 @@ export default function PlanChangeModal({
                   disabled={isLoading}
                 >
                   {isCancellingScheduledChange
-                    ? 'Cancel Change'
+                    ? 'Continue Subscription'
                     : 'Confirm Changes'}
                 </Button>
               </motion.div>
