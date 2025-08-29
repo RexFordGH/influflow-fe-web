@@ -54,13 +54,20 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     error: infoError,
     refetch: refetchSubscriptionInfo,
   } = useSubscriptionInfo();
-  const { data: creditRulesData, isLoading: isLoadingRules } = useCreditRules();
+  const { data: creditRulesData, isLoading: isLoadingRules, refetch: refetchCreditRules } = useCreditRules();
   const { mutate: createCheckoutSession, isPending: isCreatingCheckout } =
     useCreateCheckoutSession();
   const { mutate: createBillingPortal, isPending: isCreatingPortal } =
     useCreateBillingPortal();
   const { mutate: updatePlan, isPending: isUpdatingPlan } =
     useUpdateSubscriptionPlan();
+
+  // 页面加载时刷新订阅信息，确保数据最新
+  useEffect(() => {
+    // 强制刷新订阅信息和积分规则
+    refetchSubscriptionInfo();
+    refetchCreditRules();
+  }, []); // 只在组件 mount 时执行
 
   // 检查 URL 参数中是否有 status 标记
   useEffect(() => {
