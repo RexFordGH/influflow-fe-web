@@ -1,7 +1,8 @@
 'use client';
 
-import { Button } from '@heroui/react';
+import { cn } from '@heroui/react';
 import { motion } from 'framer-motion';
+import { Button } from '../base';
 
 interface PlanCardProps {
   planName: string;
@@ -9,8 +10,8 @@ interface PlanCardProps {
   priceUnit?: string;
   features: string[];
   isCurrentPlan?: boolean;
-  isScheduled?: boolean;
   isMostPopular?: boolean;
+  isRecommended?: boolean;
   highlighted?: boolean;
   onSwitch: () => void;
   isLoading?: boolean;
@@ -22,8 +23,8 @@ const PlanCard = ({
   priceUnit,
   features,
   isCurrentPlan = false,
-  isScheduled = false,
   isMostPopular = false,
+  isRecommended = false,
   highlighted = false,
   onSwitch,
   isLoading = false,
@@ -32,18 +33,18 @@ const PlanCard = ({
 
   return (
     <motion.div
-      whileHover={!isCurrentPlan && !isScheduled ? { scale: 1.02, y: -5 } : {}}
+      whileHover={!isCurrentPlan ? { scale: 1.02, y: -5 } : {}}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className={`relative flex h-full flex-col rounded-[24px] bg-white p-10 transition-shadow ${
         highlighted
           ? 'border border-black shadow-[0_0_15px_rgba(0,0,0,0.15)]'
           : 'hover:shadow-lg'
-      } ${isScheduled ? 'ring-2 ring-orange-400' : ''}`}
+      }`}
     >
-      {/* Plan Name and Popular Badge */}
+      {/* Plan Name and Popular/Recommended Badge */}
       <div className="mb-1 flex items-center justify-between">
         <h3 className="text-[20px] font-medium text-black">{planName}</h3>
-        {isMostPopular && (
+        {(isMostPopular || isRecommended) && (
           <div className="flex items-center gap-1 rounded-[8px] bg-[#EFEFEF] px-3 py-1">
             <svg
               width="13"
@@ -58,7 +59,7 @@ const PlanCard = ({
               />
             </svg>
             <span className="text-[11px] font-medium text-black">
-              Most Popular
+              {isMostPopular ? 'Most Popular' : 'Recommended'}
             </span>
           </div>
         )}
@@ -90,22 +91,17 @@ const PlanCard = ({
               Your Current Plan
             </span>
           </motion.div>
-        ) : isScheduled ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex h-[48px] items-center justify-center rounded-[16px] bg-orange-100"
-          >
-            <span className="text-[16px] font-medium text-orange-600">
-              Scheduled Next
-            </span>
-          </motion.div>
         ) : (
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               onPress={onSwitch}
               isDisabled={isLoading}
-              className="h-[48px] w-full rounded-[16px] bg-black text-[16px] font-medium text-white transition-all hover:bg-gray-800 hover:shadow-md disabled:opacity-50"
+              className={cn(
+                'h-[48px] w-full rounded-[16px] text-[16px] font-medium transition-all hover:shadow-md disabled:opacity-50 ',
+                isFreePlan
+                  ? 'bg-[#EFEFEF] border-none ext-[#8C8C8C]'
+                  : 'bg-black text-white hover:bg-gray-800',
+              )}
             >
               {isLoading ? 'Processing...' : 'Switch Plan'}
             </Button>

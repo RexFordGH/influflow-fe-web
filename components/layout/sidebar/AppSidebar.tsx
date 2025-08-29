@@ -1,10 +1,11 @@
 'use client';
 
-import { Button, Image } from '@heroui/react';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { Button, cn, Image } from '@heroui/react';
 import Link from 'next/link';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import {
   EmptyState,
@@ -34,6 +35,8 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
   ({ onItemClick, selectedId, collapsed = false, onToggleCollapse }, ref) => {
     const { user, isAuthenticated } = useAuthStore();
     const [refreshing, setRefreshing] = useState(false);
+
+    const { showLowCreditsBanner } = useSubscriptionStore();
 
     // 滚动容器引用
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -112,7 +115,11 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
     return (
       <div
-        className={`fixed left-0 top-0 z-10 flex h-screen w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] transition-transform duration-300 ${collapsed ? '-translate-x-full' : 'translate-x-0'}`}
+        className={cn(
+          'fixed left-0 z-10 flex h-screen w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] transition-transform duration-300',
+          showLowCreditsBanner ? 'pt-[36px]' : '',
+          collapsed ? '-translate-x-full' : 'translate-x-0',
+        )}
       >
         <div className="p-4">
           <div className="flex items-center justify-between">
