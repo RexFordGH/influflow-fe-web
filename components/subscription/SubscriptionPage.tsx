@@ -347,8 +347,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             ) : (
               <>
                 <div className="mb-1 text-[32px] font-medium text-black">
-                  {credits.toLocaleString()} / {totalCredits.toLocaleString()}{' '}
-                  Credits
+                  {credits.toLocaleString()}
+                  <span className="text-[16px] text-[#8C8C8C]">
+                    / {totalCredits.toLocaleString()}
+                  </span>{' '}
                 </div>
                 {/* Progress Bar */}
                 <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
@@ -389,9 +391,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               </div>
               {nextPlan && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[16px] text-black">Next Plan:</span>
                   <span className="text-[16px] text-black">
-                    {getPlanDisplayName(nextPlan)} (scheduled)
+                    Plan for Next Billing Cycle:
+                  </span>
+                  <span className="text-[16px] text-black">
+                    {getPlanDisplayName(nextPlan)}
                   </span>
                 </div>
               )}
