@@ -1,12 +1,11 @@
 'use client';
 
-import { UserIcon } from '@heroicons/react/24/outline';
-import { Button, Image } from '@heroui/react';
+import { Button, cn, Image } from '@heroui/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import {
   EmptyState,
@@ -18,6 +17,7 @@ import {
 import { useInfiniteScroll } from './hooks/useInfiniteScroll';
 import { usePaginatedData } from './hooks/usePaginatedData';
 import { useScrollPositionRestore } from './hooks/useScrollPositionRestore';
+import { ProfileDropdown } from './ProfileDropdown';
 import { SidebarItem as SidebarItemType } from './types/sidebar.types';
 
 interface AppSidebarProps {
@@ -34,8 +34,9 @@ export interface AppSidebarRef {
 export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
   ({ onItemClick, selectedId, collapsed = false, onToggleCollapse }, ref) => {
     const { user, isAuthenticated } = useAuthStore();
-    const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
+
+    const { showLowCreditsBanner } = useSubscriptionStore();
 
     // 滚动容器引用
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -74,10 +75,6 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         threshold: 50,
         restoreDelay: 16,
       });
-
-    const handleOpenProfile = () => {
-      router.push('/profile');
-    };
 
     const handleItemClick = (item: SidebarItemType) => {
       if (onItemClick) {
@@ -118,29 +115,15 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
     return (
       <div
-        className={`fixed left-0 top-0 z-10 flex h-screen w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] transition-transform duration-300 ${collapsed ? '-translate-x-full' : 'translate-x-0'}`}
+        className={cn(
+          'fixed left-0 z-10 flex h-screen w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] transition-transform duration-300',
+          showLowCreditsBanner ? 'pt-[36px]' : '',
+          collapsed ? '-translate-x-full' : 'translate-x-0',
+        )}
       >
         <div className="p-4">
           <div className="flex items-center justify-between">
-            <div
-              className="-m-2 flex cursor-pointer items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-100"
-              onClick={handleOpenProfile}
-            >
-              {user?.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt="User Avatar"
-                  width={24}
-                  height={24}
-                  className="rounded-full"
-                />
-              ) : (
-                <UserIcon className="size-6 text-gray-600" />
-              )}
-              <span className="font-medium text-gray-900">
-                {user?.name || 'Kelly'}
-              </span>
-            </div>
+            <ProfileDropdown collapsed={collapsed} />
 
             {/* 收起按钮 */}
             {onToggleCollapse && (

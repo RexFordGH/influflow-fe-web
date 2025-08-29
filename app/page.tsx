@@ -10,6 +10,7 @@ import {
   GenerationOrchestrator,
   GenerationProvider,
 } from '@/components/generation';
+import CreditBanner from '@/components/home/CreditBanner';
 import { MainContent } from '@/components/home/MainContent';
 import { ScrollProgressIndicator } from '@/components/home/ScrollProgressIndicator';
 import {
@@ -20,6 +21,7 @@ import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import {
   type IContentFormat,
   type IMode,
@@ -63,6 +65,8 @@ function HomeContent() {
     openLoginModal,
     setAuthError,
   } = useAuthStore();
+  const { checkCreditsAndShowModal, refreshSubscriptionInfo } =
+    useSubscriptionStore();
   const searchParams = useSearchParams();
   const [showContentGeneration, setShowContentGeneration] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('');
@@ -100,9 +104,11 @@ function HomeContent() {
 
   // 滚动进度状态
   const [scrollProgress, setScrollProgress] = useState<any>(null);
-  
+
   // Onboarding 状态
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     checkAuthStatus();
@@ -111,9 +117,9 @@ function HomeContent() {
   // 检查 onboarding 状态
   useEffect(() => {
     const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
-    
+
     if (typeof window === 'undefined') return;
-    
+
     const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
     setHasCompletedOnboarding(hasCompleted);
   }, []);
@@ -190,6 +196,11 @@ function HomeContent() {
       return;
     }
 
+    // 检查积分是否足够
+    if (!checkCreditsAndShowModal()) {
+      return;
+    }
+
     if (topicInput.trim()) {
       // 清除之前选择的笔记数据，确保重新生成新内容
       setInitialData(undefined);
@@ -249,10 +260,12 @@ function HomeContent() {
   };
 
   // 生成完成回调
-  const handleGenerationComplete = (data: IOutline) => {
+  const handleGenerationComplete = async (data: IOutline) => {
     console.log('Generation completed:', data);
     // 刷新侧边栏列表
     sidebarRef.current?.refresh();
+    // 刷新订阅信息以更新积分
+    await refreshSubscriptionInfo();
   };
 
   // 生成错误回调
@@ -416,6 +429,8 @@ function HomeContent() {
             />
           </div>
         )}
+
+        <CreditBanner />
 
         {/* Main Content */}
         <div
