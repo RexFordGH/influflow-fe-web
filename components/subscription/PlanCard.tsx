@@ -37,7 +37,7 @@ const PlanCard = ({
     <motion.div
       whileHover={!isCurrentPlan ? { scale: 1.02, y: -5 } : {}}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`relative flex h-full flex-col rounded-[24px] bg-white p-10 transition-shadow ${
+      className={`relative min-w-[320px] flex h-full flex-col rounded-[24px] bg-white p-10 transition-shadow ${
         highlighted
           ? 'border border-black shadow-[0_0_15px_rgba(0,0,0,0.15)]'
           : 'hover:shadow-lg'

@@ -438,15 +438,15 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 <span className="text-[16px] text-black">
                   Subscription History:
                 </span>
-                <button
-                  onClick={handleViewInvoices}
-                  className="text-[16px] text-black underline transition-opacity hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={
-                    isProcessing || currentPlan === 'free' || isCreatingPortal
-                  }
+                <Button
+                  onPress={handleViewInvoices}
+                  className="text-[16px] text-black bg-transparent px-0 hover:bg-transparent underline transition-opacity hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isProcessing || isCreatingPortal}
+                  isLoading={isCreatingPortal}
                 >
-                  {isCreatingPortal ? 'Loading Invoices ...' : 'View Invoices'}
-                </button>
+                  View Invoices
+                  {/* {isCreatingPortal ? 'Loading...' : 'View Invoices'} */}
+                </Button>
               </div>
             </div>
           </div>
