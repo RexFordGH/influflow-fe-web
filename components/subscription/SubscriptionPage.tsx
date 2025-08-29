@@ -17,17 +17,25 @@ import {
 import { redirectToCheckout } from '@/lib/stripe';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
+import { useAuthStore } from '@/stores/authStore';
 import CreditsUsageModal from './CreditsUsageModal';
 import PlanCard from './PlanCard';
+import PlanChangeModal from './PlanChangeModal';
 
 interface SubscriptionPageProps {
   onBack: () => void;
 }
 
 export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
+  const { isAuthenticated, openLoginModal } = useAuthStore();
+
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
   const [processingPlan, setProcessingPlan] = useState<PlanType | null>(null);
-  
+  const [planChangeModal, setPlanChangeModal] = useState<{
+    isOpen: boolean;
+    targetPlan: PlanType | null;
+  }>({ isOpen: false, targetPlan: null });
+
   // 从 store 获取订阅信息
   const {
     currentPlan,
@@ -38,57 +46,65 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     setCreditRules,
     setError,
   } = useSubscriptionStore();
-  
+
   // API hooks
-  const { data: subscriptionInfo, isLoading: isLoadingInfo, error: infoError, refetch: refetchSubscriptionInfo } = useSubscriptionInfo();
+  const {
+    data: subscriptionInfo,
+    isLoading: isLoadingInfo,
+    error: infoError,
+    refetch: refetchSubscriptionInfo,
+  } = useSubscriptionInfo();
   const { data: creditRulesData, isLoading: isLoadingRules } = useCreditRules();
-  const { mutate: createCheckoutSession, isPending: isCreatingCheckout } = useCreateCheckoutSession();
-  const { mutate: createBillingPortal, isPending: isCreatingPortal } = useCreateBillingPortal();
-  const { mutate: updatePlan, isPending: isUpdatingPlan } = useUpdateSubscriptionPlan();
-  
+  const { mutate: createCheckoutSession, isPending: isCreatingCheckout } =
+    useCreateCheckoutSession();
+  const { mutate: createBillingPortal, isPending: isCreatingPortal } =
+    useCreateBillingPortal();
+  const { mutate: updatePlan, isPending: isUpdatingPlan } =
+    useUpdateSubscriptionPlan();
+
   // 检查 URL 参数中是否有 status 标记
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
-    
+
     if (status === 'success') {
-      addToast({ 
-        title: 'Payment successful! Your subscription has been upgraded.', 
-        color: 'success' 
+      addToast({
+        title: 'Payment successful! Your subscription has been upgraded.',
+        color: 'success',
       });
-      
+
       // 刷新订阅信息以获取最新状态
       refetchSubscriptionInfo();
-      
+
       // 清理 URL 参数
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     } else if (status === 'cancel') {
-      addToast({ 
-        title: 'Payment cancelled. You can upgrade anytime.', 
-        color: 'warning' 
+      addToast({
+        title: 'Payment cancelled. You can upgrade anytime.',
+        color: 'warning',
       });
-      
+
       // 清理 URL 参数
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
   }, [refetchSubscriptionInfo]);
-  
+
   // 更新 store 中的订阅信息
   useEffect(() => {
     if (subscriptionInfo) {
       setSubscriptionInfo(subscriptionInfo);
     }
   }, [subscriptionInfo, setSubscriptionInfo]);
-  
+
   // 更新积分规则
   useEffect(() => {
     if (creditRulesData?.rules) {
       setCreditRules(creditRulesData.rules);
     }
   }, [creditRulesData, setCreditRules]);
-  
+
   // 处理错误
   useEffect(() => {
     if (infoError) {
@@ -97,32 +113,56 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
       addToast({ title: errorMessage, color: 'danger' });
     }
   }, [infoError, setError]);
-  
-  // 处理套餐切换
-  const handleSwitchPlan = async (plan: PlanType) => {
-    if (plan === currentPlan) {
-      // 如果选择当前套餐且有预定的变更，取消变更
-      if (nextPlan) {
-        setProcessingPlan(plan);
-        updatePlan(plan, {
-          onSuccess: async () => {
-            addToast({ title: 'Scheduled plan change has been cancelled', color: 'success' });
-            setProcessingPlan(null);
-            // 刷新订阅信息
-            await refetchSubscriptionInfo();
-          },
-          onError: (error) => {
-            addToast({ title: `Failed to cancel plan change: ${error.message}`, color: 'danger' });
-            setProcessingPlan(null);
-          },
-        });
-      }
+
+  // 处理套餐切换按钮点击
+  const handleSwitchPlan = (plan: PlanType) => {
+    if (!isAuthenticated) {
+      openLoginModal();
       return;
     }
-    
+    // 如果选择当前套餐且没有预定的变更，不做任何操作
+    if (plan === currentPlan && !nextPlan) {
+      return;
+    }
+
+    // 所有情况都打开确认弹窗
+    setPlanChangeModal({ isOpen: true, targetPlan: plan });
+  };
+
+  // 处理弹窗确认
+  const handleConfirmPlanChange = async () => {
+    if (!planChangeModal.targetPlan) return;
+
+    const plan = planChangeModal.targetPlan;
+
     // 设置正在处理的套餐
     setProcessingPlan(plan);
-    
+
+    // 如果是取消预定的套餐变更
+    if (plan === currentPlan && nextPlan) {
+      updatePlan(plan, {
+        onSuccess: async () => {
+          addToast({
+            title: 'Scheduled plan change has been cancelled',
+            color: 'success',
+          });
+          setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
+          // 刷新订阅信息
+          await refetchSubscriptionInfo();
+        },
+        onError: (error) => {
+          addToast({
+            title: `Failed to cancel plan change: ${error.message}`,
+            color: 'danger',
+          });
+          setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
+        },
+      });
+      return;
+    }
+
     // 如果是从 free 升级到付费套餐，创建 Checkout Session
     if (currentPlan === 'free' && plan !== 'free') {
       createCheckoutSession(plan, {
@@ -133,63 +173,78 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
           } else {
             addToast({ title: 'Checkout URL not found', color: 'danger' });
             setProcessingPlan(null);
+            setPlanChangeModal({ isOpen: false, targetPlan: null });
           }
         },
         onError: (error) => {
-          addToast({ title: `Failed to create checkout session: ${error.message}`, color: 'danger' });
+          addToast({
+            title: `Failed to create checkout session: ${error.message}`,
+            color: 'danger',
+          });
           setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
         },
       });
     } else {
       // 其他情况使用 update-plan 接口
       updatePlan(plan, {
         onSuccess: async (data) => {
-          const message = plan === 'free' 
-            ? `Your subscription will be cancelled at the end of the current period (${data.effective_date})`
-            : data.effective_date === new Date().toISOString().split('T')[0]
-              ? 'Plan upgraded successfully!'
-              : `Plan change scheduled for ${data.effective_date}`;
+          const message =
+            plan === 'free'
+              ? `Your subscription will be cancelled at the end of the current period (${data.effective_date})`
+              : data.effective_date === new Date().toISOString().split('T')[0]
+                ? 'Plan upgraded successfully!'
+                : `Plan change scheduled for ${data.effective_date}`;
           addToast({ title: message, color: 'success' });
           setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
           // 刷新订阅信息
           await refetchSubscriptionInfo();
         },
         onError: (error) => {
-          addToast({ title: `Failed to update plan: ${error.message}`, color: 'danger' });
+          addToast({
+            title: `Failed to update plan: ${error.message}`,
+            color: 'danger',
+          });
           setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
         },
       });
     }
   };
-  
+
   // 查看发票
   const handleViewInvoices = () => {
     createBillingPortal(undefined, {
       onError: (error) => {
-        addToast({ title: `Failed to open billing portal: ${error.message}`, color: 'danger' });
+        addToast({
+          title: `Failed to open billing portal: ${error.message}`,
+          color: 'danger',
+        });
       },
     });
   };
-  
+
   // 计算积分百分比
-  const totalCredits = currentPlan === 'free' ? 50 : currentPlan === 'starter' ? 1000 : 6000;
+  const totalCredits =
+    currentPlan === 'free' ? 50 : currentPlan === 'starter' ? 1000 : 6000;
   const creditPercentage = Math.min((credits / totalCredits) * 100, 100);
-  
+
   // 格式化日期
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return '--';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
   };
-  
+
   // 获取套餐显示名称
   const getPlanDisplayName = (plan: PlanType) => {
     return plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
   };
-  
+
   const isLoading = isLoadingInfo || isLoadingRules;
   const isProcessing = isCreatingCheckout || isCreatingPortal || isUpdatingPlan;
 
@@ -258,7 +313,13 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                   xmlns="http://www.w3.org/2000/svg"
                   className="cursor-help text-gray-400 transition-colors group-hover:text-gray-600"
                 >
-                  <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+                  <circle
+                    cx="10"
+                    cy="10"
+                    r="8"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
                   <text
                     x="10"
                     y="14"
@@ -284,7 +345,8 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             ) : (
               <>
                 <div className="mb-1 text-[32px] font-medium text-black">
-                  {credits.toLocaleString()} / {totalCredits.toLocaleString()} Credits
+                  {credits.toLocaleString()} / {totalCredits.toLocaleString()}{' '}
+                  Credits
                 </div>
                 {/* Progress Bar */}
                 <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
@@ -326,13 +388,15 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               {nextPlan && (
                 <div className="flex items-center justify-between">
                   <span className="text-[16px] text-black">Next Plan:</span>
-                  <span className="text-[16px] font-medium text-orange-600">
+                  <span className="text-[16px] text-black">
                     {getPlanDisplayName(nextPlan)} (scheduled)
                   </span>
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <span className="text-[16px] text-black">Subscription History:</span>
+                <span className="text-[16px] text-black">
+                  Subscription History:
+                </span>
                 <button
                   onClick={handleViewInvoices}
                   className="text-[16px] text-black underline transition-opacity hover:opacity-70 disabled:opacity-50"
@@ -367,8 +431,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Access to all features',
                 'Great for trying out and exploring',
               ]}
-              isCurrentPlan={currentPlan === 'free' && !nextPlan}
-              isScheduled={nextPlan === 'free'}
+              isCurrentPlan={currentPlan === 'free'}
               onSwitch={() => handleSwitchPlan('free')}
               isLoading={processingPlan === 'free'}
             />
@@ -390,11 +453,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Access to all features',
                 'Perfect for regular creators',
               ]}
-              isCurrentPlan={currentPlan === 'starter' && !nextPlan}
-              isScheduled={nextPlan === 'starter'}
-              isMostPopular={true}
+              isCurrentPlan={currentPlan === 'starter'}
+              isMostPopular={currentPlan === 'free'}
               onSwitch={() => handleSwitchPlan('starter')}
-              highlighted={true}
+              highlighted={currentPlan === 'free'}
               isLoading={processingPlan === 'starter'}
             />
           </motion.div>
@@ -415,9 +477,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Access to all features',
                 'Best for professionals',
               ]}
-              isCurrentPlan={currentPlan === 'pro' && !nextPlan}
-              isScheduled={nextPlan === 'pro'}
+              isCurrentPlan={currentPlan === 'pro'}
+              isRecommended={currentPlan === 'starter'}
               onSwitch={() => handleSwitchPlan('pro')}
+              highlighted={currentPlan === 'starter'}
               isLoading={processingPlan === 'pro'}
             />
           </motion.div>
@@ -429,6 +492,22 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         isOpen={isCreditsModalOpen}
         onClose={() => setIsCreditsModalOpen(false)}
       />
+
+      {/* Plan Change Modal */}
+      {planChangeModal.targetPlan && (
+        <PlanChangeModal
+          isOpen={planChangeModal.isOpen}
+          onClose={() =>
+            setPlanChangeModal({ isOpen: false, targetPlan: null })
+          }
+          onConfirm={handleConfirmPlanChange}
+          currentPlan={currentPlan}
+          targetPlan={planChangeModal.targetPlan}
+          currentPeriodEnd={currentPeriodEnd}
+          nextPlan={nextPlan}
+          isLoading={isProcessing}
+        />
+      )}
     </motion.div>
   );
 };
