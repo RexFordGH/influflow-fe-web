@@ -36,7 +36,7 @@ const TrendingTopicSkeleton = ({ index }: { index: number }) => (
   <div
     className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-300 to-yellow-100 px-6 py-1"
     style={{
-      width: `${Math.max(432, 880 - index * 110)}px`,
+      width: `${Math.max(432, 880 - index * 0)}px`,
     }}
   >
     <Skeleton className="h-[18px] w-20 rounded bg-yellow-200" />
@@ -87,7 +87,7 @@ const TrendingTopicItem = ({
           onMouseLeave={() => setIsHovered(false)}
           className="group relative flex cursor-pointer items-center justify-between rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-200 px-6 py-1 transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300"
           style={{
-            width: `${Math.max(432, 880 - index * 110)}px`,
+            width: `${Math.max(432, 880 - index * 0)}px`,
           }}
         >
           <span className="text-left text-lg font-medium text-black">
@@ -159,6 +159,8 @@ export function TrendingTopicsPage({
   const [searchWidgetsLoaded, setSearchWidgetsLoaded] = useState<
     Record<string, boolean>
   >({});
+  // 添加状态来跟踪用户是否主动关闭过第一条话题
+  const [hasUserCollapsedFirst, setHasUserCollapsedFirst] = useState(false);
 
   const { data: topicTypes } = useTopicTypes();
 
@@ -186,18 +188,29 @@ export function TrendingTopicsPage({
   const collapseTopic = (index: number) => {
     if (expandedTopicIndex === index) {
       setExpandedTopicIndex(null);
+      // 如果收起的是第一条话题，标记用户主动关闭
+      if (index === 0) {
+        setHasUserCollapsedFirst(true);
+      }
     }
   };
-
 
   // 处理话题展开/收起的逻辑，使用布尔值控制
   const handleTopicToggle = (index: number, isOpen: boolean) => {
     if (expandedTopicIndex === index) {
       // 如果当前点击的是已展开的条目，则收起
       setExpandedTopicIndex(null);
+      // 如果收起的是第一条话题，标记用户主动关闭
+      if (index === 0) {
+        setHasUserCollapsedFirst(true);
+      }
     } else {
       // 如果当前点击的是未展开的条目，则展开它
       setExpandedTopicIndex(index);
+      // 如果展开的是第一条话题，清除用户主动关闭的标记
+      if (index === 0) {
+        setHasUserCollapsedFirst(false);
+      }
     }
   };
 
@@ -207,17 +220,19 @@ export function TrendingTopicsPage({
     
     if (hasCompletedOnboarding) {
       expandTopic(0);
+      // 重置用户主动关闭的标记
+      setHasUserCollapsedFirst(false);
     } else {
       collapseTopic(0);
     }
   }, [hasCompletedOnboarding]);
 
-  // 当数据加载完成且已完成onboarding时，确保第一条默认展开
+  // 当数据加载完成且已完成onboarding时，确保第一条默认展开（但只在用户没有主动关闭过的情况下）
   useEffect(() => {
-    if (hasCompletedOnboarding === true && trendingTopics.length > 0 && expandedTopicIndex === null) {
+    if (hasCompletedOnboarding === true && trendingTopics.length > 0 && expandedTopicIndex === null && !hasUserCollapsedFirst) {
       setExpandedTopicIndex(0);
     }
-  }, [hasCompletedOnboarding, trendingTopics.length, expandedTopicIndex]);
+  }, [hasCompletedOnboarding, trendingTopics.length, expandedTopicIndex, hasUserCollapsedFirst]);
 
   // 优化回调函数
   const handleSearchModalClose = useCallback(() => {
