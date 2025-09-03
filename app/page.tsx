@@ -114,6 +114,10 @@ function HomeContent() {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
+  // useEffect(() => {
+  //   signUp({});
+  // }, [])
+
   // 检查 onboarding 状态
   useEffect(() => {
     const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
