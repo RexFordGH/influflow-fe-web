@@ -1008,7 +1008,7 @@ export function MindmapRenderer({
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         fitView
-        className="bg-gray-50"
+        className="bg-gray-50 rounded-2xl bg-[#fcfcfc]"
         nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}

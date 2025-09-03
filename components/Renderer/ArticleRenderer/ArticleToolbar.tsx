@@ -52,16 +52,16 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
     }, []);
 
     return (
-      <div className="shrink-0 border-b border-gray-200 bg-white px-6 py-[4px]">
-        <div className="flex items-center justify-between">
+      <div className="shrink-0 border-b border-transparent px-6 py-[4px] bg-[#f7f7f7]">
+        <div className="flex items-center justify-between mt-[10px]">
           <div className="flex items-center space-x-4">
             <Button
               size="sm"
               variant="light"
               onPress={onBack}
-              className="text-gray-500"
+              className="text-black rounded-[12px]"
               startContent={
-                <ChevronLeftIcon className="size-4 font-bold !text-black" />
+                <ChevronLeftIcon className="size-4 stroke-[2.5] text-black" />
               }
             >
               Back
@@ -78,6 +78,14 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
                     window.dispatchEvent(
                       new CustomEvent('closeMindmapOverlay'),
                     );
+                    // 关闭ChatDialog
+                    window.dispatchEvent(new CustomEvent('closeChatDialog'));
+                    // 触发mindmapOverlayState事件，将isMindmapOverlayOpen设置为false
+                    window.dispatchEvent(
+                      new CustomEvent('mindmapOverlayState', {
+                        detail: { open: false },
+                      }),
+                    );
                   }}
                   className={`duration-20 flex size-8 min-w-1 items-center justify-center rounded-md p-0 transition-colors hover:bg-[#EFEFEF]`}
                   style={{
@@ -91,8 +99,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
                   />
                 </Button>
               </Tooltip>
-            ) : null
-            }
+            ) : null}
           </div>
           <div className="flex items-center space-x-4">
             {/* 如果是 longform 模式，显示复制全文按钮 */}
@@ -103,7 +110,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
                 onPress={onCopyFullContent}
                 isLoading={isCopyingFullContent}
                 disabled={isCopyingFullContent || isGenerating}
-                className="bg-black/15"
+                className="bg-[#F0F0F0] rounded-[12px]"
               >
                 Copy
               </Button>
@@ -114,7 +121,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
               onPress={onPostToTwitter}
               isLoading={isPostingToTwitter}
               disabled={isPostingToTwitter || isGenerating}
-              className="bg-[#4285f4] text-white hover:bg-[#1991DB]"
+              className="bg-[#448AFF] text-white hover:bg-[#1991DB] rounded-[12px]"
             >
               {isPostingToTwitter ? 'Posting...' : 'Post'}
             </Button>
