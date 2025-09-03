@@ -19,12 +19,12 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
   return (
     <div
       className={cn(
-        'absolute left-0 top-[41px] bottom-[0] z-[45] flex w-1/2  flex-col gap-2.5',
-        'border-r border-black/10 bg-gray-50 p-[24px]',
+        'absolute left-0 top-[50px] bottom-[0] z-[45] flex flex-col gap-2.5',
+        'p-[24px] rounded-2xl bg-[#fcfcfc] rounded-2xl m-1.5 w-[calc(50%-8px)]',
       )}
     >
       {/* 头部 */}
-      <div className="mb-4 flex items-center justify-between">
+      {/* <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3"></div>
         <button
           onClick={onClose}
@@ -33,7 +33,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
         >
           <XMarkIcon className="size-5 text-gray-600" />
         </button>
-      </div>
+      </div> */}
 
       {/* 内容区域 */}
       <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
