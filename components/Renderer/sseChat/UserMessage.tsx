@@ -26,7 +26,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
           onPress={async () => {
             await copyTwitterContent(message.content);
           }}
-          className="size-5 min-w-10 rounded-lg p-0 hover:bg-[#f7f7f7]"
+          className="h-[20px] min-w-10 rounded-lg p-0 hover:bg-[#fcfcfc]"
         >
           <img src="/icons/copy.svg" alt="copy" className="size-5" />
         </Button>

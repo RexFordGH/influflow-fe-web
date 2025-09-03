@@ -20,7 +20,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     <div
       className={cn(
         'absolute left-0 top-[50px] bottom-[0] z-[45] flex flex-col gap-2.5',
-        'p-[24px] rounded-2xl bg-[#fcfcfc] rounded-2xl m-2 w-[calc(50%-16px)]',
+        'p-[24px] rounded-2xl bg-[#fcfcfc] rounded-2xl m-1.5 w-[calc(50%-8px)]',
       )}
     >
       {/* 头部 */}

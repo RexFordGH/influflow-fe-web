@@ -1008,7 +1008,7 @@ export function MindmapRenderer({
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         fitView
-        className="bg-gray-50 rounded-2xl bg-[#fcfcfc]"
+        className="rounded-2xl"
         nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}
@@ -1036,12 +1036,13 @@ export function MindmapRenderer({
           animated: false,
         }}
       >
-        <Controls
+        {/* 隐藏控制按钮 */}
+        {/* <Controls
           showZoom
           showFitView
           showInteractive={true}
           className="rounded-lg border border-gray-200 bg-white"
-        />
+        /> */}
 
         <Background gap={20} size={1} className="opacity-30" />
       </ReactFlow>
