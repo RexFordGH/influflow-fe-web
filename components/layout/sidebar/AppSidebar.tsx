@@ -1,9 +1,11 @@
 'use client';
 
 import { Button, cn, Image } from '@heroui/react';
+import * as Icon from '@phosphor-icons/react';
 import Link from 'next/link';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
+import { ReferralModal } from '@/components/referral';
 import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
@@ -34,7 +36,8 @@ export interface AppSidebarRef {
 export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
   ({ onItemClick, selectedId, collapsed = false, onToggleCollapse }, ref) => {
     const { user, isAuthenticated } = useAuthStore();
-    const [refreshing, setRefreshing] = useState(false);
+    const [showReferralModal, setShowReferralModal] = useState(false);
+    const [showRulesModal, setShowRulesModal] = useState(false);
 
     const { showLowCreditsBanner } = useSubscriptionStore();
 
@@ -83,21 +86,16 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
     };
 
     const handleRefresh = async () => {
-      setRefreshing(true);
-      try {
-        // 保存当前滚动位置
-        saveCurrentPosition();
+      // 保存当前滚动位置
+      saveCurrentPosition();
 
-        await refresh();
+      await refresh();
 
-        // 重置无限滚动状态
-        resetInfiniteScroll();
+      // 重置无限滚动状态
+      resetInfiniteScroll();
 
-        // 重置滚动位置（刷新后回到顶部）
-        resetScrollPosition();
-      } finally {
-        setRefreshing(false);
-      }
+      // 重置滚动位置（刷新后回到顶部）
+      resetScrollPosition();
     };
 
     // 暴露刷新方法给父组件
@@ -153,6 +151,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
               background:
                 'linear-gradient(90deg, #478afe 0%, #a392d1 50%, #fd999d 100%)',
             }}
+            onPress={() => setShowReferralModal(true)}
           >
             <div className="flex items-center gap-3">
               <Image
@@ -223,6 +222,12 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
             <span className="text-[14px]  text-black">Style</span>
           </Link>
         </div>
+
+        {/* Referral Modals */}
+        <ReferralModal
+          isOpen={showReferralModal}
+          onClose={() => setShowReferralModal(false)}
+        />
       </div>
     );
   },
