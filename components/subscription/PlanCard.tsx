@@ -10,6 +10,7 @@ interface PlanCardProps {
   priceUnit?: string;
   features: string[];
   isCurrentPlan?: boolean;
+  isDowngraded?: boolean;
   isMostPopular?: boolean;
   isRecommended?: boolean;
   highlighted?: boolean;
@@ -23,6 +24,7 @@ const PlanCard = ({
   priceUnit,
   features,
   isCurrentPlan = false,
+  isDowngraded = false,
   isMostPopular = false,
   isRecommended = false,
   highlighted = false,
@@ -35,7 +37,7 @@ const PlanCard = ({
     <motion.div
       whileHover={!isCurrentPlan ? { scale: 1.02, y: -5 } : {}}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`relative flex h-full flex-col rounded-[24px] bg-white p-10 transition-shadow ${
+      className={`relative min-w-[320px] flex h-full flex-col rounded-[24px] bg-white p-10 transition-shadow ${
         highlighted
           ? 'border border-black shadow-[0_0_15px_rgba(0,0,0,0.15)]'
           : 'hover:shadow-lg'
@@ -81,7 +83,7 @@ const PlanCard = ({
 
       {/* Action Button */}
       <div className="mb-6">
-        {isCurrentPlan ? (
+        {isCurrentPlan && !isDowngraded ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -92,18 +94,28 @@ const PlanCard = ({
             </span>
           </motion.div>
         ) : (
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{ opacity: 1 }}
+          >
             <Button
               onPress={onSwitch}
               isDisabled={isLoading}
               className={cn(
                 'h-[48px] w-full rounded-[16px] text-[16px] font-medium transition-all hover:shadow-md disabled:opacity-50 ',
-                isFreePlan
-                  ? 'bg-[#EFEFEF] border-none ext-[#8C8C8C]'
-                  : 'bg-black text-white hover:bg-gray-800',
+                isDowngraded
+                  ? 'bg-black text-white hover:bg-gray-800'
+                  : isFreePlan
+                    ? 'bg-[#EFEFEF] border-none text-[#8C8C8C]'
+                    : 'bg-black text-white hover:bg-gray-800',
               )}
             >
-              {isLoading ? 'Processing...' : 'Switch Plan'}
+              {isLoading
+                ? 'Processing...'
+                : isDowngraded
+                  ? 'Continue Subscription'
+                  : 'Switch Plan'}
             </Button>
           </motion.div>
         )}

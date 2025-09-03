@@ -54,13 +54,24 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     error: infoError,
     refetch: refetchSubscriptionInfo,
   } = useSubscriptionInfo();
-  const { data: creditRulesData, isLoading: isLoadingRules } = useCreditRules();
+  const {
+    data: creditRulesData,
+    isLoading: isLoadingRules,
+    refetch: refetchCreditRules,
+  } = useCreditRules();
   const { mutate: createCheckoutSession, isPending: isCreatingCheckout } =
     useCreateCheckoutSession();
   const { mutate: createBillingPortal, isPending: isCreatingPortal } =
     useCreateBillingPortal();
   const { mutate: updatePlan, isPending: isUpdatingPlan } =
     useUpdateSubscriptionPlan();
+
+  // 页面加载时刷新订阅信息，确保数据最新
+  useEffect(() => {
+    // 强制刷新订阅信息和积分规则
+    refetchSubscriptionInfo();
+    refetchCreditRules();
+  }, []); // 只在组件 mount 时执行
 
   // 检查 URL 参数中是否有 status 标记
   useEffect(() => {
@@ -247,6 +258,30 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     return plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
   };
 
+  // 判断是否降级
+  const getPlanLevel = (plan: PlanType): number => {
+    switch (plan) {
+      case 'free':
+        return 0;
+      case 'starter':
+        return 1;
+      case 'pro':
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  const isDowngraded = (targetPlan: PlanType): boolean => {
+    // 如果有 nextPlan 且 nextPlan 等级低于当前 plan，说明用户执行了降级
+    // 而当前显示的 targetPlan 是当前的 plan，则这个 plan card 应该显示 Continue Subscription
+    return (
+      nextPlan !== null &&
+      targetPlan === currentPlan &&
+      getPlanLevel(nextPlan) < getPlanLevel(currentPlan)
+    );
+  };
+
   const isLoading = isLoadingInfo || isLoadingRules;
   const isProcessing = isCreatingCheckout || isCreatingPortal || isUpdatingPlan;
 
@@ -347,8 +382,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             ) : (
               <>
                 <div className="mb-1 text-[32px] font-medium text-black">
-                  {credits.toLocaleString()} / {totalCredits.toLocaleString()}{' '}
-                  Credits
+                  {credits.toLocaleString()}
+                  <span className="text-[16px] text-[#8C8C8C]">
+                    / {totalCredits.toLocaleString()}
+                  </span>{' '}
                 </div>
                 {/* Progress Bar */}
                 <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
@@ -389,9 +426,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               </div>
               {nextPlan && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[16px] text-black">Next Plan:</span>
                   <span className="text-[16px] text-black">
-                    {getPlanDisplayName(nextPlan)} (scheduled)
+                    Plan for Next Billing Cycle:
+                  </span>
+                  <span className="text-[16px] text-black">
+                    {getPlanDisplayName(nextPlan)}
                   </span>
                 </div>
               )}
@@ -399,13 +438,15 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 <span className="text-[16px] text-black">
                   Subscription History:
                 </span>
-                <button
-                  onClick={handleViewInvoices}
-                  className="text-[16px] text-black underline transition-opacity hover:opacity-70 disabled:opacity-50"
-                  disabled={isProcessing || currentPlan === 'free'}
+                <Button
+                  onPress={handleViewInvoices}
+                  className="text-[16px] text-black bg-transparent px-0 hover:bg-transparent underline transition-opacity hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isProcessing || isCreatingPortal}
+                  isLoading={isCreatingPortal}
                 >
                   View Invoices
-                </button>
+                  {/* {isCreatingPortal ? 'Loading...' : 'View Invoices'} */}
+                </Button>
               </div>
             </div>
           </div>
@@ -434,6 +475,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Great for trying out and exploring',
               ]}
               isCurrentPlan={currentPlan === 'free'}
+              isDowngraded={isDowngraded('free')}
               onSwitch={() => handleSwitchPlan('free')}
               isLoading={processingPlan === 'free'}
             />
@@ -456,6 +498,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Perfect for regular creators',
               ]}
               isCurrentPlan={currentPlan === 'starter'}
+              isDowngraded={isDowngraded('starter')}
               isMostPopular={currentPlan === 'free'}
               onSwitch={() => handleSwitchPlan('starter')}
               highlighted={currentPlan === 'free'}
@@ -480,6 +523,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 'Best for professionals',
               ]}
               isCurrentPlan={currentPlan === 'pro'}
+              isDowngraded={isDowngraded('pro')}
               isRecommended={currentPlan === 'starter'}
               onSwitch={() => handleSwitchPlan('pro')}
               highlighted={currentPlan === 'starter'}
