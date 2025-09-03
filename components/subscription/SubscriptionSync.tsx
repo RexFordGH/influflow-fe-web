@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import { useSubscriptionInfo } from '@/lib/api/services';
+import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 /**
@@ -10,7 +11,8 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
  * 负责自动同步订阅信息到 store
  */
 export const SubscriptionSync = () => {
-  const { data: subscriptionInfo, refetch } = useSubscriptionInfo();
+  const { isAuthenticated } = useAuthStore();
+  const { data: subscriptionInfo, refetch } = useSubscriptionInfo(isAuthenticated);
   const { setSubscriptionInfo } = useSubscriptionStore();
 
   // 同步订阅信息到 store

@@ -440,7 +440,7 @@ export function useCreateBillingPortal() {
 }
 
 // 获取用户订阅信息
-export function useSubscriptionInfo() {
+export function useSubscriptionInfo(enabled: boolean = true) {
   return useQuery({
     queryKey: ['subscription', 'info'],
     queryFn: () => apiGet<ISubscriptionInfo>('/api/subscription/info'),
@@ -448,6 +448,7 @@ export function useSubscriptionInfo() {
     gcTime: 10 * 60 * 1000, // 10分钟缓存
     refetchOnWindowFocus: true, // 窗口聚焦时重新获取，确保订阅状态最新
     retry: 3,
+    enabled, // 只在 enabled 为 true 时执行查询
   });
 }
 
