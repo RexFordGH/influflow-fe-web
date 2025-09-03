@@ -53,7 +53,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     isLoading: isLoadingInfo,
     error: infoError,
     refetch: refetchSubscriptionInfo,
-  } = useSubscriptionInfo();
+  } = useSubscriptionInfo(isAuthenticated);
   const {
     data: creditRulesData,
     isLoading: isLoadingRules,
