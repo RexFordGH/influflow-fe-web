@@ -52,7 +52,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
     }, []);
 
     return (
-      <div className="shrink-0 border-b border-transparent bg-[#f7f7f7] py-3">
+      <div className="shrink-0 bg-[#f7f7f7] py-3">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center ml-3">
             <Button
