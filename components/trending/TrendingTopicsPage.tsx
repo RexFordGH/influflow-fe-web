@@ -168,7 +168,7 @@ export function TrendingTopicsPage({
     data: trendingData,
     isLoading,
     error,
-  } = useTrendingTopics(isVisible ? selectedCategory : '');
+  } = useTrendingTopics(selectedCategory);
 
   const trendingTopics = trendingData?.trending_topics || [];
   const suggestedTopics = trendingData?.suggested_topics || [];
