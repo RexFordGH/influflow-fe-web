@@ -299,12 +299,30 @@ export default function FreeConversation({
     // 保持消息状态，这样重新打开时不会重新加载历史
   }, [setIsOpen]);
 
+  // 监听来自ArticleToolbar的关闭事件
+  useEffect(() => {
+    const handler = () => {
+      handleClose();
+    };
+    window.addEventListener('closeChatDialog', handler as EventListener);
+    return () =>
+      window.removeEventListener('closeChatDialog', handler as EventListener);
+  }, [handleClose]);
+
   return (
     <>
       {/* 触发按钮 */}
       <div className="fixed bottom-6 left-0 z-40 flex w-1/2 justify-center">
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            // 触发mindmapOverlayState事件，将isMindmapOverlayOpen设置为true
+            window.dispatchEvent(
+              new CustomEvent('mindmapOverlayState', {
+                detail: { open: true }
+              })
+            );
+          }}
           className={cn(
             'flex items-center justify-between gap-[10px]',
             'h-[40px]',
@@ -316,9 +334,10 @@ export default function FreeConversation({
             'hover:shadow-[0_0_16px_rgba(68,138,255,0.25)]',
             'focus:outline-none focus:ring-2 focus:ring-[rgb(68,138,255)] focus:ring-offset-2',
           )}
+          style={{ width: '600px' }}
         >
           <span className="text-[#8C8C8C] text-[13px] font-poppins">
-            Chat to edit the content
+            How would you like to improve this content?
           </span>
           <Image
             src="/icons/send.svg"

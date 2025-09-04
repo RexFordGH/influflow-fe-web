@@ -78,7 +78,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className={inputClasses.container}>
+    <div className={inputClasses.container} style={{
+      height: '120px',
+    }}>
       <div className={inputClasses.textareaWrapper}>
         <textarea
           value={message}
@@ -98,13 +100,26 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           disabled={disabled || !message.trim()}
           className={inputClasses.sendButton}
           aria-label="发送消息"
+          // 按钮基于父元素居中
+          style={{
+            position: 'absolute',
+            bottom: '33px',
+            right: '50px',
+          }}
         >
-          <PaperAirplaneIcon className="size-5 text-white" />
+          {/* <PaperAirplaneIcon className="size-5 text-white" /> */}
+          <img
+            src="/icons/send.svg"
+            alt="发送"
+            width={40}
+            height={40}
+            className="pointer-events-none"
+          />
         </button>
       </div>
-      <div className={inputClasses.characterCount}>
+      {/* <div className={inputClasses.characterCount}>
         {characterCount} / {maxLength}
-      </div>
+      </div> */}
     </div>
   );
 };
