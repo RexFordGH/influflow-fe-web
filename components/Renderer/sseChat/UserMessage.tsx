@@ -36,7 +36,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
       <div
         className={cn(
           'p-[12px] rounded-lg max-w-[400px]',
-          'bg-[#EFEFEF] text-black text-left',
+          'bg-[#EFEFEF] text-black text-left rounded-[12px]',
         )}
       >
         <div className="break-all text-[14px]">{message.content}</div>
