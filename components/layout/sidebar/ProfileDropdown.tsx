@@ -44,12 +44,10 @@ export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
       isOpen={isOpen}
       onOpenChange={setIsOpen}
       placement="bottom-start"
-      classNames={{
-        content: 'min-w-[226px] p-0',
-      }}
+
     >
       <DropdownTrigger>
-        <div className="flex cursor-pointer items-center justify-between rounded-[12px] px-[12px] py-[8px] transition-colors hover:bg-[#EFEFEF]">
+        <div className="flex cursor-pointer items-center justify-between rounded-[8px] px-[8px] py-[4px] transition-colors">
           <div className="flex items-center gap-2">
             {user?.avatar ? (
               <Image
@@ -72,18 +70,19 @@ export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
               style={{
                 fontFamily: 'Poppins, sans-serif',
                 fontSize: '14px',
-                fontWeight: 400,
+                fontWeight: 450,
                 color: '#000000',
+                
               }}
             >
               {user?.name || 'Influxy User'}
             </span>
           </div>
-          <Image
+          {/* <Image
             src={'/icons/lsicon_down-outline.svg'}
             width={16}
             height={16}
-          />
+          /> */}
         </div>
       </DropdownTrigger>
 
