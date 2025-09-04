@@ -52,9 +52,9 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
     }, []);
 
     return (
-      <div className="shrink-0 border-b border-transparent px-6 py-[4px] bg-[#f7f7f7]">
-        <div className="flex items-center justify-between mt-[10px]">
-          <div className="flex items-center space-x-4">
+      <div className="shrink-0 border-b border-transparent bg-[#f7f7f7] py-3">
+        <div className="flex items-center justify-between h-full">
+          <div className="flex items-center ml-3">
             <Button
               size="sm"
               variant="light"
@@ -101,7 +101,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
               </Tooltip>
             ) : null}
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 mr-3">
             {/* 如果是 longform 模式，显示复制全文按钮 */}
             {isLongformType(contentFormat) && (
               <Button
