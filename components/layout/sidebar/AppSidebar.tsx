@@ -151,7 +151,6 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
               background:
                 'linear-gradient(90deg, #478afe 0%, #a392d1 50%, #fd999d 100%)',
             }}
-            onPress={() => setShowReferralModal(true)}
           >
             <div className="flex items-center gap-3">
               <Image

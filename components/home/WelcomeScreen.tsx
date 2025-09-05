@@ -421,7 +421,7 @@ export const WelcomeScreen = ({
                   e.stopPropagation();
                 }}
                 onInput={adjustTextareaHeight}
-                className="w-full resize-none rounded-2xl p-4 pb-[45px] pr-12 text-gray-700  placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                className="w-full resize-none rounded-2xl p-4 pb-[58px] pr-12 text-gray-700  placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 style={{
                   minHeight: '120px',
                   maxHeight: '300px',
@@ -430,7 +430,7 @@ export const WelcomeScreen = ({
 
               />
               {/* Content Format Dropdown */}
-              <div className="absolute bottom-[7px] flex items-center justify-start gap-[4px] rounded-2xl bg-white pb-3 pt-1 pl-3 pr-[300px]" >
+              <div className="absolute bottom-[7px] left-0 right-0 flex items-center justify-start gap-[4px] rounded-b-2xl py-3 pl-3 bg-white" >
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
                     <Button
@@ -530,7 +530,7 @@ export const WelcomeScreen = ({
               <Button
                 isIconOnly
                 color="primary"
-                className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
+                className="absolute bottom-[12px] mb-[3px] right-[12px] size-[40px] min-w-0 rounded-full"
                 onPress={handleTopicSubmit}
                 disabled={!topicInput.trim()}
               >
