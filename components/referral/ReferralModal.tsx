@@ -170,7 +170,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                       Invite to Earn
                     </h2>
                     <p className="font-poppins text-[14px] font-normal leading-[21px] text-[rgb(140,140,140)]">
-                      Earn 50 credits for every friend you invite.
+                      Earn 30 credits for every friend you invite.
                     </p>
                   </div>
                   <Button
