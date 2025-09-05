@@ -164,8 +164,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 className="flex flex-col gap-10 p-8"
               >
                 {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 text-center">
+                <div className="relative">
+                  <div className="w-full text-center">
                     <h2 className="font-poppins text-[28px] font-semibold leading-[42px] text-black">
                       Invite to Earn
                     </h2>
@@ -173,15 +173,17 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                       Earn 30 credits for every friend you invite.
                     </p>
                   </div>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={onClose}
-                    className="size-8 min-w-8"
-                  >
-                    <Icon.X size={24} />
-                  </Button>
+                  <div className="absolute top-0 right-0">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={onClose}
+                      className="size-8 min-w-8"
+                    >
+                      <Icon.X size={24} />
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Share Link Section */}
