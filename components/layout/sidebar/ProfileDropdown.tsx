@@ -19,6 +19,11 @@ interface ProfileDropdownProps {
 
 export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
   const { user, logout } = useAuthStore();
+  //如果user.name长度大于15，则截取前15个字符
+  if (user?.name && user.name.length > 15) {
+    user.name = user.name.slice(0, 15) + '...';
+  }
+  
   const { credits } = useSubscriptionStore();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -44,10 +49,9 @@ export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
       isOpen={isOpen}
       onOpenChange={setIsOpen}
       placement="bottom-start"
-
     >
       <DropdownTrigger>
-        <div className="flex cursor-pointer items-center justify-between rounded-[8px] px-[8px] py-[4px] transition-colors">
+        <div className="flex cursor-pointer items-center justify-between rounded-[8px] px-[8px] py-[4px] transition-colors hover:bg-[#c1c1c1] h-[37px]">
           <div className="flex items-center gap-2">
             {user?.avatar ? (
               <Image
@@ -78,11 +82,13 @@ export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
               {user?.name || 'Influxy User'}
             </span>
           </div>
-          {/* <Image
+          <Image
             src={'/icons/lsicon_down-outline.svg'}
             width={16}
             height={16}
-          /> */}
+            className="transition-transform"
+            style={{ transform: isOpen ? 'rotate(-180deg)' : 'rotate(-90deg)' }}
+          />
         </div>
       </DropdownTrigger>
 
