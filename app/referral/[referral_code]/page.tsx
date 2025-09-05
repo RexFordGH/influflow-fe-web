@@ -60,7 +60,7 @@ export default function ReferralLandingPage() {
     setError('');
 
     const next = '/';
-    const redirectTo = `${window.location.origin}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
+    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',

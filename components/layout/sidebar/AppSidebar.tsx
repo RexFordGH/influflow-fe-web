@@ -120,9 +120,9 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         )}
       >
         <div className="p-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between h-[40px]">
             {/* <ProfileDropdown collapsed={collapsed} /> */}
-            <Image src={'/icons/influxy.svg'} width={105} height={29} />
+            <Image src={'/images/logo.png'} width={82} height={24} />
             {/* 收起按钮 */}
             {onToggleCollapse && (
               <Button
