@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@/lib/utils";
+import { cn } from '@heroui/react';
 import { useEffect, useRef, useState } from "react";
 
 export const BackgroundGradientAnimation = ({
@@ -11,7 +11,7 @@ export const BackgroundGradientAnimation = ({
   fourthColor = "33, 188, 255",
   fifthColor = "255, 153, 156",
   pointerColor = "255, 153, 156",
-  size = "60%",
+  size = "55%",
   blendingValue = "hard-light",
   children,
   className,
@@ -67,6 +67,7 @@ export const BackgroundGradientAnimation = ({
       if (!interactiveRef.current) {
         return;
       }
+      
       
       // 使用 ref 来避免状态更新导致的无限循环
       curXRef.current = curXRef.current + (tgX - curXRef.current) / 20;
@@ -180,7 +181,7 @@ export const BackgroundGradientAnimation = ({
           className={cn(
             `absolute [background:radial-gradient(circle_at_center,_rgba(var(--second-color),_0.8)_0,_rgba(var(--second-color),_0)_50%)_no-repeat]`,
             `[mix-blend-mode:var(--blending-value)] w-[var(--size)] h-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
-            `[transform-origin:calc(50%-400px)]`,
+            `[transform-origin:calc(50%-200px)]`,
             `animate-second`,
             `opacity-100`
           )}
@@ -189,7 +190,7 @@ export const BackgroundGradientAnimation = ({
           className={cn(
             `absolute [background:radial-gradient(circle_at_center,_rgba(var(--third-color),_0.8)_0,_rgba(var(--third-color),_0)_50%)_no-repeat]`,
             `[mix-blend-mode:var(--blending-value)] w-[var(--size)] h-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
-            `[transform-origin:calc(50%+400px)]`,
+            `[transform-origin:calc(50%+200px)]`,
             `animate-third`,
             `opacity-100`
           )}
@@ -207,7 +208,7 @@ export const BackgroundGradientAnimation = ({
           className={cn(
             `absolute [background:radial-gradient(circle_at_center,_rgba(var(--fifth-color),_0.8)_0,_rgba(var(--fifth-color),_0)_50%)_no-repeat]`,
             `[mix-blend-mode:var(--blending-value)] w-[var(--size)] h-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
-            `[transform-origin:calc(50%-800px)_calc(50%+800px)]`,
+            `[transform-origin:calc(50%-80px)_calc(50%+80px)]`,
             `animate-fifth`,
             `opacity-100`
           )}
