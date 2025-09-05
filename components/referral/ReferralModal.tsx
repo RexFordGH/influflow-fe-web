@@ -10,6 +10,7 @@ import {
 } from '@heroui/react';
 import * as Icon from '@phosphor-icons/react';
 import { AnimatePresence, motion } from 'framer-motion';
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
 import { addToast } from '@/components/base/toast';
@@ -19,15 +20,14 @@ import {
   useClaimReferralCredits,
   useReferralInfo,
 } from '@/lib/api/referral';
-import { useQueryClient } from '@tanstack/react-query';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { useQueryClient } from '@tanstack/react-query';
 import { ReferralRules } from './ReferralRules';
 
 interface ReferralModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
 
 export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   const [showRules, setShowRules] = useState(false);
@@ -37,7 +37,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
 
   // 使用新的 hooks
   const { data: info, isLoading: loading } = useReferralInfo();
-  const { mutateAsync: claimCreditsAsync, isPending: claiming } = useClaimReferralCredits();
+  const { mutateAsync: claimCreditsAsync, isPending: claiming } =
+    useClaimReferralCredits();
 
   const referralLink = useMemo(() => {
     const origin =
@@ -73,7 +74,10 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
 
     try {
       await navigator.clipboard.writeText(url);
-      addToast({ title: 'Referral link copied to clipboard', color: 'success' });
+      addToast({
+        title: 'Referral link copied to clipboard',
+        color: 'success',
+      });
       setIsCopied(true);
       // Reset after 3 seconds
       setTimeout(() => {
@@ -81,7 +85,10 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
       }, 3000);
     } catch (err) {
       console.error('Failed to copy:', err);
-      addToast({ title: 'Failed to copy, please copy manually', color: 'danger' });
+      addToast({
+        title: 'Failed to copy, please copy manually',
+        color: 'danger',
+      });
     }
   };
 
@@ -98,12 +105,17 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
         });
 
         // Refresh referral info by invalidating the query
-        await queryClient.invalidateQueries({ queryKey: REFERRAL_QUERY_KEYS.REFERRAL_INFO });
+        await queryClient.invalidateQueries({
+          queryKey: REFERRAL_QUERY_KEYS.REFERRAL_INFO,
+        });
 
         // Refresh subscription info to update credits display
         await refreshSubscriptionInfo();
       } else {
-        addToast({ title: 'Failed to claim, please try again later', color: 'danger' });
+        addToast({
+          title: 'Failed to claim, please try again later',
+          color: 'danger',
+        });
       }
     } catch (err) {
       console.error('Failed to claim credits:', err);
@@ -119,10 +131,12 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
     } else if (safeInfo.promoter_portal) {
       window.open(safeInfo.promoter_portal, '_blank');
     } else {
-      addToast({ title: 'No commission management link available', color: 'danger' });
+      addToast({
+        title: 'No commission management link available',
+        color: 'danger',
+      });
     }
   };
-
 
   return (
     <Modal
@@ -180,6 +194,13 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                       <Skeleton className="h-12 flex-1 rounded-[12px]" />
                     ) : (
                       <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-[rgb(227,227,227)] bg-[rgb(248,248,248)] px-4 py-3">
+                        <Image
+                          src="/icons/UrlLink.svg"
+                          alt="Link"
+                          width={20}
+                          height={20}
+                          className="shrink-0"
+                        />
                         <span className="flex-1 font-poppins text-[16px] font-medium leading-6 text-black">
                           {referralLink}
                         </span>
@@ -232,9 +253,12 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         </div>
                         <div className="flex flex-col items-center gap-1">
                           <div className="flex items-center gap-1.5">
-                            <Icon.Users
-                              size={20}
-                              className="text-[rgb(140,140,140)]"
+                            <Image
+                              src="/icons/Users.svg"
+                              alt="Users"
+                              width={20}
+                              height={20}
+                              className="opacity-60"
                             />
                             <span className="font-poppins text-[14px] font-normal text-[rgb(140,140,140)]">
                               Total Invites
@@ -254,8 +278,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                   </div>
 
                   {/* Credits */}
-                  <div className="flex w-[152px] flex-col gap-2">
-                    <div className="flex flex-col items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
+                  <div className="flex w-[152px] flex-col gap-2 justify-between">
+                    <div className="flex flex-col h-[120px] items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
                       {loading ? (
                         <>
                           <Skeleton className="h-8 w-16 rounded-lg" />
@@ -267,10 +291,12 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                             {safeInfo.referral_credits}
                           </div>
                           <div className="flex items-center gap-1">
-                            <Icon.Star
-                              size={18}
-                              weight="duotone"
-                              className="text-[rgb(140,140,140)]"
+                            <Image
+                              src="/icons/streamline_star-2-remix.svg"
+                              alt="Credits"
+                              width={18}
+                              height={18}
+                              className="opacity-60"
                             />
                             <span className="font-poppins text-[14px] font-normal text-[rgb(140,140,140)]">
                               Credits
@@ -297,7 +323,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
 
                   {/* Commission */}
                   <div className="flex w-[152px] flex-col gap-2">
-                    <div className="flex flex-col items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
+                    <div className="flex flex-col h-[120px] items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
                       {loading ? (
                         <>
                           <Skeleton className="h-8 w-16 rounded-lg" />
@@ -309,9 +335,12 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                             ${safeInfo.revenue}
                           </div>
                           <div className="flex items-center gap-1">
-                            <Icon.CurrencyDollar
-                              size={18}
-                              className="text-[rgb(140,140,140)]"
+                            <Image
+                              src="/icons/solar_hand-money-linear.svg"
+                              alt="Commission"
+                              width={18}
+                              height={18}
+                              className="opacity-60"
                             />
                             <span className="font-poppins text-[14px] font-normal text-[rgb(140,140,140)]">
                               Commission
@@ -326,7 +355,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                       onPress={handleCommissionClaim}
                       isDisabled={
                         loading ||
-                        (!safeInfo.setup_password_link && !safeInfo.promoter_portal) ||
+                        (!safeInfo.setup_password_link &&
+                          !safeInfo.promoter_portal) ||
                         safeInfo.revenue === 0
                       }
                     >
@@ -345,7 +375,11 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                   </button>
                   {!loading && (
                     <Link
-                      href={safeInfo.setup_password_link || safeInfo.promoter_portal || '#'}
+                      href={
+                        safeInfo.setup_password_link ||
+                        safeInfo.promoter_portal ||
+                        '#'
+                      }
                       target="_blank"
                       className="font-poppins text-[14px] font-normal cursor-pointer underline text-[rgb(140,140,140)] hover:text-black"
                     >

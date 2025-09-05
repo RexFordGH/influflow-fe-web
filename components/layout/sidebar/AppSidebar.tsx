@@ -114,15 +114,15 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
     return (
       <div
         className={cn(
-          'fixed left-0 z-10 flex h-screen w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] transition-transform duration-300',
+          'fixed left-0 z-10 flex h-screen w-[320px] flex-col border-gray-200 bg-[#FAFAFA] transition-transform duration-300',
           showLowCreditsBanner ? 'pt-[36px]' : '',
           collapsed ? '-translate-x-full' : 'translate-x-0',
         )}
       >
-        <div className="p-4">
+        <div className="p-3">
           <div className="flex items-center justify-between">
-            <ProfileDropdown collapsed={collapsed} />
-
+            {/* <ProfileDropdown collapsed={collapsed} /> */}
+            <Image src={'/icons/influxy.svg'} width={105} height={29} />
             {/* 收起按钮 */}
             {onToggleCollapse && (
               <Button
@@ -143,12 +143,36 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
           </div>
         </div>
 
+        <div className="px-3 pb-3">
+          {/*Invite to Earn*/}
+          <Button
+            className="w-full h-[37px] rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 border-none shadow-lg hover:shadow-xl transition-all duration-300"
+            style={{
+              background:
+                'linear-gradient(90deg, #478afe 0%, #a392d1 50%, #fd999d 100%)',
+            }}
+            onPress={() => setShowReferralModal(true)}
+          >
+            <div className="flex items-center gap-3">
+              <Image
+                src={'/icons/add_account.svg'}
+                width={20}
+                height={20}
+                className="filter brightness-0 invert"
+              />
+              <span className="text-[14px] font-medium leading-[21px] text-white">
+                Invite to Earn
+              </span>
+            </div>
+          </Button>
+        </div>
+
         <div
           ref={scrollContainerRef}
-          className="relative flex-1 overflow-y-auto"
+          className="relative flex-1 overflow-y-auto scrollbar-hide"
           id="sidebar-scroll-container"
         >
-          <div className="p-4">
+          <div className="ml-3 mr-3">
             {/* 内容区域 */}
             {isInitialLoading ? (
               <LoadingIndicator type="initial" itemCount={10} />
@@ -181,21 +205,13 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
           </div>
         </div>
 
-        <div className="flex w-full flex-col gap-2 px-[24px] py-[12px]">
-          <button
-            onClick={() => setShowReferralModal(true)}
-            className="flex items-center justify-center gap-[10px] rounded-[12px] bg-black px-[12px] py-[8px] hover:bg-[#c1c1c1]"
-          >
-            <Icon.Gift size={16} className="text-white" />
-            <span className="text-[14px] leading-[21px] text-white">
-              Invite to Earn
-            </span>
-          </button>
+        <div className="w-full px-[12px] flex items-center justify-between h-[61px]">
+          <ProfileDropdown collapsed={collapsed} />
 
           <Link
             id="customize-my-style"
             href="/profile"
-            className="flex items-center justify-center gap-[10px] rounded-[12px] bg-[#EFEFEF] px-[12px] py-[8px] hover:bg-[#c1c1c1]"
+            className="flex items-center justify-center gap-[10px] rounded-[12px] bg-[#f0f0f0] hover:bg-[#c1c1c1] w-[84px] h-[37px]"
           >
             <Image
               src="/icons/enhancement.svg"
@@ -203,9 +219,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
               height={16}
               className="rounded-none"
             />
-            <span className="text-[14px] leading-[21px] text-black">
-              Customize My Style
-            </span>
+            <span className="text-[14px]  text-black">Style</span>
           </Link>
         </div>
 

@@ -34,6 +34,7 @@ import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
 import { goToStepAfterStableSameAnchor } from '@/utils/tutorial';
+import { BackgroundGradientAnimation } from '../ui/background-gradient-animation';
 
 const TrendingTopicsPage = lazy(() =>
   import('@/components/trending/TrendingTopicsPage').then((module) => ({
@@ -58,7 +59,7 @@ interface WelcomeScreenProps {
 }
 
 const ContentFormatOptions = [
-  { key: 'longform', label: 'Long-form Tweet', icon: '≣' },
+  { key: 'longform', label: 'Long-form Threads', icon: '≣' },
   { key: 'thread', label: 'Threads', icon: '≡' },
   { key: 'deep_research', label: 'Deep Research', icon: '≡' },
 ];
@@ -385,13 +386,17 @@ export const WelcomeScreen = ({
         {/* 首页 Section */}
         <motion.div
           ref={homepageRef}
-          className="flex min-h-screen items-center justify-center bg-white"
+          className="flex min-h-[94vh] items-center justify-center rounded-[20px] mx-3 my-3 overflow-hidden relative"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
+          <BackgroundGradientAnimation 
+            containerClassName="absolute inset-0 -z-10 h-full w-full"
+            interactive={true}
+          />
           <div className="relative flex flex-col px-[24px] text-center">
-            <h2 className="text-[24px] font-[600] text-black">
+            <h2 className="text-[24px] font-[400] text-black">
               Hey {isAuthenticated ? user?.name || 'there' : 'there'}, what
               would you like to write about today?
             </h2>
@@ -416,21 +421,22 @@ export const WelcomeScreen = ({
                   e.stopPropagation();
                 }}
                 onInput={adjustTextareaHeight}
-                className="w-full resize-none rounded-2xl border border-gray-200 p-4 pb-[40px] pr-12 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
+                className="w-full resize-none rounded-2xl p-4 pb-[58px] pr-12 text-gray-700  placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"
                 style={{
-                  minHeight: '100px',
+                  minHeight: '120px',
                   maxHeight: '300px',
+                  height: '120px',
                 }}
-                rows={4}
+
               />
               {/* Content Format Dropdown */}
-              <div className="absolute bottom-[12px] left-[12px] flex items-center justify-start gap-[4px]">
+              <div className="absolute bottom-[7px] left-0 right-0 flex items-center justify-start gap-[4px] rounded-b-2xl py-3 pl-3 bg-white" >
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
                     <Button
                       size="sm"
                       variant="flat"
-                      className="min-w-[100px] rounded-full border-none bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50"
+                      className="min-w-[100px] rounded-full border border-gray-200 bg-transparent px-[10px] py-[4px] mr-[6px] text-gray-700 backdrop-blur-sm hover:bg-gray-50"
                       endContent={
                         <svg
                           className="ml-1 size-3 opacity-60"
@@ -478,7 +484,7 @@ export const WelcomeScreen = ({
                         size="sm"
                         variant="flat"
                         className={cn(
-                          'min-w-[100px] rounded-full border-none bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50',
+                          'min-w-[100px] rounded-full border border-gray-200 bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50',
                         )}
                         endContent={
                           <svg
@@ -524,7 +530,7 @@ export const WelcomeScreen = ({
               <Button
                 isIconOnly
                 color="primary"
-                className="absolute bottom-[12px] right-[12px] size-[40px] min-w-0 rounded-full"
+                className="absolute bottom-[12px] mb-[3px] right-[12px] size-[40px] min-w-0 rounded-full"
                 onPress={handleTopicSubmit}
                 disabled={!topicInput.trim()}
               >
@@ -582,21 +588,20 @@ export const WelcomeScreen = ({
               </div>
             )}
           </div>
-          <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
+          {/* <div className="absolute inset-x-0 bottom-[55px] flex justify-center">
             <div className="flex flex-col items-center">
               <ScrollHint scrollY={scrollY} />
             </div>
-          </div>
+          </div> */}
         </motion.div>
 
         {/* Trending Topics Section */}
         <motion.div
           ref={trendingRef}
-          className="min-h-screen w-full"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          className="flex min-h-screen items-center justify-center bg-white rounded-[20px] mx-3 my-3 overflow-hidden relative"
+          initial={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          viewport={{ once: true, margin: '-100px' }}
         >
           <Suspense fallback={<TrendingTopicsLoader />}>
             <TrendingTopicsPage

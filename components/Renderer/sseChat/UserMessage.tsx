@@ -1,8 +1,9 @@
 'use client';
 
-import { cn } from '@heroui/react';
+import { Button, cn, Tooltip } from '@heroui/react';
 
 import type { ChatMessage } from '@/types/agent-chat';
+import { copyTwitterContent } from '@/utils/twitter';
 
 interface UserMessageProps {
   message: ChatMessage;
@@ -10,12 +11,32 @@ interface UserMessageProps {
 
 export const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
   return (
-    <div className="mb-6 flex justify-end w-full">
+    <div className="mb-6 flex justify-end items-end w-full">
+      {/*复制按钮*/}
+      <Tooltip
+        content="Copy"
+        showArrow={true}
+        placement="top"
+        color="foreground"
+      >
+        <Button
+          size="sm"
+          color="primary"
+          variant="solid"
+          onPress={async () => {
+            await copyTwitterContent(message.content);
+          }}
+          className="h-[20px] min-w-10 rounded-lg p-0 hover:bg-[#fcfcfc]"
+        >
+          <img src="/icons/copy.svg" alt="copy" className="size-5" />
+        </Button>
+      </Tooltip>
+      
       {/* 消息内容 */}
       <div
         className={cn(
           'p-[12px] rounded-lg max-w-[400px]',
-          'bg-[#EFEFEF] text-black text-left',
+          'bg-[#EFEFEF] text-black text-left rounded-[12px]',
         )}
       >
         <div className="break-all text-[14px]">{message.content}</div>
