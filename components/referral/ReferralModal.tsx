@@ -159,8 +159,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 key="main"
                 initial={{ x: 0, opacity: 1 }}
                 animate={{ x: 0, opacity: 1 }}
-                exit={{ x: '-100%', opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                exit={{ opacity: 0 }}
+                // transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="flex flex-col gap-10 p-8"
               >
                 {/* Header */}
@@ -394,7 +394,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 initial={{ x: '100%', opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: '100%', opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="flex flex-col gap-6 p-8"
               >
                 {/* Rules Header */}
