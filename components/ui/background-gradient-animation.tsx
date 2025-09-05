@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from 'react';
 export const BackgroundGradientAnimation = ({
   gradientBackgroundStart = 'rgb(255, 255, 255)',
   gradientBackgroundEnd = 'rgb(255, 255, 255)',
-  firstColor = '22, 104, 245',
-  secondColor = '22, 104, 245',
-  thirdColor = '33, 188, 255',
-  fourthColor = '33, 188, 255',
-  fifthColor = '255, 153, 156',
-  pointerColor = '255, 153, 156',
-  size = '60%',
+  firstColor = '68, 138, 255',
+  secondColor = '68, 138, 255',
+  thirdColor = '255, 153, 156',
+  fourthColor = '255, 153, 156',
+  fifthColor = '255, 160, 64',
+  pointerColor = '68, 138, 255',
+  size = '55%',
   blendingValue = 'hard-light',
   children,
   className,
@@ -170,7 +170,7 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             `absolute [background:radial-gradient(circle_at_center,_var(--first-color)_0,_var(--first-color)_50%)_no-repeat]`,
-            `[mix-blend-mode:var(--blending-value)] w-[var(--size)] h-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
+            `[mix-blend-mode:var(--blending-value)] w-[750px] h-[750px] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
             `[transform-origin:center_center]`,
             `animate-first`,
             `opacity-100`,
@@ -179,8 +179,8 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             `absolute [background:radial-gradient(circle_at_center,_rgba(var(--second-color),_0.8)_0,_rgba(var(--second-color),_0)_50%)_no-repeat]`,
-            `[mix-blend-mode:var(--blending-value)] w-[var(--size)] h-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(55%-var(--size)/2)]`,
-            `[transform-origin:calc(45%-90px)]`,
+            `[mix-blend-mode:var(--blending-value)] w-[750px] h-[750px] top-[calc(50%-325)] left-[calc(55%-var(--size)/2)]`,
+            `[transform-origin:calc(50%-90px)]`,
             `animate-second`,
             `opacity-100`,
           )}
