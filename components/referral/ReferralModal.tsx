@@ -193,7 +193,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                     {loading ? (
                       <Skeleton className="h-12 flex-1 rounded-[12px]" />
                     ) : (
-                      <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-[rgb(227,227,227)] bg-[rgb(248,248,248)] px-4 py-3">
+                      <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-[#E3E3E3] bg-[rgb(248,248,248)] px-4 py-3">
                         <Image
                           src="/icons/UrlLink.svg"
                           alt="Link"
