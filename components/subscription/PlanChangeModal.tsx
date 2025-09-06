@@ -99,7 +99,7 @@ export default function PlanChangeModal({
     if (isCancellingScheduledChange && nextPlan) {
       // 取消预定的套餐变更
       const nextPlanInfo = PLAN_CONFIG[nextPlan];
-      return `You are about to cancel your scheduled plan change to ${nextPlanInfo.name}. You will remain on your current ${currentPlanInfo.name} plan.`;
+      return `You are about to cancel your scheduled plan change to ${nextPlanInfo.name}. You will remain on your current ${currentPlanInfo.name}.`;
     }
 
     if (currentPlan === 'free' && targetPlan !== 'free') {
