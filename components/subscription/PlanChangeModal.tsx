@@ -220,7 +220,7 @@ export default function PlanChangeModal({
               >
                 <Button
                   size="lg"
-                  className="h-12 w-[200px] rounded-full bg-[#448AFF] font-medium text-white "
+                  className="h-12 min-w-[200px] rounded-full bg-[#448AFF] font-medium text-white "
                   onPress={onConfirm}
                   isLoading={isLoading}
                   disabled={isLoading}
