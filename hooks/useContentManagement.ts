@@ -5,6 +5,7 @@ import {
   convertThreadDataToMindmap,
 } from '@/lib/data/converters';
 import { createClient } from '@/lib/supabase/client';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import {
   GeneratedContent,
   MindmapEdgeData,
@@ -53,6 +54,8 @@ export function useContentManagement({
 }: UseContentManagementProps): UseContentManagementReturn {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [loadingTweetId, setLoadingTweetId] = useState<string | null>(null);
+
+  const { refreshSubscriptionInfo } = useSubscriptionStore();
 
   const modifyOutlineMutation = useModifyOutline();
 
@@ -233,6 +236,7 @@ export function useContentManagement({
     } catch (error) {
       console.error('Regenerate 失败:', error);
     } finally {
+      refreshSubscriptionInfo();
       setIsRegenerating(false);
     }
   }, [
@@ -242,6 +246,7 @@ export function useContentManagement({
     saveToSupabase,
     updateLocalState,
     onDataUpdate,
+    refreshSubscriptionInfo,
   ]);
 
   // 处理推文内容修改
