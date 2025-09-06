@@ -11,6 +11,7 @@ import {
 import { motion } from 'framer-motion';
 
 import { PlanType } from '@/lib/api/services';
+import { CreditMap, PlanLabelMap, PriceMap } from './constants';
 
 interface PlanChangeModalProps {
   isOpen: boolean;
@@ -26,21 +27,21 @@ interface PlanChangeModalProps {
 // 套餐信息配置
 const PLAN_CONFIG = {
   free: {
-    name: 'Free Plan',
-    price: 0,
-    credits: 50,
+    name: PlanLabelMap.free,
+    price: PriceMap.free,
+    credits: CreditMap.free,
     color: 'rgb(0, 0, 0)',
   },
   starter: {
-    name: 'Starter Plan',
-    price: 29,
-    credits: 1000,
+    name: PlanLabelMap.starter,
+    price: PriceMap.starter,
+    credits: CreditMap.starter,
     color: 'rgb(68, 138, 255)',
   },
   pro: {
-    name: 'Pro Plan',
-    price: 59,
-    credits: 6000,
+    name: PlanLabelMap.pro,
+    price: PriceMap.pro,
+    credits: CreditMap.pro,
     color: 'rgb(101, 99, 255)',
   },
 };
@@ -98,7 +99,7 @@ export default function PlanChangeModal({
     if (isCancellingScheduledChange && nextPlan) {
       // 取消预定的套餐变更
       const nextPlanInfo = PLAN_CONFIG[nextPlan];
-      return `You are about to cancel your scheduled plan change to ${nextPlanInfo.name}. You will remain on your current ${currentPlanInfo.name} plan.`;
+      return `You are about to cancel your scheduled plan change to ${nextPlanInfo.name}. You will remain on your current ${currentPlanInfo.name}.`;
     }
 
     if (currentPlan === 'free' && targetPlan !== 'free') {
@@ -219,7 +220,7 @@ export default function PlanChangeModal({
               >
                 <Button
                   size="lg"
-                  className="h-12 w-[200px] rounded-full bg-[#448AFF] font-medium text-white "
+                  className="h-12 min-w-[200px] rounded-full bg-[#448AFF] font-medium text-white "
                   onPress={onConfirm}
                   isLoading={isLoading}
                   disabled={isLoading}

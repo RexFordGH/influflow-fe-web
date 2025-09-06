@@ -159,29 +159,31 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 key="main"
                 initial={{ x: 0, opacity: 1 }}
                 animate={{ x: 0, opacity: 1 }}
-                exit={{ x: '-100%', opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                exit={{ opacity: 0 }}
+                // transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="flex flex-col gap-10 p-8"
               >
                 {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 text-center">
+                <div className="relative">
+                  <div className="w-full text-center">
                     <h2 className="font-poppins text-[28px] font-semibold leading-[42px] text-black">
                       Invite to Earn
                     </h2>
                     <p className="font-poppins text-[14px] font-normal leading-[21px] text-[rgb(140,140,140)]">
-                      Earn 50 credits for every friend you invite.
+                      Earn 30 credits for every friend you invite.
                     </p>
                   </div>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={onClose}
-                    className="size-8 min-w-8"
-                  >
-                    <Icon.X size={24} />
-                  </Button>
+                  <div className="absolute top-0 right-0">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={onClose}
+                      className="size-8 min-w-8"
+                    >
+                      <Icon.X size={24} />
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Share Link Section */}
@@ -193,7 +195,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                     {loading ? (
                       <Skeleton className="h-12 flex-1 rounded-[12px]" />
                     ) : (
-                      <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-[rgb(227,227,227)] bg-[rgb(248,248,248)] px-4 py-3">
+                      <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-[#E3E3E3] bg-[rgb(248,248,248)] px-4 py-3">
                         <Image
                           src="/icons/UrlLink.svg"
                           alt="Link"
@@ -201,13 +203,13 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                           height={20}
                           className="shrink-0"
                         />
-                        <span className="flex-1 font-poppins text-[16px] font-medium leading-6 text-black">
+                        <span className="flex-1 font-poppins text-[16px] leading-6 text-[#757575]">
                           {referralLink}
                         </span>
                       </div>
                     )}
                     <Button
-                      className="min-w-[120px] rounded-[12px] bg-black px-8 py-3 font-poppins text-[16px] font-medium leading-6 text-white"
+                      className="min-w-[120px] h-[48px] rounded-[12px] bg-black px-8 py-3 font-poppins text-[16px] font-medium leading-6 text-white"
                       onPress={copyReferralLink}
                       startContent={
                         isCopied ? (
@@ -394,7 +396,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 initial={{ x: '100%', opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: '100%', opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="flex flex-col gap-6 p-8"
               >
                 {/* Rules Header */}

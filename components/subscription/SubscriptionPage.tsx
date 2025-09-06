@@ -21,6 +21,7 @@ import { useAuthStore } from '@/stores/authStore';
 import CreditsUsageModal from './CreditsUsageModal';
 import PlanCard from './PlanCard';
 import PlanChangeModal from './PlanChangeModal';
+import { CreditMap, FeatureMap, PriceMap } from './constants';
 
 interface SubscriptionPageProps {
   onBack: () => void;
@@ -240,7 +241,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
 
   // 计算积分百分比
   const totalCredits =
-    currentPlan === 'free' ? 50 : currentPlan === 'starter' ? 2000 : 6000;
+    currentPlan === 'free'
+      ? CreditMap.free
+      : currentPlan === 'starter'
+        ? CreditMap.starter
+        : CreditMap.pro;
   const creditPercentage = Math.min((credits / totalCredits) * 100, 100);
 
   // 格式化日期
@@ -467,15 +472,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
           >
             <PlanCard
               planName="Free Plan"
-              price="0"
-              features={[
-                'Limited generation',
-                '50 free credits / month',
-                'Access to all features',
-                'Great for trying out and exploring',
-              ]}
+              price={String(PriceMap.free)}
+              features={FeatureMap.free}
               isCurrentPlan={currentPlan === 'free'}
               isDowngraded={isDowngraded('free')}
+              isNextPlan={nextPlan === 'free'}
               onSwitch={() => handleSwitchPlan('free')}
               isLoading={processingPlan === 'free'}
             />
@@ -489,16 +490,12 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
           >
             <PlanCard
               planName="Starter Plan"
-              price="29"
+              price={String(PriceMap.starter)}
               priceUnit="/month"
-              features={[
-                'Larger monthly allowance',
-                '2000 credits / month',
-                'Access to all features',
-                'Perfect for regular creators',
-              ]}
+              features={FeatureMap.starter}
               isCurrentPlan={currentPlan === 'starter'}
               isDowngraded={isDowngraded('starter')}
+              isNextPlan={nextPlan === 'starter'}
               isMostPopular={currentPlan === 'free'}
               onSwitch={() => handleSwitchPlan('starter')}
               highlighted={currentPlan === 'free'}
@@ -514,16 +511,12 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
           >
             <PlanCard
               planName="Pro Plan"
-              price="59"
+              price={String(PriceMap.pro)}
               priceUnit="/month"
-              features={[
-                'Generous credits for heavy usage',
-                '6000 credits / month',
-                'Access to all features',
-                'Best for professionals',
-              ]}
+              features={FeatureMap.pro}
               isCurrentPlan={currentPlan === 'pro'}
               isDowngraded={isDowngraded('pro')}
+              isNextPlan={nextPlan === 'pro'}
               isRecommended={currentPlan === 'starter'}
               onSwitch={() => handleSwitchPlan('pro')}
               highlighted={currentPlan === 'starter'}

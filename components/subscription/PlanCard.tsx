@@ -11,6 +11,7 @@ interface PlanCardProps {
   features: string[];
   isCurrentPlan?: boolean;
   isDowngraded?: boolean;
+  isNextPlan?: boolean;
   isMostPopular?: boolean;
   isRecommended?: boolean;
   highlighted?: boolean;
@@ -25,6 +26,7 @@ const PlanCard = ({
   features,
   isCurrentPlan = false,
   isDowngraded = false,
+  isNextPlan = false,
   isMostPopular = false,
   isRecommended = false,
   highlighted = false,
@@ -93,11 +95,22 @@ const PlanCard = ({
               Your Current Plan
             </span>
           </motion.div>
+        ) : isNextPlan && !isCurrentPlan ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex h-[48px] items-center justify-center rounded-[16px] bg-[#EFEFEF]"
+          >
+            <span className="text-[16px] font-medium text-[#8C8C8C]">
+              Your Next Billing Plan
+            </span>
+          </motion.div>
         ) : (
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{ opacity: 1 }}
+            className="!opacity-100"
           >
             <Button
               onPress={onSwitch}

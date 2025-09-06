@@ -1,6 +1,7 @@
 import { addToast } from '@/components/base/toast';
 import { getErrorMessage, useGenerateImage } from '@/lib/api/services';
 import { createClient } from '@/lib/supabase/client';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { IOutline } from '@/types/outline';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -70,6 +71,8 @@ export function useImageManagement({
   onDataUpdate,
   onContentUpdate,
 }: UseImageManagementProps): UseImageManagementReturn {
+  const { refreshSubscriptionInfo } = useSubscriptionStore();
+
   const [collectedImages, setCollectedImages] = useState<CollectedImage[]>([]);
   const [localImageUrls, setLocalImageUrls] = useState<Record<string, string>>(
     {},
@@ -263,6 +266,8 @@ export function useImageManagement({
           return newUrls;
         });
       }
+
+      refreshSubscriptionInfo();
     },
     [
       editingTweetData,
@@ -271,6 +276,7 @@ export function useImageManagement({
       onContentUpdate,
       removeGeneratingImageTweetId,
       localImageUrls,
+      refreshSubscriptionInfo,
     ],
   );
 

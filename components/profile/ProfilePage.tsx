@@ -336,7 +336,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                   frames: 1,
                   minDelay: 50,
                 });
-              },700);
+              }, 700);
             },
           },
         },
@@ -543,14 +543,14 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           </Button>
         </div>
         {/* 加一个 logout 按钮 */}
-        <Button
+        {/* <Button
           size="sm"
           variant="light"
           onPress={onLogout}
           className="text-gray-600"
         >
           Log Out
-        </Button>
+        </Button> */}
       </div>
 
       {/* Main Content */}

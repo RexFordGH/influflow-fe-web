@@ -1,7 +1,6 @@
 'use client';
 
 import { Button, cn, Image } from '@heroui/react';
-import * as Icon from '@phosphor-icons/react';
 import Link from 'next/link';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
@@ -11,7 +10,6 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import {
   EmptyState,
-  EndOfList,
   ErrorMessage,
   LoadingIndicator,
   SidebarItem,
@@ -199,7 +197,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
                 {isLoadingMore && <LoadingIndicator type="loadMore" />}
 
                 {/* 没有更多数据提示 */}
-                {!hasMore && items.length > 0 && <EndOfList />}
+                {/* {!hasMore && items.length > 0 && <EndOfList />} */}
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 async function userProfileExists(userId: string): Promise<boolean> {
   try {
@@ -27,9 +27,6 @@ async function userProfileExists(userId: string): Promise<boolean> {
 }
 
 export async function GET(request: Request) {
-  // console.log('=== Auth Callback Route Called (Existing User) ===');
-  // console.log('Request URL:', request.url);
-
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
 
@@ -69,16 +66,35 @@ export async function GET(request: Request) {
         // This is an existing user, let them log in.
         console.log(`Existing user logged in: ${user.id}`);
       } else {
-        // This is a new user trying to use the existing user login flow
-        console.log(
-          `New user detected: ${user.id}. Redirecting to registration.`,
-        );
-        // IMPORTANT: Clean up the newly created Supabase user to prevent orphans.
-        const adminClient = createAdminClient();
-        await adminClient.auth.admin.deleteUser(user.id);
-        return redirectToError(
-          'New users must register with an invitation code.',
-        );
+        // This is a new user - create their profile directly without requiring invitation code
+        console.log(`New user detected: ${user.id}. Creating profile.`);
+
+        try {
+          const supabase = await createClient();
+
+          // 创建用户个性化记录
+          const { error: insertError } = await supabase
+            .from('user_personalization')
+            .insert({
+              uid: user.id,
+              account_name: null,
+              tone: null,
+              bio: null,
+              tweet_examples: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+
+          if (insertError) {
+            console.error('Error creating user profile:', insertError);
+            return redirectToError('Failed to create user profile.');
+          }
+
+          console.log(`Successfully created profile for new user: ${user.id}`);
+        } catch (error) {
+          console.error('Error in user creation process:', error);
+          return redirectToError('Failed to complete user registration.');
+        }
       }
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://influxy.xyz';

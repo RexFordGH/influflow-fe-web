@@ -80,7 +80,7 @@ export default function ReferralLandingPage() {
       <Topbar showLogin={false} />
 
       {/* Main Content */}
-      <main className="m-auto w-[544px] flex flex-col items-center justify-center pt-[50px]">
+      <main className="m-auto flex w-[544px] flex-col items-center justify-center pt-[50px]">
         <div className="flex w-full flex-col gap-8 text-center">
           <div className="mb-8 text-left">
             <p className="text-[24px] font-bold text-[#8C8C8C]">
