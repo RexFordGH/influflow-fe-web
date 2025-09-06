@@ -203,13 +203,13 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                           height={20}
                           className="shrink-0"
                         />
-                        <span className="flex-1 font-poppins text-[16px] font-medium leading-6 text-black">
+                        <span className="flex-1 font-poppins text-[16px] leading-6 text-[#757575]">
                           {referralLink}
                         </span>
                       </div>
                     )}
                     <Button
-                      className="min-w-[120px] rounded-[12px] bg-black px-8 py-3 font-poppins text-[16px] font-medium leading-6 text-white"
+                      className="min-w-[120px] h-[48px] rounded-[12px] bg-black px-8 py-3 font-poppins text-[16px] font-medium leading-6 text-white"
                       onPress={copyReferralLink}
                       startContent={
                         isCopied ? (
