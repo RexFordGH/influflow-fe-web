@@ -476,6 +476,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               features={FeatureMap.free}
               isCurrentPlan={currentPlan === 'free'}
               isDowngraded={isDowngraded('free')}
+              isNextPlan={nextPlan === 'free'}
               onSwitch={() => handleSwitchPlan('free')}
               isLoading={processingPlan === 'free'}
             />
@@ -494,6 +495,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               features={FeatureMap.starter}
               isCurrentPlan={currentPlan === 'starter'}
               isDowngraded={isDowngraded('starter')}
+              isNextPlan={nextPlan === 'starter'}
               isMostPopular={currentPlan === 'free'}
               onSwitch={() => handleSwitchPlan('starter')}
               highlighted={currentPlan === 'free'}
@@ -514,6 +516,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               features={FeatureMap.pro}
               isCurrentPlan={currentPlan === 'pro'}
               isDowngraded={isDowngraded('pro')}
+              isNextPlan={nextPlan === 'pro'}
               isRecommended={currentPlan === 'starter'}
               onSwitch={() => handleSwitchPlan('pro')}
               highlighted={currentPlan === 'starter'}
