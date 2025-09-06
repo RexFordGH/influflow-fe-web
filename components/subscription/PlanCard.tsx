@@ -98,6 +98,7 @@ const PlanCard = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{ opacity: 1 }}
+            className="!opacity-100"
           >
             <Button
               onPress={onSwitch}
