@@ -120,7 +120,7 @@ const PlanCard = ({
                 isDowngraded
                   ? 'bg-black text-white hover:bg-gray-800'
                   : isFreePlan
-                    ? 'bg-[#EFEFEF] border-none text-[#8C8C8C]'
+                    ? 'bg-[#EFEFEF] border-none text-black'
                     : 'bg-black text-white hover:bg-gray-800',
               )}
             >
