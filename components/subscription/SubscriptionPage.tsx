@@ -449,8 +449,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                   disabled={isProcessing || isCreatingPortal}
                   isLoading={isCreatingPortal}
                 >
-                  View Invoices
-                  {/* {isCreatingPortal ? 'Loading...' : 'View Invoices'} */}
+                  Manage Billing
                 </Button>
               </div>
             </div>
