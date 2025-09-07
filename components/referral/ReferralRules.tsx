@@ -1,15 +1,19 @@
 'use client';
 
+import React from 'react';
+
 interface RuleSection {
   title: string;
-  rules: string[];
+  rules: (string | React.ReactNode)[];
 }
 
 const REFERRAL_RULES: RuleSection[] = [
   {
     title: 'Invite Rewards',
     rules: [
-      'Earn 30 credits for each friend you invite.',
+      <span className="font-bold">
+        Earn 30 credits for each friend you invite.
+      </span>,
       'Your friend also receives 30 credits when they join.',
       'You can earn up to 500 credits from this campaign.',
     ],
@@ -17,7 +21,9 @@ const REFERRAL_RULES: RuleSection[] = [
   {
     title: 'Commission Rewards',
     rules: [
-      'Earn 15% commission for each paying user you successfully refer.',
+      <span className="font-bold">
+        Earn 15% commission for each paying user you successfully refer.
+      </span>,
       'Commissions accumulate throughout the Referral Program period, and you receive commission each month as long as your referred users keep paying.',
       'To collect commissions, please link your PayPal account through the Referral Management portal.',
       'Commissions are automatically paid to your linked PayPal account on the 1th of each month. You can check details in Referral Management.',
