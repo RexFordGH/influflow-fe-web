@@ -11,7 +11,7 @@ const REFERRAL_RULES: RuleSection[] = [
   {
     title: 'Invite Rewards',
     rules: [
-      <span className="font-bold">
+      <span key="invite-reward" className="font-bold">
         Earn 30 credits for each friend you invite.
       </span>,
       'Your friend also receives 30 credits when they join.',
@@ -21,7 +21,7 @@ const REFERRAL_RULES: RuleSection[] = [
   {
     title: 'Commission Rewards',
     rules: [
-      <span className="font-bold">
+      <span key="commission-reward" className="font-bold">
         Earn 15% commission for each paying user you successfully refer.
       </span>,
       'Commissions accumulate throughout the Referral Program period, and you receive commission each month as long as your referred users keep paying.',
