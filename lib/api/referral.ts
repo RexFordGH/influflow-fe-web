@@ -60,7 +60,7 @@ export function useReferralInfo() {
 export function useClaimReferralCredits() {
   return useMutation({
     mutationFn: async () => {
-      return apiPost<ClaimCreditsResponse>('/api/claim-referral-credit', {});
+      return apiPost<void>('/api/claim-referral-credit', {});
     },
     onSuccess: (data) => {
       console.log('Credits claimed successfully:', data);

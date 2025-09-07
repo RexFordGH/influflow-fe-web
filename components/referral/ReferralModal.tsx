@@ -96,28 +96,25 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
     if (!info || claiming || (safeInfo.referral_credits ?? 0) <= 0) return;
 
     try {
-      const result = await claimCreditsAsync();
+      await claimCreditsAsync();
 
-      if (result.success) {
-        addToast({
-          title: `Successfully claimed ${result.credits_claimed || safeInfo.referral_credits} credits`,
-          color: 'success',
-        });
+      // Refresh referral info by invalidating the query
+      await queryClient.invalidateQueries({
+        queryKey: REFERRAL_QUERY_KEYS.REFERRAL_INFO,
+      });
 
-        // Refresh referral info by invalidating the query
-        await queryClient.invalidateQueries({
-          queryKey: REFERRAL_QUERY_KEYS.REFERRAL_INFO,
-        });
+      addToast({
+        title: `Claimed Successfully`,
+        color: 'success',
+      });
 
-        // Refresh subscription info to update credits display
-        await refreshSubscriptionInfo();
-      } else {
-        addToast({
-          title: 'Failed to claim, please try again later',
-          color: 'danger',
-        });
-      }
+      // Refresh subscription info to update credits display
+      await refreshSubscriptionInfo();
     } catch (err) {
+      addToast({
+        title: 'Failed to claim, please try again later',
+        color: 'danger',
+      });
       console.error('Failed to claim credits:', err);
       addToast({ title: '领取失败，请稍后重试', color: 'danger' });
     }
