@@ -20,8 +20,9 @@ const REFERRAL_RULES: RuleSection[] = [
       'Earn 15% commission for each paying user you successfully refer.',
       'Commissions accumulate throughout the Referral Program period, and you receive commission each month as long as your referred users keep paying.',
       'To collect commissions, please link your PayPal account through the Referral Management portal.',
+      'Commissions are automatically paid to your linked PayPal account on the 1th of each month. You can check details in Referral Management.',
+      'Unlinked PayPal accounts will be paid in the next month’s payout.',
       'A minimum of $20 is required before payouts can be processed.',
-      'Commissions are automatically paid to your linked PayPal account on the 7th of each month. You can check details in Referral Management.',
     ],
   },
 ];
