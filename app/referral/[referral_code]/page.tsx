@@ -20,12 +20,12 @@ export default function ReferralLandingPage() {
 
   const referralCode = decodeURIComponent(params.referral_code || '');
 
-  const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [canRegister, setCanRegister] = useState(false);
 
-  const { mutateAsync: checkReferralCodeAsync, isPending: isVerifying } = useCheckReferralCode();
+  const { mutateAsync: checkReferralCodeAsync, isPending: isVerifying } =
+    useCheckReferralCode();
 
   useEffect(() => {
     if (!referralCode) {
@@ -41,7 +41,6 @@ export default function ReferralLandingPage() {
     const verifyCode = async () => {
       try {
         const result = await checkReferralCodeAsync(referralCode);
-        setIsValid(result.valid);
         setCanRegister(result.valid);
         if (!result.valid) {
           setError('Invalid or expired referral code');
@@ -91,6 +90,12 @@ export default function ReferralLandingPage() {
             </p>
           </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className="mb-6 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p className="font-medium">{error}</p>
+            </div>
+          )}
         </div>
         {/* Register Button */}
         <Button
