@@ -36,11 +36,12 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   const queryClient = useQueryClient();
 
   // 使用新的 hooks
-  const { data: info, isLoading: loading } = useReferralInfo();
+  const { data: info, isLoading: loading, isError, error } = useReferralInfo();
   const { mutateAsync: claimCreditsAsync, isPending: claiming } =
     useClaimReferralCredits();
 
   const referralLink = useMemo(() => {
+    if (!info?.referral_code) return '';
     const origin =
       typeof window !== 'undefined'
         ? window.location.origin
@@ -183,44 +184,57 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                   </div>
                 </div>
 
-                {/* Share Link Section */}
-                <div className="flex flex-col gap-2">
-                  <p className="font-poppins text-[14px] font-medium leading-[21px] text-[rgb(140,140,140)]">
-                    Share Your Invitation Link
-                  </p>
-                  <div className="flex gap-4 items-center">
-                    {loading ? (
-                      <Skeleton className="h-12 flex-1 rounded-[12px]" />
-                    ) : (
-                      <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-[#E3E3E3] bg-[rgb(248,248,248)] px-4 py-3">
-                        <Image
-                          src="/icons/UrlLink.svg"
-                          alt="Link"
-                          width={20}
-                          height={20}
-                          className="shrink-0"
-                        />
-                        <span className="flex-1 font-poppins text-[16px] leading-6 text-[#757575]">
-                          {referralLink}
-                        </span>
-                      </div>
-                    )}
-                    <Button
-                      className="min-w-[120px] h-[48px] rounded-[12px] bg-black px-8 py-3 font-poppins text-[16px] font-medium leading-6 text-white"
-                      onPress={copyReferralLink}
-                      startContent={
-                        isCopied ? (
-                          <Icon.Check size={16} />
-                        ) : (
-                          <Icon.Copy size={16} />
-                        )
-                      }
-                      isDisabled={loading || !info}
-                    >
-                      {isCopied ? 'Copied' : 'Copy'}
-                    </Button>
+                {/* Error Display */}
+                {isError && (
+                  <div className="flex items-center gap-3 rounded-[12px] border border-red-200 bg-red-50 p-4">
+                    <Icon.Warning size={20} className="text-red-600 shrink-0" />
+                    <p className="font-poppins text-[14px] text-red-700">
+                      Failed to load referral information. Please refresh the
+                      page or try again later.
+                    </p>
                   </div>
-                </div>
+                )}
+
+                {/* Share Link Section */}
+                {referralLink && (
+                  <div className="flex flex-col gap-2">
+                    <p className="font-poppins text-[14px] font-medium leading-[21px] text-[rgb(140,140,140)]">
+                      Share Your Invitation Link
+                    </p>
+                    <div className="flex gap-4 items-center">
+                      {loading ? (
+                        <Skeleton className="h-12 flex-1 rounded-[12px]" />
+                      ) : (
+                        <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-[#E3E3E3] bg-[rgb(248,248,248)] px-4 py-3">
+                          <Image
+                            src="/icons/UrlLink.svg"
+                            alt="Link"
+                            width={20}
+                            height={20}
+                            className="shrink-0"
+                          />
+                          <span className="flex-1 font-poppins text-[16px] leading-6 text-[#757575]">
+                            {referralLink}
+                          </span>
+                        </div>
+                      )}
+                      <Button
+                        className="min-w-[120px] h-[48px] rounded-[12px] bg-black px-8 py-3 font-poppins text-[16px] font-medium leading-6 text-white"
+                        onPress={copyReferralLink}
+                        startContent={
+                          isCopied ? (
+                            <Icon.Check size={16} />
+                          ) : (
+                            <Icon.Copy size={16} />
+                          )
+                        }
+                        isDisabled={loading || !info || isError}
+                      >
+                        {isCopied ? 'Copied' : 'Copy'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div className="flex items-center justify-center gap-4">
@@ -312,7 +326,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         loading ||
                         !safeInfo.referral_credits ||
                         safeInfo.referral_credits <= 0 ||
-                        claiming
+                        claiming ||
+                        isError
                       }
                       isLoading={claiming}
                     >
@@ -356,7 +371,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         loading ||
                         (!safeInfo.setup_password_link &&
                           !safeInfo.promoter_portal) ||
-                        safeInfo.revenue === 0
+                        safeInfo.revenue === 0 ||
+                        isError
                       }
                     >
                       Claim
