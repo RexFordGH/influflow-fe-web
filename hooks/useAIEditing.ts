@@ -122,7 +122,7 @@ export function useAIEditing({
           },
           (error) => {
             console.error('Error saving AI edited content to Supabase:', error);
-          }
+          },
         );
       }
     } catch (error) {

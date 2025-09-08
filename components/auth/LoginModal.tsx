@@ -10,6 +10,8 @@ import {
 } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
+import { showEmailAuth } from '@/constants/env';
+import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 import { createClient } from '@/lib/supabase/client';
 
 interface LoginModalProps {
@@ -32,10 +34,14 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
   // 新用户注册 - 直接跳转到Twitter OAuth，无需邀请码
   const handleNewUserRegister = async () => {
     const supabase = createClient();
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL!;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
+        redirectTo: `${origin}/api/auth/callback`,
       },
     });
 
@@ -48,10 +54,14 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
   // 已有用户登录
   const handleExistingUserLogin = async () => {
     const supabase = createClient();
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL!;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
+        redirectTo: `${origin}/api/auth/callback`,
       },
     });
 
@@ -111,6 +121,13 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                   Continue with X
                 </Button>
 
+                {showEmailAuth && (
+                  <div className="mt-4 space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
+                    <p className="text-xs text-gray-500">开发环境专用 · Email 登录</p>
+<DevEmailAuth mode="login" />
+                  </div>
+                )}
+
                 <div className="text-center">
                   <Link
                     className="cursor-pointer text-sm text-blue-600 opacity-50 hover:underline hover:opacity-100"
@@ -137,6 +154,13 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                 >
                   Sign up with X
                 </Button>
+
+                {showEmailAuth && (
+                  <div className="mt-4 space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
+                    <p className="text-xs text-gray-500">开发环境专用 · Email 注册</p>
+<DevEmailAuth mode="register" />
+                  </div>
+                )}
 
                 <div className="text-center">
                   <Link

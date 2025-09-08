@@ -37,8 +37,6 @@ export const BackgroundGradientAnimation = ({
   const curXRef = useRef(0);
   const curYRef = useRef(0);
 
-  const [curX, setCurX] = useState(0);
-  const [curY, setCurY] = useState(0);
   const [tgX, setTgX] = useState(0);
   const [tgY, setTgY] = useState(0);
   useEffect(() => {
@@ -169,18 +167,13 @@ export const BackgroundGradientAnimation = ({
       >
         <div
           className={cn(
-            `absolute [background:radial-gradient(circle_at_center,_var(--first-color)_0,_var(--first-color)_50%)_no-repeat]`,
-            `[mix-blend-mode:var(--blending-value)] w-[750px] h-[750px] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
-            `[transform-origin:center_center]`,
-            `animate-first`,
-            `opacity-100`,
-          )}
-        ></div>
-        <div
-          className={cn(
             `absolute [background:radial-gradient(circle_at_center,_rgba(var(--second-color),_0.8)_0,_rgba(var(--second-color),_0)_50%)_no-repeat]`,
-            `[mix-blend-mode:var(--blending-value)] w-[750px] h-[750px] top-[calc(50%-325)] left-[calc(55%-var(--size)/2)]`,
-            `[transform-origin:calc(50%-90px)]`,
+            `[mix-blend-mode:var(--blending-value)]
+             w-[calc(var(--size)*1.2)] 
+             h-[calc(var(--size)*1.2)] 
+             top-[calc(50%-35vh)] 
+             left-[calc(70%-var(--size)/1.6)]`,
+            `[transform-origin:calc(50%-10vh)]`,
             `animate-second`,
             `opacity-100`,
           )}
@@ -188,26 +181,25 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             `absolute [background:radial-gradient(circle_at_center,_rgba(var(--third-color),_0.8)_0,_rgba(var(--third-color),_0)_50%)_no-repeat]`,
-            `[mix-blend-mode:var(--blending-value)] w-[450px] h-[450px] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
-            `[transform-origin:calc(40%-70px)]`,
+            `[mix-blend-mode:var(--blending-value)] 
+             w-[calc(var(--size)/1.3)] 
+             h-[calc(var(--size)/1.3)]  
+             top-[calc(55%-var(--size)/2)] 
+             left-[calc(60%-var(--size)/2)]`,
+            `[transform-origin:calc(40%-10vh)]`,
             `animate-third`,
             `opacity-100`,
           )}
-        ></div> 
-        {/* <div
-          className={cn(
-            `absolute [background:radial-gradient(circle_at_center,_rgba(var(--fourth-color),_0.8)_0,_rgba(var(--fourth-color),_0)_50%)_no-repeat]`,
-            `[mix-blend-mode:var(--blending-value)] w-[250px] h-[250px]  top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
-            `[transform-origin:calc(60%+90px)]`,
-            `animate-fourth`,
-            `opacity-70`,
-          )}
-        ></div> */}
+        ></div>
         <div
           className={cn(
             `absolute [background:radial-gradient(circle_at_center,_rgba(var(--fifth-color),_0.8)_0,_rgba(var(--fifth-color),_0)_50%)_no-repeat]`,
-            `[mix-blend-mode:var(--blending-value)] w-[250px] h-[250px] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]`,
-            `[transform-origin:calc(50%-50px)_calc(50%+50px)]`,
+            `[mix-blend-mode:var(--blending-value)] 
+             w-[calc(var(--size)/2.3)] 
+             h-[calc(var(--size)/2.3)]  
+             top-[calc(60%-var(--size)/1.6)] 
+             left-[calc(60%-var(--size)/1.6)]`,
+            `[transform-origin:calc(50%-8vh)_calc(50%+8vh)]`,
             `animate-fifth`,
             `opacity-100`,
           )}
@@ -218,7 +210,9 @@ export const BackgroundGradientAnimation = ({
             ref={interactiveRef}
             className={cn(
               `absolute [background:radial-gradient(circle_at_center,_rgba(var(--pointer-color),_0.8)_0,_rgba(var(--pointer-color),_0)_50%)_no-repeat]`,
-              `[mix-blend-mode:var(--blending-value)]  w-[450px] h-[450px]`,
+              `[mix-blend-mode:var(--blending-value)] 
+               w-[calc(var(--size)/1.5)] 
+               h-[calc(var(--size)/1.5)]`,
               `opacity-70`,
             )}
             style={{ zIndex: 1 }}

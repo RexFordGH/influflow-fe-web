@@ -39,9 +39,10 @@ export default function FreeConversation({
   // 使用内部状态或外部控制
   const [isOpenInternal, setIsOpenInternal] = useState(false);
   const isOpen = isOpenProp || isOpenInternal;
-  
+
   // 获取积分检查方法和刷新方法
-  const { checkCreditsAndShowModal, refreshSubscriptionInfo } = useSubscriptionStore();
+  const { checkCreditsAndShowModal, refreshSubscriptionInfo } =
+    useSubscriptionStore();
 
   // 使用 ref 跟踪上一个 docId
   const prevDocIdRef = useRef<string>(docId);
@@ -110,12 +111,15 @@ export default function FreeConversation({
   } = useGetChatHistory(historyParams);
 
   // 包装 onComplete 回调，在完成后刷新订阅信息
-  const handleComplete = useCallback(async (outline: any) => {
-    // 调用原始的 onComplete
-    onComplete?.(outline);
-    // 刷新订阅信息以更新积分
-    await refreshSubscriptionInfo();
-  }, [onComplete, refreshSubscriptionInfo]);
+  const handleComplete = useCallback(
+    async (outline: any) => {
+      // 调用原始的 onComplete
+      onComplete?.(outline);
+      // 刷新订阅信息以更新积分
+      await refreshSubscriptionInfo();
+    },
+    [onComplete, refreshSubscriptionInfo],
+  );
 
   // 使用 useChatStreaming Hook
   const {
@@ -228,7 +232,7 @@ export default function FreeConversation({
       // 第一次加载：直接设置历史消息
       setMessages(reversedHistory);
       hasSetInitialHistoryRef.current = true;
-      
+
       // 首次加载历史记录后，自动滚动到底部
       requestAnimationFrame(() => {
         const container = messagesContainerRef.current;
@@ -254,7 +258,7 @@ export default function FreeConversation({
   // 加载更多历史消息
   const loadMoreHistory = useCallback(() => {
     if (isLoadingMore || !hasMore || isLoadingHistory) return;
-    
+
     // 防止在切换文章过程中触发加载
     if (prevDocIdRef.current !== docId) return;
 
@@ -335,8 +339,8 @@ export default function FreeConversation({
             // 触发mindmapOverlayState事件，将isMindmapOverlayOpen设置为true
             window.dispatchEvent(
               new CustomEvent('mindmapOverlayState', {
-                detail: { open: true }
-              })
+                detail: { open: true },
+              }),
             );
           }}
           className={cn(
@@ -352,7 +356,7 @@ export default function FreeConversation({
           )}
           style={{ width: '600px' }}
         >
-          <span className="text-[#8C8C8C] text-[13px] font-poppins">
+          <span className="font-poppins text-[13px] text-[#8C8C8C]">
             How would you like to improve this content?
           </span>
           <Image

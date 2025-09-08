@@ -1,10 +1,12 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 import { Topbar } from '@/components/layout/Topbar';
+import { showEmailAuth } from '@/constants/env';
 import { useCheckReferralCode } from '@/lib/api/referral';
 import { createClient } from '@/lib/supabase/client';
 
@@ -15,17 +17,16 @@ function setCookie(name: string, value: string, days = 7) {
 
 export default function ReferralLandingPage() {
   const params = useParams<{ referral_code: string }>();
-  const router = useRouter();
   const supabase = createClient();
 
   const referralCode = decodeURIComponent(params.referral_code || '');
 
-  const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [canRegister, setCanRegister] = useState(false);
 
-  const { mutateAsync: checkReferralCodeAsync, isPending: isVerifying } = useCheckReferralCode();
+  const { mutateAsync: checkReferralCodeAsync, isPending: isVerifying } =
+    useCheckReferralCode();
 
   useEffect(() => {
     if (!referralCode) {
@@ -41,7 +42,6 @@ export default function ReferralLandingPage() {
     const verifyCode = async () => {
       try {
         const result = await checkReferralCodeAsync(referralCode);
-        setIsValid(result.valid);
         setCanRegister(result.valid);
         if (!result.valid) {
           setError('Invalid or expired referral code');
@@ -60,7 +60,11 @@ export default function ReferralLandingPage() {
     setError('');
 
     const next = '/';
-    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL!;
+    const redirectTo = `${origin}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
@@ -91,6 +95,12 @@ export default function ReferralLandingPage() {
             </p>
           </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className="mb-6 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p className="font-medium">{error}</p>
+            </div>
+          )}
         </div>
         {/* Register Button */}
         <Button
@@ -104,6 +114,18 @@ export default function ReferralLandingPage() {
         >
           {isLoading ? 'Processing...' : 'Verify and Login with X'}
         </Button>
+
+        {/* 开发环境：提供邮箱注册/登录用于测试 */}
+        {showEmailAuth && (
+          <div className="mt-6 w-[544px] space-y-4">
+            <div className="space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
+              <p className="text-xs text-gray-500">
+                开发环境专用 · Email 注册（将绑定当前邀请码 {referralCode}）
+              </p>
+              <DevEmailAuth mode="register" referralCode={referralCode} />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

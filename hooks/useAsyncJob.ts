@@ -27,7 +27,7 @@ export const useAsyncJob = () => {
       try {
         setIsLoadingAsyncJob(true);
         const supabase = createClient();
-        
+
         const { data, error } = await supabase
           .from('async_job')
           .select('*')
@@ -55,5 +55,3 @@ export const useAsyncJob = () => {
     isLoadingAsyncJob,
   };
 };
-
-

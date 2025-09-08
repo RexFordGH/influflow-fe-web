@@ -1,8 +1,9 @@
 'use client';
 
-import { Modal, ModalContent } from '@heroui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Modal, ModalContent } from '@heroui/react';
 import { motion } from 'framer-motion';
+
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 interface CreditsUsageModalProps {
@@ -12,27 +13,28 @@ interface CreditsUsageModalProps {
 
 const CreditsUsageModal = ({ isOpen, onClose }: CreditsUsageModalProps) => {
   const { creditRules } = useSubscriptionStore();
-  
+
   // 如果有真实数据则使用真实数据，否则使用默认值
-  const displayRules = creditRules.length > 0 
-    ? creditRules.map(rule => ({
-        title: rule.name,
-        credits: `${rule.credits} credit${rule.credits > 1 ? 's' : ''} / request`,
-      }))
-    : [
-        {
-          title: 'Text generation',
-          credits: '1 credit / request',
-        },
-        {
-          title: 'Deep research',
-          credits: '5-10 credits / request',
-        },
-        {
-          title: 'Image generation',
-          credits: '5 credits / request',
-        },
-      ];
+  const displayRules =
+    creditRules.length > 0
+      ? creditRules.map((rule) => ({
+          title: rule.name,
+          credits: `${rule.credits} credit${rule.credits > 1 ? 's' : ''} / request`,
+        }))
+      : [
+          {
+            title: 'Text generation',
+            credits: '1 credit / request',
+          },
+          {
+            title: 'Deep research',
+            credits: '5-10 credits / request',
+          },
+          {
+            title: 'Image generation',
+            credits: '5 credits / request',
+          },
+        ];
 
   return (
     <Modal
@@ -113,9 +115,10 @@ const CreditsUsageModal = ({ isOpen, onClose }: CreditsUsageModalProps) => {
 
             {/* Note */}
             <p className="text-[14px] text-[#757575]">
-              Note: Actual credit consumption may vary depending on the complexity of
-              your request and the number of tokens processed. More detailed or
-              resource-intensive generations will use more credits.
+              Note: Actual credit consumption may vary depending on the
+              complexity of your request and the number of tokens processed.
+              More detailed or resource-intensive generations will use more
+              credits.
             </p>
           </div>
         </div>

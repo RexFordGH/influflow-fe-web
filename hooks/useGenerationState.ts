@@ -1,5 +1,9 @@
 import { addToast } from '@/components/base/toast';
-import { getErrorMessage, useAsyncThreadGeneration, useGenerateThread } from '@/lib/api/services';
+import {
+  getErrorMessage,
+  useAsyncThreadGeneration,
+  useGenerateThread,
+} from '@/lib/api/services';
 import { convertAPIDataToGeneratedContent } from '@/lib/data/converters';
 import { ModeHandlerFactory } from '@/services/mode-handlers';
 import { useAuthStore } from '@/stores/authStore';
@@ -76,7 +80,7 @@ export function useGenerationState({
   const [rawAPIData, setRawAPIDataInternal] = useState<IOutline | null>(
     initialData || null,
   );
-  
+
   // 包装 setRawAPIData 以确保创建新对象引用触发重新渲染
   const setRawAPIData = useCallback((data: IOutline | null) => {
     if (data) {
@@ -84,7 +88,7 @@ export function useGenerationState({
       const newData = {
         ...data,
         // 保持 updatedAt 字段更新
-        updatedAt: data.updatedAt || Date.now()
+        updatedAt: data.updatedAt || Date.now(),
       };
       setRawAPIDataInternal(newData);
     } else {
@@ -179,7 +183,8 @@ export function useGenerationState({
       // 当content_format为deep_research时，mode置为'analysis',仅为后端校验，实质无用
       return {
         ...request,
-        mode: context.contentFormat === 'deep_research' ? 'analysis' : context.mode,
+        mode:
+          context.contentFormat === 'deep_research' ? 'analysis' : context.mode,
       };
     } catch (error) {
       console.error('Failed to build generation request:', error);
@@ -344,9 +349,10 @@ export function useGenerationState({
         };
 
         // 选择同步/异步生成入口
-        const mutate = contentFormat === 'deep_research'
-          ? startAsyncGeneration
-          : startSyncGeneration;
+        const mutate =
+          contentFormat === 'deep_research'
+            ? startAsyncGeneration
+            : startSyncGeneration;
 
         mutate(requestData as any, {
           onSuccess: handleSuccess,

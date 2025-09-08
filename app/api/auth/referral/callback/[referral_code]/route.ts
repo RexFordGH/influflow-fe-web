@@ -4,25 +4,20 @@ import { API_HOST } from '@/constants/env';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 async function userProfileExists(userId: string): Promise<boolean> {
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('user_personalization')
-      .select('uid')
-      .eq('uid', userId)
-      .single();
+  const { data, error } = await supabase
+    .from('user_personalization')
+    .select('uid')
+    .eq('uid', userId)
+    .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error checking user profile:', error);
-      return false;
-    }
-
-    return !!data;
-  } catch (error) {
-    console.error('Error checking user profile existence:', error);
-    return false;
+  if (error) {
+    console.error('Error checking user profile:', error);
+    throw error;
   }
+
+  return !!data;
 }
 
 export async function GET(
@@ -42,7 +37,19 @@ export async function GET(
   const redirect = (path: string) => NextResponse.redirect(`${origin}${path}`);
 
   if (!code) {
-    return redirect(`/?error=${encodeURIComponent('Invalid auth code')}`);
+    // 检查 Supabase 返回的错误信息
+    const error = searchParams.get('error');
+    const errorCode = searchParams.get('error_code');
+    const errorDescription = searchParams.get('error_description');
+    
+    let errorMessage = 'Invalid auth code';
+    
+    if (error || errorCode || errorDescription) {
+      // 构建更详细的错误信息
+      errorMessage = errorDescription || error || errorCode || errorMessage;
+    }
+    
+    return redirect(`/?error=${encodeURIComponent(errorMessage)}`);
   }
 
   try {
@@ -79,40 +86,56 @@ export async function GET(
         });
 
       if (insertError) {
-        console.error('Error creating user profile:', insertError);
-
-        const adminClient = createAdminClient();
-        await adminClient.auth.admin.deleteUser(user.id);
-
-        return redirect(
-          `/?error=${encodeURIComponent('Failed to create user profile')}`,
-        );
+        const errCode = (insertError as any).code;
+        if (errCode === '23505') {
+          console.warn('Profile already exists (unique violation). Proceeding.');
+        } else {
+          console.error('Error creating user profile:', insertError);
+          try {
+            const adminClient = createAdminClient();
+            await adminClient.auth.admin.deleteUser(user.id);
+          } catch (delErr) {
+            console.error('Failed to rollback user after profile creation error:', delErr);
+          }
+          return redirect(
+            `/?error=${encodeURIComponent('Failed to create user profile')}`,
+          );
+        }
       }
 
       if (referralCode) {
-        try {
-          const accessToken = sessionData.session?.access_token;
+        const accessToken = sessionData.session?.access_token;
+        if (!accessToken) {
+          console.error('Missing access token for sign-up call.');
+          return redirect(`/?error=${encodeURIComponent('Failed to complete user registration')}`);
+        }
 
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        try {
           const response = await fetch(`${API_HOST}/api/sign-up`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              ...(accessToken
-                ? { Authorization: `Bearer ${accessToken}` }
-                : {}),
+              Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
               referral_code: referralCode,
             }),
+            signal: controller.signal,
           });
+          clearTimeout(timeout);
 
           if (!response.ok) {
-            console.error('Failed to bind referral:', await response.text());
-          } else {
-            console.log('Successfully bound referral for user:', user.id);
+            console.error('Failed to bind referral:', response.status);
+            return redirect(`/?error=${encodeURIComponent('Failed to complete user registration')}`);
           }
+          console.log('Successfully bound referral for user:', user.id);
         } catch (error) {
+          clearTimeout(timeout);
           console.error('Error binding referral:', error);
+          return redirect(`/?error=${encodeURIComponent('Failed to complete user registration')}`);
         }
       }
     }

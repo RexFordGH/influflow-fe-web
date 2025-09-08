@@ -15,12 +15,13 @@ import {
   useUpdateSubscriptionPlan,
 } from '@/lib/api/services';
 import { redirectToCheckout } from '@/lib/stripe';
+import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
-import { useAuthStore } from '@/stores/authStore';
 import CreditsUsageModal from './CreditsUsageModal';
 import PlanCard from './PlanCard';
 import PlanChangeModal from './PlanChangeModal';
+import UpgradeSuccessModal from './UpgradeSuccessModal';
 import { CreditMap, FeatureMap, PriceMap } from './constants';
 
 interface SubscriptionPageProps {
@@ -36,6 +37,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     isOpen: boolean;
     targetPlan: PlanType | null;
   }>({ isOpen: false, targetPlan: null });
+  const [showUpgradeSuccessModal, setShowUpgradeSuccessModal] = useState(false);
 
   // 从 store 获取订阅信息
   const {
@@ -72,7 +74,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     // 强制刷新订阅信息和积分规则
     refetchSubscriptionInfo();
     refetchCreditRules();
-  }, []); // 只在组件 mount 时执行
+  }, [refetchSubscriptionInfo, refetchCreditRules]); // 只在组件 mount 时执行
 
   // 检查 URL 参数中是否有 status 标记
   useEffect(() => {
@@ -80,10 +82,8 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     const status = params.get('status');
 
     if (status === 'success') {
-      addToast({
-        title: 'Payment successful! Your subscription has been upgraded.',
-        color: 'success',
-      });
+      // 显示升级成功弹窗
+      setShowUpgradeSuccessModal(true);
 
       // 刷新订阅信息以获取最新状态
       refetchSubscriptionInfo();
@@ -203,13 +203,22 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
       // 其他情况使用 update-plan 接口
       updatePlan(plan, {
         onSuccess: async (data) => {
-          const message =
-            plan === 'free'
-              ? `Your subscription will be cancelled at the end of the current period (${data.effective_date})`
-              : data.effective_date === new Date().toISOString().split('T')[0]
-                ? 'Plan upgraded successfully!'
+          // 判断是否是升级操作
+          const isUpgradeOperation =
+            plan !== 'free' && currentPlan === 'starter' && plan === 'pro';
+
+          if (isUpgradeOperation) {
+            // 升级操作，显示成功弹窗
+            setShowUpgradeSuccessModal(true);
+          } else {
+            // 降级或取消订阅操作，显示 toast
+            const message =
+              plan === 'free'
+                ? `Your subscription will be cancelled at the end of the current period (${data.effective_date})`
                 : `Plan change scheduled for ${data.effective_date}`;
-          addToast({ title: message, color: 'success' });
+            addToast({ title: message, color: 'success' });
+          }
+
           setProcessingPlan(null);
           setPlanChangeModal({ isOpen: false, targetPlan: null });
           // 刷新订阅信息
@@ -445,12 +454,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 </span>
                 <Button
                   onPress={handleViewInvoices}
-                  className="text-[16px] text-black bg-transparent px-0 hover:bg-transparent underline transition-opacity hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isProcessing || isCreatingPortal}
                   isLoading={isCreatingPortal}
                 >
-                  View Invoices
-                  {/* {isCreatingPortal ? 'Loading...' : 'View Invoices'} */}
+                  Manage Billing
                 </Button>
               </div>
             </div>
@@ -547,6 +555,12 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
           isLoading={isProcessing}
         />
       )}
+
+      {/* Upgrade Success Modal */}
+      <UpgradeSuccessModal
+        isOpen={showUpgradeSuccessModal}
+        onClose={() => setShowUpgradeSuccessModal(false)}
+      />
     </motion.div>
   );
 };

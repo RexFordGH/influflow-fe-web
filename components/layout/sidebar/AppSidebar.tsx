@@ -118,7 +118,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         )}
       >
         <div className="p-3">
-          <div className="flex items-center justify-between h-[40px]">
+          <div className="flex h-[40px] items-center justify-between">
             {/* <ProfileDropdown collapsed={collapsed} /> */}
             <Image src={'/images/logo.png'} width={82} height={24} />
             {/* 收起按钮 */}
@@ -144,7 +144,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         <div className="px-3 pb-3">
           {/*Invite to Earn*/}
           <Button
-            className="w-full h-[37px] rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 border-none shadow-lg hover:shadow-xl transition-all duration-300"
+            className="h-[37px] w-full rounded-xl border-none bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-lg transition-all duration-300 hover:shadow-xl"
             style={{
               background:
                 'linear-gradient(90deg, #478afe 0%, #a392d1 50%, #fd999d 100%)',
@@ -156,7 +156,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
                 src={'/icons/add_account.svg'}
                 width={20}
                 height={20}
-                className="filter brightness-0 invert"
+                className="brightness-0 invert"
               />
               <span className="text-[14px] font-medium leading-[21px] text-white">
                 Invite to Earn
@@ -167,10 +167,10 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
         <div
           ref={scrollContainerRef}
-          className="relative flex-1 overflow-y-auto scrollbar-hide"
+          className="scrollbar-hide relative flex-1 overflow-y-auto"
           id="sidebar-scroll-container"
         >
-          <div className="ml-3 mr-3">
+          <div className="mx-3">
             {/* 内容区域 */}
             {isInitialLoading ? (
               <LoadingIndicator type="initial" itemCount={10} />
@@ -203,13 +203,13 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
           </div>
         </div>
 
-        <div className="w-full px-[12px] flex items-center justify-between h-[61px]">
+        <div className="flex h-[61px] w-full items-center justify-between px-[12px]">
           <ProfileDropdown collapsed={collapsed} />
 
           <Link
             id="customize-my-style"
             href="/profile"
-            className="flex items-center justify-center gap-[10px] rounded-[12px] bg-[#f0f0f0] hover:bg-[#c1c1c1] w-[84px] h-[37px]"
+            className="flex h-[37px] w-[84px] items-center justify-center gap-[10px] rounded-[12px] bg-[#f0f0f0] hover:bg-[#c1c1c1]"
           >
             <Image
               src="/icons/enhancement.svg"

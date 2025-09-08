@@ -1,44 +1,36 @@
 import { NextResponse } from 'next/server';
 
+import { API_HOST } from '@/constants/env';
 import { createClient } from '@/lib/supabase/server';
 
 async function userProfileExists(userId: string): Promise<boolean> {
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    // 查询用户个性化数据表检查用户是否已存在
-    const { data, error } = await supabase
-      .from('user_personalization')
-      .select('uid')
-      .eq('uid', userId)
-      .single();
+  // 使用 maybeSingle()：未找到时返回 data=null、error=null；其他错误抛出
+  const { data, error } = await supabase
+    .from('user_personalization')
+    .select('uid')
+    .eq('uid', userId)
+    .maybeSingle();
 
-    // 如果查询出错且不是"未找到记录"错误，则认为用户不存在
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error checking user profile:', error);
-      return false;
-    }
-
-    return !!data;
-  } catch (error) {
-    console.error('Error checking user profile existence:', error);
-    return false;
+  if (error) {
+    console.error('Error checking user profile:', error);
+    throw error;
   }
+
+  return !!data;
 }
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
 
-  console.log('URL params:', {
-    code: code ? 'present' : 'missing',
-    origin,
-  });
-
   let next = searchParams.get('next') ?? '/';
   if (!next.startsWith('/')) {
     next = '/';
   }
+
+  const redirect = (path: string) => NextResponse.redirect(`${origin}${path}`);
 
   const redirectToError = (error: string) => {
     return NextResponse.redirect(
@@ -46,7 +38,28 @@ export async function GET(request: Request) {
     );
   };
 
-  if (code) {
+  try {
+    console.log('URL params:', {
+      code: code ? 'present' : 'missing',
+      origin,
+    });
+
+    if (!code) {
+      // 检查 Supabase 返回的错误信息
+      const error = searchParams.get('error');
+      const errorCode = searchParams.get('error_code');
+      const errorDescription = searchParams.get('error_description');
+
+      let errorMessage = 'Invalid auth code';
+
+      if (error || errorCode || errorDescription) {
+        // 构建更详细的错误信息
+        errorMessage = errorDescription || error || errorCode || errorMessage;
+      }
+
+      return redirect(`/?error=${encodeURIComponent(errorMessage)}`);
+    }
+
     const supabase = await createClient();
     const { data: sessionData, error: exchangeError } =
       await supabase.auth.exchangeCodeForSession(code);
@@ -56,57 +69,87 @@ export async function GET(request: Request) {
       return redirectToError('Authentication failed.');
     }
 
-    if (sessionData?.user) {
-      const user = sessionData.user;
+    if (!sessionData?.user) {
+      return redirectToError('Authentication failed.');
+    }
 
-      // Check if the user is an existing user by looking for an existing profile.
-      const isExistingUser = await userProfileExists(user.id);
+    const user = sessionData.user;
 
-      if (isExistingUser) {
-        // This is an existing user, let them log in.
-        console.log(`Existing user logged in: ${user.id}`);
-      } else {
-        // This is a new user - create their profile directly without requiring invitation code
-        console.log(`New user detected: ${user.id}. Creating profile.`);
+    // Check if the user is an existing user by looking for an existing profile.
+    const isExistingUser = await userProfileExists(user.id);
 
-        try {
-          const supabase = await createClient();
+    if (isExistingUser) {
+      console.log(`Existing user logged in: ${user.id}`);
+    } else {
+      // This is a new user - create their profile directly without requiring invitation code
+      console.log(`New user detected: ${user.id}. Creating profile.`);
 
-          // 创建用户个性化记录
-          const { error: insertError } = await supabase
-            .from('user_personalization')
-            .insert({
-              uid: user.id,
-              account_name: null,
-              tone: null,
-              bio: null,
-              tweet_examples: null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
+      // 创建用户个性化记录，处理唯一键冲突
+      const { error: insertError } = await supabase
+        .from('user_personalization')
+        .insert({
+          uid: user.id,
+          account_name: null,
+          tone: null,
+          bio: null,
+          tweet_examples: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
 
-          if (insertError) {
-            console.error('Error creating user profile:', insertError);
-            return redirectToError('Failed to create user profile.');
-          }
-
-          console.log(`Successfully created profile for new user: ${user.id}`);
-        } catch (error) {
-          console.error('Error in user creation process:', error);
-          return redirectToError('Failed to complete user registration.');
+      if (insertError) {
+        const errCode = (insertError as any).code;
+        if (errCode === '23505') {
+          console.warn(
+            'Profile already exists (unique violation). Proceeding.',
+          );
+        } else {
+          console.error('Error creating user profile:', insertError);
+          return redirectToError('Failed to create user profile.');
         }
       }
 
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://influxy.xyz';
-      console.log('siteUrl + next', siteUrl, next);
-      if (!siteUrl) {
-        return redirectToError('Configuration error: Site URL is not defined.');
+      // Call sign-up API with empty referral code for new users (blocking)
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) {
+        console.error('Missing access token for sign-up call.');
+        return redirectToError('Failed to complete user registration.');
       }
-      const redirectUrl = `${siteUrl}${next}`;
 
-      return NextResponse.redirect(redirectUrl);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const response = await fetch(`${API_HOST}/api/sign-up`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            referral_code: '',
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          console.error('Failed to complete sign-up:', response.status);
+          return redirectToError('Failed to complete user registration.');
+        }
+        console.log('Successfully completed sign-up for user:', user.id);
+      } catch (error) {
+        clearTimeout(timeout);
+        console.error('Error calling sign-up API:', error);
+        return redirectToError('Failed to complete user registration.');
+      }
     }
-  }
 
-  return redirectToError('Invalid authentication code.');
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin;
+    const redirectUrl = `${siteUrl}${next}`;
+    return NextResponse.redirect(redirectUrl);
+  } catch (error) {
+    console.error('Unhandled error in auth callback:', error);
+    return redirectToError('Unexpected error during authentication.');
+  }
 }

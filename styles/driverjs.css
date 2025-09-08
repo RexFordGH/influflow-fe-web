@@ -45,7 +45,6 @@
   padding: 20px 20px 20px 20px !important;
 }
 
-
 .driver-popover.viral-tweets.driverjs-basic .driver-popover-arrow {
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
@@ -286,5 +285,7 @@
 .driver-popover.fade-out {
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity .18s ease, transform .18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }

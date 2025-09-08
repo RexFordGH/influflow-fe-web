@@ -1,5 +1,5 @@
-import { IOutline, ITweet, ITweetContentItem } from '@/types/outline';
 import { IContentFormat } from '@/types/api';
+import { IOutline, ITweet, ITweetContentItem } from '@/types/outline';
 
 interface BackendOutlineNode {
   title: string;
@@ -23,32 +23,32 @@ export function normalizeOutlineData(data: BackendOutline): IOutline {
       content_format: 'longform' as IContentFormat,
       nodes: [],
       topic: '',
-      total_tweets: 0
+      total_tweets: 0,
     };
   }
 
-  const normalizedNodes: ITweet[] = (data.nodes || []).map(node => {
+  const normalizedNodes: ITweet[] = (data.nodes || []).map((node) => {
     const tweets = node.tweets || node.leaf_nodes || [];
-    
+
     return {
       title: node.title || '',
-      tweets: tweets.map(tweet => ({
+      tweets: tweets.map((tweet) => ({
         // @ts-ignore
         tweet_number: tweet.tweet_number || tweet.content_number || 0,
         content: tweet.content || '',
         title: tweet.title || '',
-        image_url: tweet.image_url || null
-      }))
+        image_url: tweet.image_url || null,
+      })),
     };
   });
 
   return {
     id: data.id || '',
-    content_format: data.content_format || 'longform' as IContentFormat,
+    content_format: data.content_format || ('longform' as IContentFormat),
     nodes: normalizedNodes,
     topic: data.topic || '',
     total_tweets: data.total_tweets || 0,
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
   };
 }
 
@@ -56,6 +56,6 @@ export function processChatOutline(chatData: any): IOutline | null {
   if (!chatData?.data?.outline) {
     return null;
   }
-  
+
   return normalizeOutlineData(chatData.data.outline);
 }
