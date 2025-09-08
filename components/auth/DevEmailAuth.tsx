@@ -3,7 +3,7 @@
 import { Button, Input } from '@heroui/react';
 import { useMemo, useState } from 'react';
 
-import { isProd } from '@/constants/env';
+import { showEmailAuth } from '@/constants/env';
 import { createClient } from '@/lib/supabase/client';
 
 interface DevEmailAuthProps {
@@ -17,23 +17,21 @@ export function DevEmailAuth({ mode, referralCode }: DevEmailAuthProps) {
   const [error, setError] = useState<string>('');
   const [info, setInfo] = useState<string>('');
 
-  const siteUrl = useMemo(() => {
-    if (process.env.NEXT_PUBLIC_SITE_URL)
-      return process.env.NEXT_PUBLIC_SITE_URL;
-    if (typeof window !== 'undefined')
-      return window.location.origin || 'https://influxy.xyz';
+  const origin = useMemo(() => {
+    if (typeof window !== 'undefined') return window.location.origin;
+    return process.env.NEXT_PUBLIC_SITE_URL || 'https://influxy.xyz';
   }, []);
 
   const callbackUrl = useMemo(() => {
     const next = encodeURIComponent('/');
     if (referralCode) {
       const code = encodeURIComponent(referralCode);
-      return `${siteUrl}/api/auth/referral/callback/${code}?next=${next}`;
+      return `${origin}/api/auth/referral/callback/${code}?next=${next}`;
     }
-    return `${siteUrl}/api/auth/callback?next=${next}`;
-  }, [referralCode, siteUrl]);
+    return `${origin}/api/auth/callback?next=${next}`;
+  }, [referralCode, origin]);
 
-  if (isProd) return null; // 生产环境不显示
+  if (!showEmailAuth) return null; // 生产环境不显示
 
   const handleSubmit = async () => {
     setPending(true);
