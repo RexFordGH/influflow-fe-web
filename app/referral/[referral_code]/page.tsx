@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 import { Topbar } from '@/components/layout/Topbar';
-import { isProd } from '@/constants/env';
+import { showEmailAuth } from '@/constants/env';
 import { useCheckReferralCode } from '@/lib/api/referral';
 import { createClient } from '@/lib/supabase/client';
 
@@ -60,7 +60,11 @@ export default function ReferralLandingPage() {
     setError('');
 
     const next = '/';
-    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL!;
+    const redirectTo = `${origin}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
@@ -112,7 +116,7 @@ export default function ReferralLandingPage() {
         </Button>
 
         {/* 开发环境：提供邮箱注册/登录用于测试 */}
-        {!isProd && (
+        {showEmailAuth && (
           <div className="mt-6 w-[544px] space-y-4">
             <div className="space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
               <p className="text-xs text-gray-500">
