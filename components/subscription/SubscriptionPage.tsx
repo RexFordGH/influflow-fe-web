@@ -327,7 +327,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
       </motion.div>
 
       <div className="fixed top-[56px] bottom-0 left-0 right-0 mx-3 mb-3 rounded-[12px] bg-white">
-      {/* Main Content */}
+        {/* Main Content */}
         <div className="mx-auto max-w-[1440px] px-[160px] py-[40px]">
           {/* Title */}
           <motion.h1
@@ -397,10 +397,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               ) : (
                 <>
                   <div className="mb-1 text-[32px] font-medium text-black">
-                    {credits.toLocaleString()} Credits
-                    {/* <span className="text-[16px] text-[#8C8C8C]">
+                    {credits.toLocaleString()}
+                    <span className="text-[16px] text-[#8C8C8C]">
                       / {totalCredits.toLocaleString()}
-                    </span>{' '} */}
+                    </span>{' '}
                   </div>
                   {/* Progress Bar */}
                   <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
