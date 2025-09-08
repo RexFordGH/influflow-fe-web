@@ -18,8 +18,10 @@ export function DevEmailAuth({ mode, referralCode }: DevEmailAuthProps) {
   const [info, setInfo] = useState<string>('');
 
   const siteUrl = useMemo(() => {
-    if (typeof window !== 'undefined') return window.location.origin;
-    return process.env.NEXT_PUBLIC_SITE_URL || '';
+    if (process.env.NEXT_PUBLIC_SITE_URL)
+      return process.env.NEXT_PUBLIC_SITE_URL;
+    if (typeof window !== 'undefined')
+      return window.location.origin || 'https://influxy.xyz';
   }, []);
 
   const callbackUrl = useMemo(() => {
@@ -86,6 +88,7 @@ export function DevEmailAuth({ mode, referralCode }: DevEmailAuthProps) {
         className="w-full"
         isDisabled={pending || !email}
         onPress={handleSubmit}
+        isLoading={pending}
       >
         {mode === 'register' ? 'Sign Up' : 'Sign In'}
       </Button>
