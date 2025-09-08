@@ -1,10 +1,12 @@
 'use client';
 
 import { Button, Image } from '@heroui/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 import { Topbar } from '@/components/layout/Topbar';
+import { isProd } from '@/constants/env';
 import { useCheckReferralCode } from '@/lib/api/referral';
 import { createClient } from '@/lib/supabase/client';
 
@@ -15,7 +17,6 @@ function setCookie(name: string, value: string, days = 7) {
 
 export default function ReferralLandingPage() {
   const params = useParams<{ referral_code: string }>();
-  const router = useRouter();
   const supabase = createClient();
 
   const referralCode = decodeURIComponent(params.referral_code || '');
@@ -109,6 +110,18 @@ export default function ReferralLandingPage() {
         >
           {isLoading ? 'Processing...' : 'Verify and Login with X'}
         </Button>
+
+        {/* 开发环境：提供邮箱注册/登录用于测试 */}
+        {!isProd && (
+          <div className="mt-6 w-[544px] space-y-4">
+            <div className="space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
+              <p className="text-xs text-gray-500">
+                开发环境专用 · Email 注册（将绑定当前邀请码 {referralCode}）
+              </p>
+              <DevEmailAuth mode="register" referralCode={referralCode} />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

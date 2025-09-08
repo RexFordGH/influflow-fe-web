@@ -10,6 +10,8 @@ import {
 } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
+import { isProd } from '@/constants/env';
+import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 import { createClient } from '@/lib/supabase/client';
 
 interface LoginModalProps {
@@ -111,6 +113,13 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                   Continue with X
                 </Button>
 
+                {!isProd && (
+                  <div className="mt-4 space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
+                    <p className="text-xs text-gray-500">开发环境专用 · Email 登录</p>
+<DevEmailAuth mode="login" />
+                  </div>
+                )}
+
                 <div className="text-center">
                   <Link
                     className="cursor-pointer text-sm text-blue-600 opacity-50 hover:underline hover:opacity-100"
@@ -137,6 +146,13 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                 >
                   Sign up with X
                 </Button>
+
+                {!isProd && (
+                  <div className="mt-4 space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
+                    <p className="text-xs text-gray-500">开发环境专用 · Email 注册</p>
+<DevEmailAuth mode="register" />
+                  </div>
+                )}
 
                 <div className="text-center">
                   <Link
