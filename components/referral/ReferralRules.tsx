@@ -44,7 +44,7 @@ export function ReferralRules() {
           <div className="flex flex-col pl-[6px]">
             {section.rules.map((rule, index) => (
               <div key={index} className="flex items-start gap-2">
-                <span className="mt-[7px] size-[4px] flex-shrink-0 rounded-full bg-black" />
+                <span className="mt-[7px] size-[4px] shrink-0 rounded-full bg-black" />
                 <span className="font-poppins text-[14px] font-normal leading-[21px] text-black">
                   {rule}
                 </span>

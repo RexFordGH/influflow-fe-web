@@ -393,18 +393,18 @@ export function useCreateCheckoutSession() {
       if (planType === 'free') {
         throw new Error('Cannot create checkout session for free plan');
       }
-      
+
       // 构建回调 URL
       const baseUrl = window.location.origin;
       const successUrl = `${baseUrl}/subscription?status=success`;
       const cancelUrl = `${baseUrl}/subscription?status=cancel`;
-      
+
       return apiPost<ICheckoutSessionResponse>(
         '/api/subscription/create-checkout-session',
-        { 
+        {
           plan_type: planType,
           success_url: successUrl,
-          cancel_url: cancelUrl
+          cancel_url: cancelUrl,
         },
       );
     },
@@ -456,7 +456,8 @@ export function useSubscriptionInfo(enabled: boolean = true) {
 export function useCreditRules() {
   return useQuery({
     queryKey: ['subscription', 'credit-rules'],
-    queryFn: () => apiGet<ICreditRulesResponse>('/api/subscription/credit-rules'),
+    queryFn: () =>
+      apiGet<ICreditRulesResponse>('/api/subscription/credit-rules'),
     staleTime: 60 * 60 * 1000, // 1小时内数据视为新鲜（规则不常变化）
     gcTime: 24 * 60 * 60 * 1000, // 24小时缓存
     refetchOnWindowFocus: false,
@@ -468,10 +469,9 @@ export function useCreditRules() {
 export function useUpdateSubscriptionPlan() {
   return useMutation({
     mutationFn: async (newPlanType: PlanType) => {
-      return apiPost<IUpdatePlanResponse>(
-        '/api/subscription/update-plan',
-        { new_plan_type: newPlanType },
-      );
+      return apiPost<IUpdatePlanResponse>('/api/subscription/update-plan', {
+        new_plan_type: newPlanType,
+      });
     },
     onSuccess: (data) => {
       console.log('Subscription plan updated:', data);

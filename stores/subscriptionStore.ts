@@ -1,4 +1,4 @@
-import { PlanType, ISubscriptionInfo, ICreditRule } from '@/lib/api/services';
+import { ICreditRule, ISubscriptionInfo, PlanType } from '@/lib/api/services';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -9,18 +9,18 @@ interface ISubscriptionState {
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
   credits: number;
-  
+
   // 积分规则
   creditRules: ICreditRule[];
-  
+
   // UI 状态
   isLoading: boolean;
   error: string | null;
   showNoCreditsModal: boolean;
-  
+
   // 计算属性
   showLowCreditsBanner: boolean;
-  
+
   // Actions
   setSubscriptionInfo: (info: ISubscriptionInfo) => void;
   setCreditRules: (rules: ICreditRule[]) => void;
@@ -52,11 +52,12 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
   persist(
     (set, get) => ({
       ...initialState,
-      
+
       setSubscriptionInfo: (info) => {
         set({
           currentPlan: info.current_plan,
-          nextPlan: info.next_plan !== info.current_plan ? info.next_plan : null,
+          nextPlan:
+            info.next_plan !== info.current_plan ? info.next_plan : null,
           currentPeriodStart: info.current_period_start,
           currentPeriodEnd: info.current_period_end,
           credits: info.credit,
@@ -64,28 +65,26 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
         });
         get().updateShowLowCreditsBanner();
       },
-      
+
       setCreditRules: (rules) =>
         set({
           creditRules: rules,
         }),
-      
-      setLoading: (loading) =>
-        set({ isLoading: loading }),
-      
-      setError: (error) =>
-        set({ error }),
-      
+
+      setLoading: (loading) => set({ isLoading: loading }),
+
+      setError: (error) => set({ error }),
+
       updateCredits: (credits) => {
         set({ credits });
         get().updateShowLowCreditsBanner();
       },
-      
+
       hasEnoughCredits: (requiredCredits = 1) => {
         const state = get();
         return state.credits >= requiredCredits;
       },
-      
+
       checkCreditsAndShowModal: (requiredCredits = 1) => {
         const state = get();
         if (state.credits < requiredCredits) {
@@ -94,43 +93,46 @@ export const useSubscriptionStore = create<ISubscriptionState>()(
         }
         return true;
       },
-      
-      setShowNoCreditsModal: (show) =>
-        set({ showNoCreditsModal: show }),
-      
+
+      setShowNoCreditsModal: (show) => set({ showNoCreditsModal: show }),
+
       refreshSubscriptionInfo: async () => {
         // 调用全局的 refetch 方法（由 SubscriptionSync 组件设置）
-        if (typeof window !== 'undefined' && (window as any).refetchSubscriptionInfo) {
+        if (
+          typeof window !== 'undefined' &&
+          (window as any).refetchSubscriptionInfo
+        ) {
           await (window as any).refetchSubscriptionInfo();
         }
       },
-      
+
       updateShowLowCreditsBanner: () => {
         const state = get();
-        
+
         // 只有付费用户才显示横幅
         if (state.currentPlan === 'free') {
           set({ showLowCreditsBanner: false });
           return;
         }
-        
+
         // 检查是否积分不足
         const lowCredits = state.credits < 10;
-        
+
         // 检查是否即将到期（7天内）
         let nearExpiry = false;
         if (state.currentPeriodEnd) {
           const endDate = new Date(state.currentPeriodEnd);
           const now = new Date();
-          const daysUntilExpiry = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          const daysUntilExpiry = Math.ceil(
+            (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+          );
           nearExpiry = daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
         }
-        
+
         set({ showLowCreditsBanner: lowCredits || nearExpiry });
       },
-      
-      reset: () =>
-        set(initialState),
+
+      reset: () => set(initialState),
     }),
     {
       name: 'subscription-storage',

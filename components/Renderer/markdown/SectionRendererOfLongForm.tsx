@@ -261,7 +261,7 @@ export function SectionRendererOfLongForm({
           {isLoading && (
             <div className="absolute left-2 top-2">
               {/* 加入透明度 隐藏加载动画 */}
-              <div className="opacity-0 size-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
+              <div className="size-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent opacity-0"></div>
             </div>
           )}
 
@@ -280,7 +280,6 @@ export function SectionRendererOfLongForm({
                     'prose prose-sm [&_.tiptap]:leading-inherit max-w-none bg-transparent text-black [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit',
                 }}
               />
-            
             </div>
           )}
 
@@ -292,13 +291,11 @@ export function SectionRendererOfLongForm({
           )} */}
 
           {/* Image rendering is removed from here */}
-  
+
           {isOnboarding && section.id === 'tweet-section-1' ? (
-            <Onboarding
-              isOpen={isTooltipOpenNum || 0}
-            />
+            <Onboarding isOpen={isTooltipOpenNum || 0} />
           ) : null}
-          
+
           <div
             className={`absolute bottom-[-32px] right-[4px] flex items-center justify-end gap-1 transition-opacity ${
               // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
@@ -309,8 +306,7 @@ export function SectionRendererOfLongForm({
                 editingNodeId === section.id)
                 ? 'opacity-100'
                 : 'opacity-0 group-hover:opacity-100'
-            }`
-          }
+            }`}
           >
             <EditWithAIButton
               nodeId={section.tweetId || section.id}

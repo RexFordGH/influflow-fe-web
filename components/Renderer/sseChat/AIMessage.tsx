@@ -16,7 +16,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
   isStreaming,
 }) => {
   return (
-    <div className="mb-6 flex flex-col gap-[6px] max-w-full">
+    <div className="mb-6 flex max-w-full flex-col gap-[6px]">
       {/* AI 头像 */}
       <Image src={'/icons/influxy.svg'} width={84} height={24} />
 
@@ -43,7 +43,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
             {/* 如果没有内容，显示加载中 */}
             {!message.streamingTitle && !message.streamingContent && (
               <div className="flex items-center gap-2">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                <div className="size-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
                 <span className="text-sm text-gray-400">Thinking...</span>
               </div>
             )}
@@ -52,7 +52,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           <div className="space-y-2">
             {/* 完成状态 - 如果有标题和内容，分开显示 */}
             {message.streamingTitle && (
-              <div className="font-medium text-black break-all">
+              <div className="break-all font-medium text-black">
                 {message.streamingTitle}
               </div>
             )}

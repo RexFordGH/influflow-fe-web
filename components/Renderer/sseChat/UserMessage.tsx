@@ -11,7 +11,7 @@ interface UserMessageProps {
 
 export const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
   return (
-    <div className="mb-6 flex justify-end items-end w-full">
+    <div className="mb-6 flex w-full items-end justify-end">
       {/*复制按钮*/}
       <Tooltip
         content="Copy"
@@ -31,7 +31,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
           <img src="/icons/copy.svg" alt="copy" className="size-5" />
         </Button>
       </Tooltip>
-      
+
       {/* 消息内容 */}
       <div
         className={cn(

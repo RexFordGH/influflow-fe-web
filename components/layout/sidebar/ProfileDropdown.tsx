@@ -23,7 +23,7 @@ export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
   if (user?.name && user.name.length > 15) {
     user.name = user.name.slice(0, 15) + '...';
   }
-  
+
   const { credits } = useSubscriptionStore();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -45,13 +45,9 @@ export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
   }
 
   return (
-    <Dropdown
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      placement="bottom-start"
-    >
+    <Dropdown isOpen={isOpen} onOpenChange={setIsOpen} placement="bottom-start">
       <DropdownTrigger>
-        <div className="flex cursor-pointer items-center justify-between rounded-[8px] px-[8px] py-[4px] transition-colors hover:bg-[#c1c1c1] h-[37px]">
+        <div className="flex h-[37px] cursor-pointer items-center justify-between rounded-[8px] px-[8px] py-[4px] transition-colors hover:bg-[#c1c1c1]">
           <div className="flex items-center gap-2">
             {user?.avatar ? (
               <Image
@@ -76,7 +72,6 @@ export const ProfileDropdown = ({ collapsed }: ProfileDropdownProps) => {
                 fontSize: '14px',
                 fontWeight: 450,
                 color: '#000000',
-                
               }}
             >
               {user?.name || 'Influxy User'}

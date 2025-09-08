@@ -1,11 +1,15 @@
 // ---------- Tutorial helpers (same-anchor safe & low-latency) ----------
 
-import { driver } from "driver.js";
+import { driver } from 'driver.js';
 
 // wait for next animation frame
-const nextFrame = () => new Promise<void>(r => requestAnimationFrame(() => r()));
-const twoFrames = async () => { await nextFrame(); await nextFrame(); };
-const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+const nextFrame = () =>
+  new Promise<void>((r) => requestAnimationFrame(() => r()));
+const twoFrames = async () => {
+  await nextFrame();
+  await nextFrame();
+};
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 // Wait until element's rect is stable for N frames
 function waitForStableRect(el: HTMLElement, frames = 3): Promise<void> {
@@ -36,7 +40,11 @@ function waitForStableRect(el: HTMLElement, frames = 3): Promise<void> {
 // Wait for "meaningful change" on an element even if selector stays the same:
 // - rect change (size/position)
 // - or subtree/content mutation
-function waitForChangeOnSameElement(el: HTMLElement, timeout = 800, minDelay = 80): Promise<void> {
+function waitForChangeOnSameElement(
+  el: HTMLElement,
+  timeout = 800,
+  minDelay = 80,
+): Promise<void> {
   return new Promise((resolve) => {
     const startRect = el.getBoundingClientRect();
     let finished = false;
@@ -44,7 +52,9 @@ function waitForChangeOnSameElement(el: HTMLElement, timeout = 800, minDelay = 8
     const finish = () => {
       if (finished) return;
       finished = true;
-      try { obs.disconnect(); } catch {}
+      try {
+        obs.disconnect();
+      } catch {}
       cancelAnimationFrame(rafId);
       clearTimeout(to);
       resolve();
@@ -60,7 +70,12 @@ function waitForChangeOnSameElement(el: HTMLElement, timeout = 800, minDelay = 8
         Math.abs(r.height - startRect.height) > 0.5;
       if (moved) finish();
     });
-    obs.observe(el, { attributes: true, attributeFilter: ['class', 'style'], childList: true, subtree: true });
+    obs.observe(el, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+      childList: true,
+      subtree: true,
+    });
 
     // Also poll rect for transform/transition based changes
     let rafId = 0;
@@ -72,7 +87,10 @@ function waitForChangeOnSameElement(el: HTMLElement, timeout = 800, minDelay = 8
         Math.abs(r.left - startRect.left) > 0.5 ||
         Math.abs(r.width - startRect.width) > 0.5 ||
         Math.abs(r.height - startRect.height) > 0.5;
-      if (moved) { finish(); return; }
+      if (moved) {
+        finish();
+        return;
+      }
       rafId = requestAnimationFrame(poll);
     };
     rafId = requestAnimationFrame(poll);
@@ -107,16 +125,16 @@ function ensureDriverSmoothCSS() {
 
 type StableOptions = {
   headerOffset?: number;
-  timeout?: number;     // max wait for a change
-  frames?: number;      // stable frames
-  minDelay?: number;    // small delay to allow microtasks/transitions
+  timeout?: number; // max wait for a change
+  frames?: number; // stable frames
+  minDelay?: number; // small delay to allow microtasks/transitions
   expectChange?: boolean; // if false, skip change-wait and go fast
 };
 
 export async function goToStepAfterStableSameAnchor(
   tourInstance: ReturnType<typeof driver>,
   selector: string,
-  opts: StableOptions = {}
+  opts: StableOptions = {},
 ) {
   const {
     headerOffset = 0,
@@ -137,7 +155,9 @@ export async function goToStepAfterStableSameAnchor(
 
   // Helper to move next while revealing smoothly
   const smoothMoveNext = async () => {
-    try { tourInstance.refresh(); } catch {}
+    try {
+      tourInstance.refresh();
+    } catch {}
     await delay(40);
     tourInstance.moveNext();
     // Allow the next step to mount behind the fade, then reveal
@@ -165,7 +185,11 @@ export async function goToStepAfterStableSameAnchor(
 
     // Optional: gently center target to reduce jumpiness
     try {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      el.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
       await delay(160);
     } catch {}
 

@@ -5,7 +5,6 @@ import ELK from 'elkjs/lib/elk.bundled.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
-  Controls,
   Edge,
   Node,
   NodeTypes,

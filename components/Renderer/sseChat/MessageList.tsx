@@ -38,7 +38,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   };
 
   return (
-    <div className="p-4 max-w-full overflow-hidden">
+    <div className="max-w-full overflow-hidden p-4">
       {messages.length === 0 ? (
         <div className="flex min-h-[200px] items-center justify-center">
           {/* <div className="text-center">

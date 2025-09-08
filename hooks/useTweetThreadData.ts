@@ -3,8 +3,8 @@
 import { useCallback, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
-import type { IDraftData } from '@/types/draft';
 import { IContentFormat } from '@/types/api';
+import type { IDraftData } from '@/types/draft';
 import { ITweet } from '@/types/outline';
 
 export interface TweetThreadRow {

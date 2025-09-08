@@ -12,6 +12,7 @@ import * as Icon from '@phosphor-icons/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { addToast } from '@/components/base/toast';
 import type { ReferralInfo } from '@/lib/api/referral';
@@ -21,7 +22,7 @@ import {
   useReferralInfo,
 } from '@/lib/api/referral';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
-import { useQueryClient } from '@tanstack/react-query';
+
 import { ReferralRules } from './ReferralRules';
 
 interface ReferralModalProps {
@@ -149,7 +150,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
       }}
       hideCloseButton={true}
     >
-      <ModalContent className="relative rounded-[20px] shadow-[0_0_15px_rgba(95,99,110,0.1)] overflow-hidden">
+      <ModalContent className="relative overflow-hidden rounded-[20px] shadow-[0_0_15px_rgba(95,99,110,0.1)]">
         <ModalBody className="p-0">
           <AnimatePresence mode="wait">
             {!showRules ? (
@@ -171,7 +172,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                       Earn 30 credits for every friend you invite.
                     </p>
                   </div>
-                  <div className="absolute top-0 right-0">
+                  <div className="absolute right-0 top-0">
                     <Button
                       isIconOnly
                       size="sm"
@@ -187,7 +188,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 {/* Error Display */}
                 {isError && (
                   <div className="flex items-center gap-3 rounded-[12px] border border-red-200 bg-red-50 p-4">
-                    <Icon.Warning size={20} className="text-red-600 shrink-0" />
+                    <Icon.Warning size={20} className="shrink-0 text-red-600" />
                     <p className="font-poppins text-[14px] text-red-700">
                       Failed to load referral information. Please refresh the
                       page or try again later.
@@ -201,7 +202,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                     <p className="font-poppins text-[14px] font-medium leading-[21px] text-[rgb(140,140,140)]">
                       Share Your Invitation Link
                     </p>
-                    <div className="flex gap-4 items-center">
+                    <div className="flex items-center gap-4">
                       {loading ? (
                         <Skeleton className="h-12 flex-1 rounded-[12px]" />
                       ) : (
@@ -213,13 +214,13 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                             height={20}
                             className="shrink-0"
                           />
-                          <span className="flex-1 font-poppins text-[16px] leading-6 text-[#757575]">
+                          <span className="font-poppins flex-1 text-[16px] leading-6 text-[#757575]">
                             {referralLink}
                           </span>
                         </div>
                       )}
                       <Button
-                        className="min-w-[120px] h-[48px] rounded-[12px] bg-black px-8 py-3 font-poppins text-[16px] font-medium leading-6 text-white"
+                        className="font-poppins h-[48px] min-w-[120px] rounded-[12px] bg-black px-8 py-3 text-[16px] font-medium leading-6 text-white"
                         onPress={copyReferralLink}
                         startContent={
                           isCopied ? (
@@ -291,8 +292,8 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                   </div>
 
                   {/* Credits */}
-                  <div className="flex w-[152px] flex-col gap-2 justify-between">
-                    <div className="flex flex-col h-[120px] items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
+                  <div className="flex w-[152px] flex-col justify-between gap-2">
+                    <div className="flex h-[120px] flex-col items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
                       {loading ? (
                         <>
                           <Skeleton className="h-8 w-16 rounded-lg" />
@@ -320,7 +321,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                     </div>
                     <Button
                       size="sm"
-                      className="h-[30px] rounded-[12px] bg-[rgb(248,248,248)] font-poppins text-[14px] font-normal text-black hover:bg-gray-200"
+                      className="font-poppins h-[30px] rounded-[12px] bg-[rgb(248,248,248)] text-[14px] font-normal text-black hover:bg-gray-200"
                       onPress={claimCredits}
                       isDisabled={
                         loading ||
@@ -337,7 +338,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
 
                   {/* Commission */}
                   <div className="flex w-[152px] flex-col gap-2">
-                    <div className="flex flex-col h-[120px] items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
+                    <div className="flex h-[120px] flex-col items-center justify-center gap-3 rounded-[12px] bg-[rgb(248,248,248)] p-6">
                       {loading ? (
                         <>
                           <Skeleton className="h-8 w-16 rounded-lg" />
@@ -365,7 +366,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                     </div>
                     <Button
                       size="sm"
-                      className="h-[30px] rounded-[12px] bg-[rgb(248,248,248)] font-poppins text-[14px] font-normal text-black hover:bg-gray-200"
+                      className="font-poppins h-[30px] rounded-[12px] bg-[rgb(248,248,248)] text-[14px] font-normal text-black hover:bg-gray-200"
                       onPress={handleCommissionClaim}
                       isDisabled={
                         loading ||
@@ -384,7 +385,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => setShowRules(true)}
-                    className="font-poppins text-[14px] font-normal underline text-[rgb(140,140,140)] hover:text-black"
+                    className="font-poppins text-[14px] font-normal text-[rgb(140,140,140)] underline hover:text-black"
                   >
                     Rules
                   </button>
@@ -396,7 +397,7 @@ export function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                         '#'
                       }
                       target="_blank"
-                      className="font-poppins text-[14px] font-normal cursor-pointer underline text-[rgb(140,140,140)] hover:text-black"
+                      className="font-poppins cursor-pointer text-[14px] font-normal text-[rgb(140,140,140)] underline hover:text-black"
                     >
                       Referral Management
                     </Link>

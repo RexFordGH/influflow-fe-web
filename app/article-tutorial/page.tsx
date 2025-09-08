@@ -225,7 +225,7 @@ export default function ArticleDirectPage() {
 
   const handleBack = () => {};
   const handleDataUpdate = () => {};
-  
+
   return (
     <ArticleRenderer
       topic={articleData.topic}

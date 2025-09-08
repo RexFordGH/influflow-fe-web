@@ -12,7 +12,8 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
  */
 export const SubscriptionSync = () => {
   const { isAuthenticated } = useAuthStore();
-  const { data: subscriptionInfo, refetch } = useSubscriptionInfo(isAuthenticated);
+  const { data: subscriptionInfo, refetch } =
+    useSubscriptionInfo(isAuthenticated);
   const { setSubscriptionInfo } = useSubscriptionStore();
 
   // 同步订阅信息到 store
@@ -26,7 +27,7 @@ export const SubscriptionSync = () => {
   useEffect(() => {
     // 将 refetch 方法挂载到 window 对象，供全局调用
     (window as any).refetchSubscriptionInfo = refetch;
-    
+
     return () => {
       delete (window as any).refetchSubscriptionInfo;
     };

@@ -34,6 +34,7 @@ import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
 import { goToStepAfterStableSameAnchor } from '@/utils/tutorial';
+
 import { BackgroundGradientAnimation } from '../ui/background-gradient-animation';
 
 const TrendingTopicsPage = lazy(() =>
@@ -386,12 +387,12 @@ export const WelcomeScreen = ({
         {/* 首页 Section */}
         <motion.div
           ref={homepageRef}
-          className="flex min-h-[94vh] items-center justify-center rounded-[20px] mx-3 my-3 overflow-hidden relative"
+          className="relative m-3 flex min-h-[94vh] items-center justify-center overflow-hidden rounded-[20px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <BackgroundGradientAnimation 
+          <BackgroundGradientAnimation
             containerClassName="absolute inset-0 -z-10 h-full w-full"
             interactive={true}
           />
@@ -427,16 +428,15 @@ export const WelcomeScreen = ({
                   maxHeight: '300px',
                   height: '120px',
                 }}
-
               />
               {/* Content Format Dropdown */}
-              <div className="absolute bottom-[7px] left-0 right-0 flex items-center justify-start gap-[4px] rounded-b-2xl py-3 pl-3 bg-white" >
+              <div className="absolute inset-x-0 bottom-[7px] flex items-center justify-start gap-[4px] rounded-b-2xl bg-white py-3 pl-3">
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
                     <Button
                       size="sm"
                       variant="flat"
-                      className="min-w-[100px] rounded-full border border-gray-200 bg-transparent px-[10px] py-[4px] mr-[6px] text-gray-700 backdrop-blur-sm hover:bg-gray-50"
+                      className="mr-[6px] min-w-[100px] rounded-full border border-gray-200 bg-transparent px-[10px] py-[4px] text-gray-700 backdrop-blur-sm hover:bg-gray-50"
                       endContent={
                         <svg
                           className="ml-1 size-3 opacity-60"
@@ -530,7 +530,7 @@ export const WelcomeScreen = ({
               <Button
                 isIconOnly
                 color="primary"
-                className="absolute bottom-[12px] mb-[3px] right-[12px] size-[40px] min-w-0 rounded-full"
+                className="absolute bottom-[12px] right-[12px] mb-[3px] size-[40px] min-w-0 rounded-full"
                 onPress={handleTopicSubmit}
                 disabled={!topicInput.trim()}
               >
@@ -598,7 +598,7 @@ export const WelcomeScreen = ({
         {/* Trending Topics Section */}
         <motion.div
           ref={trendingRef}
-          className="flex min-h-screen items-center justify-center bg-white rounded-[20px] mx-3 my-3 overflow-hidden relative"
+          className="relative m-3 flex min-h-screen items-center justify-center overflow-hidden rounded-[20px] bg-white"
           initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}

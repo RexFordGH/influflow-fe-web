@@ -2,18 +2,13 @@
 
 import { Button, Tooltip } from '@heroui/react';
 
-export function Onboarding({
-  isOpen,
-}: {
-  isOpen:number;
-}) {
-
+export function Onboarding({ isOpen }: { isOpen: number }) {
   return (
-    <div className="bottom-[-32px] right-[4px] flex items-center justify-end gap-1 transition-opacity opacity-100">
+    <div className="bottom-[-32px] right-[4px] flex items-center justify-end gap-1 opacity-100 transition-opacity">
       <Tooltip
         content="Edit with AI"
         delay={50}
-        isOpen={isOpen===1}
+        isOpen={isOpen === 1}
         closeDelay={0}
         placement="top"
         classNames={{
@@ -34,8 +29,7 @@ export function Onboarding({
       <Tooltip
         content="Upload Image"
         delay={50}
-        isOpen={isOpen===2}
-
+        isOpen={isOpen === 2}
         closeDelay={0}
         placement="top"
         classNames={{
@@ -56,7 +50,7 @@ export function Onboarding({
       <Tooltip
         content="Generate Image"
         delay={50}
-        isOpen={isOpen===3}
+        isOpen={isOpen === 3}
         closeDelay={0}
         placement="top"
         classNames={{
