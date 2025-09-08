@@ -30,7 +30,7 @@ export default function UpgradeSuccessModal({
           <>
             <ModalHeader className="flex items-center justify-between p-6 pb-0">
               <h2 className="text-[20px] font-semibold text-black">
-                Plan Change In Progress
+                Plan Updated
               </h2>
               <button
                 onClick={onModalClose}
@@ -48,10 +48,10 @@ export default function UpgradeSuccessModal({
                 className="space-y-4"
               >
                 <p className="font-poppins text-[16px] leading-6 text-black">
-                  Once payment is confirmed, your account will show the updated
-                  plan. If the new plan doesn't start as expected, please check
-                  the <span className="font-[600] italic">Manage Billing</span>{' '}
-                  page for details.
+                  Please check your account to confirm the result. If it doesn’t
+                  match your expectation, go to{' '}
+                  <span className="font-[600] italic">Manage Billing</span> for
+                  details.
                 </p>
 
                 <p className="font-poppins text-[14px] italic text-gray-600">
