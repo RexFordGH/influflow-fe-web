@@ -660,9 +660,9 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                 selectedStyle === 'Customized' ? 'block' : 'hidden',
               )}
             >
-              <h3 className="mb-2 text-lg font-medium text-gray-900">
+              {/* <h3 className="mb-2 text-lg font-medium text-gray-900">
                 Examples of Customized Style
-              </h3>
+              </h3> */}
               <p className="mb-4 text-gray-500">
                 Paste the link to the posts you'd like to use as style
                 references.
@@ -709,7 +709,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
           {/* Personal Introduction Section */}
           <div id="personal-introduction">
-            <h2 className="mb-1 text-2xl font-medium text-gray-900">
+            <h2 className="mb-1 text-[20px] font-medium text-gray-900">
               Personal Introduction
             </h2>
             <p className="mb-4 text-[14px] font-thin text-gray-400 ">
