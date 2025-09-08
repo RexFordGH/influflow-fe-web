@@ -30,8 +30,12 @@ export async function GET(request: Request) {
     next = '/';
   }
 
+  const redirect = (path: string) => NextResponse.redirect(`${origin}${path}`);
+
   const redirectToError = (error: string) => {
-    return NextResponse.redirect(`${origin}/?error=${encodeURIComponent(error)}`);
+    return NextResponse.redirect(
+      `${origin}/?error=${encodeURIComponent(error)}`,
+    );
   };
 
   try {
@@ -41,7 +45,19 @@ export async function GET(request: Request) {
     });
 
     if (!code) {
-      return redirectToError('Invalid authentication code.');
+      // 检查 Supabase 返回的错误信息
+      const error = searchParams.get('error');
+      const errorCode = searchParams.get('error_code');
+      const errorDescription = searchParams.get('error_description');
+
+      let errorMessage = 'Invalid auth code';
+
+      if (error || errorCode || errorDescription) {
+        // 构建更详细的错误信息
+        errorMessage = errorDescription || error || errorCode || errorMessage;
+      }
+
+      return redirect(`/?error=${encodeURIComponent(errorMessage)}`);
     }
 
     const supabase = await createClient();
@@ -84,7 +100,9 @@ export async function GET(request: Request) {
       if (insertError) {
         const errCode = (insertError as any).code;
         if (errCode === '23505') {
-          console.warn('Profile already exists (unique violation). Proceeding.');
+          console.warn(
+            'Profile already exists (unique violation). Proceeding.',
+          );
         } else {
           console.error('Error creating user profile:', insertError);
           return redirectToError('Failed to create user profile.');

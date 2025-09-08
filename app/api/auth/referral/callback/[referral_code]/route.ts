@@ -37,7 +37,19 @@ export async function GET(
   const redirect = (path: string) => NextResponse.redirect(`${origin}${path}`);
 
   if (!code) {
-    return redirect(`/?error=${encodeURIComponent('Invalid auth code')}`);
+    // 检查 Supabase 返回的错误信息
+    const error = searchParams.get('error');
+    const errorCode = searchParams.get('error_code');
+    const errorDescription = searchParams.get('error_description');
+    
+    let errorMessage = 'Invalid auth code';
+    
+    if (error || errorCode || errorDescription) {
+      // 构建更详细的错误信息
+      errorMessage = errorDescription || error || errorCode || errorMessage;
+    }
+    
+    return redirect(`/?error=${encodeURIComponent(errorMessage)}`);
   }
 
   try {
