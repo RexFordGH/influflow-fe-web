@@ -9,6 +9,4 @@ export const API_HOST =
 export const API_BASE_URL = isLocal ? '/api/proxy' : API_HOST;
 
 export const showEmailAuth =
-  isProd && process.env.NEXT_PUBLIC_EMAIL_AUTH_ENABLED === 'true';
-
-  
+  !isProd && process.env.NEXT_PUBLIC_EMAIL_AUTH_ENABLED === 'true';
