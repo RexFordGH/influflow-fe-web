@@ -4,6 +4,7 @@ import { Button, Input } from '@heroui/react';
 import { useMemo, useState } from 'react';
 
 import { showEmailAuth } from '@/constants/env';
+import { useRedirect } from '@/hooks/useRedirect';
 import { createClient } from '@/lib/supabase/client';
 
 interface DevEmailAuthProps {
@@ -17,19 +18,14 @@ export function DevEmailAuth({ mode, referralCode }: DevEmailAuthProps) {
   const [error, setError] = useState<string>('');
   const [info, setInfo] = useState<string>('');
 
-  const origin = useMemo(() => {
-    if (typeof window !== 'undefined') return window.location.origin;
-    return process.env.NEXT_PUBLIC_SITE_URL || 'https://influxy.xyz';
-  }, []);
+  const { getAuthCallbackUrl } = useRedirect();
 
   const callbackUrl = useMemo(() => {
-    const next = encodeURIComponent('/');
     if (referralCode) {
-      const code = encodeURIComponent(referralCode);
-      return `${origin}/api/auth/referral/callback/${code}?next=${next}`;
+      return getAuthCallbackUrl('referral', { referralCode, next: '/' });
     }
-    return `${origin}/api/auth/callback?next=${next}`;
-  }, [referralCode, origin]);
+    return getAuthCallbackUrl();
+  }, [referralCode, getAuthCallbackUrl]);
 
   if (!showEmailAuth) return null; // 生产环境不显示
 

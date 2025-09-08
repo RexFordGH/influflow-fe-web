@@ -9,6 +9,7 @@ import { Topbar } from '@/components/layout/Topbar';
 import { showEmailAuth } from '@/constants/env';
 import { useCheckReferralCode } from '@/lib/api/referral';
 import { createClient } from '@/lib/supabase/client';
+import { useRedirect } from '@/hooks/useRedirect';
 
 function setCookie(name: string, value: string, days = 7) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -18,6 +19,7 @@ function setCookie(name: string, value: string, days = 7) {
 export default function ReferralLandingPage() {
   const params = useParams<{ referral_code: string }>();
   const supabase = createClient();
+  const { getAuthCallbackUrl } = useRedirect();
 
   const referralCode = decodeURIComponent(params.referral_code || '');
 
@@ -59,16 +61,14 @@ export default function ReferralLandingPage() {
     setIsLoading(true);
     setError('');
 
-    const next = '/';
-    const origin =
-      typeof window !== 'undefined'
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL!;
-    const redirectTo = `${origin}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
-      options: { redirectTo },
+      options: { 
+        redirectTo: getAuthCallbackUrl('referral', { 
+          referralCode, 
+          next: '/' 
+        }),
+      },
     });
 
     if (error) {

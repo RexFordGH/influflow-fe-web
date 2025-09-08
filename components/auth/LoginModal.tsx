@@ -10,8 +10,9 @@ import {
 } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
-import { showEmailAuth } from '@/constants/env';
 import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
+import { showEmailAuth } from '@/constants/env';
+import { useRedirect } from '@/hooks/useRedirect';
 import { createClient } from '@/lib/supabase/client';
 
 interface LoginModalProps {
@@ -23,6 +24,7 @@ interface LoginModalProps {
 export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
   const [showExistingUserLogin, setShowExistingUserLogin] = useState(true); // 默认显示登录
   const [error, setError] = useState('');
+  const { getAuthCallbackUrl } = useRedirect();
 
   // 处理外部传入的认证错误
   useEffect(() => {
@@ -31,43 +33,19 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
     }
   }, [authError]);
 
-  // 新用户注册 - 直接跳转到Twitter OAuth，无需邀请码
-  const handleNewUserRegister = async () => {
+  // 统一的 Twitter 登录处理函数
+  const handleTwitterAuth = async () => {
     const supabase = createClient();
-    const origin =
-      typeof window !== 'undefined'
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL!;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: `${origin}/api/auth/callback`,
+        redirectTo: getAuthCallbackUrl(),
       },
     });
 
     if (error) {
       console.error('Twitter login error:', error);
-      setError('注册失败，请重试');
-    }
-  };
-
-  // 已有用户登录
-  const handleExistingUserLogin = async () => {
-    const supabase = createClient();
-    const origin =
-      typeof window !== 'undefined'
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL!;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'twitter',
-      options: {
-        redirectTo: `${origin}/api/auth/callback`,
-      },
-    });
-
-    if (error) {
-      console.error('Twitter login error:', error);
-      setError('登录失败，请重试');
+      setError('Auth failed, please retry.');
     }
   };
 
@@ -116,15 +94,17 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                       height={20}
                     />
                   }
-                  onPress={handleExistingUserLogin}
+                  onPress={handleTwitterAuth}
                 >
                   Continue with X
                 </Button>
 
                 {showEmailAuth && (
                   <div className="mt-4 space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
-                    <p className="text-xs text-gray-500">开发环境专用 · Email 登录</p>
-<DevEmailAuth mode="login" />
+                    <p className="text-xs text-gray-500">
+                      开发环境专用 · Email 登录
+                    </p>
+                    <DevEmailAuth mode="login" />
                   </div>
                 )}
 
@@ -150,15 +130,17 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                       height={20}
                     />
                   }
-                  onPress={handleNewUserRegister}
+                  onPress={handleTwitterAuth}
                 >
                   Sign up with X
                 </Button>
 
                 {showEmailAuth && (
                   <div className="mt-4 space-y-3 rounded-lg border border-dashed border-gray-200 p-4">
-                    <p className="text-xs text-gray-500">开发环境专用 · Email 注册</p>
-<DevEmailAuth mode="register" />
+                    <p className="text-xs text-gray-500">
+                      开发环境专用 · Email 注册
+                    </p>
+                    <DevEmailAuth mode="register" />
                   </div>
                 )}
 
