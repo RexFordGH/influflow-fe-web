@@ -709,7 +709,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
 
           {/* Personal Introduction Section */}
           <div id="personal-introduction">
-            <h2 className="mb-2 text-2xl font-medium text-gray-900">
+            <h2 className="mb-1 text-2xl font-medium text-gray-900">
               Personal Introduction
             </h2>
             <p className="mb-4 text-[14px] font-thin text-gray-400 ">
@@ -723,7 +723,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               rows={10}
               classNames={{
                 input: "leading-tight text-gray-400 font-thin text-[16px]",
-                innerWrapper: "min-h-[260px]", 
+                innerWrapper: "min-h-[215px]", 
               }}
               variant="bordered"
             />
