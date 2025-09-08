@@ -311,7 +311,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-[8px]"
+        className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] px-3 py-3"
       >
         <div className="flex items-center">
           <Button
@@ -326,241 +326,245 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         </div>
       </motion.div>
 
+      <div className="fixed top-[56px] bottom-0 left-0 right-0 mx-3 mb-3 rounded-[12px] bg-white">
       {/* Main Content */}
-      <div className="mx-auto max-w-[1440px] px-[160px] py-[40px]">
-        {/* Title */}
-        <motion.h1
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mb-10 text-center text-[32px] font-medium text-black"
-        >
-          Manage Subscription
-        </motion.h1>
+        <div className="mx-auto max-w-[1440px] px-[160px] py-[40px]">
+          {/* Title */}
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mb-10 text-center text-[32px] font-medium text-black"
+          >
+            Manage Subscription
+          </motion.h1>
 
-        {/* Stats Section */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mb-10 flex gap-6"
-        >
-          {/* Remaining Credits */}
-          <div className="flex-1 rounded-[24px] bg-white p-6">
-            <div className="mb-2 flex items-center gap-2">
-              <h2 className="text-[20px] font-medium text-black">
-                Remaining Credits
-              </h2>
-              <button
-                onClick={() => setIsCreditsModalOpen(true)}
-                className="group relative rounded-full p-1 transition-colors hover:bg-gray-100"
-                disabled={isLoading}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="cursor-help text-gray-400 transition-colors group-hover:text-gray-600"
+          {/* Stats Section */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mb-10 flex gap-6"
+          >
+            {/* Remaining Credits */}
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+              <div className="mb-2 flex items-center gap-2">
+                <p className="text-[20px] font-medium text-black">
+                  Remaining Credits
+                </p>
+                <button
+                  onClick={() => setIsCreditsModalOpen(true)}
+                  className="group relative rounded-full p-1 transition-colors hover:bg-gray-100"
+                  disabled={isLoading}
                 >
-                  <circle
-                    cx="10"
-                    cy="10"
-                    r="8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-                  <text
-                    x="10"
-                    y="14"
-                    textAnchor="middle"
-                    fontSize="12"
-                    fill="currentColor"
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="cursor-help text-gray-400 transition-colors group-hover:text-gray-600"
                   >
-                    ?
-                  </text>
-                </svg>
-                <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-black p-2 text-xs text-white shadow-lg group-hover:block">
-                  Click to see credits usage rules
-                  <div className="absolute left-1/2 top-full size-0 -translate-x-1/2 -translate-y-1 border-x-[5px] border-t-[5px] border-x-transparent border-t-black"></div>
-                </div>
-              </button>
-            </div>
-
-            {isLoading ? (
-              <div className="animate-pulse">
-                <div className="mb-1 h-[32px] w-[200px] rounded bg-gray-200"></div>
-                <div className="h-[6px] w-full rounded-full bg-gray-200"></div>
+                    <circle
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                    <text
+                      x="10"
+                      y="14"
+                      textAnchor="middle"
+                      fontSize="12"
+                      fill="currentColor"
+                    >
+                      ?
+                    </text>
+                  </svg>
+                  <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-black p-2 text-xs text-white shadow-lg group-hover:block">
+                    Click to see credits usage rules
+                    <div className="absolute left-1/2 top-full size-0 -translate-x-1/2 -translate-y-1 border-x-[5px] border-t-[5px] border-x-transparent border-t-black"></div>
+                  </div>
+                </button>
               </div>
-            ) : (
-              <>
-                <div className="mb-1 text-[32px] font-medium text-black">
-                  {credits.toLocaleString()}
-                  <span className="text-[16px] text-[#8C8C8C]">
-                    / {totalCredits.toLocaleString()}
-                  </span>{' '}
-                </div>
-                {/* Progress Bar */}
-                <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
-                  <div
-                    className="absolute left-0 top-0 h-full rounded-full bg-black transition-all duration-300"
-                    style={{ width: `${creditPercentage}%` }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
 
-          {/* Your Plan */}
-          <div className="flex-1 rounded-[24px] bg-white p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-[20px] font-medium text-black">Your Plan</h2>
-              <span className="text-[16px] text-black">
-                {isLoading ? (
-                  <div className="h-[24px] w-[100px] animate-pulse rounded bg-gray-200"></div>
-                ) : (
-                  getPlanDisplayName(currentPlan)
-                )}
-              </span>
+              {isLoading ? (
+                <div className="animate-pulse">
+                  <div className="mb-1 h-[32px] w-[200px] rounded bg-gray-200"></div>
+                  <div className="h-[6px] w-full rounded-full bg-gray-200"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-1 text-[32px] font-medium text-black">
+                    {credits.toLocaleString()} Credits
+                    {/* <span className="text-[16px] text-[#8C8C8C]">
+                      / {totalCredits.toLocaleString()}
+                    </span>{' '} */}
+                  </div>
+                  {/* Progress Bar */}
+                  <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
+                    <div
+                      className="absolute left-0 top-0 h-full rounded-full bg-black transition-all duration-300"
+                      style={{ width: `${creditPercentage}%` }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
-            <div className="space-y-0">
-              <div className="flex items-center justify-between">
-                <span className="text-[16px] text-black">
-                  Current Plan Active Until:
-                </span>
+            {/* Your Plan */}
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-[20px] font-medium text-black">
+                  Your Plan
+                </h2>
                 <span className="text-[16px] text-black">
                   {isLoading ? (
-                    <div className="h-[24px] w-[150px] animate-pulse rounded bg-gray-200"></div>
+                    <div className="h-[24px] w-[100px] animate-pulse rounded bg-gray-200"></div>
                   ) : (
-                    formatDate(currentPeriodEnd)
+                    getPlanDisplayName(currentPlan)
                   )}
                 </span>
               </div>
-              {nextPlan && (
+
+              <div className="space-y-0">
                 <div className="flex items-center justify-between">
                   <span className="text-[16px] text-black">
-                    Plan for Next Billing Cycle:
+                    Current Plan Active Until:
                   </span>
                   <span className="text-[16px] text-black">
-                    {getPlanDisplayName(nextPlan)}
+                    {isLoading ? (
+                      <div className="h-[24px] w-[150px] animate-pulse rounded bg-gray-200"></div>
+                    ) : (
+                      formatDate(currentPeriodEnd)
+                    )}
                   </span>
                 </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-[16px] text-black">
-                  Subscription History:
-                </span>
-                <Button
-                  onPress={handleViewInvoices}
-                  className="bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isProcessing || isCreatingPortal}
-                  isLoading={isCreatingPortal}
-                >
-                  Manage Billing
-                </Button>
+                {nextPlan && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[16px] text-black">
+                      Next Billing Plan::
+                    </span>
+                    <span className="text-[16px] text-black">
+                      {getPlanDisplayName(nextPlan)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] text-black">
+                    Subscription History:
+                  </span>
+                  <Button
+                    onPress={handleViewInvoices}
+                    className="bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={isProcessing || isCreatingPortal}
+                    isLoading={isCreatingPortal}
+                  >
+                    View Invoices
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-
-        {/* Plan Cards */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="flex gap-6"
-        >
-          <motion.div
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex-1"
-          >
-            <PlanCard
-              planName="Free Plan"
-              price={String(PriceMap.free)}
-              features={FeatureMap.free}
-              isCurrentPlan={currentPlan === 'free'}
-              isDowngraded={isDowngraded('free')}
-              isNextPlan={nextPlan === 'free'}
-              onSwitch={() => handleSwitchPlan('free')}
-              isLoading={processingPlan === 'free'}
-            />
           </motion.div>
 
+          {/* Plan Cards */}
           <motion.div
-            initial={{ y: -20, opacity: 0 }}
+            initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="flex-1"
+            transition={{ delay: 0.4 }}
+            className="flex gap-6"
           >
-            <PlanCard
-              planName="Starter Plan"
-              price={String(PriceMap.starter)}
-              priceUnit="/month"
-              features={FeatureMap.starter}
-              isCurrentPlan={currentPlan === 'starter'}
-              isDowngraded={isDowngraded('starter')}
-              isNextPlan={nextPlan === 'starter'}
-              isMostPopular={currentPlan === 'free'}
-              onSwitch={() => handleSwitchPlan('starter')}
-              highlighted={currentPlan === 'free'}
-              isLoading={processingPlan === 'starter'}
-            />
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Free Plan"
+                price={String(PriceMap.free)}
+                features={FeatureMap.free}
+                isCurrentPlan={currentPlan === 'free'}
+                isDowngraded={isDowngraded('free')}
+                isNextPlan={nextPlan === 'free'}
+                onSwitch={() => handleSwitchPlan('free')}
+                isLoading={processingPlan === 'free'}
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Starter Plan"
+                price={String(PriceMap.starter)}
+                priceUnit="/month"
+                features={FeatureMap.starter}
+                isCurrentPlan={currentPlan === 'starter'}
+                isDowngraded={isDowngraded('starter')}
+                isNextPlan={nextPlan === 'starter'}
+                isMostPopular={currentPlan === 'free'}
+                onSwitch={() => handleSwitchPlan('starter')}
+                highlighted={currentPlan === 'free'}
+                isLoading={processingPlan === 'starter'}
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Pro Plan"
+                price={String(PriceMap.pro)}
+                priceUnit="/month"
+                features={FeatureMap.pro}
+                isCurrentPlan={currentPlan === 'pro'}
+                isDowngraded={isDowngraded('pro')}
+                isNextPlan={nextPlan === 'pro'}
+                isRecommended={currentPlan === 'starter'}
+                onSwitch={() => handleSwitchPlan('pro')}
+                highlighted={currentPlan === 'starter'}
+                isLoading={processingPlan === 'pro'}
+              />
+            </motion.div>
           </motion.div>
+        </div>
 
-          <motion.div
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="flex-1"
-          >
-            <PlanCard
-              planName="Pro Plan"
-              price={String(PriceMap.pro)}
-              priceUnit="/month"
-              features={FeatureMap.pro}
-              isCurrentPlan={currentPlan === 'pro'}
-              isDowngraded={isDowngraded('pro')}
-              isNextPlan={nextPlan === 'pro'}
-              isRecommended={currentPlan === 'starter'}
-              onSwitch={() => handleSwitchPlan('pro')}
-              highlighted={currentPlan === 'starter'}
-              isLoading={processingPlan === 'pro'}
-            />
-          </motion.div>
-        </motion.div>
-      </div>
-
-      {/* Credits Usage Modal */}
-      <CreditsUsageModal
-        isOpen={isCreditsModalOpen}
-        onClose={() => setIsCreditsModalOpen(false)}
-      />
-
-      {/* Plan Change Modal */}
-      {planChangeModal.targetPlan && (
-        <PlanChangeModal
-          isOpen={planChangeModal.isOpen}
-          onClose={() =>
-            setPlanChangeModal({ isOpen: false, targetPlan: null })
-          }
-          onConfirm={handleConfirmPlanChange}
-          currentPlan={currentPlan}
-          targetPlan={planChangeModal.targetPlan}
-          currentPeriodEnd={currentPeriodEnd}
-          nextPlan={nextPlan}
-          isLoading={isProcessing}
+        {/* Credits Usage Modal */}
+        <CreditsUsageModal
+          isOpen={isCreditsModalOpen}
+          onClose={() => setIsCreditsModalOpen(false)}
         />
-      )}
 
-      {/* Upgrade Success Modal */}
-      <UpgradeSuccessModal
-        isOpen={showUpgradeSuccessModal}
-        onClose={() => setShowUpgradeSuccessModal(false)}
-      />
+        {/* Plan Change Modal */}
+        {planChangeModal.targetPlan && (
+          <PlanChangeModal
+            isOpen={planChangeModal.isOpen}
+            onClose={() =>
+              setPlanChangeModal({ isOpen: false, targetPlan: null })
+            }
+            onConfirm={handleConfirmPlanChange}
+            currentPlan={currentPlan}
+            targetPlan={planChangeModal.targetPlan}
+            currentPeriodEnd={currentPeriodEnd}
+            nextPlan={nextPlan}
+            isLoading={isProcessing}
+          />
+        )}
+
+        {/* Upgrade Success Modal */}
+        <UpgradeSuccessModal
+          isOpen={showUpgradeSuccessModal}
+          onClose={() => setShowUpgradeSuccessModal(false)}
+        />
+      </div>
     </motion.div>
   );
 };
