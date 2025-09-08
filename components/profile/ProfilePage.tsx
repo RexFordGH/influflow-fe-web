@@ -528,10 +528,10 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="h-screen overflow-y-auto bg-white"
+      className="h-screen overflow-y-auto bg-[#F8F8F8]"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-[24px] py-[6px]">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] px-[12px] py-[12px]">
         <div className="flex items-center space-x-4">
           <Button
             size="sm"
@@ -552,165 +552,13 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         >
           Log Out
         </Button> */}
-      </div>
-
-      {/* Main Content */}
-      <div className="mx-auto max-w-4xl p-12">
-        {/* Style Section */}
-        <div id={isDataFetch ? 'style-section' : ''} className="mb-10">
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900">Style</h2>
-          <p className="mb-6 text-gray-500">
-            Choose a tone for your content, or paste links to match a custom
-            style.
-          </p>
-
-          {/* Style Options */}
-          <div className="mb-6 flex gap-4">
-            {STYLE_OPTIONS.map((option) => {
-              const isYourStyleDisabled =
-                option.value === 'YourStyle' && !hasTweetData;
-
-              return isYourStyleDisabled ? (
-                <Tooltip
-                  key={option.value}
-                  content="Unable to learn style without past tweets"
-                  placement="top"
-                  classNames={{
-                    content: 'bg-black text-white',
-                    arrow: 'bg-black border-black',
-                  }}
-                >
-                  <Button
-                    key={option.value}
-                    variant="bordered"
-                    className={`border-1 cursor-not-allowed rounded-[12px] px-6 py-3 opacity-30 hover:opacity-30 `}
-                    disabled={true}
-                    onPress={() => handleStyleSelect(option.value)}
-                  >
-                    {option.label}
-                  </Button>
-                </Tooltip>
-              ) : (
-                <Button
-                  key={option.value}
-                  variant="bordered"
-                  className={`border-1 rounded-[12px] px-6 py-3 ${
-                    selectedStyle === option.value
-                      ? 'border-[#448AFF] bg-[#DDE9FF]  text-blue-600'
-                      : isYourStyleDisabled
-                        ? 'cursor-not-allowed border-gray-200 text-gray-400 opacity-50'
-                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                  } ${option.value === 'Customized' ? 'underline' : ''}`}
-                  onPress={() => handleStyleSelect(option.value)}
-                >
-                  {option.label}
-                </Button>
-              );
-            })}
-          </div>
-
-          {userStyleSummary && selectedStyle === 'YourStyle' && (
-            <div
-              className={cn(
-                'rounded-lg p-4 text-[16px] leading-[1.4] text-gray-600',
-              )}
-            >
-              <p className="whitespace-pre-line">{userStyleSummary}</p>
-            </div>
-          )}
-
-          {selectedStyle !== 'YourStyle' &&
-            selectedStyle !== 'Customized' &&
-            SUMMARY_MAP[selectedStyle!] && (
-              <div
-                className={cn(
-                  'rounded-lg p-4 text-[16px] leading-[1.4] text-gray-600',
-                )}
-              >
-                <p className="whitespace-pre-line">
-                  {SUMMARY_MAP[selectedStyle!]}
-                </p>
-              </div>
-            )}
-
-          {/* Custom Style Links - 只在选择 Customized 时显示 */}
-          <div
-            className={cn(
-              'mb-6',
-              selectedStyle === 'Customized' ? 'block' : 'hidden',
-            )}
-          >
-            <h3 className="mb-2 text-lg font-medium text-gray-900">
-              Examples of Customized Style
-            </h3>
-            <p className="mb-4 text-gray-500">
-              Paste the link to the posts you'd like to use as style references.
-            </p>
-            <div className="flex justify-between gap-[10px]">
-              {tweetExampleUrls.map((url, index) => {
-                const validationResult = isValidUrl(url);
-                const isInvalid =
-                  url.trim() !== '' && validationResult !== true;
-                const errorMessage =
-                  validationResult === 'invalid-url'
-                    ? 'Please enter a valid URL'
-                    : validationResult === 'not-twitter'
-                      ? 'Please enter a Twitter/X post link'
-                      : undefined;
-
-                return (
-                  <Input
-                    key={index}
-                    value={url}
-                    onChange={(e) => handleLinkChange(index, e.target.value)}
-                    placeholder={
-                      index === 0 ? 'https://x.com/influxy.ai...' : ''
-                    }
-                    variant="bordered"
-                    className="flex-1"
-                    isInvalid={isInvalid}
-                    errorMessage={errorMessage}
-                    startContent={
-                      <Image
-                        src="/icons/link.svg"
-                        alt="Link"
-                        width={20}
-                        height={20}
-                        className="pointer-events-none shrink-0 text-gray-400"
-                      />
-                    }
-                  />
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Personal Introduction Section */}
-        <div id="personal-introduction" className="mb-10">
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900">
-            Personal Introduction
-          </h2>
-          <p className="mb-6 text-gray-500">
-            Introduce yourself in 100-300 words, using a first-person tone. This
-            will help personalize your future content.
-          </p>
-          <Textarea
-            value={personalIntro}
-            onChange={(e) => setPersonalIntro(e.target.value)}
-            placeholder={`Example: I’m a serial entrepreneur, currently focused on building AI tools for content creators. Previously, I worked as a product manager at several major tech companies and spent time in VC doing early-stage investments. Later, I founded a project at the intersection of crypto and AI, which grew to over 7 million users. Now, I’m building an AI product designed to help creators save time and grow their influence. My account is positioned to share insights on AI trends, real-world startup lessons, and practical ways to use AI for efficient content creation and personal branding. My content style is honest and practical, aimed at entrepreneurs, AI enthusiasts, and anyone looking to leverage AI to boost their content game.`}
-            rows={10}
-            className="min-h-[260px] w-full"
-            variant="bordered"
-          />
-        </div>
 
         {/* Save Button */}
-        <div className="flex justify-center">
+        <div className="flex justify-end">
           <Button
             onPress={handleSubmit}
             isLoading={isLoading}
-            className="rounded-full bg-black px-8 py-3 font-medium text-white"
+            className="bg-[#448AFF] text-white h-[32px] rounded-[12px] text-[14px]"
           >
             {isLoading
               ? selectedStyle === 'Customized'
@@ -718,6 +566,168 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                 : 'Saving...'
               : 'Save Changes'}
           </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="fixed top-[56px] bottom-0 left-0 right-0 mx-3 mb-3 rounded-[12px] bg-white">
+        <div className="w-[130vh] mx-auto">
+          {/* Style Section */}
+          <div id={isDataFetch ? 'style-section' : ''} className="mb-10">
+            <p className="mb-10 pt-10 text-[32px] font-medium text-gray-900 text-center">
+              Customize Your Style
+            </p>
+            <p className="mb-1 text-[20px] font-semibold text-gray-900 ">
+              Writing Style
+            </p>
+            <p className="mb-4 text-[14px] font-thin text-gray-400 ">
+              Choose a style to shape how your content is generated.
+            </p>
+
+            {/* Style Options */}
+            <div className="mb-4 flex gap-4">
+              {STYLE_OPTIONS.map((option) => {
+                const isYourStyleDisabled =
+                  option.value === 'YourStyle' && !hasTweetData;
+
+                return isYourStyleDisabled ? (
+                  <Tooltip
+                    key={option.value}
+                    content="Unable to learn style without past tweets"
+                    placement="top"
+                    classNames={{
+                      content: 'bg-black text-white',
+                      arrow: 'bg-black border-black',
+                    }}
+                  >
+                    <Button
+                      key={option.value}
+                      variant="bordered"
+                      className={`flex-1 border-1 cursor-not-allowed rounded-[12px] px-6 py-3 opacity-30 hover:opacity-30 bg-[#F8F8F8]`}
+                      disabled={true}
+                      onPress={() => handleStyleSelect(option.value)}
+                    >
+                      {option.label}
+                    </Button>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    key={option.value}
+                    variant="bordered"
+                    className={`flex-1 border-1 rounded-[12px] px-6 py-3 bg-[#F8F8F8]${
+                      selectedStyle === option.value
+                        ? 'border-[#448AFF] bg-[#DDE9FF] text-blue-600'
+                        : isYourStyleDisabled
+                          ? 'cursor-not-allowed text-gray-400 opacity-50 bg-[#F8F8F8]'
+                          : 'text-balck hover:bg-gray-50 bg-[#F8F8F8]'
+                    } ${option.value === 'Customized' ? 'underline' : ''}`}
+                    onPress={() => handleStyleSelect(option.value)}
+                  >
+                    {option.label}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {userStyleSummary && selectedStyle === 'YourStyle' && (
+              <div
+                className={cn(
+                  'rounded-lg text-[16px] leading-[1.4] text-balck',
+                )}
+              >
+                <p className="whitespace-pre-line">{userStyleSummary}</p>
+              </div>
+            )}
+
+            {selectedStyle !== 'YourStyle' &&
+              selectedStyle !== 'Customized' &&
+              SUMMARY_MAP[selectedStyle!] && (
+                <div
+                  className={cn(
+                    'rounded-lg text-[16px] leading-[1.4] text-balck',
+                  )}
+                >
+                  <p className="whitespace-pre-line">
+                    {SUMMARY_MAP[selectedStyle!]}
+                  </p>
+                </div>
+              )}
+
+            {/* Custom Style Links - 只在选择 Customized 时显示 */}
+            <div
+              className={cn(
+                'mb-6',
+                selectedStyle === 'Customized' ? 'block' : 'hidden',
+              )}
+            >
+              <h3 className="mb-2 text-lg font-medium text-gray-900">
+                Examples of Customized Style
+              </h3>
+              <p className="mb-4 text-gray-500">
+                Paste the link to the posts you'd like to use as style
+                references.
+              </p>
+              <div className="flex justify-between gap-[10px]">
+                {tweetExampleUrls.map((url, index) => {
+                  const validationResult = isValidUrl(url);
+                  const isInvalid =
+                    url.trim() !== '' && validationResult !== true;
+                  const errorMessage =
+                    validationResult === 'invalid-url'
+                      ? 'Please enter a valid URL'
+                      : validationResult === 'not-twitter'
+                        ? 'Please enter a Twitter/X post link'
+                        : undefined;
+
+                  return (
+                    <Input
+                      key={index}
+                      value={url}
+                      onChange={(e) => handleLinkChange(index, e.target.value)}
+                      placeholder={
+                        index === 0 ? 'https://x.com/influxy.ai...' : ''
+                      }
+                      variant="bordered"
+                      className="flex-1"
+                      isInvalid={isInvalid}
+                      errorMessage={errorMessage}
+                      startContent={
+                        <Image
+                          src="/icons/link.svg"
+                          alt="Link"
+                          width={20}
+                          height={20}
+                          className="pointer-events-none shrink-0 text-gray-400"
+                        />
+                      }
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Personal Introduction Section */}
+          <div id="personal-introduction">
+            <h2 className="mb-2 text-2xl font-medium text-gray-900">
+              Personal Introduction
+            </h2>
+            <p className="mb-4 text-[14px] font-thin text-gray-400 ">
+              Introduce yourself in 100–300 words, using a first-person tone.
+              This will help personalize your future content.
+            </p>
+            <Textarea
+              value={personalIntro}
+              onChange={(e) => setPersonalIntro(e.target.value)}
+              placeholder={`Example: I’m a serial entrepreneur, currently focused on building AI tools for content creators. Previously, I worked as a product manager at several major tech companies and spent time in VC doing early-stage investments. Later, I founded a project at the intersection of crypto and AI, which grew to over 7 million users. Now, I’m building an AI product designed to help creators save time and grow their influence.\nMy account is positioned to share insights on AI trends, real-world startup lessons, and practical ways to use AI for efficient content creation and personal branding.My content style is honest and practical, aimed at entrepreneurs, AI enthusiasts, and anyone looking to leverage AI to boost their content game.`}
+              rows={10}
+              classNames={{
+                input: "leading-tight text-gray-400 font-thin text-[16px]",
+                innerWrapper: "min-h-[260px]", 
+              }}
+              variant="bordered"
+            />
+          </div>
         </div>
       </div>
     </motion.div>
