@@ -19,6 +19,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import CreditsUsageModal from './CreditsUsageModal';
+import CustomPlanModal from './CustomPlanModal';
 import PlanCard from './PlanCard';
 import PlanChangeModal from './PlanChangeModal';
 import UpgradeSuccessModal from './UpgradeSuccessModal';
@@ -32,6 +33,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   const { isAuthenticated, openLoginModal } = useAuthStore();
 
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
+  const [isCustomPlanModalOpen, setIsCustomPlanModalOpen] = useState(false);
   const [processingPlan, setProcessingPlan] = useState<PlanType | null>(null);
   const [planChangeModal, setPlanChangeModal] = useState<{
     isOpen: boolean;
@@ -553,6 +555,21 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               />
             </motion.div>
           </motion.div>
+
+          {/* Custom Plan Link */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            className="mt-6 text-center"
+          >
+            <button
+              onClick={() => setIsCustomPlanModalOpen(true)}
+              className="font-poppins text-[16px] text-black underline transition-opacity hover:opacity-70"
+            >
+              Looking for a Custom Plan?
+            </button>
+          </motion.div>
         </div>
 
         {/* Credits Usage Modal */}
@@ -581,6 +598,12 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         <UpgradeSuccessModal
           isOpen={showUpgradeSuccessModal}
           onClose={() => setShowUpgradeSuccessModal(false)}
+        />
+
+        {/* Custom Plan Modal */}
+        <CustomPlanModal
+          isOpen={isCustomPlanModalOpen}
+          onClose={() => setIsCustomPlanModalOpen(false)}
         />
       </div>
     </motion.div>
