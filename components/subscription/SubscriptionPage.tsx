@@ -23,7 +23,7 @@ import CustomPlanModal from './CustomPlanModal';
 import PlanCard from './PlanCard';
 import PlanChangeModal from './PlanChangeModal';
 import UpgradeSuccessModal from './UpgradeSuccessModal';
-import { CreditMap, FeatureMap, PriceMap } from './constants';
+import { CreditMap, FeatureMap, PlanLabelMap, PriceMap } from './constants';
 
 interface SubscriptionPageProps {
   onBack: () => void;
@@ -73,10 +73,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
 
   // 页面加载时刷新订阅信息，确保数据最新
   useEffect(() => {
-    // 强制刷新订阅信息和积分规则
+    // 强制刷新订阅信息和积分规则，仅在已登录时
+    if (!isAuthenticated) return;
     refetchSubscriptionInfo();
     refetchCreditRules();
-  }, [refetchSubscriptionInfo, refetchCreditRules]); // 只在组件 mount 时执行
+  }, [isAuthenticated, refetchSubscriptionInfo, refetchCreditRules]); // 只在组件 mount 时执行
 
   // 检查 URL 参数中是否有 status 标记
   useEffect(() => {
@@ -180,9 +181,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     // 如果是从 free 升级到付费套餐，创建 Checkout Session
     if (currentPlan === 'free' && plan !== 'free') {
       createCheckoutSession(plan, {
-        onSuccess: async (data) => {
-          // 先刷新订阅信息
-          await refetchSubscriptionInfo();
+        onSuccess: (data) => {
           // 直接使用服务端返回的 checkout_url
           if (data.checkout_url) {
             redirectToCheckout(data.checkout_url);
@@ -265,9 +264,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   };
 
   // 获取套餐显示名称
-  const getPlanDisplayName = (plan: PlanType) => {
-    return plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
-  };
+  const getPlanDisplayName = (plan: PlanType) => PlanLabelMap[plan];
 
   // 判断是否降级
   const getPlanLevel = (plan: PlanType): number => {
@@ -482,7 +479,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             >
               <PlanCard
                 planName="Free Plan"
-                price={String(PriceMap.free)}
+                price={PriceMap.free}
                 features={FeatureMap.free}
                 isCurrentPlan={currentPlan === 'free'}
                 isDowngraded={isDowngraded('free')}
@@ -500,7 +497,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             >
               <PlanCard
                 planName="Starter Plan"
-                price={String(PriceMap.starter)}
+                price={PriceMap.starter}
                 priceUnit="/month"
                 features={FeatureMap.starter}
                 isCurrentPlan={currentPlan === 'starter'}
@@ -521,7 +518,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             >
               <PlanCard
                 planName="Pro Plan"
-                price={String(PriceMap.pro)}
+                price={PriceMap.pro}
                 priceUnit="/month"
                 features={FeatureMap.pro}
                 isCurrentPlan={currentPlan === 'pro'}
@@ -542,7 +539,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             >
               <PlanCard
                 planName="Premium Plan"
-                price={String(PriceMap.premium)}
+                price={PriceMap.premium}
                 priceUnit="/month"
                 features={FeatureMap.premium}
                 isCurrentPlan={currentPlan === 'premium'}

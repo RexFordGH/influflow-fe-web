@@ -7,7 +7,7 @@ import { Button } from '../base';
 
 interface PlanCardProps {
   planName: string;
-  price: string;
+  price: number;
   priceUnit?: string;
   features: string[];
   isCurrentPlan?: boolean;
@@ -34,7 +34,8 @@ const PlanCard = ({
   onSwitch,
   isLoading = false,
 }: PlanCardProps) => {
-  const isFreePlan = price === '0';
+  const isFreePlan = price === 0;
+  const formatPrice = (value: number) => value.toLocaleString('en-US');
 
   return (
     <motion.div
@@ -71,10 +72,10 @@ const PlanCard = ({
       {/* Price */}
       <div className="mb-3">
         {isFreePlan ? (
-          <span className="text-[32px] font-medium text-black">{price}</span>
+          <span className="text-[32px] font-medium text-black">0</span>
         ) : (
           <div className="flex items-baseline">
-            <span className="text-[32px] font-medium text-black">${price}</span>
+            <span className="text-[32px] font-medium text-black">${formatPrice(price)}</span>
             <span className="text-[16px] font-medium text-[#A4A1A1]">
               {priceUnit}
             </span>
