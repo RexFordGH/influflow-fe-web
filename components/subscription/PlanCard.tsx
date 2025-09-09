@@ -40,17 +40,15 @@ const PlanCard = ({
     <motion.div
       whileHover={!isCurrentPlan ? { scale: 1.02, y: -5 } : {}}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`relative flex h-full min-w-[320px] flex-col rounded-[24px] bg-[#F8F8F8] p-10 transition-shadow ${
-        highlighted
-          ? 'border border-black bg-[#F8F8F8]'
-          : 'hover:shadow-lg'
+      className={`relative flex h-full w-[292px] flex-col rounded-[24px] bg-[#F8F8F8] p-6 transition-shadow ${
+        highlighted ? 'border border-black bg-[#F8F8F8]' : 'hover:shadow-lg'
       }`}
     >
       {/* Plan Name and Popular/Recommended Badge */}
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between relative">
         <h3 className="text-[20px] font-medium text-black">{planName}</h3>
         {(isMostPopular || isRecommended) && (
-          <div className="flex items-center gap-1 rounded-[8px] bg-[#EFEFEF] px-3 py-1">
+          <div className="absolute top-[2px] right-0 flex items-center gap-1 rounded-[8px] bg-[#EFEFEF] px-3 py-1">
             <svg
               width="13"
               height="12"
