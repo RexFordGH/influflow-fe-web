@@ -40,9 +40,9 @@ const PlanCard = ({
     <motion.div
       whileHover={!isCurrentPlan ? { scale: 1.02, y: -5 } : {}}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`relative flex h-full min-w-[320px] flex-col rounded-[24px] bg-white p-10 transition-shadow ${
+      className={`relative flex h-full min-w-[320px] flex-col rounded-[24px] bg-[#F8F8F8] p-10 transition-shadow ${
         highlighted
-          ? 'border border-black shadow-[0_0_15px_rgba(0,0,0,0.15)]'
+          ? 'border border-black bg-[#F8F8F8]'
           : 'hover:shadow-lg'
       }`}
     >
@@ -77,7 +77,7 @@ const PlanCard = ({
         ) : (
           <div className="flex items-baseline">
             <span className="text-[32px] font-medium text-black">${price}</span>
-            <span className="text-[16px] font-medium text-black">
+            <span className="text-[16px] font-medium text-[#A4A1A1]">
               {priceUnit}
             </span>
           </div>
