@@ -169,7 +169,8 @@ export const WelcomeScreen = ({
       console.log('User not authenticated, skipping onboarding');
       return;
     }
-    // 在页面等待1300ms后，再进入新手引导
+
+    // 在页面等待2000ms后，再进入新手引导
     setTimeout(() => {
       const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
 
@@ -178,8 +179,8 @@ export const WelcomeScreen = ({
       const hasCompleted =
         window.localStorage.getItem(ONBOARDING_KEY) === 'true';
 
-      // 设置本地状态以反映onboarding完成状态
-      setHasCompletedOnboardingLocal(hasCompleted);
+      // 如果新手引导完成需要打开则改为hasCompleted，false为永久关闭
+      setHasCompletedOnboardingLocal(false);
 
       if (hasCompleted) return;
 
@@ -332,7 +333,7 @@ export const WelcomeScreen = ({
               description:
                 'Personalize tone, mimic styles you love, and let AI write as you. Start by adding your intro to unlock fully tailored content.',
               side: 'top',
-              align: 'center',
+              align: 'end',
               popoverClass: 'customize-my-style driverjs-basic',
               onNextClick: async () => {
                 // 跳转到/profile页面
@@ -369,7 +370,7 @@ export const WelcomeScreen = ({
           tour.refresh();
         }
       });
-    }, 1300);
+    }, 2000);
   }, [isAuthenticated]);
 
   return (

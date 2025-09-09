@@ -18,7 +18,10 @@ import {
 } from '@/types/api';
 
 import { SearchModal } from './SearchModal';
-import { TrendingTopicTweets } from './TrendingTopicTweets';
+import {
+  NewTrendingTopicTweets,
+  TrendingTopicTweets,
+} from './TrendingTopicTweets';
 
 interface TrendingTopicsProps {
   isVisible: boolean;
@@ -46,6 +49,7 @@ const TrendingTopicSkeleton = ({ index }: { index: number }) => (
 
 const NewTrendingTopicSkeleton = ({ index }: { index: number }) => (
   <div
+    id={index === 0 ? 'trending-topics' : ''}
     className="
     group relative flex cursor-pointer items-center
     rounded-[20px] px-12 py-1 transition-colors duration-150
@@ -54,8 +58,8 @@ const NewTrendingTopicSkeleton = ({ index }: { index: number }) => (
       width: `880px`,
       height: '171px',
       background: `
-        linear-gradient(to right,  rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 95%, rgba(242, 247, 255, 0.3) 100%),
-        linear-gradient(to bottom, rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 90%, rgba(242, 247, 255, 0.3) 100%)
+        linear-gradient(to right, #F2F7FF4D 0%, #F2F7FF4D 80%, #F2F7FC 100%),
+        linear-gradient(to bottom, #F2F7FF4D 0%, #F2F7FF4D 90%, #F2F7FC 100%)
       `,
       backgroundBlendMode: 'overlay',
       backgroundClip: 'padding-box',
@@ -145,6 +149,7 @@ const TrendingTopicItem = ({
       <motion.div
         id="viral-tweets"
         className="mt-3"
+        initial={false}
         animate={{
           opacity: isOpen ? 1 : 0,
           height: isOpen ? 'auto' : 0,
@@ -173,6 +178,7 @@ const NewTrendingTopicItem = ({
   topic,
   index,
   isOpen,
+  suggested,
   onToggle,
   onTweetsSelect,
 }: {
@@ -180,6 +186,7 @@ const NewTrendingTopicItem = ({
   topic: any;
   index: number;
   isOpen: boolean;
+  suggested?: string;
   onToggle: (isOpen: boolean) => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }) => {
@@ -191,7 +198,7 @@ const NewTrendingTopicItem = ({
   };
 
   return (
-    <div>
+    <div id={isOpen ? '' : 'trending-topics'}>
       {/* <CopyToClipboard text={topic.title}> */}
       <div className="flex items-start justify-start gap-[16px]">
         {/* <span className="pt-[6px] text-[18px] font-[500] text-[#8C8C8C]">
@@ -208,13 +215,13 @@ const NewTrendingTopicItem = ({
             transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300
           "
           style={{
-            width: `880px`,
+            width: `100vw`,
             height: '171px',
             background: isHovered
               ? `linear-gradient(to right, rgba(115, 167, 255, 0.2) 90%, rgba(115, 167, 255, 0.2) 100%)`
               : `
-                  linear-gradient(to right,  rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 95%, rgba(242, 247, 255, 0.3) 100%),
-                  linear-gradient(to bottom, rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 90%, rgba(242, 247, 255, 0.3) 100%)
+                linear-gradient(to right, #F2F7FF4D 0%, #F2F7FF4D 80%, #F2F7FC 100%),
+                linear-gradient(to bottom, #F2F7FF4D 0%, #F2F7FF4D 90%, #F2F7FC 100%)
                 `,
             backgroundBlendMode: isHovered ? 'normal' : 'overlay',
             backgroundClip: 'padding-box',
@@ -228,12 +235,17 @@ const NewTrendingTopicItem = ({
               {topic.title}
             </span>
             <span className="block w-[684px] text-[14px] leading-[22px] text-[#575757]">
-              嘎尽快回家噶联邦德国拉布拉多广播喇叭打过来吧来的快不敢拉开布达拉宫吧来的上百个喇叭声大哥巴拉顿湖个啊就是大哥回来卡的话不说了个卡号来的快干哈了多少公里哈收到了更好啦时间的话过来卡都干哈了大好时光拉赫蒂市立刻感觉哈伦裤大声疾呼过来卡哈收到老公红辣椒立刻感觉哈是离开对方更好啦说的话过来
+              ***This is a placeholder for display purposes*** OpenAI has
+              released ChatGPT-5, its most advanced model to date. Faster and
+              multimodal, it introduces a new “thinking mode” for deeper
+              reasoning and delivers more accurate results across coding, math,
+              writing, and health. This launch marks a significant milestone in
+              OpenAI’s journey toward artificial general intelligence (AGI).
             </span>
           </div>
 
           {/* 显示展开/收起图标 */}
-          <div className="flex items-center gap-[10px]">
+          <div className="flex items-center gap-[10px] absolute right-0 pr-[24px]">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{
@@ -256,8 +268,8 @@ const NewTrendingTopicItem = ({
 
       {/* Trending Topic Tweets 展开区域 */}
       <motion.div
-        id="viral-tweets"
-        className="mt-3"
+        className="mt-4"
+        initial={false}
         animate={{
           opacity: isOpen ? 1 : 0,
           height: isOpen ? 'auto' : 0,
@@ -269,9 +281,10 @@ const NewTrendingTopicItem = ({
         }}
         style={{ overflow: 'hidden' }}
       >
-        <TrendingTopicTweets
+        <NewTrendingTopicTweets
           isVisible={isOpen}
           id={id}
+          suggested={suggested}
           onConfirm={(selectedTweets) => {
             onTweetsSelect?.(selectedTweets, topic.title);
           }}
@@ -602,22 +615,22 @@ export function NewTrendingTopicsPage({
     }
   }, [hasCompletedOnboarding]);
 
-  // 当数据加载完成且已完成onboarding时，确保第一条默认展开（但只在用户没有主动关闭过的情况下）
-  useEffect(() => {
-    if (
-      hasCompletedOnboarding === true &&
-      trendingTopics.length > 0 &&
-      expandedTopicIndex === null &&
-      !hasUserCollapsedFirst
-    ) {
-      setExpandedTopicIndex(0);
-    }
-  }, [
-    hasCompletedOnboarding,
-    trendingTopics.length,
-    expandedTopicIndex,
-    hasUserCollapsedFirst,
-  ]);
+  // // 当数据加载完成且已完成onboarding时，确保第一条默认展开（但只在用户没有主动关闭过的情况下）
+  // useEffect(() => {
+  //   if (
+  //     hasCompletedOnboarding === true &&
+  //     trendingTopics.length > 0 &&
+  //     expandedTopicIndex === null &&
+  //     !hasUserCollapsedFirst
+  //   ) {
+  //     setExpandedTopicIndex(0);
+  //   }
+  // }, [
+  //   hasCompletedOnboarding,
+  //   trendingTopics.length,
+  //   expandedTopicIndex,
+  //   hasUserCollapsedFirst,
+  // ]);
 
   // 优化回调函数
   const handleSearchModalClose = useCallback(() => {
@@ -651,7 +664,7 @@ export function NewTrendingTopicsPage({
       <div className="flex min-h-full flex-col">
         <div className="flex-1 px-[108px] py-12">
           <div className="mx-auto w-full max-w-4xl">
-            <div id="trending-topics" className="mb-10">
+            <div className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-[20px] font-medium text-black">
                   Trending Topics
@@ -713,6 +726,7 @@ export function NewTrendingTopicsPage({
                       topic={topic}
                       index={index}
                       id={topic.id}
+                      suggested={suggestedTopics[index].topic}
                       isOpen={expandedTopicIndex === index}
                       onToggle={(isOpen) => handleTopicToggle(index, isOpen)}
                       onTweetsSelect={onTweetsSelect}
