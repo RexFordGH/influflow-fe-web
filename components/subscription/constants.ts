@@ -29,7 +29,7 @@ export const FreePlanFeatures = [
 
 export const StarterPlanFeatures = [
   'Larger monthly allowance',
-  `${CreditMap.starter} credits / month`,
+  `${CreditMap.starter} free credits / month`,
   'Perfect for regular creators',
 ];
 

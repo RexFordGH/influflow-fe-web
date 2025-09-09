@@ -60,7 +60,7 @@ interface WelcomeScreenProps {
 }
 
 const ContentFormatOptions = [
-  { key: 'longform', label: 'Long-form Threads', icon: '≣' },
+  { key: 'longform', label: 'Long-form Post', icon: '≣' },
   { key: 'thread', label: 'Threads', icon: '≡' },
   { key: 'deep_research', label: 'Deep Research', icon: '≡' },
 ];
