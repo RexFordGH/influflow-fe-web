@@ -722,8 +722,8 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               placeholder={`Example: I’m a serial entrepreneur, currently focused on building AI tools for content creators. Previously, I worked as a product manager at several major tech companies and spent time in VC doing early-stage investments. Later, I founded a project at the intersection of crypto and AI, which grew to over 7 million users. Now, I’m building an AI product designed to help creators save time and grow their influence.\nMy account is positioned to share insights on AI trends, real-world startup lessons, and practical ways to use AI for efficient content creation and personal branding.My content style is honest and practical, aimed at entrepreneurs, AI enthusiasts, and anyone looking to leverage AI to boost their content game.`}
               rows={10}
               classNames={{
-                input: "leading-tight text-gray-400 font-thin text-[16px]",
-                innerWrapper: "min-h-[215px]", 
+                input: 'leading-tight text-[16px]',
+                innerWrapper: 'min-h-[215px]',
               }}
               variant="bordered"
             />
