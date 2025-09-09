@@ -179,6 +179,7 @@ const NewTrendingTopicItem = ({
   index,
   isOpen,
   suggested,
+  onTopicSelect,
   onToggle,
   onTweetsSelect,
 }: {
@@ -186,7 +187,8 @@ const NewTrendingTopicItem = ({
   topic: any;
   index: number;
   isOpen: boolean;
-  suggested?: string;
+  suggested?: ISuggestedTopic;
+  onTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onToggle: (isOpen: boolean) => void;
   onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
 }) => {
@@ -209,23 +211,20 @@ const NewTrendingTopicItem = ({
           onClick={handleToggle}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="
+          className={`
             group relative flex cursor-pointer items-center
             rounded-[20px] px-12 py-1 transition-colors duration-150
-            transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300
-          "
-          style={{
-            width: `100vw`,
-            height: '171px',
-            background: isHovered
-              ? `linear-gradient(to right, rgba(115, 167, 255, 0.2) 90%, rgba(115, 167, 255, 0.2) 100%)`
-              : `
-                linear-gradient(to right, #F2F7FF4D 0%, #F2F7FF4D 80%, #F2F7FC 100%),
-                linear-gradient(to bottom, #F2F7FF4D 0%, #F2F7FF4D 90%, #F2F7FC 100%)
-                `,
-            backgroundBlendMode: isHovered ? 'normal' : 'overlay',
-            backgroundClip: 'padding-box',
-          }}
+            bg-clip-padding
+            ${
+              isHovered
+                ? '[background-image:linear-gradient(to_right,rgba(115,167,255,0.2)_90%,rgba(115,167,255,0.2)_100%)]'
+                : '[background-image:linear-gradient(to_right,#F2F7FF4D_0%,#F2F7FF4D_80%,#F2F7FC_100%),linear-gradient(to_bottom,#F2F7FF4D_0%,#F2F7FF4D_90%,#F2F7FC_100%)] [background-blend-mode:overlay]'
+            }
+            [background-size:100%_100%,_100%_100%]
+            [background-repeat:no-repeat,_no-repeat]
+            [background-position:0_0,_0_0]
+          `}
+          style={{ width: '100vw', height: '171px' }}
         >
           <p className="text-left text-lg font-medium text-black">
             #{index + 1}
@@ -285,6 +284,7 @@ const NewTrendingTopicItem = ({
           isVisible={isOpen}
           id={id}
           suggested={suggested}
+          onTopicSelect={onTopicSelect}
           onConfirm={(selectedTweets) => {
             onTweetsSelect?.(selectedTweets, topic.title);
           }}
@@ -722,11 +722,12 @@ export function NewTrendingTopicsPage({
                 ) : (
                   trendingTopics.map((topic: ITrendingTopic, index: number) => (
                     <NewTrendingTopicItem
+                      onTopicSelect={onTopicSelect}
                       key={`${topic.title}-${index}`}
                       topic={topic}
                       index={index}
                       id={topic.id}
-                      suggested={suggestedTopics[index].topic}
+                      suggested={suggestedTopics[index] as ISuggestedTopic}
                       isOpen={expandedTopicIndex === index}
                       onToggle={(isOpen) => handleTopicToggle(index, isOpen)}
                       onTweetsSelect={onTweetsSelect}

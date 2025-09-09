@@ -4,7 +4,11 @@ import { Image, Skeleton, Tooltip } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
 import { useTrendingRecommend } from '@/lib/api/services';
-import { ITrendsRecommendTweet } from '@/types/api';
+import {
+  ISuggestedTopic,
+  ITrendingTopic,
+  ITrendsRecommendTweet,
+} from '@/types/api';
 
 import { Button } from '../base';
 
@@ -15,6 +19,14 @@ interface TrendingTopicTweetsProps {
   id: string;
   isVisible: boolean;
   suggested?: string;
+  onConfirm?: (selectedTweets: ITrendsRecommendTweet[]) => void;
+}
+
+interface NewTrendingTopicTweetsProps {
+  id: string;
+  isVisible: boolean;
+  suggested?: ISuggestedTopic;
+  onTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
   onConfirm?: (selectedTweets: ITrendsRecommendTweet[]) => void;
 }
 
@@ -213,7 +225,8 @@ export function NewTrendingTopicTweets({
   id,
   suggested,
   onConfirm,
-}: TrendingTopicTweetsProps) {
+  onTopicSelect,
+}: NewTrendingTopicTweetsProps) {
   const { data: tweetData, isLoading } = useTrendingRecommend(id, isVisible);
   const staticData = StaticTrendsRecommend[id] || [];
   const [selectedTweetIndices, setSelectedTweetIndices] = useState<Set<number>>(
@@ -309,6 +322,7 @@ export function NewTrendingTopicTweets({
 
         <div id="suggested-topics" className="mb-[24px] space-y-3">
           <button
+            onClick={() => suggested && onTopicSelect(suggested)}
             className={`
               relative
               w-[880px] rounded-xl bg-white
@@ -325,7 +339,7 @@ export function NewTrendingTopicTweets({
             }}
           >
             <span className="text-[16px] font-medium leading-[27px] block">
-              {suggested}
+              {suggested?.topic}
             </span>
             <Image
               src="/icons/send_new.svg"
@@ -333,10 +347,10 @@ export function NewTrendingTopicTweets({
               width={10}
               height={10}
               radius="none"
-              className="absolute right-[24px] top-1/2 -translate-y-1/2 pointer-events-none"
+              className="absolute right-[24px] top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-80"
               classNames={{
                 // 关键：把定位样式作用到真实的 <img> 元素
-                img: 'absolute right-[24px] top-1/2 -translate-y-1/2 pointer-events-none',
+                img: 'absolute right-[24px] top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-80',
                 wrapper: 'static', // 避免包装层乱定位
               }}
             />
