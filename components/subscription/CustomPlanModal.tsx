@@ -43,6 +43,7 @@ export default function CustomPlanModal({
               </h2>
               <Button
                 isIconOnly
+                aria-label="Close"
                 variant="light"
                 size="sm"
                 onPress={onClose}

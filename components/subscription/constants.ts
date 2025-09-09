@@ -51,3 +51,11 @@ export const FeatureMap: Record<PlanType, string[]> = {
   pro: ProPlanFeatures,
   premium: PremiumPlanFeatures,
 };
+
+// 订阅计划主题色（用于对比卡片等）
+export const PlanColorMap: Record<PlanType, string> = {
+  free: 'rgb(0, 0, 0)',
+  starter: 'rgb(68, 138, 255)',
+  pro: 'rgb(101, 99, 255)',
+  premium: 'rgb(101, 99, 255)',
+};
