@@ -169,7 +169,8 @@ export const WelcomeScreen = ({
       console.log('User not authenticated, skipping onboarding');
       return;
     }
-    // 在页面等待1300ms后，再进入新手引导
+    
+    // 在页面等待2000ms后，再进入新手引导
     setTimeout(() => {
       const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
 
@@ -369,7 +370,7 @@ export const WelcomeScreen = ({
           tour.refresh();
         }
       });
-    }, 1300);
+    }, 2000);
   }, [isAuthenticated]);
 
   return (
