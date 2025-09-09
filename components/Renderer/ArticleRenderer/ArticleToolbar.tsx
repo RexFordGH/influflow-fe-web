@@ -53,13 +53,13 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
 
     return (
       <div className="shrink-0 bg-[#f7f7f7] py-3">
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center ml-3">
+        <div className="flex h-full items-center justify-between">
+          <div className="ml-3 flex items-center">
             <Button
               size="sm"
               variant="light"
               onPress={onBack}
-              className="text-black rounded-[12px]"
+              className="rounded-[12px] text-black"
               startContent={
                 <ChevronLeftIcon className="size-4 stroke-[2.5] text-black" />
               }
@@ -101,7 +101,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
               </Tooltip>
             ) : null}
           </div>
-          <div className="flex items-center space-x-3 mr-3">
+          <div className="mr-3 flex items-center space-x-3">
             {/* 如果是 longform 模式，显示复制全文按钮 */}
             {isLongformType(contentFormat) && (
               <Button
@@ -110,7 +110,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
                 onPress={onCopyFullContent}
                 isLoading={isCopyingFullContent}
                 disabled={isCopyingFullContent || isGenerating}
-                className="bg-[#F0F0F0] rounded-[12px]"
+                className="rounded-[12px] bg-[#F0F0F0]"
               >
                 Copy
               </Button>
@@ -121,7 +121,7 @@ export const ArticleToolbar: React.FC<ArticleToolbarProps> = React.memo(
               onPress={onPostToTwitter}
               isLoading={isPostingToTwitter}
               disabled={isPostingToTwitter || isGenerating}
-              className="bg-[#448AFF] text-white hover:bg-[#1991DB] rounded-[12px]"
+              className="rounded-[12px] bg-[#448AFF] text-white hover:bg-[#1991DB]"
             >
               {isPostingToTwitter ? 'Posting...' : 'Post'}
             </Button>

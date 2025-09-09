@@ -53,7 +53,7 @@ export function ArticleRenderer({
   onGenerationComplete,
   onGenerationError,
   isOnboarding = false,
-  isTooltipOpenNum=0,
+  isTooltipOpenNum = 0,
 }: ArticleRendererProps) {
   // 状态：思维导图节点和边
   const [currentNodes, setCurrentNodes] = useState<MindmapNodeData[]>([]);
@@ -239,7 +239,7 @@ export function ArticleRenderer({
       {/* 主要内容区域 */}
       <div className="flex flex-1 overflow-hidden bg-[#F7F7F7]">
         {/* 左侧思维导图 */}
-        <div className="mindmap-container relative flex-1 bg-[#fcfcfc] rounded-[20px] ml-3 mr-1.5 mb-3 overflow-hidden">
+        <div className="mindmap-container relative mb-3 ml-3 mr-1.5 flex-1 overflow-hidden rounded-[20px] bg-[#fcfcfc]">
           <ReactFlowProvider>
             <EditableContentMindmap
               nodes={currentNodes}
@@ -259,7 +259,7 @@ export function ArticleRenderer({
         </div>
 
         {/* 右侧内容区域 */}
-        <div className="article-content flex min-w-0 flex-1 justify-center bg-white rounded-[20px] ml-1.5 mr-3 mb-3">
+        <div className="article-content mb-3 ml-1.5 mr-3 flex min-w-0 flex-1 justify-center rounded-[20px] bg-white">
           <div
             className="font-inter mx-auto flex w-[628px] min-w-0 flex-col overflow-y-auto overflow-x-hidden break-words px-[24px] pb-[60px]"
             //保证与正式环境尺寸一致

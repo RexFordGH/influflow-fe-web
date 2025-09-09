@@ -1,0 +1,570 @@
+'use client';
+
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import { Button } from '@heroui/react';
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+
+import { addToast } from '@/components/base/toast';
+import {
+  PlanType,
+  useCreateBillingPortal,
+  useCreateCheckoutSession,
+  useCreditRules,
+  useSubscriptionInfo,
+  useUpdateSubscriptionPlan,
+} from '@/lib/api/services';
+import { redirectToCheckout } from '@/lib/stripe';
+import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
+
+import CreditsUsageModal from './CreditsUsageModal';
+import PlanCard from './PlanCard';
+import PlanChangeModal from './PlanChangeModal';
+import UpgradeSuccessModal from './UpgradeSuccessModal';
+import { CreditMap, FeatureMap, PriceMap } from './constants';
+
+interface SubscriptionPageProps {
+  onBack: () => void;
+}
+
+export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
+  const { isAuthenticated, openLoginModal } = useAuthStore();
+
+  const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
+  const [processingPlan, setProcessingPlan] = useState<PlanType | null>(null);
+  const [planChangeModal, setPlanChangeModal] = useState<{
+    isOpen: boolean;
+    targetPlan: PlanType | null;
+  }>({ isOpen: false, targetPlan: null });
+  const [showUpgradeSuccessModal, setShowUpgradeSuccessModal] = useState(false);
+
+  // 从 store 获取订阅信息
+  const {
+    currentPlan,
+    nextPlan,
+    credits,
+    currentPeriodEnd,
+    setSubscriptionInfo,
+    setCreditRules,
+    setError,
+  } = useSubscriptionStore();
+
+  // API hooks
+  const {
+    data: subscriptionInfo,
+    isLoading: isLoadingInfo,
+    error: infoError,
+    refetch: refetchSubscriptionInfo,
+  } = useSubscriptionInfo(isAuthenticated);
+  const {
+    data: creditRulesData,
+    isLoading: isLoadingRules,
+    refetch: refetchCreditRules,
+  } = useCreditRules();
+  const { mutate: createCheckoutSession, isPending: isCreatingCheckout } =
+    useCreateCheckoutSession();
+  const { mutate: createBillingPortal, isPending: isCreatingPortal } =
+    useCreateBillingPortal();
+  const { mutate: updatePlan, isPending: isUpdatingPlan } =
+    useUpdateSubscriptionPlan();
+
+  // 页面加载时刷新订阅信息，确保数据最新
+  useEffect(() => {
+    // 强制刷新订阅信息和积分规则
+    refetchSubscriptionInfo();
+    refetchCreditRules();
+  }, [refetchSubscriptionInfo, refetchCreditRules]); // 只在组件 mount 时执行
+
+  // 检查 URL 参数中是否有 status 标记
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+
+    if (status === 'success') {
+      // 显示升级成功弹窗
+      setShowUpgradeSuccessModal(true);
+
+      // 刷新订阅信息以获取最新状态
+      refetchSubscriptionInfo();
+
+      // 清理 URL 参数
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    } else if (status === 'cancel') {
+      addToast({
+        title: 'Payment cancelled. You can upgrade anytime.',
+        color: 'warning',
+      });
+
+      // 清理 URL 参数
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [refetchSubscriptionInfo]);
+
+  // 更新 store 中的订阅信息
+  useEffect(() => {
+    if (subscriptionInfo) {
+      setSubscriptionInfo(subscriptionInfo);
+    }
+  }, [subscriptionInfo, setSubscriptionInfo]);
+
+  // 更新积分规则
+  useEffect(() => {
+    if (creditRulesData?.rules) {
+      setCreditRules(creditRulesData.rules);
+    }
+  }, [creditRulesData, setCreditRules]);
+
+  // 处理错误
+  useEffect(() => {
+    if (infoError) {
+      const errorMessage = 'Failed to load subscription information';
+      setError(errorMessage);
+      addToast({ title: errorMessage, color: 'danger' });
+    }
+  }, [infoError, setError]);
+
+  // 处理套餐切换按钮点击
+  const handleSwitchPlan = (plan: PlanType) => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+    // 如果选择当前套餐且没有预定的变更，不做任何操作
+    if (plan === currentPlan && !nextPlan) {
+      return;
+    }
+
+    // 所有情况都打开确认弹窗
+    setPlanChangeModal({ isOpen: true, targetPlan: plan });
+  };
+
+  // 处理弹窗确认
+  const handleConfirmPlanChange = async () => {
+    if (!planChangeModal.targetPlan) return;
+
+    const plan = planChangeModal.targetPlan;
+
+    // 设置正在处理的套餐
+    setProcessingPlan(plan);
+
+    // 如果是取消预定的套餐变更
+    if (plan === currentPlan && nextPlan) {
+      updatePlan(plan, {
+        onSuccess: async () => {
+          addToast({
+            title: 'Scheduled plan change has been cancelled',
+            color: 'success',
+          });
+          setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
+          // 刷新订阅信息
+          await refetchSubscriptionInfo();
+        },
+        onError: (error) => {
+          addToast({
+            title: `Failed to cancel plan change: ${error.message}`,
+            color: 'danger',
+          });
+          setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
+        },
+      });
+      return;
+    }
+
+    // 如果是从 free 升级到付费套餐，创建 Checkout Session
+    if (currentPlan === 'free' && plan !== 'free') {
+      createCheckoutSession(plan, {
+        onSuccess: async (data) => {
+          // 先刷新订阅信息
+          await refetchSubscriptionInfo();
+          // 直接使用服务端返回的 checkout_url
+          if (data.checkout_url) {
+            redirectToCheckout(data.checkout_url);
+          } else {
+            addToast({ title: 'Checkout URL not found', color: 'danger' });
+            setProcessingPlan(null);
+            setPlanChangeModal({ isOpen: false, targetPlan: null });
+          }
+        },
+        onError: (error) => {
+          addToast({
+            title: `Failed to create checkout session: ${error.message}`,
+            color: 'danger',
+          });
+          setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
+        },
+      });
+    } else {
+      // 其他情况使用 update-plan 接口
+      updatePlan(plan, {
+        onSuccess: async (data) => {
+          // 判断是否是升级操作
+          const isUpgradeOperation =
+            plan !== 'free' && currentPlan === 'starter' && plan === 'pro';
+
+          if (isUpgradeOperation) {
+            // 升级操作，显示成功弹窗
+            setShowUpgradeSuccessModal(true);
+          } else {
+            // 降级或取消订阅操作，显示 toast
+            const message =
+              plan === 'free'
+                ? `Your subscription will be cancelled at the end of the current period (${data.effective_date})`
+                : `Plan change scheduled for ${data.effective_date}`;
+            addToast({ title: message, color: 'success' });
+          }
+
+          setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
+          // 刷新订阅信息
+          await refetchSubscriptionInfo();
+        },
+        onError: (error) => {
+          addToast({
+            title: `Failed to update plan: ${error.message}`,
+            color: 'danger',
+          });
+          setProcessingPlan(null);
+          setPlanChangeModal({ isOpen: false, targetPlan: null });
+        },
+      });
+    }
+  };
+
+  // 查看发票
+  const handleViewInvoices = () => {
+    createBillingPortal(undefined, {
+      onError: (error) => {
+        addToast({
+          title: `Failed to open billing portal: ${error.message}`,
+          color: 'danger',
+        });
+      },
+    });
+  };
+
+  // 计算积分百分比
+  const totalCredits =
+    currentPlan === 'free'
+      ? CreditMap.free
+      : currentPlan === 'starter'
+        ? CreditMap.starter
+        : CreditMap.pro;
+  const creditPercentage = Math.min((credits / totalCredits) * 100, 100);
+
+  // 格式化日期
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '--';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // 获取套餐显示名称
+  const getPlanDisplayName = (plan: PlanType) => {
+    return plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
+  };
+
+  // 判断是否降级
+  const getPlanLevel = (plan: PlanType): number => {
+    switch (plan) {
+      case 'free':
+        return 0;
+      case 'starter':
+        return 1;
+      case 'pro':
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  const isDowngraded = (targetPlan: PlanType): boolean => {
+    // 如果有 nextPlan 且 nextPlan 等级低于当前 plan，说明用户执行了降级
+    // 而当前显示的 targetPlan 是当前的 plan，则这个 plan card 应该显示 Continue Subscription
+    return (
+      nextPlan !== null &&
+      targetPlan === currentPlan &&
+      getPlanLevel(nextPlan) < getPlanLevel(currentPlan)
+    );
+  };
+
+  const isLoading = isLoadingInfo || isLoadingRules;
+  const isProcessing = isCreatingCheckout || isCreatingPortal || isUpdatingPlan;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="h-screen overflow-y-auto bg-[#F8F8F8]"
+    >
+      {/* Header */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] px-3 py-3"
+      >
+        <div className="flex items-center">
+          <Button
+            size="sm"
+            variant="light"
+            onPress={onBack}
+            className="text-gray-600 transition-colors hover:text-black"
+            startContent={<ChevronLeftIcon className="size-4" />}
+          >
+            Back
+          </Button>
+        </div>
+      </motion.div>
+
+      <div className="fixed top-[56px] bottom-0 left-0 right-0 mx-3 mb-3 rounded-[12px] bg-white">
+        {/* Main Content */}
+        <div className="mx-auto max-w-[1440px] px-[160px] py-[40px]">
+          {/* Title */}
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mb-10 text-center text-[32px] font-medium text-black"
+          >
+            Manage Subscription
+          </motion.h1>
+
+          {/* Stats Section */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mb-10 flex gap-6"
+          >
+            {/* Remaining Credits */}
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+              <div className="mb-2 flex items-center gap-2">
+                <p className="text-[20px] font-medium text-black">
+                  Remaining Credits
+                </p>
+                <button
+                  onClick={() => setIsCreditsModalOpen(true)}
+                  className="group relative rounded-full p-1 transition-colors hover:bg-gray-100"
+                  disabled={isLoading}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="cursor-help text-gray-400 transition-colors group-hover:text-gray-600"
+                  >
+                    <circle
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                    <text
+                      x="10"
+                      y="14"
+                      textAnchor="middle"
+                      fontSize="12"
+                      fill="currentColor"
+                    >
+                      ?
+                    </text>
+                  </svg>
+                  <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-black p-2 text-xs text-white shadow-lg group-hover:block">
+                    Click to see credits usage rules
+                    <div className="absolute left-1/2 top-full size-0 -translate-x-1/2 -translate-y-1 border-x-[5px] border-t-[5px] border-x-transparent border-t-black"></div>
+                  </div>
+                </button>
+              </div>
+
+              {isLoading ? (
+                <div className="animate-pulse">
+                  <div className="mb-1 h-[32px] w-[200px] rounded bg-gray-200"></div>
+                  <div className="h-[6px] w-full rounded-full bg-gray-200"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-1 text-[32px] font-medium text-black">
+                    {credits.toLocaleString()}
+                    <span className="text-[16px] text-[#8C8C8C]">
+                      / {totalCredits.toLocaleString()}
+                    </span>{' '}
+                  </div>
+                  {/* Progress Bar */}
+                  <div className="relative h-[6px] w-full overflow-hidden rounded-full bg-[#EAEAEA]">
+                    <div
+                      className="absolute left-0 top-0 h-full rounded-full bg-black transition-all duration-300"
+                      style={{ width: `${creditPercentage}%` }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Your Plan */}
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-[20px] font-medium text-black">
+                  Your Plan
+                </h2>
+                <span className="text-[16px] text-black">
+                  {isLoading ? (
+                    <div className="h-[24px] w-[100px] animate-pulse rounded bg-gray-200"></div>
+                  ) : (
+                    getPlanDisplayName(currentPlan)
+                  )}
+                </span>
+              </div>
+
+              <div className="space-y-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] text-black">
+                    Current Plan Active Until:
+                  </span>
+                  <span className="text-[16px] text-black">
+                    {isLoading ? (
+                      <div className="h-[24px] w-[150px] animate-pulse rounded bg-gray-200"></div>
+                    ) : (
+                      formatDate(currentPeriodEnd)
+                    )}
+                  </span>
+                </div>
+                {nextPlan && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[16px] text-black">
+                      Next Billing Plan::
+                    </span>
+                    <span className="text-[16px] text-black">
+                      {getPlanDisplayName(nextPlan)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] text-black">
+                    Subscription History:
+                  </span>
+                  <Button
+                    onPress={handleViewInvoices}
+                    className="bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={isProcessing || isCreatingPortal}
+                    isLoading={isCreatingPortal}
+                  >
+                    View Invoices
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Plan Cards */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex gap-6"
+          >
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Free Plan"
+                price={String(PriceMap.free)}
+                features={FeatureMap.free}
+                isCurrentPlan={currentPlan === 'free'}
+                isDowngraded={isDowngraded('free')}
+                isNextPlan={nextPlan === 'free'}
+                onSwitch={() => handleSwitchPlan('free')}
+                isLoading={processingPlan === 'free'}
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Starter Plan"
+                price={String(PriceMap.starter)}
+                priceUnit="/month"
+                features={FeatureMap.starter}
+                isCurrentPlan={currentPlan === 'starter'}
+                isDowngraded={isDowngraded('starter')}
+                isNextPlan={nextPlan === 'starter'}
+                isMostPopular={currentPlan === 'free'}
+                onSwitch={() => handleSwitchPlan('starter')}
+                highlighted={currentPlan === 'free'}
+                isLoading={processingPlan === 'starter'}
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Pro Plan"
+                price={String(PriceMap.pro)}
+                priceUnit="/month"
+                features={FeatureMap.pro}
+                isCurrentPlan={currentPlan === 'pro'}
+                isDowngraded={isDowngraded('pro')}
+                isNextPlan={nextPlan === 'pro'}
+                isRecommended={currentPlan === 'starter'}
+                onSwitch={() => handleSwitchPlan('pro')}
+                highlighted={currentPlan === 'starter'}
+                isLoading={processingPlan === 'pro'}
+              />
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Credits Usage Modal */}
+        <CreditsUsageModal
+          isOpen={isCreditsModalOpen}
+          onClose={() => setIsCreditsModalOpen(false)}
+        />
+
+        {/* Plan Change Modal */}
+        {planChangeModal.targetPlan && (
+          <PlanChangeModal
+            isOpen={planChangeModal.isOpen}
+            onClose={() =>
+              setPlanChangeModal({ isOpen: false, targetPlan: null })
+            }
+            onConfirm={handleConfirmPlanChange}
+            currentPlan={currentPlan}
+            targetPlan={planChangeModal.targetPlan}
+            currentPeriodEnd={currentPeriodEnd}
+            nextPlan={nextPlan}
+            isLoading={isProcessing}
+          />
+        )}
+
+        {/* Upgrade Success Modal */}
+        <UpgradeSuccessModal
+          isOpen={showUpgradeSuccessModal}
+          onClose={() => setShowUpgradeSuccessModal(false)}
+        />
+      </div>
+    </motion.div>
+  );
+};

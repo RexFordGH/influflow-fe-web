@@ -1,16 +1,15 @@
 'use client';
 
-import { UserIcon } from '@heroicons/react/24/outline';
-import { Button, Image } from '@heroui/react';
+import { Button, cn, Image } from '@heroui/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
+import { ReferralModal } from '@/components/referral';
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import {
   EmptyState,
-  EndOfList,
   ErrorMessage,
   LoadingIndicator,
   SidebarItem,
@@ -18,6 +17,7 @@ import {
 import { useInfiniteScroll } from './hooks/useInfiniteScroll';
 import { usePaginatedData } from './hooks/usePaginatedData';
 import { useScrollPositionRestore } from './hooks/useScrollPositionRestore';
+import { ProfileDropdown } from './ProfileDropdown';
 import { SidebarItem as SidebarItemType } from './types/sidebar.types';
 
 interface AppSidebarProps {
@@ -34,8 +34,10 @@ export interface AppSidebarRef {
 export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
   ({ onItemClick, selectedId, collapsed = false, onToggleCollapse }, ref) => {
     const { user, isAuthenticated } = useAuthStore();
-    const router = useRouter();
-    const [refreshing, setRefreshing] = useState(false);
+    const [showReferralModal, setShowReferralModal] = useState(false);
+    const [showRulesModal, setShowRulesModal] = useState(false);
+
+    const { showLowCreditsBanner } = useSubscriptionStore();
 
     // 滚动容器引用
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -75,10 +77,6 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         restoreDelay: 16,
       });
 
-    const handleOpenProfile = () => {
-      router.push('/profile');
-    };
-
     const handleItemClick = (item: SidebarItemType) => {
       if (onItemClick) {
         onItemClick(item);
@@ -86,21 +84,16 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
     };
 
     const handleRefresh = async () => {
-      setRefreshing(true);
-      try {
-        // 保存当前滚动位置
-        saveCurrentPosition();
+      // 保存当前滚动位置
+      saveCurrentPosition();
 
-        await refresh();
+      await refresh();
 
-        // 重置无限滚动状态
-        resetInfiniteScroll();
+      // 重置无限滚动状态
+      resetInfiniteScroll();
 
-        // 重置滚动位置（刷新后回到顶部）
-        resetScrollPosition();
-      } finally {
-        setRefreshing(false);
-      }
+      // 重置滚动位置（刷新后回到顶部）
+      resetScrollPosition();
     };
 
     // 暴露刷新方法给父组件
@@ -118,30 +111,16 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
     return (
       <div
-        className={`fixed left-0 top-0 z-10 flex h-screen w-[320px] flex-col border-r border-gray-200 bg-[#FAFAFA] transition-transform duration-300 ${collapsed ? '-translate-x-full' : 'translate-x-0'}`}
+        className={cn(
+          'fixed left-0 z-10 flex h-screen w-[320px] flex-col border-gray-200 bg-[#FAFAFA] transition-transform duration-300',
+          showLowCreditsBanner ? 'pt-[36px]' : '',
+          collapsed ? '-translate-x-full' : 'translate-x-0',
+        )}
       >
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div
-              className="-m-2 flex cursor-pointer items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-100"
-              onClick={handleOpenProfile}
-            >
-              {user?.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt="User Avatar"
-                  width={24}
-                  height={24}
-                  className="rounded-full"
-                />
-              ) : (
-                <UserIcon className="size-6 text-gray-600" />
-              )}
-              <span className="font-medium text-gray-900">
-                {user?.name || 'Kelly'}
-              </span>
-            </div>
-
+        <div className="p-3">
+          <div className="flex h-[40px] items-center justify-between">
+            {/* <ProfileDropdown collapsed={collapsed} /> */}
+            <Image src={'/images/logo.png'} width={82} height={24} />
             {/* 收起按钮 */}
             {onToggleCollapse && (
               <Button
@@ -162,12 +141,36 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
           </div>
         </div>
 
+        <div className="px-3 pb-3">
+          {/*Invite to Earn*/}
+          <Button
+            className="h-[37px] w-full rounded-xl border-none bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-lg transition-all duration-300 hover:shadow-xl"
+            style={{
+              background:
+                'linear-gradient(90deg, #478afe 0%, #a392d1 50%, #fd999d 100%)',
+            }}
+            onPress={() => setShowReferralModal(true)}
+          >
+            <div className="flex items-center gap-3">
+              <Image
+                src={'/icons/add_account.svg'}
+                width={20}
+                height={20}
+                className="brightness-0 invert"
+              />
+              <span className="text-[14px] font-medium leading-[21px] text-white">
+                Invite to Earn
+              </span>
+            </div>
+          </Button>
+        </div>
+
         <div
           ref={scrollContainerRef}
-          className="relative flex-1 overflow-y-auto"
+          className="scrollbar-hide relative flex-1 overflow-y-auto"
           id="sidebar-scroll-container"
         >
-          <div className="p-4">
+          <div className="mx-3">
             {/* 内容区域 */}
             {isInitialLoading ? (
               <LoadingIndicator type="initial" itemCount={10} />
@@ -194,17 +197,19 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
                 {isLoadingMore && <LoadingIndicator type="loadMore" />}
 
                 {/* 没有更多数据提示 */}
-                {!hasMore && items.length > 0 && <EndOfList />}
+                {/* {!hasMore && items.length > 0 && <EndOfList />} */}
               </div>
             )}
           </div>
         </div>
 
-        <div className="w-full px-[24px] py-[12px]">
+        <div className="flex h-[61px] w-full items-center justify-between px-[12px]">
+          <ProfileDropdown collapsed={collapsed} />
+
           <Link
             id="customize-my-style"
             href="/profile"
-            className="flex items-center justify-center gap-[10px] rounded-[12px] bg-[#EFEFEF] px-[12px] py-[8px] hover:bg-[#c1c1c1]"
+            className="flex h-[37px] w-[84px] items-center justify-center gap-[10px] rounded-[12px] bg-[#f0f0f0] hover:bg-[#c1c1c1]"
           >
             <Image
               src="/icons/enhancement.svg"
@@ -212,11 +217,15 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
               height={16}
               className="rounded-none"
             />
-            <span className="text-[14px] leading-[21px] text-black">
-              Customize My Style
-            </span>
+            <span className="text-[14px]  text-black">Style</span>
           </Link>
         </div>
+
+        {/* Referral Modals */}
+        <ReferralModal
+          isOpen={showReferralModal}
+          onClose={() => setShowReferralModal(false)}
+        />
       </div>
     );
   },

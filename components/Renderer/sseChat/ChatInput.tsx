@@ -1,6 +1,5 @@
 'use client';
 
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import { cn } from '@heroui/react';
 import { ChangeEvent, KeyboardEvent, useCallback, useState } from 'react';
 
@@ -78,9 +77,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className={inputClasses.container} style={{
-      height: '120px',
-    }}>
+    <div
+      className={inputClasses.container}
+      style={{
+        height: '120px',
+      }}
+    >
       <div className={inputClasses.textareaWrapper}>
         <textarea
           value={message}

@@ -168,7 +168,7 @@ export function TrendingTopicsPage({
     data: trendingData,
     isLoading,
     error,
-  } = useTrendingTopics(isVisible ? selectedCategory : '');
+  } = useTrendingTopics(selectedCategory);
 
   const trendingTopics = trendingData?.trending_topics || [];
   const suggestedTopics = trendingData?.suggested_topics || [];
@@ -217,7 +217,7 @@ export function TrendingTopicsPage({
   // 根据 onboarding 状态决定是否展开第0个话题
   useEffect(() => {
     if (hasCompletedOnboarding === null) return; // 等待初始化完成
-    
+
     if (hasCompletedOnboarding) {
       expandTopic(0);
       // 重置用户主动关闭的标记
@@ -229,10 +229,20 @@ export function TrendingTopicsPage({
 
   // 当数据加载完成且已完成onboarding时，确保第一条默认展开（但只在用户没有主动关闭过的情况下）
   useEffect(() => {
-    if (hasCompletedOnboarding === true && trendingTopics.length > 0 && expandedTopicIndex === null && !hasUserCollapsedFirst) {
+    if (
+      hasCompletedOnboarding === true &&
+      trendingTopics.length > 0 &&
+      expandedTopicIndex === null &&
+      !hasUserCollapsedFirst
+    ) {
       setExpandedTopicIndex(0);
     }
-  }, [hasCompletedOnboarding, trendingTopics.length, expandedTopicIndex, hasUserCollapsedFirst]);
+  }, [
+    hasCompletedOnboarding,
+    trendingTopics.length,
+    expandedTopicIndex,
+    hasUserCollapsedFirst,
+  ]);
 
   // 优化回调函数
   const handleSearchModalClose = useCallback(() => {
@@ -266,7 +276,7 @@ export function TrendingTopicsPage({
       <div className="flex min-h-full flex-col">
         <div className="flex-1 px-[30px] py-14">
           <div className="mx-auto w-full max-w-4xl">
-            <div id="trending-topics" className='mb-10'>
+            <div id="trending-topics" className="mb-10">
               <div className="flex items-center justify-between">
                 <h2 className="mb-4 text-lg font-medium text-black">
                   Trending Topics

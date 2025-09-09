@@ -340,6 +340,149 @@ export function useTopicTypes() {
 }
 
 // ========================
+// Subscription 订阅相关
+// ========================
+
+// 订阅类型
+export type PlanType = 'free' | 'starter' | 'pro';
+
+// Checkout 会话响应
+export interface ICheckoutSessionResponse {
+  session_id: string;
+  checkout_url: string;
+  subscription_restored: boolean;
+}
+
+// Billing Portal 响应
+export interface IBillingPortalResponse {
+  portal_url: string;
+}
+
+// 订阅信息响应
+export interface ISubscriptionInfo {
+  current_plan: PlanType;
+  next_plan: PlanType;
+  current_period_start: string;
+  current_period_end: string;
+  credit: number;
+}
+
+// 积分规则
+export interface ICreditRule {
+  name: string;
+  credits: number;
+}
+
+// 积分规则响应
+export interface ICreditRulesResponse {
+  rules: ICreditRule[];
+}
+
+// 更新订阅套餐响应
+export interface IUpdatePlanResponse {
+  subscription_id: string;
+  old_plan_type: string;
+  new_plan_type: string;
+  effective_date: string;
+}
+
+// 创建 Stripe Checkout 会话
+export function useCreateCheckoutSession() {
+  return useMutation({
+    mutationFn: async (planType: PlanType) => {
+      if (planType === 'free') {
+        throw new Error('Cannot create checkout session for free plan');
+      }
+
+      // 构建回调 URL
+      const baseUrl = window.location.origin;
+      const successUrl = `${baseUrl}/subscription?status=success`;
+      const cancelUrl = `${baseUrl}/subscription?status=cancel`;
+
+      return apiPost<ICheckoutSessionResponse>(
+        '/api/subscription/create-checkout-session',
+        {
+          plan_type: planType,
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+        },
+      );
+    },
+    onSuccess: (data) => {
+      console.log('Checkout session created:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to create checkout session:', error);
+    },
+  });
+}
+
+// 创建 Billing Portal 会话
+export function useCreateBillingPortal() {
+  return useMutation({
+    mutationFn: async () => {
+      return apiPost<IBillingPortalResponse>(
+        '/api/subscription/create-billing-portal',
+        {},
+      );
+    },
+    onSuccess: (data) => {
+      console.log('Billing portal session created:', data);
+      // 跳转到 Billing Portal
+      if (data.portal_url) {
+        window.location.href = data.portal_url;
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to create billing portal:', error);
+    },
+  });
+}
+
+// 获取用户订阅信息
+export function useSubscriptionInfo(enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['subscription', 'info'],
+    queryFn: () => apiGet<ISubscriptionInfo>('/api/subscription/info'),
+    staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
+    gcTime: 10 * 60 * 1000, // 10分钟缓存
+    refetchOnWindowFocus: true, // 窗口聚焦时重新获取，确保订阅状态最新
+    retry: 3,
+    enabled, // 只在 enabled 为 true 时执行查询
+  });
+}
+
+// 获取积分消耗规则
+export function useCreditRules() {
+  return useQuery({
+    queryKey: ['subscription', 'credit-rules'],
+    queryFn: () =>
+      apiGet<ICreditRulesResponse>('/api/subscription/credit-rules'),
+    staleTime: 60 * 60 * 1000, // 1小时内数据视为新鲜（规则不常变化）
+    gcTime: 24 * 60 * 60 * 1000, // 24小时缓存
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+}
+
+// 更新订阅套餐
+export function useUpdateSubscriptionPlan() {
+  return useMutation({
+    mutationFn: async (newPlanType: PlanType) => {
+      return apiPost<IUpdatePlanResponse>('/api/subscription/update-plan', {
+        new_plan_type: newPlanType,
+      });
+    },
+    onSuccess: (data) => {
+      console.log('Subscription plan updated:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to update subscription plan:', error);
+    },
+  });
+}
+
+// ========================
 // Twitter 发布相关
 // ========================
 

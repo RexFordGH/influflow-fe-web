@@ -36,8 +36,8 @@ export const AIEditDialog: React.FC<AIEditDialogProps> = React.memo(
                 onChange={(e) => {
                   const words = e.target.value.trim().split(/\s+/);
                   const clipped = words.slice(0, 1000).join(' ');
-                  onInstructionChange(clipped)}
-                }
+                  onInstructionChange(clipped);
+                }}
                 placeholder="Please limit to 1000 words."
                 // maxLength={1000}
                 className="h-[120px] w-full resize-none rounded-2xl border border-gray-200 p-4 text-gray-700 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.25)] placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-1"

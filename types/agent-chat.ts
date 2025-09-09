@@ -1,6 +1,6 @@
 // Agent Chat API 类型定义
 
-import { IOutline } from "./outline";
+import { IOutline } from './outline';
 
 export interface CreateAgentChatRequest {
   doc_id: string;
@@ -55,10 +55,10 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   status: 'sending' | 'sent' | 'streaming' | 'complete' | 'error';
-  streamingTitle?: string;    // 流式标题
-  streamingContent?: string;   // 流式内容
-  streamingType?: string;      // 消息类型
-  outline?: IOutline
+  streamingTitle?: string; // 流式标题
+  streamingContent?: string; // 流式内容
+  streamingType?: string; // 消息类型
+  outline?: IOutline;
 }
 
 // 用户消息
