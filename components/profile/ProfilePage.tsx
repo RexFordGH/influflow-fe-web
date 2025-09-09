@@ -573,22 +573,23 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       <div className="fixed inset-x-0 bottom-0 top-[56px] mx-3 mb-3 rounded-[12px] bg-white">
         <div className="mx-auto w-[130vh]">
           {/* Style Section */}
-          <div id={isDataFetch ? 'style-section' : ''} className="mb-10">
-            <p className="mb-10 pt-10 text-center text-[32px] font-medium text-gray-900">
+          <div className="mb-10">
+            <p className="mb-10 pt-10 text-[32px] font-medium text-gray-900 text-center">
               Customize Your Style
             </p>
-            <p className="mb-1 text-[20px] font-semibold text-gray-900 ">
-              Writing Style
-            </p>
-            <p className="mb-4 text-[14px] font-thin text-gray-400 ">
-              Choose a style to shape how your content is generated.
-            </p>
+            <div id={isDataFetch ? 'style-section' : ''}>
+              <p className="mb-1 text-[20px] font-semibold text-gray-900 ">
+                Writing Style
+              </p>
+              <p className="mb-4 text-[14px] font-thin text-gray-400 ">
+                Choose a style to shape how your content is generated.
+              </p>
 
-            {/* Style Options */}
-            <div className="mb-4 flex gap-4">
-              {STYLE_OPTIONS.map((option) => {
-                const isYourStyleDisabled =
-                  option.value === 'YourStyle' && !hasTweetData;
+              {/* Style Options */}
+              <div className="mb-4 flex gap-4">
+                {STYLE_OPTIONS.map((option) => {
+                  const isYourStyleDisabled =
+                    option.value === 'YourStyle' && !hasTweetData;
 
                 return isYourStyleDisabled ? (
                   <Tooltip
@@ -629,29 +630,29 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
               })}
             </div>
 
-            {userStyleSummary && selectedStyle === 'YourStyle' && (
-              <div
-                className={cn(
-                  'rounded-lg text-[16px] leading-[1.4] text-balck',
-                )}
-              >
-                <p className="whitespace-pre-line">{userStyleSummary}</p>
-              </div>
-            )}
-
-            {selectedStyle !== 'YourStyle' &&
-              selectedStyle !== 'Customized' &&
-              SUMMARY_MAP[selectedStyle!] && (
+              {userStyleSummary && selectedStyle === 'YourStyle' && (
                 <div
                   className={cn(
                     'rounded-lg text-[16px] leading-[1.4] text-balck',
                   )}
                 >
-                  <p className="whitespace-pre-line">
-                    {SUMMARY_MAP[selectedStyle!]}
-                  </p>
+                  <p className="whitespace-pre-line">{userStyleSummary}</p>
                 </div>
               )}
+
+              {selectedStyle !== 'YourStyle' &&
+                selectedStyle !== 'Customized' &&
+                SUMMARY_MAP[selectedStyle!] && (
+                  <div
+                    className={cn(
+                      'rounded-lg text-[16px] leading-[1.4] text-balck',
+                    )}
+                  >
+                    <p className="whitespace-pre-line">
+                      {SUMMARY_MAP[selectedStyle!]}
+                    </p>
+                  </div>
+                )}
 
             {/* Custom Style Links - 只在选择 Customized 时显示 */}
             <div
@@ -679,30 +680,33 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                         ? 'Please enter a Twitter/X post link'
                         : undefined;
 
-                  return (
-                    <Input
-                      key={index}
-                      value={url}
-                      onChange={(e) => handleLinkChange(index, e.target.value)}
-                      placeholder={
-                        index === 0 ? 'https://x.com/influxy.ai...' : ''
-                      }
-                      variant="bordered"
-                      className="flex-1"
-                      isInvalid={isInvalid}
-                      errorMessage={errorMessage}
-                      startContent={
-                        <Image
-                          src="/icons/link.svg"
-                          alt="Link"
-                          width={20}
-                          height={20}
-                          className="pointer-events-none shrink-0 text-gray-400"
-                        />
-                      }
-                    />
-                  );
-                })}
+                    return (
+                      <Input
+                        key={index}
+                        value={url}
+                        onChange={(e) =>
+                          handleLinkChange(index, e.target.value)
+                        }
+                        placeholder={
+                          index === 0 ? 'https://x.com/influxy.ai...' : ''
+                        }
+                        variant="bordered"
+                        className="flex-1"
+                        isInvalid={isInvalid}
+                        errorMessage={errorMessage}
+                        startContent={
+                          <Image
+                            src="/icons/link.svg"
+                            alt="Link"
+                            width={20}
+                            height={20}
+                            className="pointer-events-none shrink-0 text-gray-400"
+                          />
+                        }
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

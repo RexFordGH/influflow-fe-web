@@ -80,7 +80,7 @@
 }
 
 .driver-popover.customize-my-style.driverjs-basic .driver-popover-arrow {
-  left: 100px;
+  translate: 230px;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-top: 8px solid #ffffff;
