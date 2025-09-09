@@ -45,6 +45,12 @@ const PLAN_CONFIG = {
     credits: CreditMap.pro,
     color: 'rgb(101, 99, 255)',
   },
+  premium: {
+    name: PlanLabelMap.premium,
+    price: PriceMap.premium,
+    credits: CreditMap.premium,
+    color: 'rgb(101, 99, 255)',
+  },
 };
 
 export default function PlanChangeModal({
@@ -72,7 +78,7 @@ export default function PlanChangeModal({
     !isCancellingScheduledChange &&
     PLAN_CONFIG[targetPlan].price < PLAN_CONFIG[currentPlan].price;
 
-  // 计算今日应付金额（仅用于从 Starter 升级到 Pro 的情况）
+  // 计算今日应付金额
   const calculateAmountDue = () => {
     // 取消预定变更不需要付费
     if (isCancellingScheduledChange) {
@@ -84,8 +90,8 @@ export default function PlanChangeModal({
       return targetPlanInfo.price;
     }
 
-    // 从 Starter 升级到 Pro，显示差价
-    if (currentPlan === 'starter' && targetPlan === 'pro') {
+    // 升级到更高级别套餐，显示差价
+    if (isUpgrade) {
       return targetPlanInfo.price - currentPlanInfo.price;
     }
 

@@ -344,7 +344,7 @@ export function useTopicTypes() {
 // ========================
 
 // 订阅类型
-export type PlanType = 'free' | 'starter' | 'pro';
+export type PlanType = 'free' | 'starter' | 'pro' | 'premium';
 
 // Checkout 会话响应
 export interface ICheckoutSessionResponse {

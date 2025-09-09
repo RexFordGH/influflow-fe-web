@@ -205,7 +205,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         onSuccess: async (data) => {
           // 判断是否是升级操作
           const isUpgradeOperation =
-            plan !== 'free' && currentPlan === 'starter' && plan === 'pro';
+            plan !== 'free' && getPlanLevel(plan) > getPlanLevel(currentPlan);
 
           if (isUpgradeOperation) {
             // 升级操作，显示成功弹窗
@@ -249,12 +249,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   };
 
   // 计算积分百分比
-  const totalCredits =
-    currentPlan === 'free'
-      ? CreditMap.free
-      : currentPlan === 'starter'
-        ? CreditMap.starter
-        : CreditMap.pro;
+  const totalCredits = CreditMap[currentPlan];
   const creditPercentage = Math.min((credits / totalCredits) * 100, 100);
 
   // 格式化日期
@@ -281,6 +276,8 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         return 1;
       case 'pro':
         return 2;
+      case 'premium':
+        return 3;
       default:
         return 0;
     }
@@ -311,7 +308,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] px-3 py-3"
+        className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] p-3"
       >
         <div className="flex items-center">
           <Button
@@ -326,9 +323,9 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         </div>
       </motion.div>
 
-      <div className="fixed top-[56px] bottom-0 left-0 right-0 mx-3 mb-3 rounded-[12px] bg-white">
+      <div className="fixed inset-x-0 bottom-0 top-[56px] mx-3 mb-3 rounded-[12px] bg-white">
         {/* Main Content */}
-        <div className="mx-auto max-w-[1440px] px-[160px] py-[40px]">
+        <div className="mx-auto max-w-[1440px] px-[100px] py-[40px]">
           {/* Title */}
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
@@ -344,10 +341,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mb-10 flex gap-6"
+            className="mb-10 flex gap-6 w-[1240px] shrink-0"
           >
             {/* Remaining Credits */}
-            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] px-[48px] py-[24px]">
               <div className="mb-2 flex items-center gap-2">
                 <p className="text-[20px] font-medium text-black">
                   Remaining Credits
@@ -414,7 +411,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             </div>
 
             {/* Your Plan */}
-            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] px-[48px] py-[24px]">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-[20px] font-medium text-black">
                   Your Plan
@@ -444,9 +441,9 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 {nextPlan && (
                   <div className="flex items-center justify-between">
                     <span className="text-[16px] text-black">
-                      Next Billing Plan::
+                      Next Billing Plan:
                     </span>
-                    <span className="text-[16px] text-black">
+                    <span className="text-[16px] text-black leading-[24px]">
                       {getPlanDisplayName(nextPlan)}
                     </span>
                   </div>
@@ -457,7 +454,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                   </span>
                   <Button
                     onPress={handleViewInvoices}
-                    className="bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-[24px] bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={isProcessing || isCreatingPortal}
                     isLoading={isCreatingPortal}
                   >
@@ -473,7 +470,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex gap-6"
+            className="flex gap-[24px]"
           >
             <motion.div
               initial={{ x: -20, opacity: 0 }}
@@ -532,6 +529,27 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 onSwitch={() => handleSwitchPlan('pro')}
                 highlighted={currentPlan === 'starter'}
                 isLoading={processingPlan === 'pro'}
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ x: 30, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Premium Plan"
+                price={String(PriceMap.premium)}
+                priceUnit="/month"
+                features={FeatureMap.premium}
+                isCurrentPlan={currentPlan === 'premium'}
+                isDowngraded={isDowngraded('premium')}
+                isNextPlan={nextPlan === 'premium'}
+                isRecommended={currentPlan === 'pro'}
+                onSwitch={() => handleSwitchPlan('premium')}
+                highlighted={currentPlan === 'pro'}
+                isLoading={processingPlan === 'premium'}
               />
             </motion.div>
           </motion.div>
