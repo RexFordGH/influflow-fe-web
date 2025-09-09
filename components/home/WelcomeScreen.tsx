@@ -39,7 +39,7 @@ import { BackgroundGradientAnimation } from '../ui/background-gradient-animation
 
 const TrendingTopicsPage = lazy(() =>
   import('@/components/trending/TrendingTopicsPage').then((module) => ({
-    default: module.TrendingTopicsPage,
+    default: module.NewTrendingTopicsPage,
   })),
 );
 
@@ -598,11 +598,20 @@ export const WelcomeScreen = ({
         {/* Trending Topics Section */}
         <motion.div
           ref={trendingRef}
-          className="relative m-3 flex min-h-screen items-center justify-center overflow-hidden rounded-[20px] bg-white"
+          className="relative isolate m-3 flex min-h-screen items-center justify-center overflow-hidden rounded-[20px] bg-white"
           initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
+          {/* 背景层：铺满整个 section，禁用事件 */}
+          <div className="absolute inset-0 z-0 pointer-events-none select-none">
+            <Image
+              src="/topic.svg"
+              alt="topic"
+              className="h-full w-[100vw] object-cover"
+              draggable={false}
+            />
+          </div>
           <Suspense fallback={<TrendingTopicsLoader />}>
             <TrendingTopicsPage
               isVisible={true}

@@ -44,6 +44,32 @@ const TrendingTopicSkeleton = ({ index }: { index: number }) => (
   </div>
 );
 
+const NewTrendingTopicSkeleton = ({ index }: { index: number }) => (
+  <div
+    className="
+    group relative flex cursor-pointer items-center
+    rounded-[20px] px-12 py-1 transition-colors duration-150
+  "
+    style={{
+      width: `880px`,
+      height: '171px',
+      background: `
+        linear-gradient(to right,  rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 95%, rgba(242, 247, 255, 0.3) 100%),
+        linear-gradient(to bottom, rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 90%, rgba(242, 247, 255, 0.3) 100%)
+      `,
+      backgroundBlendMode: 'overlay',
+      backgroundClip: 'padding-box',
+    }}
+  >
+    <Skeleton className="h-[32px] w-[30px] rounded bg-[#F2F7FF]" />
+
+    <div className="ml-[48px] flex flex-col justify-center">
+      <Skeleton className="mb-[16px] h-[27px] w-[284px] rounded bg-[#F2F7FF]" />
+      <Skeleton className="h-[84px] w-[684px] rounded bg-[#F2F7FF]" />
+    </div>
+  </div>
+);
+
 const SuggestedTopicSkeleton = () => (
   <div className="rounded-xl border border-gray-300 px-[24px] py-[10px]">
     <Skeleton className="mb-2 h-[18px] w-full rounded" />
@@ -93,6 +119,119 @@ const TrendingTopicItem = ({
           <span className="text-left text-lg font-medium text-black">
             {topic.title}
           </span>
+          {/* 显示展开/收起图标 */}
+          <div className="flex items-center gap-[10px]">
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{
+                opacity: isHovered ? 1 : 0,
+                x: isHovered ? 0 : -10,
+              }}
+              transition={{ duration: 0.2 }}
+              className="text-gray-600"
+            >
+              {isOpen ? (
+                <ChevronDownIcon className="size-5" />
+              ) : (
+                <ChevronRightIcon className="size-5" />
+              )}
+            </motion.div>
+          </div>
+        </button>
+      </div>
+      {/* </CopyToClipboard> */}
+
+      {/* Trending Topic Tweets 展开区域 */}
+      <motion.div
+        id="viral-tweets"
+        className="mt-3"
+        animate={{
+          opacity: isOpen ? 1 : 0,
+          height: isOpen ? 'auto' : 0,
+          display: isOpen ? 'block' : 'none',
+        }}
+        transition={{
+          duration: 0.3,
+          ease: 'easeInOut',
+        }}
+        style={{ overflow: 'hidden' }}
+      >
+        <TrendingTopicTweets
+          isVisible={isOpen}
+          id={id}
+          onConfirm={(selectedTweets) => {
+            onTweetsSelect?.(selectedTweets, topic.title);
+          }}
+        />
+      </motion.div>
+    </div>
+  );
+};
+
+const NewTrendingTopicItem = ({
+  id,
+  topic,
+  index,
+  isOpen,
+  onToggle,
+  onTweetsSelect,
+}: {
+  id: string;
+  topic: any;
+  index: number;
+  isOpen: boolean;
+  onToggle: (isOpen: boolean) => void;
+  onTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleToggle = () => {
+    // 传递布尔值来控制展开/收起状态
+    onToggle(!isOpen);
+  };
+
+  return (
+    <div>
+      {/* <CopyToClipboard text={topic.title}> */}
+      <div className="flex items-start justify-start gap-[16px]">
+        {/* <span className="pt-[6px] text-[18px] font-[500] text-[#8C8C8C]">
+          #{index + 1}
+        </span> */}
+
+        <button
+          onClick={handleToggle}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="
+            group relative flex cursor-pointer items-center
+            rounded-[20px] px-12 py-1 transition-colors duration-150
+            transition-colors duration-150 hover:from-yellow-500 hover:to-yellow-300
+          "
+          style={{
+            width: `880px`,
+            height: '171px',
+            background: isHovered
+              ? `linear-gradient(to right, rgba(115, 167, 255, 0.2) 90%, rgba(115, 167, 255, 0.2) 100%)`
+              : `
+                  linear-gradient(to right,  rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 95%, rgba(242, 247, 255, 0.3) 100%),
+                  linear-gradient(to bottom, rgba(242, 247, 255, 0.3) 0%, rgba(242, 247, 255, 0.3) 90%, rgba(242, 247, 255, 0.3) 100%)
+                `,
+            backgroundBlendMode: isHovered ? 'normal' : 'overlay',
+            backgroundClip: 'padding-box',
+          }}
+        >
+          <p className="text-left text-lg font-medium text-black">
+            #{index + 1}
+          </p>
+          <div className="ml-[48px] flex min-w-0 flex-col items-start text-left">
+            <span className="mb-[12px] block text-[18px] leading-[26px] font-medium">
+              {topic.title}
+            </span>
+            <span className="block w-[684px] text-[14px] leading-[22px] text-[#575757]">
+              嘎尽快回家噶联邦德国拉布拉多广播喇叭打过来吧来的快不敢拉开布达拉宫吧来的上百个喇叭声大哥巴拉顿湖个啊就是大哥回来卡的话不说了个卡号来的快干哈了多少公里哈收到了更好啦时间的话过来卡都干哈了大好时光拉赫蒂市立刻感觉哈伦裤大声疾呼过来卡哈收到老公红辣椒立刻感觉哈是离开对方更好啦说的话过来
+            </span>
+          </div>
+
           {/* 显示展开/收起图标 */}
           <div className="flex items-center gap-[10px]">
             <motion.div
@@ -377,13 +516,281 @@ export function TrendingTopicsPage({
   );
 }
 
+//NewTrendingTopicsPage
+export function NewTrendingTopicsPage({
+  isVisible,
+  onBack: _onBack,
+  onTopicSelect,
+  onTweetsSelect,
+  onSearchConfirm,
+  hasCompletedOnboarding,
+}: TrendingTopicsProps) {
+  const [selectedCategory, setSelectedCategory] = useState('ai');
+  const [expandedTopicIndex, setExpandedTopicIndex] = useState<number | null>(
+    null, // 改为null，让useEffect来控制初始状态
+  );
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchWidgetsLoaded, setSearchWidgetsLoaded] = useState<
+    Record<string, boolean>
+  >({});
+  // 添加状态来跟踪用户是否主动关闭过第一条话题
+  const [hasUserCollapsedFirst, setHasUserCollapsedFirst] = useState(false);
+
+  const { data: topicTypes } = useTopicTypes();
+
+  const {
+    data: trendingData,
+    isLoading,
+    error,
+  } = useTrendingTopics(selectedCategory);
+
+  const trendingTopics = trendingData?.trending_topics || [];
+  const suggestedTopics = trendingData?.suggested_topics || [];
+
+  // 分类列表：显示可用的话题类型
+  const categories = topicTypes?.map((type: { id: string; label: string }) => ({
+    id: type.id,
+    label: type.label,
+  }));
+
+  // 手动展开特定话题
+  const expandTopic = (index: number) => {
+    setExpandedTopicIndex(index);
+  };
+
+  // 手动收起特定话题
+  const collapseTopic = (index: number) => {
+    if (expandedTopicIndex === index) {
+      setExpandedTopicIndex(null);
+      // 如果收起的是第一条话题，标记用户主动关闭
+      if (index === 0) {
+        setHasUserCollapsedFirst(true);
+      }
+    }
+  };
+
+  // 处理话题展开/收起的逻辑，使用布尔值控制
+  const handleTopicToggle = (index: number, isOpen: boolean) => {
+    if (expandedTopicIndex === index) {
+      // 如果当前点击的是已展开的条目，则收起
+      setExpandedTopicIndex(null);
+      // 如果收起的是第一条话题，标记用户主动关闭
+      if (index === 0) {
+        setHasUserCollapsedFirst(true);
+      }
+    } else {
+      // 如果当前点击的是未展开的条目，则展开它
+      setExpandedTopicIndex(index);
+      // 如果展开的是第一条话题，清除用户主动关闭的标记
+      if (index === 0) {
+        setHasUserCollapsedFirst(false);
+      }
+    }
+  };
+
+  // 根据 onboarding 状态决定是否展开第0个话题
+  useEffect(() => {
+    if (hasCompletedOnboarding === null) return; // 等待初始化完成
+
+    if (hasCompletedOnboarding) {
+      expandTopic(0);
+      // 重置用户主动关闭的标记
+      setHasUserCollapsedFirst(false);
+    } else {
+      collapseTopic(0);
+    }
+  }, [hasCompletedOnboarding]);
+
+  // 当数据加载完成且已完成onboarding时，确保第一条默认展开（但只在用户没有主动关闭过的情况下）
+  useEffect(() => {
+    if (
+      hasCompletedOnboarding === true &&
+      trendingTopics.length > 0 &&
+      expandedTopicIndex === null &&
+      !hasUserCollapsedFirst
+    ) {
+      setExpandedTopicIndex(0);
+    }
+  }, [
+    hasCompletedOnboarding,
+    trendingTopics.length,
+    expandedTopicIndex,
+    hasUserCollapsedFirst,
+  ]);
+
+  // 优化回调函数
+  const handleSearchModalClose = useCallback(() => {
+    setIsSearchModalOpen(false);
+  }, []);
+
+  const handleSearchConfirm = useCallback(
+    (searchTerm: string, selectedTweets: ITrendsRecommendTweet[]) => {
+      onSearchConfirm?.(searchTerm, selectedTweets);
+      setIsSearchModalOpen(false);
+    },
+    [onSearchConfirm],
+  );
+
+  const handleSearchTermChange = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
+
+  const handleWidgetsLoadedChange = useCallback(
+    (term: string, loaded: boolean) => {
+      setSearchWidgetsLoaded((prev) => ({
+        ...prev,
+        [term]: loaded,
+      }));
+    },
+    [],
+  );
+
+  return (
+    <div className="size-full overflow-y-auto bg-white">
+      <div className="flex min-h-full flex-col">
+        <div className="flex-1 px-[108px] py-12">
+          <div className="mx-auto w-full max-w-4xl">
+            <div id="trending-topics" className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[20px] font-medium text-black">
+                  Trending Topics
+                </p>
+                <button
+                  onClick={() => setIsSearchModalOpen(true)}
+                  className="
+                  w-[200px]
+                  flex items-center gap-1
+                  rounded-[12px] border-[2px] border-[#F7F7F7]
+                  px-4 py-1
+                  text-[#828282]
+                  transition-colors
+                  hover:border-[#FFFFFF]
+                "
+                  style={{
+                    background: `
+                    linear-gradient(to right, #F7F7F7 0%, #F7F7F7 30%, #FFFFFF 100%),
+                    linear-gradient(to bottom, #F7F7F7 0%, #F7F7F7 70%, #FFFFFF 100%)
+                  `,
+                    backgroundBlendMode: 'multiply', // 或 overlay / screen，根据你想要的混合效果
+                  }}
+                >
+                  <MagnifyingGlassIcon className="size-5" />
+                  <span className="text-[16px]">Search</span>
+                </button>
+              </div>
+
+              {/* type */}
+              <div id="trending-topics-type" className="mb-4 flex gap-3">
+                {categories?.map((category: { id: string; label: string }) => (
+                  <Button
+                    key={category.id}
+                    size="sm"
+                    variant="bordered"
+                    onPress={() => setSelectedCategory(category.id)}
+                    className={`rounded-[12px] border border-transparent px-3 py-1 text-[14px] ${
+                      selectedCategory === category.id
+                        ? 'bg-[#D9D9D9] text-[#ffffff]'
+                        : 'text-[#828282]'
+                    }`}
+                    isDisabled={isLoading}
+                  >
+                    {category.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Trending Topics */}
+              <div className="space-y-3">
+                {isLoading ? (
+                  <NewTrendingTopicSkeletons />
+                ) : error ? (
+                  <NewTrendingTopicError />
+                ) : (
+                  trendingTopics.map((topic: ITrendingTopic, index: number) => (
+                    <NewTrendingTopicItem
+                      key={`${topic.title}-${index}`}
+                      topic={topic}
+                      index={index}
+                      id={topic.id}
+                      isOpen={expandedTopicIndex === index}
+                      onToggle={(isOpen) => handleTopicToggle(index, isOpen)}
+                      onTweetsSelect={onTweetsSelect}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Suggested Topics */}
+            {/* <div id="suggested-topics" className="mb-8">
+              <h3 className="mb-4 text-lg font-medium text-black">
+                Suggested Topics
+              </h3>
+              <div className="space-y-3">
+                {isLoading ? (
+                  <SuggestTopicSkeletons />
+                ) : error ? (
+                  <SuggestTopicError />
+                ) : (
+                  suggestedTopics.map((topic: any, index: number) => (
+                    <button
+                      key={`${topic.topic}-${index}`}
+                      onClick={() => onTopicSelect(topic)}
+                      className={`w-full rounded-xl border border-gray-300 bg-white px-[24px] py-[10px] text-left transition-colors duration-150 hover:border-blue-400 hover:bg-blue-100 `}
+                    >
+                      <div className="">
+                        <span className="text-[18px] font-normal leading-[27px] text-black">
+                          {topic.topic}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div> */}
+          </div>
+        </div>
+      </div>
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={handleSearchModalClose}
+        onConfirm={handleSearchConfirm}
+        initialSearchTerm={searchTerm}
+        onSearchTermChange={handleSearchTermChange}
+        widgetsLoaded={searchWidgetsLoaded}
+        onWidgetsLoadedChange={handleWidgetsLoadedChange}
+      />
+    </div>
+  );
+}
+
 const TrendingTopicSkeletons = () => {
   return Array.from({ length: 5 }).map((_, index) => (
     <TrendingTopicSkeleton key={index} index={index} />
   ));
 };
 
+const NewTrendingTopicSkeletons = () => {
+  return Array.from({ length: 5 }).map((_, index) => (
+    <NewTrendingTopicSkeleton key={index} index={index} />
+  ));
+};
+
 const TrendingTopicError = () => {
+  return (
+    <div className="py-8 text-center">
+      <p className="mb-2 text-gray-500">
+        Unable to load trending topics at the moment
+      </p>
+      <p className="text-sm text-gray-400">Please try again later</p>
+    </div>
+  );
+};
+
+const NewTrendingTopicError = () => {
   return (
     <div className="py-8 text-center">
       <p className="mb-2 text-gray-500">
