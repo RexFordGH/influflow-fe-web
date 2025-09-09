@@ -531,7 +531,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       className="h-screen overflow-y-auto bg-[#F8F8F8]"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] px-[12px] py-[12px]">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] p-[12px]">
         <div className="flex items-center space-x-4">
           <Button
             size="sm"
@@ -558,7 +558,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           <Button
             onPress={handleSubmit}
             isLoading={isLoading}
-            className="bg-[#448AFF] text-white h-[32px] rounded-[12px] text-[14px]"
+            className="h-[32px] rounded-[12px] bg-[#448AFF] text-[14px] text-white"
           >
             {isLoading
               ? selectedStyle === 'Customized'
@@ -570,11 +570,11 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="fixed top-[56px] bottom-0 left-0 right-0 mx-3 mb-3 rounded-[12px] bg-white">
-        <div className="w-[130vh] mx-auto">
+      <div className="fixed inset-x-0 bottom-0 top-[56px] mx-3 mb-3 rounded-[12px] bg-white">
+        <div className="mx-auto w-[130vh]">
           {/* Style Section */}
           <div id={isDataFetch ? 'style-section' : ''} className="mb-10">
-            <p className="mb-10 pt-10 text-[32px] font-medium text-gray-900 text-center">
+            <p className="mb-10 pt-10 text-center text-[32px] font-medium text-gray-900">
               Customize Your Style
             </p>
             <p className="mb-1 text-[20px] font-semibold text-gray-900 ">
@@ -603,7 +603,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                     <Button
                       key={option.value}
                       variant="bordered"
-                      className={`flex-1 border-1 cursor-not-allowed rounded-[12px] px-6 py-3 opacity-30 hover:opacity-30 bg-[#F8F8F8]`}
+                      className={`border-1 flex-1 cursor-not-allowed rounded-[12px] bg-[#F8F8F8] px-6 py-3 opacity-30 hover:opacity-30`}
                       disabled={true}
                       onPress={() => handleStyleSelect(option.value)}
                     >
@@ -614,12 +614,12 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                   <Button
                     key={option.value}
                     variant="bordered"
-                    className={`flex-1 border-1 rounded-[12px] px-6 py-3 bg-[#F8F8F8]${
+                    className={`border-1 flex-1 rounded-[12px] bg-[#F8F8F8] px-6 py-3${
                       selectedStyle === option.value
                         ? 'border-[#448AFF] bg-[#DDE9FF] text-blue-600'
                         : isYourStyleDisabled
-                          ? 'cursor-not-allowed text-gray-400 opacity-50 bg-[#F8F8F8]'
-                          : 'text-balck hover:bg-gray-50 bg-[#F8F8F8]'
+                          ? 'cursor-not-allowed bg-[#F8F8F8] text-gray-400 opacity-50'
+                          : 'text-balck bg-[#F8F8F8] hover:bg-gray-50'
                     } ${option.value === 'Customized' ? 'underline' : ''}`}
                     onPress={() => handleStyleSelect(option.value)}
                   >

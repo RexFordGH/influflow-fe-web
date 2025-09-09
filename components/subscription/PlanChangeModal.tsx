@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 
 import { PlanType } from '@/lib/api/services';
 
-import { CreditMap, PlanLabelMap, PriceMap } from './constants';
+import { CreditMap, PlanColorMap, PlanLabelMap, PriceMap } from './constants';
 
 interface PlanChangeModalProps {
   isOpen: boolean;
@@ -25,27 +25,13 @@ interface PlanChangeModalProps {
   isLoading?: boolean;
 }
 
-// 套餐信息配置
-const PLAN_CONFIG = {
-  free: {
-    name: PlanLabelMap.free,
-    price: PriceMap.free,
-    credits: CreditMap.free,
-    color: 'rgb(0, 0, 0)',
-  },
-  starter: {
-    name: PlanLabelMap.starter,
-    price: PriceMap.starter,
-    credits: CreditMap.starter,
-    color: 'rgb(68, 138, 255)',
-  },
-  pro: {
-    name: PlanLabelMap.pro,
-    price: PriceMap.pro,
-    credits: CreditMap.pro,
-    color: 'rgb(101, 99, 255)',
-  },
-};
+// 组合计划信息（名称、价格、积分、配色）
+const getPlanInfo = (plan: PlanType) => ({
+  name: PlanLabelMap[plan],
+  price: PriceMap[plan],
+  credits: CreditMap[plan],
+  color: PlanColorMap[plan],
+});
 
 export default function PlanChangeModal({
   isOpen,
@@ -58,8 +44,8 @@ export default function PlanChangeModal({
   isLoading = false,
 }: PlanChangeModalProps) {
   // 获取套餐信息
-  const currentPlanInfo = PLAN_CONFIG[currentPlan];
-  const targetPlanInfo = PLAN_CONFIG[targetPlan];
+  const currentPlanInfo = getPlanInfo(currentPlan);
+  const targetPlanInfo = getPlanInfo(targetPlan);
 
   // 判断是否是取消预定的套餐变更
   const isCancellingScheduledChange = currentPlan === targetPlan && !!nextPlan;
@@ -67,39 +53,17 @@ export default function PlanChangeModal({
   // 判断是升级还是降级
   const isUpgrade =
     !isCancellingScheduledChange &&
-    PLAN_CONFIG[targetPlan].price > PLAN_CONFIG[currentPlan].price;
+    PriceMap[targetPlan] > PriceMap[currentPlan];
   const isDowngrade =
     !isCancellingScheduledChange &&
-    PLAN_CONFIG[targetPlan].price < PLAN_CONFIG[currentPlan].price;
+    PriceMap[targetPlan] < PriceMap[currentPlan];
 
-  // 计算今日应付金额（仅用于从 Starter 升级到 Pro 的情况）
-  const calculateAmountDue = () => {
-    // 取消预定变更不需要付费
-    if (isCancellingScheduledChange) {
-      return 0;
-    }
-
-    // 从 Free 升级到付费套餐，直接显示套餐价格
-    if (currentPlan === 'free') {
-      return targetPlanInfo.price;
-    }
-
-    // 从 Starter 升级到 Pro，显示差价
-    if (currentPlan === 'starter' && targetPlan === 'pro') {
-      return targetPlanInfo.price - currentPlanInfo.price;
-    }
-
-    // 降级或其他情况，不显示金额
-    return 0;
-  };
-
-  const amountDue = calculateAmountDue();
 
   // 获取描述文本
   const getDescriptionText = () => {
     if (isCancellingScheduledChange && nextPlan) {
       // 取消预定的套餐变更
-      const nextPlanInfo = PLAN_CONFIG[nextPlan];
+      const nextPlanInfo = getPlanInfo(nextPlan);
       return `You are about to cancel your scheduled plan change to ${nextPlanInfo.name}. You will remain on your current ${currentPlanInfo.name}.`;
     }
 
@@ -157,6 +121,7 @@ export default function PlanChangeModal({
               </h2>
               <button
                 onClick={onModalClose}
+                aria-label="Close"
                 className="rounded-lg p-1 transition-colors hover:bg-gray-100"
                 disabled={isLoading}
               >
