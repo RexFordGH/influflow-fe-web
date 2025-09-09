@@ -27,7 +27,7 @@ export default function CustomPlanModal({
       placement="center"
       classNames={{
         wrapper: 'z-[200]',
-        backdrop: 'bg-black/50 backdrop-blur-sm z-[199]',
+        backdrop: 'bg-black/50 z-[199]',
         base: 'bg-white rounded-[24px] shadow-lg max-w-[560px]',
         header: 'border-b-0 px-8 pt-8 pb-0',
         body: 'px-8 pb-8 pt-[40px]',
