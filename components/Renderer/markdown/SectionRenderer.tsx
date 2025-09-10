@@ -5,6 +5,7 @@ import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 
 import EditorPro from '@/components/editorPro';
+import { useAuthStore } from '@/stores/authStore';
 import { MarkdownSection } from '@/utils/markdownUtils';
 import { copyTwitterContent } from '@/utils/twitter';
 
@@ -82,6 +83,9 @@ export function SectionRenderer({
 }: SectionRendererProps) {
   const [currentEditorContent, setCurrentEditorContent] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>();
+
+  // 获取用户信息
+  const { user } = useAuthStore();
 
   useEffect(() => {
     if (section.type !== 'tweet') {
@@ -173,117 +177,73 @@ export function SectionRenderer({
   const loadingClasses = isLoading ? markdownStyles.states.loading : '';
   const { handleEnter, handleLeave } = createMouseHandlers();
 
-  switch (section.type) {
-    case 'list':
-      const listItems = section.content
-        .split('\n')
-        .filter((item) => item.trim());
-      const isNumberedList = /^\d+/.test(listItems[0] || '');
+  // 只渲染 tweet 类型
+  if (section.type === 'tweet') {
+    // 直接使用 section 中的数据，不再解析
+    const title = (section as any).title || '';
+    const textContent = section.content;
+    const tweetImageSrc = (section as any).imageUrl || null;
+    const tweetImageAlt = title;
 
-      return (
-        <div
-          key={section.id}
-          ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses}`}
-          onMouseEnter={handleEnter}
-          onMouseLeave={handleLeave}
-        >
-          {isLoading && (
-            <div className={markdownStyles.loading.indicator}>
-              <div className={markdownStyles.loading.spinner}></div>
-            </div>
-          )}
-          {isNumberedList ? (
-            <ol className={markdownStyles.lists.orderedContainer}>
-              {listItems.map((item, idx) => (
-                <li key={idx} className={markdownStyles.lists.orderedItem}>
-                  <span className={markdownStyles.lists.itemContent}>
-                    {item
-                      .replace(/^\d+\.\s*/, '')
-                      .replace(
-                        /^\*\*(.*?)\*\*/,
-                        '<strong class="font-semibold">$1</strong>',
-                      )}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <ul className={markdownStyles.lists.container}>
-              {listItems.map((item, idx) => (
-                <li key={idx} className={markdownStyles.lists.item}>
-                  <span className={markdownStyles.lists.bullet} />
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: item
-                        .replace(/^[-*]\s*/, '')
-                        .replace(
-                          /\*\*(.*?)\*\*/g,
-                          '<strong class="font-semibold text-gray-900">$1</strong>',
-                        ),
-                    }}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
+    const currentTweetData = tweetData?.nodes
+      ?.flatMap((group: any) => group.tweets)
+      ?.find((tweet: any) => tweet.tweet_number.toString() === section.tweetId);
+
+    const allTweets =
+      tweetData?.nodes?.flatMap((group: any) => group.tweets) || [];
+    const totalTweets = allTweets.length;
+    const currentTweetIndex = allTweets.findIndex(
+      (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
+    );
+    const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
+    const currentTweetImageUrl = currentTweetData?.image_url;
+    const imageToDisplay = imageUri;
+
+    const editorValue = JSON.stringify({
+      content: textContent,
+      type: 'doc',
+      isEmpty: !textContent.trim(),
+    });
+
+    const isGeneratingImage =
+      generatingImageTweetIds?.includes(section.tweetId || '') || false;
+
+    return (
+      <div
+        key={section.id}
+        ref={(el) => setSectionRef?.(section.id, el)}
+        className={`${baseClasses} ${highlightClasses} ${loadingClasses} group !pb-0`}
+        onMouseEnter={handleEnter}
+        onMouseLeave={handleLeave}
+      >
+        {/* {isLoading && (
+          <div className="absolute left-2 top-2">
+            <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+          </div>
+        )} */}
+
+        {/* 用户头像和用户名 */}
+        <div className="mb-[-20px] flex items-start gap-3">
+          <div className="size-10 shrink-0 overflow-hidden rounded-full">
+            <Image
+              src={user?.avatar}
+              width={40}
+              height={40}
+              alt={user?.name}
+              className="overflow-hidden rounded-full object-cover"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="font-semibold text-black">{user?.name}</span>
+            {user?.account_name && (
+              <span className="text-gray-500">@{user?.account_name}</span>
+            )}
+          </div>
         </div>
-      );
 
-    case 'tweet':
-      // 直接使用 section 中的数据，不再解析
-      const title = (section as any).title || '';
-      const textContent = section.content;
-      const tweetImageSrc = (section as any).imageUrl || null;
-      const tweetImageAlt = title;
-
-      const currentTweetData = tweetData?.nodes
-        ?.flatMap((group: any) => group.tweets)
-        ?.find(
-          (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
-        );
-
-      const allTweets =
-        tweetData?.nodes?.flatMap((group: any) => group.tweets) || [];
-      const totalTweets = allTweets.length;
-      const currentTweetIndex = allTweets.findIndex(
-        (tweet: any) => tweet.tweet_number.toString() === section.tweetId,
-      );
-      const tweetNumber = currentTweetIndex >= 0 ? currentTweetIndex + 1 : 0;
-      const currentTweetImageUrl = currentTweetData?.image_url;
-      const imageToDisplay = imageUri;
-
-      const editorValue = JSON.stringify({
-        content: textContent,
-        type: 'doc',
-        isEmpty: !textContent.trim(),
-      });
-
-      const isGeneratingImage =
-        generatingImageTweetIds?.includes(section.tweetId || '') || false;
-
-      return (
-        <div
-          key={section.id}
-          ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group border border-gray-100`}
-          onMouseEnter={handleEnter}
-          onMouseLeave={handleLeave}
-        >
-          {isLoading && (
-            <div className="absolute left-2 top-2">
-              <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-            </div>
-          )}
-
-          {totalTweets > 0 && tweetNumber > 0 && (
-            <div className="text-[10px] font-medium text-black/60">
-              ({tweetNumber}/{totalTweets})
-            </div>
-          )}
-
+        <div className="ml-[20px] border-l border-[#E7E8EA] pl-[26px]">
           {textContent && textContent.trim() && (
-            <div className="text-[14px] leading-[1.6] text-black">
+            <div className="text-[14px] leading-[1.6] text-black ">
               <EditorPro
                 value={editorValue}
                 onChange={handleEditorChange}
@@ -347,102 +307,49 @@ export function SectionRenderer({
             </div>
           )}
 
-          <div
-            className={`absolute right-[4px] top-[4px] flex items-center justify-end gap-1 transition-opacity ${
-              // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
-              editingNodeId &&
-              ((section.tweetId &&
-                (section.tweetId === editingNodeId ||
-                  section.tweetId.toString() === editingNodeId.toString())) ||
-                editingNodeId === section.id)
-                ? 'opacity-100'
-                : 'opacity-0 group-hover:opacity-100'
-            }`}
-          >
-            <EditWithAIButton
-              nodeId={section.tweetId || section.id}
-              onEditWithAI={onEditWithAI}
-            />
-            <LocalImageUploader
-              tweetData={currentTweetData}
-              onUploadSuccess={onLocalImageUploadSuccess}
-              onImageSelect={onImageSelect}
-            />
-            <TweetImageButton
-              currentTweetData={currentTweetData}
-              onTweetImageEdit={onTweetImageEdit}
-              isGeneratingImage={isGeneratingImage}
-              onDirectGenerate={onDirectGenerate}
-            />
-            <CopyButton
-              currentTweetData={currentTweetData}
-              currentContent={currentEditorContent}
-              tweetNumber={tweetNumber}
-              totalTweets={totalTweets}
-            />
-          </div>
+          <div className="h-[16px] w-full bg-transparent"></div>
         </div>
-      );
 
-    case 'group':
-      const groupLines = section.content.split('\n\n');
-      let groupTitle = '';
-      let groupContent = '';
-
-      const groupTitleLine = groupLines.find((line) => line.startsWith('#'));
-      if (groupTitleLine) {
-        groupTitle = groupTitleLine.replace(/^#+\s*/, '').trim();
-        const groupContentLines = groupLines.filter(
-          (line) => !line.startsWith('#') && line.trim() !== '',
-        );
-        groupContent = groupContentLines.join('\n\n');
-      } else {
-        groupTitle = section.content;
-      }
-
-      const groupTitleEditorValue = JSON.stringify({
-        content: `<h3>${groupTitle}</h3>`,
-        type: 'doc',
-        isEmpty: !groupTitle.trim(),
-      });
-
-      return (
         <div
-          key={section.id}
-          ref={(el) => setSectionRef?.(section.id, el)}
-          className={`${baseClasses} ${highlightClasses} ${loadingClasses} group relative mb-6`}
-          onMouseEnter={handleEnter}
-          onMouseLeave={handleLeave}
+          className={`absolute right-[4px] top-[4px] flex items-center justify-end gap-1 transition-opacity ${
+            // 如果当前section正在被编辑，始终显示按钮，否则hover时显示
+            editingNodeId &&
+            ((section.tweetId &&
+              (section.tweetId === editingNodeId ||
+                section.tweetId.toString() === editingNodeId.toString())) ||
+              editingNodeId === section.id)
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
+          }`}
         >
-          {isLoading && (
-            <div className="absolute left-2 top-2">
-              <div className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-            </div>
-          )}
-
-          <EditorPro
-            value={groupTitleEditorValue}
-            onChange={handleEditorChange}
-            isEdit={true}
-            hideMenuBar={true}
-            debounceMs={1000}
-            className={{
-              base: 'border-none bg-transparent',
-              editorWrapper: 'p-0',
-              editor: `prose max-w-none bg-transparent [&_.tiptap]:min-h-0 [&_.tiptap]:bg-transparent [&_.tiptap]:p-[6px] [&_.tiptap]:text-inherit [&_h3]:text-black`,
-            }}
+          <EditWithAIButton
+            nodeId={section.tweetId || section.id}
+            onEditWithAI={onEditWithAI}
           />
-          {groupContent && (
-            <div className="mt-2 text-sm leading-relaxed text-gray-700">
-              {groupContent}
-            </div>
-          )}
+          <LocalImageUploader
+            tweetData={currentTweetData}
+            onUploadSuccess={onLocalImageUploadSuccess}
+            onImageSelect={onImageSelect}
+          />
+          <TweetImageButton
+            currentTweetData={currentTweetData}
+            onTweetImageEdit={onTweetImageEdit}
+            isGeneratingImage={isGeneratingImage}
+            onDirectGenerate={onDirectGenerate}
+          />
+          <CopyButton
+            currentTweetData={currentTweetData}
+            currentContent={currentEditorContent}
+            tweetNumber={tweetNumber}
+            totalTweets={totalTweets}
+          />
         </div>
-      );
-
-    default:
-      return null;
+      </div>
+    );
   }
+
+  // 非 tweet 类型不渲染
+  return null;
 }
 
 export function EditWithAIButton({
