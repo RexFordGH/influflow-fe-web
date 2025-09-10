@@ -138,6 +138,8 @@ export async function fetchPaginatedSidebarData(
           tweets: item.tweets || [],
           updated_at: item.updated_at || item.created_at,
           created_at: item.created_at,
+          mode: item.mode || '',
+          search_enabled: !!item.mode
         },
       }));
 

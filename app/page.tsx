@@ -17,7 +17,10 @@ import {
   AppSidebar,
   AppSidebarRef,
 } from '@/components/layout/sidebar/AppSidebar';
-import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
+import {
+  IArticleData,
+  SidebarItem,
+} from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
 import { useAuthStore } from '@/stores/authStore';
@@ -266,8 +269,8 @@ function HomeContent() {
   // 生成完成回调
   const handleGenerationComplete = async (data: IOutline) => {
     console.log('Generation completed:', data);
-    // 刷新侧边栏列表
-    sidebarRef.current?.refresh();
+    // 刷新侧边栏列表 - 等待刷新完成
+    await sidebarRef.current?.refresh();
     // 刷新订阅信息以更新积分
     await refreshSubscriptionInfo();
   };
@@ -316,7 +319,7 @@ function HomeContent() {
     setPromptDismissed(); // 记录用户已关闭提示
   };
 
-  const handleTweetThreadClick = (tweetData: any) => {
+  const handleTweetThreadClick = (tweetData: IArticleData) => {
     // 1. 将 TweetThread 格式转换为 Outline 格式
     const outlineData: IOutline = {
       topic: tweetData.topic,
@@ -328,6 +331,8 @@ function HomeContent() {
       ),
       id: tweetData.id,
       updatedAt: tweetData.updated_at ?? new Date(),
+      mode: tweetData.mode,
+      search_enabled: tweetData.search_enabled,
     };
 
     // 2. 设置 initialData 和 topic

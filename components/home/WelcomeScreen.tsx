@@ -59,13 +59,13 @@ interface WelcomeScreenProps {
   hasCompletedOnboarding?: boolean | null;
 }
 
-const ContentFormatOptions = [
+export const ContentFormatOptions = [
   { key: 'longform', label: 'Long-form Post', icon: '≣' },
   { key: 'thread', label: 'Threads', icon: '≡' },
   { key: 'deep_research', label: 'Deep Research', icon: '≡' },
 ];
 
-const ModeOptions = [
+export const ModeOptions = [
   { key: 'lite', label: 'Lite Mode' },
   { key: 'analysis', label: 'Analysis Mode' },
   // { key: 'draft', label: 'Chatbot Mode' },

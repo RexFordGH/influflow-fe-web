@@ -67,7 +67,7 @@ export function useGenerateThread() {
   });
 }
 
-// 新增内容：兼容后端接口，1先获取jobid，2轮询任务状态,3获取job_id对应的推文线程，4获取推文数据组装成outline返回
+// 新增内容（deep search模式专用）：兼容后端接口，1先获取jobid，2轮询任务状态,3获取job_id对应的推文，4获取推文数据组装成outline返回
 // 组合式 Hook：提交异步生成并轮询任务状态
 export function useAsyncThreadGeneration() {
   const { mutateAsync: generateAsync } = useGenerateThreadAsync();
@@ -132,6 +132,8 @@ export function useAsyncThreadGeneration() {
         topic: tweetThread.topic,
         total_tweets: totalTweets,
         updatedAt: Date.parse(tweetThread.updated_at),
+        mode: tweetThread.mode,
+        search_enabled: tweetThread.search_enabled,
       };
 
       return outline;

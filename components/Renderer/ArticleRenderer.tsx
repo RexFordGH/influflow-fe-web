@@ -1,7 +1,7 @@
 'use client';
 
-import { Image } from '@heroui/react';
-import { useCallback, useEffect, useState } from 'react';
+import { Image, Tooltip } from '@heroui/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
 import { useAIEditing } from '@/hooks/useAIEditing';
@@ -11,12 +11,14 @@ import { useImageManagement } from '@/hooks/useImageManagement';
 import { useMindmapInteraction } from '@/hooks/useMindmapInteraction';
 import { useTwitterIntegration } from '@/hooks/useTwitterIntegration';
 import { convertThreadDataToMindmap } from '@/lib/data/converters';
+import { useArticleStore } from '@/stores/articleStore';
 import { useAuthStore } from '@/stores/authStore';
 import { IContentFormat, IMode } from '@/types/api';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { IOutline } from '@/types/outline';
 import { isLongformType } from '@/utils/contentFormat';
 
+import { ModeOptions } from '../home/WelcomeScreen';
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
 import { DeleteConfirmModal } from './ArticleRenderer/DeleteConfirmModal';
@@ -61,6 +63,9 @@ export function ArticleRenderer({
 
   // 获取用户信息
   const { user } = useAuthStore();
+
+  // 从 articleStore 获取数据
+  const { getArticleById, articles } = useArticleStore();
 
   // 使用自定义 Hooks - 传入mode和userInput
   const generation = useGenerationState({
@@ -173,6 +178,17 @@ export function ArticleRenderer({
     onEdgesUpdate: setCurrentEdges,
   });
 
+  const modeInfo = useMemo(() => {
+    const articleData = generation.rawAPIData?.id
+      ? getArticleById(generation.rawAPIData.id)?.tweetData
+      : null;
+    const mode = articleData?.mode || generation.rawAPIData?.mode;
+    const modeLabel = ModeOptions.find((item) => item.key === mode)?.label;
+    const searchEnabled =
+      articleData?.search_enabled ?? generation.rawAPIData?.search_enabled;
+    return { modeLabel, mode, searchEnabled };
+  }, [generation.rawAPIData?.id, articles, getArticleById]);
+
   // 初始化思维导图数据
   useEffect(() => {
     if (generation.rawAPIData) {
@@ -185,7 +201,7 @@ export function ArticleRenderer({
   }, [generation.rawAPIData]);
 
   // 格式化时间
-  const formatTime = useCallback((date: number | Date) => {
+  const formatTime = useCallback((date: number | Date | string) => {
     return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -272,9 +288,45 @@ export function ArticleRenderer({
               <h1 className="font-inter break-words text-[32px] font-[700] leading-none text-black">
                 {generation.rawAPIData?.topic}
               </h1>
-              <p className="font-inter mt-[10px] text-[14px] font-[400] leading-none text-[#8C8C8C]">
-                {formatTime(generation.rawAPIData?.updatedAt || Date.now())}
-              </p>
+              <div className="mt-[10px] flex justify-start items-center gap-[12px]">
+                <p className="font-inter  text-[14px] font-[400] leading-none text-[#8C8C8C]">
+                  {formatTime(generation.rawAPIData?.updatedAt || Date.now())}
+                </p>
+
+                {modeInfo.mode && (
+                  <>
+                    <div className="h-[12px] w-[1px] bg-[#D9D9D9]"></div>
+
+                    <span className="font-poppins text-[14px] text-[#8C8C8C]">
+                      {modeInfo.modeLabel || modeInfo.mode}
+                    </span>
+
+                    <div className="h-[12px] w-[1px] bg-[#D9D9D9]"></div>
+                    <Tooltip
+                      placement="top"
+                      classNames={{
+                        content: 'bg-black text-white',
+                        arrow: 'bg-black border-black',
+                      }}
+                      content={
+                        modeInfo.searchEnabled
+                          ? 'Web search is on'
+                          : 'Web search is off'
+                      }
+                    >
+                      <Image
+                        src={
+                          modeInfo.searchEnabled
+                            ? '/icons/mdi_web-check.svg'
+                            : '/icons/mdi_web-cancel.svg'
+                        }
+                        width={16}
+                        height={16}
+                      />
+                    </Tooltip>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Twitter Thread内容区域 */}
