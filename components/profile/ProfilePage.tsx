@@ -574,7 +574,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
         <div className="mx-auto w-[130vh]">
           {/* Style Section */}
           <div className="mb-10">
-            <p className="mb-10 pt-10 text-[32px] font-medium text-gray-900 text-center">
+            <p className="mb-10 pt-10 text-center text-[32px] font-medium text-gray-900">
               Customize Your Style
             </p>
             <div id={isDataFetch ? 'style-section' : ''}>
@@ -591,44 +591,44 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                   const isYourStyleDisabled =
                     option.value === 'YourStyle' && !hasTweetData;
 
-                return isYourStyleDisabled ? (
-                  <Tooltip
-                    key={option.value}
-                    content="Unable to learn style without past tweets"
-                    placement="top"
-                    classNames={{
-                      content: 'bg-black text-white',
-                      arrow: 'bg-black border-black',
-                    }}
-                  >
+                  return isYourStyleDisabled ? (
+                    <Tooltip
+                      key={option.value}
+                      content="Unable to learn style without past tweets"
+                      placement="top"
+                      classNames={{
+                        content: 'bg-black text-white',
+                        arrow: 'bg-black border-black',
+                      }}
+                    >
+                      <Button
+                        key={option.value}
+                        variant="bordered"
+                        className={`flex-1 cursor-not-allowed rounded-[12px] border bg-[#F8F8F8] px-6 py-3 opacity-30 hover:opacity-30`}
+                        disabled={true}
+                        onPress={() => handleStyleSelect(option.value)}
+                      >
+                        {option.label}
+                      </Button>
+                    </Tooltip>
+                  ) : (
                     <Button
                       key={option.value}
                       variant="bordered"
-                      className={`border-1 flex-1 cursor-not-allowed rounded-[12px] bg-[#F8F8F8] px-6 py-3 opacity-30 hover:opacity-30`}
-                      disabled={true}
+                      className={`flex-1 rounded-[12px] border bg-[#F8F8F8] px-6 py-3${
+                        selectedStyle === option.value
+                          ? 'border-[#448AFF] bg-[#DDE9FF] text-blue-600'
+                          : isYourStyleDisabled
+                            ? 'cursor-not-allowed bg-[#F8F8F8] text-gray-400 opacity-50'
+                            : 'bg-[#F8F8F8] text-black hover:bg-gray-50'
+                      } ${option.value === 'Customized' ? 'underline' : ''}`}
                       onPress={() => handleStyleSelect(option.value)}
                     >
                       {option.label}
                     </Button>
-                  </Tooltip>
-                ) : (
-                  <Button
-                    key={option.value}
-                    variant="bordered"
-                    className={`border-1 flex-1 rounded-[12px] bg-[#F8F8F8] px-6 py-3${
-                      selectedStyle === option.value
-                        ? 'border-[#448AFF] bg-[#DDE9FF] text-blue-600'
-                        : isYourStyleDisabled
-                          ? 'cursor-not-allowed bg-[#F8F8F8] text-gray-400 opacity-50'
-                          : 'text-balck bg-[#F8F8F8] hover:bg-gray-50'
-                    } ${option.value === 'Customized' ? 'underline' : ''}`}
-                    onPress={() => handleStyleSelect(option.value)}
-                  >
-                    {option.label}
-                  </Button>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
 
               {userStyleSummary && selectedStyle === 'YourStyle' && (
                 <div
@@ -654,31 +654,31 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
                   </div>
                 )}
 
-            {/* Custom Style Links - 只在选择 Customized 时显示 */}
-            <div
-              className={cn(
-                'mb-6',
-                selectedStyle === 'Customized' ? 'block' : 'hidden',
-              )}
-            >
-              {/* <h3 className="mb-2 text-lg font-medium text-gray-900">
+              {/* Custom Style Links - 只在选择 Customized 时显示 */}
+              <div
+                className={cn(
+                  'mb-6',
+                  selectedStyle === 'Customized' ? 'block' : 'hidden',
+                )}
+              >
+                {/* <h3 className="mb-2 text-lg font-medium text-gray-900">
                 Examples of Customized Style
               </h3> */}
-              <p className="mb-4 text-gray-500">
-                Paste the link to the posts you'd like to use as style
-                references.
-              </p>
-              <div className="flex justify-between gap-[10px]">
-                {tweetExampleUrls.map((url, index) => {
-                  const validationResult = isValidUrl(url);
-                  const isInvalid =
-                    url.trim() !== '' && validationResult !== true;
-                  const errorMessage =
-                    validationResult === 'invalid-url'
-                      ? 'Please enter a valid URL'
-                      : validationResult === 'not-twitter'
-                        ? 'Please enter a Twitter/X post link'
-                        : undefined;
+                <p className="mb-4 text-gray-500">
+                  Paste the link to the posts you'd like to use as style
+                  references.
+                </p>
+                <div className="flex justify-between gap-[10px]">
+                  {tweetExampleUrls.map((url, index) => {
+                    const validationResult = isValidUrl(url);
+                    const isInvalid =
+                      url.trim() !== '' && validationResult !== true;
+                    const errorMessage =
+                      validationResult === 'invalid-url'
+                        ? 'Please enter a valid URL'
+                        : validationResult === 'not-twitter'
+                          ? 'Please enter a Twitter/X post link'
+                          : undefined;
 
                     return (
                       <Input

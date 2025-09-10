@@ -68,6 +68,8 @@ const articleData: IOutline = {
       ],
     },
   ],
+  mode: 'analysis',
+  search_enabled: true,
 };
 
 export default function ArticleDirectPage() {

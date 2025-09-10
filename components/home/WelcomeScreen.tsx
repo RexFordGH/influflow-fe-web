@@ -169,7 +169,7 @@ export const WelcomeScreen = ({
       console.log('User not authenticated, skipping onboarding');
       return;
     }
-    
+
     // 在页面等待2000ms后，再进入新手引导
     setTimeout(() => {
       const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
@@ -614,11 +614,11 @@ export const WelcomeScreen = ({
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           {/* 背景层：铺满整个 section，禁用事件 */}
-          <div className="absolute inset-0 z-0 pointer-events-none select-none">
+          <div className="pointer-events-none absolute inset-0 z-0 select-none">
             <Image
               src="/topic.svg"
               alt="topic"
-              className="h-full w-[100vw] object-cover"
+              className="h-full w-screen object-cover"
               draggable={false}
             />
           </div>

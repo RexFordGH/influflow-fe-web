@@ -85,6 +85,8 @@ export const localGenerateThreadResponse: IOutline = {
     },
   ],
   total_tweets: 10,
+  mode: 'analysis',
+  search_enabled: true,
 };
 
 // 本地模拟 ModifyTweet 响应数据
@@ -151,6 +153,8 @@ export const createLocalModifyOutlineResponse = (
       nodes: enhancedNodes,
       topic: `${newOutlineStructure.topic}（AI优化版）`,
       total_tweets: enhancedNodes.length,
+      mode: originalOutline.mode,
+      search_enabled: originalOutline.search_enabled,
     },
   };
 };

@@ -69,7 +69,8 @@ const NoCreditsModal = ({ isOpen, onClose }: NoCreditsModalProps) => {
                 </h2>
                 {/* Description */}
                 <p className="text-[16px] text-black">
-                  Oops! You're out of credits. Please upgrade your plan to continue.
+                  Oops! You're out of credits. Please upgrade your plan to
+                  continue.
                 </p>
               </div>
             </div>

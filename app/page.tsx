@@ -355,13 +355,15 @@ function HomeContent() {
       handleTweetThreadClick(item.tweetData);
     } else {
       // 如果没有完整数据，使用简化数据作为回退
-      const fallbackData = {
+      const fallbackData: IArticleData = {
         id: item.id.replace('tweet-', ''),
         topic: item.title,
         content_format: 'longform',
         tweets: [],
         updated_at: item.updatedAt || item.createdAt,
         created_at: item.createdAt,
+        mode: 'analysis',
+        search_enabled: true,
       };
       handleTweetThreadClick(fallbackData);
     }

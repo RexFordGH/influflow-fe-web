@@ -20,5 +20,5 @@ export interface IOutline {
   total_tweets: number;
   updatedAt?: Date | number | string;
   mode: IMode;
-  search_enabled: boolean
+  search_enabled: boolean;
 }

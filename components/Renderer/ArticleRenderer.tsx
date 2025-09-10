@@ -19,6 +19,7 @@ import { IOutline } from '@/types/outline';
 import { isLongformType } from '@/utils/contentFormat';
 
 import { ModeOptions } from '../home/WelcomeScreen';
+
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
 import { DeleteConfirmModal } from './ArticleRenderer/DeleteConfirmModal';
@@ -460,20 +461,20 @@ export function ArticleRenderer({
               <h1 className="font-inter break-words text-[32px] font-[700] leading-none text-black">
                 {generation.rawAPIData?.topic}
               </h1>
-              <div className="mt-[10px] flex justify-start items-center gap-[12px]">
+              <div className="mt-[10px] flex items-center justify-start gap-[12px]">
                 <p className="font-inter  text-[14px] font-[400] leading-none text-[#8C8C8C]">
                   {formatTime(generation.rawAPIData?.updatedAt || Date.now())}
                 </p>
 
                 {modeInfo.mode && (
                   <>
-                    <div className="h-[12px] w-[1px] bg-[#D9D9D9]"></div>
+                    <div className="h-[12px] w-px bg-[#D9D9D9]"></div>
 
                     <span className="font-poppins text-[14px] text-[#8C8C8C]">
                       {modeInfo.modeLabel || modeInfo.mode}
                     </span>
 
-                    <div className="h-[12px] w-[1px] bg-[#D9D9D9]"></div>
+                    <div className="h-[12px] w-px bg-[#D9D9D9]"></div>
                     <Tooltip
                       placement="top"
                       classNames={{

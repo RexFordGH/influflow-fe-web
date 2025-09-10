@@ -24,6 +24,8 @@ export function normalizeOutlineData(data: BackendOutline): IOutline {
       nodes: [],
       topic: '',
       total_tweets: 0,
+      mode: 'analysis',
+      search_enabled: true,
     };
   }
 
@@ -49,6 +51,8 @@ export function normalizeOutlineData(data: BackendOutline): IOutline {
     topic: data.topic || '',
     total_tweets: data.total_tweets || 0,
     updatedAt: data.updatedAt,
+    mode: 'analysis',
+    search_enabled: true,
   };
 }
 

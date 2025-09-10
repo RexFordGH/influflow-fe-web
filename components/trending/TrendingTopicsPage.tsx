@@ -216,16 +216,16 @@ const NewTrendingTopicItem = ({
           onMouseLeave={() => setIsHovered(false)}
           className={`
             group relative flex cursor-pointer items-center
-            rounded-[20px] pl-12 pr-3 py-3 transition-colors duration-150
-            bg-clip-padding
+            rounded-[20px] bg-clip-padding py-3 pl-12 pr-3 transition-colors
+            duration-150
             ${
               shouldShowHoveredState
                 ? '[background-image:linear-gradient(to_right,rgba(115,167,255,0.2)_90%,rgba(115,167,255,0.2)_100%)]'
-                : '[background-image:linear-gradient(to_right,#F2F7FF4D_0%,#F2F7FF4D_80%,#F2F7FC_100%),linear-gradient(to_bottom,#F2F7FF4D_0%,#F2F7FF4D_90%,#F2F7FC_100%)] [background-blend-mode:overlay]'
+                : '[background-blend-mode:overlay] [background-image:linear-gradient(to_right,#F2F7FF4D_0%,#F2F7FF4D_80%,#F2F7FC_100%),linear-gradient(to_bottom,#F2F7FF4D_0%,#F2F7FF4D_90%,#F2F7FC_100%)]'
             }
-            [background-size:100%_100%,_100%_100%]
-            [background-repeat:no-repeat,_no-repeat]
             [background-position:0_0,_0_0]
+            [background-repeat:no-repeat,_no-repeat]
+            [background-size:100%_100%,_100%_100%]
           `}
           style={{ width: '100vw', height: '171px' }}
         >
@@ -233,7 +233,7 @@ const NewTrendingTopicItem = ({
             #{index + 1}
           </p>
           <div className="ml-[48px] flex min-w-0 flex-col items-start text-left">
-            <span className="mb-[12px] block text-[18px] leading-[26px] font-medium">
+            <span className="mb-[12px] block text-[18px] font-medium leading-[26px]">
               {topic.title}
             </span>
             <span className="block w-[684px] text-[14px] leading-[22px] text-[#575757]">
@@ -245,7 +245,7 @@ const NewTrendingTopicItem = ({
           </div>
 
           {/* 显示展开/收起图标 */}
-          <div className="flex items-center gap-[10px] absolute right-0 pr-[24px]">
+          <div className="absolute right-0 flex items-center gap-[10px] pr-[24px]">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{
@@ -666,16 +666,16 @@ export function NewTrendingTopicsPage({
         <div className="flex-1 px-[108px] py-12">
           <div className="mx-auto w-full max-w-4xl">
             <div className="mb-10">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 <p className="text-[20px] font-medium text-black">
                   Trending Topics
                 </p>
                 <button
                   onClick={() => setIsSearchModalOpen(true)}
                   className="
-                  w-[200px]
-                  flex items-center gap-1
-                  rounded-[12px] border-[2px] border-[#F7F7F7]
+                  flex
+                  w-[200px] items-center gap-1
+                  rounded-[12px] border-2 border-[#F7F7F7]
                   px-4 py-1
                   text-[#828282]
                   transition-colors

@@ -11,7 +11,7 @@ interface IArticleState {
   total: number;
   // 是否还有更多数据
   hasMore: boolean;
-  
+
   // Actions
   setArticles: (articles: SidebarItem[]) => void;
   appendArticles: (articles: SidebarItem[]) => void;
@@ -45,7 +45,7 @@ export const useArticleStore = create<IArticleState>()(
       updateArticle: (id, articleUpdate) =>
         set((state) => ({
           articles: state.articles.map((article) =>
-            article.id === id ? { ...article, ...articleUpdate } : article
+            article.id === id ? { ...article, ...articleUpdate } : article,
           ),
         })),
 
@@ -90,6 +90,6 @@ export const useArticleStore = create<IArticleState>()(
         articles: state.articles,
         selectedArticleId: state.selectedArticleId,
       }),
-    }
-  )
+    },
+  ),
 );

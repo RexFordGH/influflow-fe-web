@@ -1,13 +1,14 @@
 'use client';
 
-import { Button, Image, Input } from '@heroui/react';
+import { Button, Image } from '@heroui/react';
 import { useParams } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
+
+import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 import { Topbar } from '@/components/layout/Topbar';
 import { showEmailAuth } from '@/constants/env';
 import { useCheckReferralCode } from '@/lib/api/referral';
 import { createClient } from '@/lib/supabase/client';
-import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 
 function setCookie(name: string, value: string, days = 7) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -109,7 +110,9 @@ export default function ReferralLandingPage() {
           isLoading={isLoading || isVerifying}
           isDisabled={isLoading || isVerifying || !referralCode}
         >
-          {isLoading || isVerifying ? 'Processing...' : 'Verify and Login with X'}
+          {isLoading || isVerifying
+            ? 'Processing...'
+            : 'Verify and Login with X'}
         </Button>
 
         {/* 开发环境：提供邮箱注册/登录用于测试 */}

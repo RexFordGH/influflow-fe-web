@@ -301,7 +301,7 @@ export function MarkdownRenderer({
               generatingImageTweetIds.length > 0)) && (
             <div
               ref={onImageGalleryRef}
-              className="mt-[48px] flex w-[480px] mx-auto  flex-col justify-center gap-[16px] overflow-hidden"
+              className="mx-auto mt-[48px] flex w-[480px]  flex-col justify-center gap-[16px] overflow-hidden"
             >
               {/* 渲染已生成的图片 */}
               {collectedImages.map((image, index) => {
@@ -318,7 +318,7 @@ export function MarkdownRenderer({
                         onImageItemRef(image.tweetId, el);
                       }
                     }}
-                    className="group relative flex aspect-video h-[400px] justify-center rounded-lg overflow-hidden"
+                    className="group relative flex aspect-video h-[400px] justify-center overflow-hidden rounded-lg"
                   >
                     {isRegenerating ? (
                       <ImageLoading />

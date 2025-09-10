@@ -340,7 +340,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mb-10 flex gap-6 w-[1240px] shrink-0"
+            className="mb-10 flex w-[1240px] shrink-0 gap-6"
           >
             {/* Remaining Credits */}
             <div className="flex-1 rounded-[24px] bg-[#F8F8F8] px-[48px] py-[24px]">
@@ -442,7 +442,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                     <span className="text-[16px] text-black">
                       Next Billing Plan:
                     </span>
-                    <span className="text-[16px] text-black leading-[24px]">
+                    <span className="text-[16px] leading-[24px] text-black">
                       {getPlanDisplayName(nextPlan)}
                     </span>
                   </div>

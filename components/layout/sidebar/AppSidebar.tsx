@@ -2,9 +2,17 @@
 
 import { Button, cn, Image } from '@heroui/react';
 import Link from 'next/link';
-import { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 import { ReferralModal } from '@/components/referral';
+import { useArticleStore } from '@/stores/articleStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
@@ -19,7 +27,6 @@ import { usePaginatedData } from './hooks/usePaginatedData';
 import { useScrollPositionRestore } from './hooks/useScrollPositionRestore';
 import { ProfileDropdown } from './ProfileDropdown';
 import { SidebarItem as SidebarItemType } from './types/sidebar.types';
-import { useArticleStore } from '@/stores/articleStore';
 
 interface AppSidebarProps {
   onItemClick?: (item: SidebarItemType) => void;
@@ -99,7 +106,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
       }
     };
 
-    const handleRefresh = async () => {
+    const handleRefresh = useCallback(async () => {
       // 保存当前滚动位置
       saveCurrentPosition();
 
@@ -110,7 +117,12 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
       // 重置滚动位置（刷新后回到顶部）
       resetScrollPosition();
-    };
+    }, [
+      refresh,
+      resetScrollPosition,
+      resetInfiniteScroll,
+      saveCurrentPosition,
+    ]);
 
     // 暴露刷新方法给父组件
     useImperativeHandle(

@@ -317,8 +317,8 @@ export function NewTrendingTopicTweets({
   return (
     <div className="w-full shadow-sm">
       {/* 标题 */}
-      <div className="flex flex-col w">
-        <span className="mb-[12px] text-[#828282] text-[16px]">Topic</span>
+      <div className="w flex flex-col">
+        <span className="mb-[12px] text-[16px] text-[#828282]">Topic</span>
 
         <div id="suggested-topics" className="mb-[24px] space-y-3">
           <button
@@ -338,7 +338,7 @@ export function NewTrendingTopicTweets({
               backgroundBlendMode: 'multiply',
             }}
           >
-            <span className="text-[16px] font-medium leading-[27px] block">
+            <span className="block text-[16px] font-medium leading-[27px]">
               {suggested?.topic}
             </span>
             <Image
@@ -361,10 +361,10 @@ export function NewTrendingTopicTweets({
       <div className="mb-[12px] flex items-center justify-between">
         <div>
           {/* <h3 className="mb-1 text-sm font-medium text-black">Viral Tweets</h3> */}
-          <p className="text-[#828282] text-[16px]">Use As References</p>
+          <p className="text-[16px] text-[#828282]">Use As References</p>
         </div>
         <Button
-          className={`rounded-full h-[32px] ${
+          className={`h-[32px] rounded-full ${
             selectedTweetIndices.size > 0 ? 'w-[100px]' : 'w-[81px]'
           } ${
             selectedTweetIndices.size > 0
