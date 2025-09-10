@@ -361,7 +361,7 @@ export function NewTrendingTopicTweets({
       <div className="mb-[12px] flex items-center justify-between">
         <div>
           {/* <h3 className="mb-1 text-sm font-medium text-black">Viral Tweets</h3> */}
-          <p className="text-[#828282] text-[16px]">Use As References.</p>
+          <p className="text-[#828282] text-[16px]">Use As References</p>
         </div>
         <Button
           className={`rounded-full h-[32px] ${
@@ -382,7 +382,7 @@ export function NewTrendingTopicTweets({
       {/* Tweets 网格 */}
       <div
         id="viral-tweets"
-        className="overflow-y-auto"
+        className="overflow-y-auto pb-[24px]"
         onWheel={(e) => {
           e.stopPropagation();
         }}
