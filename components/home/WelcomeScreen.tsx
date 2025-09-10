@@ -556,11 +556,20 @@ export const WelcomeScreen = ({
                       src={'/icons/x-icon.svg'}
                       width={32}
                       height={32}
-                      className="shrink-0"
+                      className="shrink-0 rounded-[8px]"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="text-left text-[12px] font-[500] text-[#757575]">
-                        {tweet.author_name}
+                        {(() => {
+                          // 提取推文内容的前几个词作为预览
+                          const htmlContent = tweet.author_name;
+                          const textContent = htmlContent
+                            .replace(/<[^>]*>/g, '')
+                            .replace(/&[^;]+;/g, ' ');
+                          return textContent.length > 15
+                            ? textContent.substring(0, 15) + '...'
+                            : textContent;
+                        })()}
                       </p>
                       <p className="truncate text-[12px] text-[#8C8C8C]">
                         {(() => {

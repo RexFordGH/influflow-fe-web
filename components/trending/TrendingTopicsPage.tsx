@@ -199,6 +199,9 @@ const NewTrendingTopicItem = ({
     onToggle(!isOpen);
   };
 
+  // 当 Toggle 被展开时，isHovered 也应该被触发
+  const shouldShowHoveredState = isHovered || isOpen;
+
   return (
     <div id={isOpen ? '' : 'trending-topics'}>
       {/* <CopyToClipboard text={topic.title}> */}
@@ -213,10 +216,10 @@ const NewTrendingTopicItem = ({
           onMouseLeave={() => setIsHovered(false)}
           className={`
             group relative flex cursor-pointer items-center
-            rounded-[20px] px-12 py-1 transition-colors duration-150
+            rounded-[20px] pl-12 pr-3 py-3 transition-colors duration-150
             bg-clip-padding
             ${
-              isHovered
+              shouldShowHoveredState
                 ? '[background-image:linear-gradient(to_right,rgba(115,167,255,0.2)_90%,rgba(115,167,255,0.2)_100%)]'
                 : '[background-image:linear-gradient(to_right,#F2F7FF4D_0%,#F2F7FF4D_80%,#F2F7FC_100%),linear-gradient(to_bottom,#F2F7FF4D_0%,#F2F7FF4D_90%,#F2F7FC_100%)] [background-blend-mode:overlay]'
             }
@@ -237,9 +240,7 @@ const NewTrendingTopicItem = ({
               ***This is a placeholder for display purposes*** OpenAI has
               released ChatGPT-5, its most advanced model to date. Faster and
               multimodal, it introduces a new “thinking mode” for deeper
-              reasoning and delivers more accurate results across coding, math,
-              writing, and health. This launch marks a significant milestone in
-              OpenAI’s journey toward artificial general intelligence (AGI).
+              reasoning and delivers more accurate results across coding
             </span>
           </div>
 
@@ -248,8 +249,8 @@ const NewTrendingTopicItem = ({
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{
-                opacity: isHovered ? 1 : 0,
-                x: isHovered ? 0 : -10,
+                opacity: shouldShowHoveredState ? 1 : 0,
+                x: shouldShowHoveredState ? 0 : -10,
               }}
               transition={{ duration: 0.2 }}
               className="text-gray-600"
@@ -703,7 +704,7 @@ export function NewTrendingTopicsPage({
                     onPress={() => setSelectedCategory(category.id)}
                     className={`rounded-[12px] border border-transparent px-3 py-1 text-[14px] ${
                       selectedCategory === category.id
-                        ? 'bg-[#D9D9D9] text-[#ffffff]'
+                        ? 'bg-[#D9D9D9] text-black'
                         : 'text-[#828282]'
                     }`}
                     isDisabled={isLoading}
