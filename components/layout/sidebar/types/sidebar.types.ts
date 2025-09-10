@@ -1,5 +1,7 @@
 // AppSidebar 轻量化改造 - 类型定义
 
+import { IContentFormat, IMode } from '@/types/api';
+
 // 分页参数接口
 export interface PaginationParams {
   page: number; // 当前页码（从1开始）
@@ -16,6 +18,17 @@ export interface PaginationResponse<T> {
   hasMore: boolean; // 是否还有更多数据
 }
 
+export interface IArticleData {
+  id: string;
+  topic: string;
+  content_format: IContentFormat;
+  tweets: any[];
+  updated_at: string;
+  created_at: string;
+  mode: IMode;
+  search_enabled: boolean;
+}
+
 // 侧边栏列表项接口
 export interface SidebarItem {
   id: string;
@@ -24,14 +37,7 @@ export interface SidebarItem {
   createdAt: string;
   updatedAt?: string;
   // 完整的tweet数据（用于渲染器）
-  tweetData?: {
-    id: string;
-    topic: string;
-    content_format: string;
-    tweets: any[];
-    updated_at: string;
-    created_at: string;
-  };
+  tweetData?: IArticleData;
 }
 
 // 简化后的 AppSidebar 组件 Props

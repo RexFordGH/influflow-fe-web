@@ -2,7 +2,7 @@
 
 import { Button, cn, Image } from '@heroui/react';
 import Link from 'next/link';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 
 import { ReferralModal } from '@/components/referral';
 import { useAuthStore } from '@/stores/authStore';
@@ -19,6 +19,7 @@ import { usePaginatedData } from './hooks/usePaginatedData';
 import { useScrollPositionRestore } from './hooks/useScrollPositionRestore';
 import { ProfileDropdown } from './ProfileDropdown';
 import { SidebarItem as SidebarItemType } from './types/sidebar.types';
+import { useArticleStore } from '@/stores/articleStore';
 
 interface AppSidebarProps {
   onItemClick?: (item: SidebarItemType) => void;
@@ -38,6 +39,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
     const [showRulesModal, setShowRulesModal] = useState(false);
 
     const { showLowCreditsBanner } = useSubscriptionStore();
+    const { setArticles, setSelectedArticleId, setHasMore } = useArticleStore();
 
     // 滚动容器引用
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -76,6 +78,20 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         threshold: 50,
         restoreDelay: 16,
       });
+
+    // 同步数据到全局 store
+    useEffect(() => {
+      // 移除 length 检查，确保即使是空数组也能更新
+      setArticles(items);
+      setHasMore(hasMore);
+    }, [items, hasMore, setArticles, setHasMore]);
+
+    // 同步选中的文章 ID
+    useEffect(() => {
+      if (selectedId) {
+        setSelectedArticleId(selectedId);
+      }
+    }, [selectedId, setSelectedArticleId]);
 
     const handleItemClick = (item: SidebarItemType) => {
       if (onItemClick) {
