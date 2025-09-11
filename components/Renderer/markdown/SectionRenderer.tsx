@@ -5,10 +5,10 @@ import { CopyIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 
 import EditorPro from '@/components/editorPro';
-import { ImageLoadingAnimation } from '@/components/ui/ImageLoadingAnimation';
 import { MarkdownSection } from '@/utils/markdownUtils';
 import { copyTwitterContent } from '@/utils/twitter';
 
+import ImageLoading from './ImageLoading';
 import { LocalImageUploader } from './LocalImageUploader';
 import {
   getBaseClasses,
@@ -300,12 +300,7 @@ export function SectionRenderer({
             </div>
           )}
 
-          {isGeneratingImage && (
-            <div className="my-4 flex flex-col items-center justify-center gap-[5px]">
-              <ImageLoadingAnimation size={160} />
-              <span className="text-sm text-gray-500">Generating image...</span>
-            </div>
-          )}
+          {isGeneratingImage && <ImageLoading />}
 
           {(tweetImageSrc || imageToDisplay) && !isGeneratingImage && (
             <div className="group relative my-4 flex justify-center">

@@ -9,10 +9,10 @@ import {
   Skeleton,
 } from '@heroui/react';
 import * as Icon from '@phosphor-icons/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { addToast } from '@/components/base/toast';
 import type { ReferralInfo } from '@/lib/api/referral';

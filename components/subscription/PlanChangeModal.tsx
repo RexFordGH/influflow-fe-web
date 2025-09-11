@@ -58,7 +58,6 @@ export default function PlanChangeModal({
     !isCancellingScheduledChange &&
     PriceMap[targetPlan] < PriceMap[currentPlan];
 
-
   // 获取描述文本
   const getDescriptionText = () => {
     if (isCancellingScheduledChange && nextPlan) {

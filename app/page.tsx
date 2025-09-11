@@ -17,7 +17,10 @@ import {
   AppSidebar,
   AppSidebarRef,
 } from '@/components/layout/sidebar/AppSidebar';
-import { SidebarItem } from '@/components/layout/sidebar/types/sidebar.types';
+import {
+  IArticleData,
+  SidebarItem,
+} from '@/components/layout/sidebar/types/sidebar.types';
 import { ProfileCompletePrompt } from '@/components/profile';
 import { FakeOutline } from '@/components/Renderer/mock';
 import { useAuthStore } from '@/stores/authStore';
@@ -25,7 +28,6 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import {
   type IContentFormat,
   type IMode,
-  type ISuggestedTopic,
   type ITrendingTopic,
   type ITrendsRecommendTweet,
 } from '@/types/api';
@@ -120,7 +122,7 @@ function HomeContent() {
 
   // 检查 onboarding 状态
   useEffect(() => {
-    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
 
     if (typeof window === 'undefined') return;
 
@@ -266,8 +268,8 @@ function HomeContent() {
   // 生成完成回调
   const handleGenerationComplete = async (data: IOutline) => {
     console.log('Generation completed:', data);
-    // 刷新侧边栏列表
-    sidebarRef.current?.refresh();
+    // 刷新侧边栏列表 - 等待刷新完成
+    await sidebarRef.current?.refresh();
     // 刷新订阅信息以更新积分
     await refreshSubscriptionInfo();
   };
@@ -279,10 +281,10 @@ function HomeContent() {
   };
 
   const handleTrendingTopicSelect = (
-    topic: ITrendingTopic | ISuggestedTopic,
+    topic: ITrendingTopic | string
   ) => {
-    // TrendingTopic 使用 title 字段，SuggestedTopic 使用 topic 字段
-    const topicText = 'title' in topic ? topic.title : topic.topic;
+    // 处理 string 或 ITrendingTopic 类型
+    const topicText = typeof topic === 'string' ? topic : topic.title;
     setTopicInput(topicText);
     // 清除之前选中的推文
     setSelectedTweets([]);
@@ -316,7 +318,7 @@ function HomeContent() {
     setPromptDismissed(); // 记录用户已关闭提示
   };
 
-  const handleTweetThreadClick = (tweetData: any) => {
+  const handleTweetThreadClick = (tweetData: IArticleData) => {
     // 1. 将 TweetThread 格式转换为 Outline 格式
     const outlineData: IOutline = {
       topic: tweetData.topic,
@@ -328,6 +330,8 @@ function HomeContent() {
       ),
       id: tweetData.id,
       updatedAt: tweetData.updated_at ?? new Date(),
+      mode: tweetData.mode,
+      search_enabled: tweetData.search_enabled,
     };
 
     // 2. 设置 initialData 和 topic
@@ -350,13 +354,15 @@ function HomeContent() {
       handleTweetThreadClick(item.tweetData);
     } else {
       // 如果没有完整数据，使用简化数据作为回退
-      const fallbackData = {
+      const fallbackData: IArticleData = {
         id: item.id.replace('tweet-', ''),
         topic: item.title,
         content_format: 'longform',
         tweets: [],
         updated_at: item.updatedAt || item.createdAt,
         created_at: item.createdAt,
+        mode: 'analysis',
+        search_enabled: true,
       };
       handleTweetThreadClick(fallbackData);
     }

@@ -47,9 +47,9 @@ export default function CustomPlanModal({
                 variant="light"
                 size="sm"
                 onPress={onClose}
-                className="min-h-unit-8 min-w-unit-8 rounded-full bg-gray-100 transition-colors hover:bg-gray-200"
+                className="rounded-full bg-gray-100 transition-colors hover:bg-gray-200"
               >
-                <XMarkIcon className="h-5 w-5 text-gray-600" />
+                <XMarkIcon className="size-5 text-gray-600" />
               </Button>
             </ModalHeader>
             <ModalBody>
@@ -63,7 +63,7 @@ export default function CustomPlanModal({
                   👉 We offer tailored solutions for teams and professionals
                   with specific needs.
                 </p>
-                <p className=" text-black font-poppins text-[16px]">
+                <p className=" font-poppins text-[16px] text-black">
                   👉 Contact us at:{' '}
                   <a
                     href="mailto:official@influxy.xyz"

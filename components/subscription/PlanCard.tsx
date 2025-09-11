@@ -46,10 +46,10 @@ const PlanCard = ({
       }`}
     >
       {/* Plan Name and Popular/Recommended Badge */}
-      <div className="mb-1 flex items-center justify-between relative">
+      <div className="relative mb-1 flex items-center justify-between">
         <h3 className="text-[20px] font-medium text-black">{planName}</h3>
         {(isMostPopular || isRecommended) && (
-          <div className="absolute top-[2px] right-0 flex items-center gap-1 rounded-[8px] bg-[#EFEFEF] px-3 py-1">
+          <div className="absolute right-0 top-[2px] flex items-center gap-1 rounded-[8px] bg-[#EFEFEF] px-3 py-1">
             <svg
               width="13"
               height="12"
@@ -75,7 +75,9 @@ const PlanCard = ({
           <span className="text-[32px] font-medium text-black">0</span>
         ) : (
           <div className="flex items-baseline">
-            <span className="text-[32px] font-medium text-black">${formatPrice(price)}</span>
+            <span className="text-[32px] font-medium text-black">
+              ${formatPrice(price)}
+            </span>
             <span className="text-[16px] font-medium text-[#A4A1A1]">
               {priceUnit}
             </span>

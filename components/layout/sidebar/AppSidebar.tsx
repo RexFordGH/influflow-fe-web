@@ -2,9 +2,17 @@
 
 import { Button, cn, Image } from '@heroui/react';
 import Link from 'next/link';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 import { ReferralModal } from '@/components/referral';
+import { useArticleStore } from '@/stores/articleStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
@@ -38,6 +46,7 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
     const [showRulesModal, setShowRulesModal] = useState(false);
 
     const { showLowCreditsBanner } = useSubscriptionStore();
+    const { setArticles, setSelectedArticleId, setHasMore } = useArticleStore();
 
     // 滚动容器引用
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -77,13 +86,27 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
         restoreDelay: 16,
       });
 
+    // 同步数据到全局 store
+    useEffect(() => {
+      // 移除 length 检查，确保即使是空数组也能更新
+      setArticles(items);
+      setHasMore(hasMore);
+    }, [items, hasMore, setArticles, setHasMore]);
+
+    // 同步选中的文章 ID
+    useEffect(() => {
+      if (selectedId) {
+        setSelectedArticleId(selectedId);
+      }
+    }, [selectedId, setSelectedArticleId]);
+
     const handleItemClick = (item: SidebarItemType) => {
       if (onItemClick) {
         onItemClick(item);
       }
     };
 
-    const handleRefresh = async () => {
+    const handleRefresh = useCallback(async () => {
       // 保存当前滚动位置
       saveCurrentPosition();
 
@@ -94,7 +117,12 @@ export const AppSidebar = forwardRef<AppSidebarRef, AppSidebarProps>(
 
       // 重置滚动位置（刷新后回到顶部）
       resetScrollPosition();
-    };
+    }, [
+      refresh,
+      resetScrollPosition,
+      resetInfiniteScroll,
+      saveCurrentPosition,
+    ]);
 
     // 暴露刷新方法给父组件
     useImperativeHandle(

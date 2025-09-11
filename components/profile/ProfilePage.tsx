@@ -244,7 +244,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   };
 
   const initProfileOnboarding = () => {
-    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
     const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
 
     // 如果新手引导未完成显示引导
@@ -269,7 +269,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           )
         ) {
           tour.destroy();
-          const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+          const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
           // Set ONBOARDING_KEY
           window.localStorage.setItem(ONBOARDING_KEY, 'true');
         }
@@ -573,136 +573,140 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       <div className="fixed inset-x-0 bottom-0 top-[56px] mx-3 mb-3 rounded-[12px] bg-white">
         <div className="mx-auto w-[130vh]">
           {/* Style Section */}
-          <div id={isDataFetch ? 'style-section' : ''} className="mb-10">
+          <div className="mb-10">
             <p className="mb-10 pt-10 text-center text-[32px] font-medium text-gray-900">
               Customize Your Style
             </p>
-            <p className="mb-1 text-[20px] font-semibold text-gray-900 ">
-              Writing Style
-            </p>
-            <p className="mb-4 text-[14px] font-thin text-gray-400 ">
-              Choose a style to shape how your content is generated.
-            </p>
+            <div id={isDataFetch ? 'style-section' : ''}>
+              <p className="mb-1 text-[20px] font-semibold text-gray-900 ">
+                Writing Style
+              </p>
+              <p className="mb-4 text-[14px] font-thin text-gray-400 ">
+                Choose a style to shape how your content is generated.
+              </p>
 
-            {/* Style Options */}
-            <div className="mb-4 flex gap-4">
-              {STYLE_OPTIONS.map((option) => {
-                const isYourStyleDisabled =
-                  option.value === 'YourStyle' && !hasTweetData;
+              {/* Style Options */}
+              <div className="mb-4 flex gap-4">
+                {STYLE_OPTIONS.map((option) => {
+                  const isYourStyleDisabled =
+                    option.value === 'YourStyle' && !hasTweetData;
 
-                return isYourStyleDisabled ? (
-                  <Tooltip
-                    key={option.value}
-                    content="Unable to learn style without past tweets"
-                    placement="top"
-                    classNames={{
-                      content: 'bg-black text-white',
-                      arrow: 'bg-black border-black',
-                    }}
-                  >
+                  return isYourStyleDisabled ? (
+                    <Tooltip
+                      key={option.value}
+                      content="Unable to learn style without past tweets"
+                      placement="top"
+                      classNames={{
+                        content: 'bg-black text-white',
+                        arrow: 'bg-black border-black',
+                      }}
+                    >
+                      <Button
+                        key={option.value}
+                        variant="bordered"
+                        className={`flex-1 cursor-not-allowed rounded-[12px] border bg-[#F8F8F8] px-6 py-3 opacity-30 hover:opacity-30`}
+                        disabled={true}
+                        onPress={() => handleStyleSelect(option.value)}
+                      >
+                        {option.label}
+                      </Button>
+                    </Tooltip>
+                  ) : (
                     <Button
                       key={option.value}
                       variant="bordered"
-                      className={`border-1 flex-1 cursor-not-allowed rounded-[12px] bg-[#F8F8F8] px-6 py-3 opacity-30 hover:opacity-30`}
-                      disabled={true}
+                      className={`flex-1 rounded-[12px] border bg-[#F8F8F8] px-6 py-3${
+                        selectedStyle === option.value
+                          ? 'border-[#448AFF] bg-[#DDE9FF] text-blue-600'
+                          : isYourStyleDisabled
+                            ? 'cursor-not-allowed bg-[#F8F8F8] text-gray-400 opacity-50'
+                            : 'bg-[#F8F8F8] text-black hover:bg-gray-50'
+                      } ${option.value === 'Customized' ? 'underline' : ''}`}
                       onPress={() => handleStyleSelect(option.value)}
                     >
                       {option.label}
                     </Button>
-                  </Tooltip>
-                ) : (
-                  <Button
-                    key={option.value}
-                    variant="bordered"
-                    className={`border-1 flex-1 rounded-[12px] bg-[#F8F8F8] px-6 py-3${
-                      selectedStyle === option.value
-                        ? 'border-[#448AFF] bg-[#DDE9FF] text-blue-600'
-                        : isYourStyleDisabled
-                          ? 'cursor-not-allowed bg-[#F8F8F8] text-gray-400 opacity-50'
-                          : 'text-balck bg-[#F8F8F8] hover:bg-gray-50'
-                    } ${option.value === 'Customized' ? 'underline' : ''}`}
-                    onPress={() => handleStyleSelect(option.value)}
-                  >
-                    {option.label}
-                  </Button>
-                );
-              })}
-            </div>
-
-            {userStyleSummary && selectedStyle === 'YourStyle' && (
-              <div
-                className={cn(
-                  'rounded-lg text-[16px] leading-[1.4] text-balck',
-                )}
-              >
-                <p className="whitespace-pre-line">{userStyleSummary}</p>
+                  );
+                })}
               </div>
-            )}
 
-            {selectedStyle !== 'YourStyle' &&
-              selectedStyle !== 'Customized' &&
-              SUMMARY_MAP[selectedStyle!] && (
+              {userStyleSummary && selectedStyle === 'YourStyle' && (
                 <div
                   className={cn(
                     'rounded-lg text-[16px] leading-[1.4] text-balck',
                   )}
                 >
-                  <p className="whitespace-pre-line">
-                    {SUMMARY_MAP[selectedStyle!]}
-                  </p>
+                  <p className="whitespace-pre-line">{userStyleSummary}</p>
                 </div>
               )}
 
-            {/* Custom Style Links - 只在选择 Customized 时显示 */}
-            <div
-              className={cn(
-                'mb-6',
-                selectedStyle === 'Customized' ? 'block' : 'hidden',
-              )}
-            >
-              {/* <h3 className="mb-2 text-lg font-medium text-gray-900">
+              {selectedStyle !== 'YourStyle' &&
+                selectedStyle !== 'Customized' &&
+                SUMMARY_MAP[selectedStyle!] && (
+                  <div
+                    className={cn(
+                      'rounded-lg text-[16px] leading-[1.4] text-balck',
+                    )}
+                  >
+                    <p className="whitespace-pre-line">
+                      {SUMMARY_MAP[selectedStyle!]}
+                    </p>
+                  </div>
+                )}
+
+              {/* Custom Style Links - 只在选择 Customized 时显示 */}
+              <div
+                className={cn(
+                  'mb-6',
+                  selectedStyle === 'Customized' ? 'block' : 'hidden',
+                )}
+              >
+                {/* <h3 className="mb-2 text-lg font-medium text-gray-900">
                 Examples of Customized Style
               </h3> */}
-              <p className="mb-4 text-gray-500">
-                Paste the link to the posts you'd like to use as style
-                references.
-              </p>
-              <div className="flex justify-between gap-[10px]">
-                {tweetExampleUrls.map((url, index) => {
-                  const validationResult = isValidUrl(url);
-                  const isInvalid =
-                    url.trim() !== '' && validationResult !== true;
-                  const errorMessage =
-                    validationResult === 'invalid-url'
-                      ? 'Please enter a valid URL'
-                      : validationResult === 'not-twitter'
-                        ? 'Please enter a Twitter/X post link'
-                        : undefined;
+                <p className="mb-4 text-gray-500">
+                  Paste the link to the posts you'd like to use as style
+                  references.
+                </p>
+                <div className="flex justify-between gap-[10px]">
+                  {tweetExampleUrls.map((url, index) => {
+                    const validationResult = isValidUrl(url);
+                    const isInvalid =
+                      url.trim() !== '' && validationResult !== true;
+                    const errorMessage =
+                      validationResult === 'invalid-url'
+                        ? 'Please enter a valid URL'
+                        : validationResult === 'not-twitter'
+                          ? 'Please enter a Twitter/X post link'
+                          : undefined;
 
-                  return (
-                    <Input
-                      key={index}
-                      value={url}
-                      onChange={(e) => handleLinkChange(index, e.target.value)}
-                      placeholder={
-                        index === 0 ? 'https://x.com/influxy.ai...' : ''
-                      }
-                      variant="bordered"
-                      className="flex-1"
-                      isInvalid={isInvalid}
-                      errorMessage={errorMessage}
-                      startContent={
-                        <Image
-                          src="/icons/link.svg"
-                          alt="Link"
-                          width={20}
-                          height={20}
-                          className="pointer-events-none shrink-0 text-gray-400"
-                        />
-                      }
-                    />
-                  );
-                })}
+                    return (
+                      <Input
+                        key={index}
+                        value={url}
+                        onChange={(e) =>
+                          handleLinkChange(index, e.target.value)
+                        }
+                        placeholder={
+                          index === 0 ? 'https://x.com/influxy.ai...' : ''
+                        }
+                        variant="bordered"
+                        className="flex-1"
+                        isInvalid={isInvalid}
+                        errorMessage={errorMessage}
+                        startContent={
+                          <Image
+                            src="/icons/link.svg"
+                            alt="Link"
+                            width={20}
+                            height={20}
+                            className="pointer-events-none shrink-0 text-gray-400"
+                          />
+                        }
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

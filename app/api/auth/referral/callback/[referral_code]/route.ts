@@ -41,14 +41,14 @@ export async function GET(
     const error = searchParams.get('error');
     const errorCode = searchParams.get('error_code');
     const errorDescription = searchParams.get('error_description');
-    
+
     let errorMessage = 'Invalid auth code';
-    
+
     if (error || errorCode || errorDescription) {
       // 构建更详细的错误信息
       errorMessage = errorDescription || error || errorCode || errorMessage;
     }
-    
+
     return redirect(`/?error=${encodeURIComponent(errorMessage)}`);
   }
 
@@ -88,14 +88,19 @@ export async function GET(
       if (insertError) {
         const errCode = (insertError as any).code;
         if (errCode === '23505') {
-          console.warn('Profile already exists (unique violation). Proceeding.');
+          console.warn(
+            'Profile already exists (unique violation). Proceeding.',
+          );
         } else {
           console.error('Error creating user profile:', insertError);
           try {
             const adminClient = createAdminClient();
             await adminClient.auth.admin.deleteUser(user.id);
           } catch (delErr) {
-            console.error('Failed to rollback user after profile creation error:', delErr);
+            console.error(
+              'Failed to rollback user after profile creation error:',
+              delErr,
+            );
           }
           return redirect(
             `/?error=${encodeURIComponent('Failed to create user profile')}`,
@@ -107,7 +112,9 @@ export async function GET(
         const accessToken = sessionData.session?.access_token;
         if (!accessToken) {
           console.error('Missing access token for sign-up call.');
-          return redirect(`/?error=${encodeURIComponent('Failed to complete user registration')}`);
+          return redirect(
+            `/?error=${encodeURIComponent('Failed to complete user registration')}`,
+          );
         }
 
         const controller = new AbortController();
@@ -129,13 +136,17 @@ export async function GET(
 
           if (!response.ok) {
             console.error('Failed to bind referral:', response.status);
-            return redirect(`/?error=${encodeURIComponent('Failed to complete user registration')}`);
+            return redirect(
+              `/?error=${encodeURIComponent('Failed to complete user registration')}`,
+            );
           }
           console.log('Successfully bound referral for user:', user.id);
         } catch (error) {
           clearTimeout(timeout);
           console.error('Error binding referral:', error);
-          return redirect(`/?error=${encodeURIComponent('Failed to complete user registration')}`);
+          return redirect(
+            `/?error=${encodeURIComponent('Failed to complete user registration')}`,
+          );
         }
       }
     }

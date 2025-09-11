@@ -125,6 +125,8 @@ export function useContentManagement({
         content_format: rawAPIData.content_format || ('longform' as const),
         nodes: rawAPIData.nodes,
         total_tweets: rawAPIData.total_tweets,
+        mode: rawAPIData.mode,
+        search_enabled: !!rawAPIData.search_enabled,
       };
 
       // 构建包含用户编辑的新 outline 结构

@@ -1,7 +1,7 @@
 'use client';
 
-import { Image } from '@heroui/react';
-import { useCallback, useEffect, useState } from 'react';
+import { Image, Tooltip } from '@heroui/react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
 import { useAIEditing } from '@/hooks/useAIEditing';
@@ -11,11 +11,14 @@ import { useImageManagement } from '@/hooks/useImageManagement';
 import { useMindmapInteraction } from '@/hooks/useMindmapInteraction';
 import { useTwitterIntegration } from '@/hooks/useTwitterIntegration';
 import { convertThreadDataToMindmap } from '@/lib/data/converters';
+import { useArticleStore } from '@/stores/articleStore';
 import { useAuthStore } from '@/stores/authStore';
 import { IContentFormat, IMode } from '@/types/api';
 import { MindmapEdgeData, MindmapNodeData } from '@/types/content';
 import { IOutline } from '@/types/outline';
 import { isLongformType } from '@/utils/contentFormat';
+
+import { ModeOptions } from '../home/WelcomeScreen';
 
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
@@ -61,6 +64,9 @@ export function ArticleRenderer({
 
   // 获取用户信息
   const { user } = useAuthStore();
+
+  // 从 articleStore 获取数据
+  const { getArticleById, articles } = useArticleStore();
 
   // 使用自定义 Hooks - 传入mode和userInput
   const generation = useGenerationState({
@@ -173,6 +179,17 @@ export function ArticleRenderer({
     onEdgesUpdate: setCurrentEdges,
   });
 
+  const modeInfo = useMemo(() => {
+    const articleData = generation.rawAPIData?.id
+      ? getArticleById(generation.rawAPIData.id)?.tweetData
+      : null;
+    const mode = articleData?.mode || generation.rawAPIData?.mode;
+    const modeLabel = ModeOptions.find((item) => item.key === mode)?.label;
+    const searchEnabled =
+      articleData?.search_enabled ?? generation.rawAPIData?.search_enabled;
+    return { modeLabel, mode, searchEnabled };
+  }, [generation.rawAPIData?.id, articles, getArticleById]);
+
   // 初始化思维导图数据
   useEffect(() => {
     if (generation.rawAPIData) {
@@ -185,13 +202,184 @@ export function ArticleRenderer({
   }, [generation.rawAPIData]);
 
   // 格式化时间
-  const formatTime = useCallback((date: number | Date) => {
+  const formatTime = useCallback((date: number | Date | string) => {
     return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
   }, []);
+
+  // 右侧 Markdown 区域滚动容器，用于在长推模式下滚动到底部图片画廊
+  const markdownScrollRef = useRef<HTMLDivElement | null>(null);
+  const imageGalleryElRef = useRef<HTMLDivElement | null>(null);
+  const imageItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const registerImageGalleryRef = useCallback((el: HTMLDivElement | null) => {
+    imageGalleryElRef.current = el;
+  }, []);
+
+  const registerImageItemRef = useCallback(
+    (tweetId: string, el: HTMLDivElement | null) => {
+      if (el) {
+        imageItemRefs.current.set(tweetId, el);
+      } else {
+        imageItemRefs.current.delete(tweetId);
+      }
+    },
+    [],
+  );
+
+  const scrollToImageGallery = useCallback(
+    (targetTweetId?: string, delay: number = 100) => {
+      // 添加延迟，确保 DOM 更新完成
+      setTimeout(() => {
+        const scrollContainer = markdownScrollRef.current;
+        if (!scrollContainer) return;
+
+        // 如果有特定的 tweetId，尝试滚动到对应图片
+        if (targetTweetId) {
+          const targetImageEl = imageItemRefs.current.get(targetTweetId);
+          if (targetImageEl) {
+            try {
+              const imageRect = targetImageEl.getBoundingClientRect();
+              const containerRect = scrollContainer.getBoundingClientRect();
+              const relativeTop =
+                imageRect.top - containerRect.top + scrollContainer.scrollTop;
+
+              // 滚动到图片位置，使其居中显示
+              const offset = (containerRect.height - imageRect.height) / 2;
+              scrollContainer.scrollTo({
+                top: relativeTop - offset,
+                behavior: 'smooth',
+              });
+              return;
+            } catch (e) {
+              console.error('Scroll to specific image failed:', e);
+            }
+          }
+        }
+
+        // Fallback: 滚动到画廊顶部
+        const galleryEl = imageGalleryElRef.current;
+        if (galleryEl) {
+          try {
+            const galleryRect = galleryEl.getBoundingClientRect();
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const relativeTop =
+              galleryRect.top - containerRect.top + scrollContainer.scrollTop;
+
+            scrollContainer.scrollTo({
+              top: relativeTop - 100, // 留出100px的空间
+              behavior: 'smooth',
+            });
+            return;
+          } catch (e) {
+            console.error('Scroll to gallery failed:', e);
+          }
+        }
+
+        // Final fallback: 滚动到底部
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior: 'smooth',
+        });
+      }, delay);
+    },
+    [],
+  );
+
+  // 记录上一次的 generatingImageTweetIds，用于检测新增的 tweetId
+  const prevGeneratingImageTweetIdsRef = useRef<string[]>([]);
+  const prevCollectedImagesRef = useRef<any[]>([]);
+  const isInitializedRef = useRef(false);
+
+  // 标记初始化完成
+  useEffect(() => {
+    // 使用 setTimeout 确保在初始渲染后才标记为已初始化
+    const timer = setTimeout(() => {
+      isInitializedRef.current = true;
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 监听 generatingImageTweetIds 的变化，在新增图片时进行滚动
+  useEffect(() => {
+    if (isLongformType(contentFormat) && images.generatingImageTweetIds) {
+      const prevIds = prevGeneratingImageTweetIdsRef.current;
+      const currentIds = images.generatingImageTweetIds;
+
+      // 找出新增的 tweetId
+      const newIds = currentIds.filter((id) => !prevIds.includes(id));
+
+      // 只在初始化完成后且有新增时才滚动
+      if (isInitializedRef.current && newIds.length > 0) {
+        // 滚动到最后一个新增的图片
+        const targetId = newIds[newIds.length - 1];
+        scrollToImageGallery(targetId, 300); // 增加延迟，确保 DOM 更新
+      }
+
+      // 更新记录
+      prevGeneratingImageTweetIdsRef.current = currentIds;
+    }
+  }, [contentFormat, images.generatingImageTweetIds, scrollToImageGallery]);
+
+  // 监听 collectedImages 的变化，在本地上传图片时进行滚动
+  useEffect(() => {
+    if (isLongformType(contentFormat) && images.collectedImages) {
+      const prevImages = prevCollectedImagesRef.current;
+      const currentImages = images.collectedImages;
+
+      // 检查是否有新增的图片（通过长度变化）
+      if (
+        currentImages.length > prevImages.length &&
+        isInitializedRef.current
+      ) {
+        // 找出新增的图片
+        const newImages = currentImages.slice(prevImages.length);
+        if (newImages.length > 0) {
+          const lastNewImage = newImages[newImages.length - 1];
+          if (lastNewImage.tweetId) {
+            // 滚动到新增的图片
+            scrollToImageGallery(lastNewImage.tweetId, 300);
+          }
+        }
+      }
+
+      // 更新记录
+      prevCollectedImagesRef.current = currentImages;
+    }
+  }, [contentFormat, images.collectedImages, scrollToImageGallery]);
+
+  // 将图片生成/编辑事件包装为执行原逻辑（滚动由 useEffect 自动处理）
+  const handleTweetImageEditAndScroll = useCallback(
+    (tweetData: any) => {
+      images.handleTweetImageEdit(tweetData);
+    },
+    [images.handleTweetImageEdit],
+  );
+
+  const handleDirectGenerateAndScroll = useCallback(
+    (tweetData: any) => {
+      images.handleDirectGenerate(tweetData);
+    },
+    [images.handleDirectGenerate],
+  );
+
+  const handleLocalImageUploadAndScroll = useCallback(
+    (result: { url: string; alt: string }, tweetData: any) => {
+      images.handleLocalImageUpload(result, tweetData);
+    },
+    [images.handleLocalImageUpload],
+  );
+
+  const handleImageSelectAndScroll = useCallback(
+    (result: { localUrl: string; file: File }, tweetData: any) => {
+      images.handleImageSelect(result, tweetData);
+    },
+    [images.handleImageSelect],
+  );
 
   // 如果正在生成或出错，显示加载页面
   if (
@@ -261,6 +449,7 @@ export function ArticleRenderer({
         {/* 右侧内容区域 */}
         <div className="article-content mb-3 ml-1.5 mr-3 flex min-w-0 flex-1 justify-center rounded-[20px] bg-white">
           <div
+            ref={markdownScrollRef}
             className="font-inter mx-auto flex w-[628px] min-w-0 flex-col overflow-y-auto overflow-x-hidden break-words px-[24px] pb-[60px]"
             //保证与正式环境尺寸一致
             style={{
@@ -272,9 +461,45 @@ export function ArticleRenderer({
               <h1 className="font-inter break-words text-[32px] font-[700] leading-none text-black">
                 {generation.rawAPIData?.topic}
               </h1>
-              <p className="font-inter mt-[10px] text-[14px] font-[400] leading-none text-[#8C8C8C]">
-                {formatTime(generation.rawAPIData?.updatedAt || Date.now())}
-              </p>
+              <div className="mt-[10px] flex items-center justify-start gap-[12px]">
+                <p className="font-inter  text-[14px] font-[400] leading-none text-[#8C8C8C]">
+                  {formatTime(generation.rawAPIData?.updatedAt || Date.now())}
+                </p>
+
+                {modeInfo.mode && (
+                  <>
+                    <div className="h-[12px] w-px bg-[#D9D9D9]"></div>
+
+                    <span className="font-poppins text-[14px] text-[#8C8C8C]">
+                      {modeInfo.modeLabel || modeInfo.mode}
+                    </span>
+
+                    <div className="h-[12px] w-px bg-[#D9D9D9]"></div>
+                    <Tooltip
+                      placement="top"
+                      classNames={{
+                        content: 'bg-black text-white',
+                        arrow: 'bg-black border-black',
+                      }}
+                      content={
+                        modeInfo.searchEnabled
+                          ? 'Web search is on'
+                          : 'Web search is off'
+                      }
+                    >
+                      <Image
+                        src={
+                          modeInfo.searchEnabled
+                            ? '/icons/mdi_web-check.svg'
+                            : '/icons/mdi_web-cancel.svg'
+                        }
+                        width={16}
+                        height={16}
+                      />
+                    </Tooltip>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Twitter Thread内容区域 */}
@@ -307,12 +532,14 @@ export function ArticleRenderer({
                       onSectionHover={mindmap.handleMarkdownHover}
                       onSourceClick={() => {}} // TODO: 实现信息来源展示功能
                       onImageClick={images.handleImageClick}
-                      onTweetImageEdit={images.handleTweetImageEdit}
+                      onTweetImageEdit={handleTweetImageEditAndScroll}
                       onTweetContentChange={content.handleTweetContentChange}
                       onGroupTitleChange={content.handleGroupTitleChange}
-                      onLocalImageUploadSuccess={images.handleLocalImageUpload}
-                      onImageSelect={images.handleImageSelect}
-                      onDirectGenerate={images.handleDirectGenerate}
+                      onLocalImageUploadSuccess={
+                        handleLocalImageUploadAndScroll
+                      }
+                      onImageSelect={handleImageSelectAndScroll}
+                      onDirectGenerate={handleDirectGenerateAndScroll}
                       onEditWithAI={aiEdit.handleEditWithAI}
                       highlightedSection={mindmap.hoveredTweetId}
                       hoveredTweetId={mindmap.hoveredTweetId}
@@ -327,6 +554,8 @@ export function ArticleRenderer({
                       onDeleteImage={images.handleDeleteImage}
                       isOnboarding={isOnboarding}
                       isTooltipOpenNum={isTooltipOpenNum}
+                      onImageGalleryRef={registerImageGalleryRef}
+                      onImageItemRef={registerImageItemRef}
                     />
                   )}
                 </div>
@@ -362,6 +591,8 @@ export function ArticleRenderer({
                       onDeleteImage={images.handleDeleteImage}
                       isOnboarding={isOnboarding}
                       isTooltipOpenNum={isTooltipOpenNum}
+                      onImageGalleryRef={registerImageGalleryRef}
+                      onImageItemRef={registerImageItemRef}
                     />
                   )}
                 </div>

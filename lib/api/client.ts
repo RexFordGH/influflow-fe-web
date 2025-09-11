@@ -133,7 +133,7 @@ export async function apiRequest<T>(
         if (baseResponse.code === 42000) {
           useSubscriptionStore.getState().setShowNoCreditsModal(true);
         }
-        
+
         throw new ApiError(
           baseResponse.message || `API Error: ${baseResponse.code}`,
           baseResponse.code,
@@ -263,7 +263,7 @@ export async function apiDirectRequest<T>(
         if (baseResponse.code === 42000) {
           useSubscriptionStore.getState().setShowNoCreditsModal(true);
         }
-        
+
         throw new ApiError(
           baseResponse.message || `API Error: ${baseResponse.code}`,
           baseResponse.code,
