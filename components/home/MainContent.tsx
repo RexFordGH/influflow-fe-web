@@ -7,7 +7,6 @@ import { useAuthStore } from '@/stores/authStore';
 import {
   IContentFormat,
   IMode,
-  ISuggestedTopic,
   ITrendingTopic,
   ITrendsRecommendTweet,
 } from '@/types/api';
@@ -17,7 +16,7 @@ import { WelcomeScreen } from './WelcomeScreen';
 export interface IMainContentProps {
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
-  onTrendingTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
+  onTrendingTopicSelect: (topic: ITrendingTopic | string) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onTrendingSearchConfirm?: (
     searchTerm: string,
