@@ -81,16 +81,18 @@ export interface ITrendingTopic {
   title: string;
   type: string;
   value: number;
+  suggested: string;
+  description: string;
 }
 
-export interface ISuggestedTopic {
-  topic: string;
-  type: string;
-}
+// export interface ISuggestedTopic {
+//   topic: string;
+//   type: string;
+// }
 
 export interface ITrendingTopicsResponse {
   trending_topics: ITrendingTopic[];
-  suggested_topics: ISuggestedTopic[];
+  // suggested_topics: ISuggestedTopic[];
 }
 
 export interface ITrendsRecommendTweet {

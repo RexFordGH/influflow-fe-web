@@ -28,7 +28,6 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import {
   type IContentFormat,
   type IMode,
-  type ISuggestedTopic,
   type ITrendingTopic,
   type ITrendsRecommendTweet,
 } from '@/types/api';
@@ -123,7 +122,7 @@ function HomeContent() {
 
   // 检查 onboarding 状态
   useEffect(() => {
-    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
 
     if (typeof window === 'undefined') return;
 
@@ -282,10 +281,10 @@ function HomeContent() {
   };
 
   const handleTrendingTopicSelect = (
-    topic: ITrendingTopic | ISuggestedTopic,
+    topic: ITrendingTopic | string
   ) => {
-    // TrendingTopic 使用 title 字段，SuggestedTopic 使用 topic 字段
-    const topicText = 'title' in topic ? topic.title : topic.topic;
+    // 处理 string 或 ITrendingTopic 类型
+    const topicText = typeof topic === 'string' ? topic : topic.title;
     setTopicInput(topicText);
     // 清除之前选中的推文
     setSelectedTweets([]);

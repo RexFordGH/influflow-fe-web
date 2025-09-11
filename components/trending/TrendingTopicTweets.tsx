@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { useTrendingRecommend } from '@/lib/api/services';
 import {
-  ISuggestedTopic,
+  // ISuggestedTopic,
   ITrendingTopic,
   ITrendsRecommendTweet,
 } from '@/types/api';
@@ -25,8 +25,10 @@ interface TrendingTopicTweetsProps {
 interface NewTrendingTopicTweetsProps {
   id: string;
   isVisible: boolean;
-  suggested?: ISuggestedTopic;
-  onTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
+  suggested?: string;
+  // onTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
+  onTopicSelect: (topic: ITrendingTopic | string) => void;
+
   onConfirm?: (selectedTweets: ITrendsRecommendTweet[]) => void;
 }
 
@@ -316,16 +318,16 @@ export function NewTrendingTopicTweets({
 
   return (
     <div className="w-full shadow-sm">
-      {/* 标题 */}
-      <div className="w flex flex-col">
-        <span className="mb-[12px] text-[16px] text-[#828282]">Topic</span>
+      {/* 标题 宽度和父级一致*/}
+      <div className="flex flex-col w-full">
+        <span className="mb-[12px] text-[#828282] text-[16px]">Topic</span>
 
         <div id="suggested-topics" className="mb-[24px] space-y-3">
           <button
             onClick={() => suggested && onTopicSelect(suggested)}
             className={`
               relative
-              w-[896px] rounded-xl bg-white
+              w-full rounded-xl bg-white
               px-[24px] py-[16px] text-left
               transition-colors duration-150
               hover:border-blue-400 hover:bg-blue-100
@@ -338,8 +340,8 @@ export function NewTrendingTopicTweets({
               backgroundBlendMode: 'multiply',
             }}
           >
-            <span className="block text-[16px] font-medium leading-[27px]">
-              {suggested?.topic}
+            <span className="text-[16px] font-medium leading-[27px] block">
+              {suggested}
             </span>
             <Image
               src="/icons/send_new.svg"

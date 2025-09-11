@@ -80,7 +80,7 @@ export default function ArticleDirectPage() {
   // 初始化新手引导
   // 如果已经完成新手引导，进入该页面时直接返回主页，否则开始新手引导
   useEffect(() => {
-    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
 
     if (typeof window === 'undefined') return;
 
@@ -128,7 +128,7 @@ export default function ArticleDirectPage() {
           )
         ) {
           tour.destroy();
-          const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+          const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
           // Set ONBOARDING_KEY
           window.localStorage.setItem(ONBOARDING_KEY, 'true');
           window.location.href = '/';
@@ -206,7 +206,7 @@ export default function ArticleDirectPage() {
             align: 'end',
             popoverClass: 'twtter-data twtter-data-end driverjs-basic',
             onNextClick: async () => {
-              const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+              const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
               // Set ONBOARDING_KEY
               window.localStorage.setItem(ONBOARDING_KEY, 'true');
               window.location.href = '/';

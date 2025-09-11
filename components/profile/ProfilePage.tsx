@@ -244,7 +244,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
   };
 
   const initProfileOnboarding = () => {
-    const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+    const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
     const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
 
     // 如果新手引导未完成显示引导
@@ -269,7 +269,7 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
           )
         ) {
           tour.destroy();
-          const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+          const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
           // Set ONBOARDING_KEY
           window.localStorage.setItem(ONBOARDING_KEY, 'true');
         }

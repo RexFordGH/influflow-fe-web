@@ -25,7 +25,6 @@ import '@/styles/welcome-screen.css';
 import {
   IContentFormat,
   IMode,
-  ISuggestedTopic,
   ITrendingTopic,
   ITrendsRecommendTweet,
 } from '@/types/api';
@@ -44,7 +43,7 @@ const TrendingTopicsPage = lazy(() =>
 );
 
 interface WelcomeScreenProps {
-  onTrendingTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
+  onTrendingTopicSelect: (topic: ITrendingTopic | string) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onTrendingSearchConfirm?: (
     searchTerm: string,
@@ -172,7 +171,7 @@ export const WelcomeScreen = ({
 
     // 在页面等待2000ms后，再进入新手引导
     setTimeout(() => {
-      const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+      const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
 
       if (typeof window === 'undefined') return;
 
@@ -200,7 +199,7 @@ export const WelcomeScreen = ({
           ) {
             tour.destroy();
 
-            const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+            const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
             // Set ONBOARDING_KEY
             window.localStorage.setItem(ONBOARDING_KEY, 'true');
           }
