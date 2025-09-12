@@ -9,6 +9,7 @@ import { IContentFormat, IMode } from '@/types/api';
 import { IOutline } from '@/types/outline';
 
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 import { StreamMessage } from './StreamMessage';
 
 interface ArticleGenerateStreamingProps {
@@ -46,6 +47,16 @@ export function ArticleGenerateStreaming({
     onError,
   });
 
+  // 创建滚动容器的引用
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 当内容更新时自动滚动到底部
+  useEffect(() => {
+    if (scrollContainerRef.current && (streamingText || streamingTitle)) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [streamingText, streamingTitle]);
+
   // 构造 AIMessage 需要的消息对象
   const aiMessage: ChatMessage = {
     id: 'streaming-generate',
@@ -55,11 +66,6 @@ export function ArticleGenerateStreaming({
     status: isStreaming ? 'streaming' : error ? 'error' : 'complete',
     streamingTitle,
     streamingContent: streamingText,
-  };
-
-  const handleBack = () => {
-    abort();
-    onBack();
   };
 
   return (
@@ -88,7 +94,7 @@ export function ArticleGenerateStreaming({
           style={{ maxHeight: 'calc(100vh - 120px - 100px)' }}
         >
           {/* 内容滚动容器 */}
-          <div className="overflow-y-auto p-8">
+          <div ref={scrollContainerRef} className="overflow-y-auto p-8">
             <StreamMessage message={aiMessage} isStreaming={isStreaming} />
           </div>
 
@@ -101,7 +107,7 @@ export function ArticleGenerateStreaming({
                   color="primary"
                   variant="flat"
                   onPress={reconnect}
-                  startContent={<Icon.ArrowsClockwise size={16} />}
+                  startContent={<Icon.ArrowCounterClockwise size={16} />}
                 >
                   retry
                 </Button>
