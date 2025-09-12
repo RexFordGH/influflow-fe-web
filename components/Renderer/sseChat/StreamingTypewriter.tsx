@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface StreamingTypewriterProps {
   streamingContent: string;
@@ -79,9 +79,26 @@ export const StreamingTypewriter: React.FC<StreamingTypewriterProps> = ({
     return () => clearInterval(intervalId);
   }, [isStreaming, shouldShowCursor]);
 
+  // 处理换行符，将 \n 转换为 <br/>
+  const formatContent = (content: string) => {
+    const segments = content.split(/(\n+)/);
+    return segments.map((segment, index) => {
+      if (segment === '\n') {
+        return <br key={index} />;
+      } else if (segment === '\n\n') {
+        return <React.Fragment key={index}><br /><br /></React.Fragment>;
+      } else if (segment.match(/^\n+$/)) {
+        // 处理多个连续的换行符
+        const breaks = segment.split('').map((_, i) => <br key={`${index}-${i}`} />);
+        return <React.Fragment key={index}>{breaks}</React.Fragment>;
+      }
+      return segment;
+    });
+  };
+
   return (
-    <span className="break-all text-[#8C8C8C]">
-      {displayedContent}
+    <span className="break-all">
+      {formatContent(displayedContent)}
       {isStreaming && shouldShowCursor && (
         <span
           className="ml-0.5 inline-block h-4 w-0.5 bg-gray-800"

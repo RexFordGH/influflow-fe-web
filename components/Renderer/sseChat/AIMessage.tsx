@@ -23,22 +23,26 @@ export const AIMessage: React.FC<AIMessageProps> = ({
       {/* 消息内容 */}
       <div className={cn('text-[14px] max-w-full overflow-hidden')}>
         {message.status === 'streaming' ? (
-          <div className="space-y-2">
-            {/* 流式标题 - 小标题样式，使用打字机效果 */}
+          <div className="space-y-4">
+            {/* 流式标题 - 始终显示在顶部，使用不同样式 */}
             {message.streamingTitle && (
-              <StreamingTypewriter
-                streamingContent={message.streamingTitle}
-                isStreaming={true}
-                typeSpeed={15} // 标题打字速度更快
-                showCursor={false} // 标题不显示光标
-              />
+              <div className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700">
+                <StreamingTypewriter
+                  streamingContent={message.streamingTitle}
+                  isStreaming={true}
+                  typeSpeed={15} // 标题打字速度更快
+                  showCursor={false} // 标题不显示光标
+                />
+              </div>
             )}
             {/* 流式内容 - 正文样式 */}
             {message.streamingContent && (
-              <StreamingTypewriter
-                streamingContent={message.streamingContent}
-                isStreaming={true}
-              />
+              <div className="mt-3 text-gray-700">
+                <StreamingTypewriter
+                  streamingContent={message.streamingContent}
+                  isStreaming={true}
+                />
+              </div>
             )}
             {/* 如果没有内容，显示加载中 */}
             {!message.streamingTitle && !message.streamingContent && (
@@ -49,10 +53,10 @@ export const AIMessage: React.FC<AIMessageProps> = ({
             )}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {/* 完成状态 - 如果有标题和内容，分开显示 */}
             {message.streamingTitle && (
-              <div className="break-all font-medium text-black">
+              <div className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700">
                 {message.streamingTitle}
               </div>
             )}

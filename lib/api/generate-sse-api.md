@@ -274,3 +274,255 @@ data: {"event_type": "session.done", "message": "Done", "data": {"outline": {"id
 
 
 ```
+
+
+```yml
+event: session.start
+data: {"event_type": "session.start", "message": "Start...", "data": {}}
+
+event: analyze_input.start
+data: {"event_type": "analyze_input.start", "message": "Starting user input analysis", "data": {}}
+
+event: analyze_input.done
+data: {"event_type": "analyze_input.done", "message": "Finished analyzing user input", "data": {"topic": "网球正手拉拍技术（Tennis Forehand Backswing Technique）", "language": "Chinese"}}
+
+event: generate_tweet.start
+data: {"event_type": "generate_tweet.start", "message": "Starting generating content", "data": {}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "1/6\n\n网球正手拉拍不"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "是简单的挥拍动作——它是一套"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "精密的生物力学系统。当"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "你掌握了这套技术的"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "核心原理，你就能从"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "业余选手蜕变为场"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "上的统治者。让我们深入"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "剖析这个让无数球员"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "头疼的技术难"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "题 🎾\n\n2/6\n\n正"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "手拉拍的秘密在于\""}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "鞭打效应\"——从脚"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "踝开始的动力链"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "传递。很多人以为是"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "手臂在发力，实际上：\n•"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": " 腿部蹬地提供基础动力\n• "}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "髋部旋转放大力量\n• "}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "躯干扭转加速传递\n• 肩膀"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "顺势而动\n• 手臂只是最"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "后的执行者\n\n这就是为什么职"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "业选手看起来毫不费力，"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "却能打出致命球速的原因。\n\n3/6"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "\n\n拉拍时机是关键中"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "的关键。大多数业余选手"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "犯的致命错误：看到"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "球才开始准备。正确的节"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "奏应该是：\n\n判断来"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "球方向 → 立即开始"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "拉拍 → 球在对方拍"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "面离开瞬间完成拉拍"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "\n\n这0.5秒的时间差，决定"}}
+
+: ping - 2025-09-12 03:19:44.946529+00:00
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "了你是被动应付还是主动进"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "攻。职业选手的预判能力，本质上就是对"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "这个时间窗口的精准把控。\n\n4/6"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "\n\n拉拍轨迹的物"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "理学原理让人着迷：\n\n直"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "线拉拍 = 力量"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "浪费\n弧形拉拍 = 能"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "量最大化\n\n想象你在"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "甩鞭子——直线运动无"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "法积蓄足够势能，只"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "有弧形轨迹才能让"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "肌肉群依次发力。这"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "就是为什么费德勒的"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "拉拍看起来如此优雅流畅，每"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "个动作都在为下一个环节"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "蓄能。\n\n5/6\n\n常"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "见的拉拍误区，90%的球"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "员都中招：\n\n❌ 拉拍过"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "高：破坏击球角度\n❌ 拉"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "拍不够：力量传递中"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "断  \n❌ 拉拍过早"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "：节奏混乱\n❌ "}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "拉拍僵硬：肌肉对"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "抗\n\n正确的拉拍应该像"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "弹簧压缩一样——"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "自然、流畅、充满弹性。记"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "住，技术不是死板的模"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "仿，而是身体协调性的"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "艺术表达。\n\n6/6\n\n掌握正手拉拍"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "技术需要时间，但理解原理能"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "让你事半功倍。从"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "今天开始，每次"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "挥拍都想想动"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "力链传递，感受身体各"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "部位的协调配合。"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "\n\n你的正手拉拍"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "遇到过什么困难？"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "在评论区分享你的经"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "验，让我们一起进"}}
+
+event: generate_tweet.delta
+data: {"event_type": "generate_tweet.delta", "message": "Generated content delta", "data": {"content": "步！🚀"}}
+
+event: generate_tweet.done
+data: {"event_type": "generate_tweet.done", "message": "Content generation completed", "data": {}}
+
+event: extract_outline.start
+data: {"event_type": "extract_outline.start", "message": "Starting outline extraction", "data": {}}
+
+: ping - 2025-09-12 03:19:59.946701+00:00
+
+event: extract_outline.done
+data: {"event_type": "extract_outline.done", "message": "Outline extraction completed", "data": {}}
+
+event: message.start
+data: {"event_type": "message.start", "message": "Start responding to user", "data": {}}
+
+event: message.done
+data: {"event_type": "message.done", "message": "Message done", "data": {"text": "Your content has been generated! If you need further refinement or have other requests, feel free to let us know."}}
+
+event: session.done
+data: {"event_type": "session.done", "message": "Done", "data": {"outline": {"id": "959cf005-ed91-4df5-8e46-c7cd636a18b5", "topic": "网球正手拉拍的生物力学与技术要点", "content_format": "longform", "nodes": [{"title": "Opening Hook", "tweets": [{"tweet_number": 1, "title": "正手拉拍的核心与重要性", "content": "网球正手拉拍不是简单的挥拍动作——它是一套精密的生物力学系统。当你掌握了这套技术的核心原理，你就能从业余选手蜕变为场上的统治者。让我们深入剖析这个让无数球员头疼的技术难题 🎾", "image_url": null}]}, {"title": "动力链与鞭打效应", "tweets": [{"tweet_number": 2, "title": "鞭打效应与动力链传递", "content": "正手拉拍的秘密在于\"鞭打效应\"——从脚踝开始的动力链传递。很多人以为是手臂在发力，实际上：\n• 腿部蹬地提供基础动力\n• 髋部旋转放大力量\n• 躯干扭转加速传递\n• 肩膀顺势而动\n• 手臂只是最后的执行者\n\n这就是为什么职业选手看起来毫不费力，却能打出致命球速的原因。", "image_url": null}]}, {"title": "拉拍时机与轨迹原理", "tweets": [{"tweet_number": 3, "title": "拉拍时机的重要性", "content": "拉拍时机是关键中的关键。大多数业余选手犯的致命错误：看到球才开始准备。正确的节奏应该是：\n\n判断来球方向 → 立即开始拉拍 → 球在对方拍面离开瞬间完成拉拍\n\n这0.5秒的时间差，决定了你是被动应付还是主动进攻。职业选手的预判能力，本质上就是对这个时间窗口的精准把控。", "image_url": null}, {"tweet_number": 4, "title": "拉拍轨迹的物理学原理", "content": "拉拍轨迹的物理学原理让人着迷：\n\n直线拉拍 = 力量浪费\n弧形拉拍 = 能量最大化\n\n想象你在甩鞭子——直线运动无法积蓄足够势能，只有弧形轨迹才能让肌肉群依次发力。这就是为什么费德勒的拉拍看起来如此优雅流畅，每个动作都在为下一个环节蓄能。", "image_url": null}]}, {"title": "常见误区与技术提升建议", "tweets": [{"tweet_number": 5, "title": "拉拍常见误区与正确方法", "content": "常见的拉拍误区，90%的球员都中招：\n\n❌ 拉拍过高：破坏击球角度\n❌ 拉拍不够：力量传递中断  \n❌ 拉拍过早：节奏混乱\n❌ 拉拍僵硬：肌肉对抗\n\n正确的拉拍应该像弹簧压缩一样——自然、流畅、充满弹性。记住，技术不是死板的模仿，而是身体协调性的艺术表达。", "image_url": null}, {"tweet_number": 6, "title": "技术掌握与互动鼓励", "content": "掌握正手拉拍技术需要时间，但理解原理能让你事半功倍。从今天开始，每次挥拍都想想动力链传递，感受身体各部位的协调配合。\n\n你的正手拉拍遇到过什么困难？在评论区分享你的经验，让我们一起进步！🚀", "image_url": null}]}], "total_tweets": 6}}}
+
+
+```
