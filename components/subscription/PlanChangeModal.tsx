@@ -3,16 +3,19 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import {
   Button,
+  Image,
   Modal,
   ModalBody,
   ModalContent,
   ModalHeader,
 } from '@heroui/react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
 
 import { PlanType } from '@/lib/api/services';
 
 import { CreditMap, PlanColorMap, PlanLabelMap, PriceMap } from './constants';
+import SubscriptionTerms from './SubscriptionTerms';
 
 interface PlanChangeModalProps {
   isOpen: boolean;
@@ -43,6 +46,9 @@ export default function PlanChangeModal({
   nextPlan,
   isLoading = false,
 }: PlanChangeModalProps) {
+  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [showTerms, setShowTerms] = useState(false);
+
   // 获取套餐信息
   const currentPlanInfo = getPlanInfo(currentPlan);
   const targetPlanInfo = getPlanInfo(targetPlan);
@@ -112,92 +118,147 @@ export default function PlanChangeModal({
       }}
     >
       <ModalContent>
-        {(onModalClose) => (
-          <>
-            <ModalHeader className="flex items-center justify-between p-8 pb-0">
-              <h2 className="text-[20px] font-semibold text-black">
-                {getModalTitle()}
-              </h2>
-              <button
-                onClick={onModalClose}
-                aria-label="Close"
-                className="rounded-lg p-1 transition-colors hover:bg-gray-100"
-                disabled={isLoading}
-              >
-                <XMarkIcon className="size-5 text-gray-500" />
-              </button>
-            </ModalHeader>
-
-            <ModalBody className="flex flex-col gap-10 p-8 pt-10">
-              {/* 描述文本 */}
-              <p className="text-[16px] leading-6 text-black">
-                {getDescriptionText()}
-              </p>
-
-              {/* 套餐对比卡片 - 仅在非取消场景显示 */}
-              {!isCancellingScheduledChange && (
-                <div className="flex flex-col gap-6">
-                  <div className="flex flex-col gap-4 rounded-[24px] bg-[#F8F8F8] p-6">
-                    {/* From 行 */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-end gap-3">
-                        <span className="text-[14px] text-black">From</span>
-                        <span
-                          className="text-[18px] font-medium"
-                          style={{ color: currentPlanInfo.color }}
-                        >
-                          {currentPlanInfo.name}
-                        </span>
-                      </div>
-                      <span className="text-[16px] font-medium text-black">
-                        ${currentPlanInfo.price}/month
-                      </span>
-                    </div>
-
-                    {/* 分割线 */}
-                    <div className="h-px w-full bg-[#D8D8D8]" />
-
-                    {/* To 行 */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-end gap-3">
-                        <span className="text-[14px] text-black">To</span>
-                        <span
-                          className="text-[18px] font-medium"
-                          style={{ color: targetPlanInfo.color }}
-                        >
-                          {targetPlanInfo.name}
-                        </span>
-                      </div>
-                      <span className="text-[16px] font-medium text-black">
-                        ${targetPlanInfo.price}/month
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 按钮 */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex justify-center"
-              >
-                <Button
-                  size="lg"
-                  className="h-12 min-w-[200px] rounded-full bg-[#448AFF] font-medium text-white "
-                  onPress={onConfirm}
-                  isLoading={isLoading}
+        {(onModalClose) => {
+          return showTerms ? (
+            <AnimatePresence>
+              <SubscriptionTerms
+                isOpen={showTerms}
+                onClose={() => setShowTerms(false)}
+              />
+            </AnimatePresence>
+          ) : (
+            <>
+              <ModalHeader className="flex items-center justify-between p-8 pb-0">
+                <h2 className="text-[20px] font-semibold text-black">
+                  {getModalTitle()}
+                </h2>
+                <button
+                  onClick={onModalClose}
+                  aria-label="Close"
+                  className="rounded-lg p-1 transition-colors hover:bg-gray-100"
                   disabled={isLoading}
                 >
-                  {isCancellingScheduledChange
-                    ? 'Continue Subscription'
-                    : 'Confirm Changes'}
-                </Button>
-              </motion.div>
-            </ModalBody>
-          </>
-        )}
+                  <XMarkIcon className="size-5 text-gray-500" />
+                </button>
+              </ModalHeader>
+
+              <ModalBody className="flex flex-col gap-10 p-8 pt-10">
+                {/* 描述文本 */}
+                <p className="text-[16px] leading-6 text-black">
+                  {getDescriptionText()}
+                </p>
+
+                {/* 套餐对比卡片 - 仅在非取消场景显示 */}
+                {!isCancellingScheduledChange && (
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4 rounded-[24px] bg-[#F8F8F8] p-6">
+                      {/* From 行 */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-end gap-3">
+                          <span className="text-[14px] text-black">From</span>
+                          <span
+                            className="text-[18px] font-medium"
+                            style={{ color: currentPlanInfo.color }}
+                          >
+                            {currentPlanInfo.name}
+                          </span>
+                        </div>
+                        <span className="text-[16px] font-medium text-black">
+                          ${currentPlanInfo.price}/month
+                        </span>
+                      </div>
+
+                      {/* 分割线 */}
+                      <div className="h-px w-full bg-[#D8D8D8]" />
+
+                      {/* To 行 */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-end gap-3">
+                          <span className="text-[14px] text-black">To</span>
+                          <span
+                            className="text-[18px] font-medium"
+                            style={{ color: targetPlanInfo.color }}
+                          >
+                            {targetPlanInfo.name}
+                          </span>
+                        </div>
+                        <span className="text-[16px] font-medium text-black">
+                          ${targetPlanInfo.price}/month
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 按钮 */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex flex-col justify-center"
+                >
+                  {/* 用户协议 checkbox */}
+                  {!isCancellingScheduledChange && (
+                    <div className="mb-[8px] flex items-center justify-center">
+                      <div
+                        className="flex cursor-pointer items-center gap-2"
+                        onClick={() => setAcceptTerms(!acceptTerms)}
+                      >
+                        <div className="size-[20px] flex justify-center items-center">
+                          {acceptTerms ? (
+                            <Image
+                              src="/icons/mingcute_checkbox-line.svg"
+                              width={20}
+                              height={20}
+                              className={`${
+                                acceptTerms ? 'opacity-100' : 'opacity-0'
+                              }`}
+                              alt="checkbox"
+                            />
+                          ) : (
+                            <div
+                              className={`size-[16px] rounded border-2 transition-all border-gray-300 bg-white `}
+                            ></div>
+                          )}
+                        </div>
+                        <span className="select-none text-[14px] text-black">
+                          I accept the{' '}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowTerms(true);
+                            }}
+                            className="text-[#448AFF] underline hover:text-[#2E7FF0]"
+                          >
+                            Subscription Terms
+                          </button>
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-center">
+                    <Button
+                      size="lg"
+                      className="h-12 min-w-[200px] w-auto rounded-full bg-[#448AFF] font-medium text-white disabled:opacity-50"
+                      onPress={onConfirm}
+                      isLoading={isLoading}
+                      disabled={
+                        isLoading ||
+                        (!isCancellingScheduledChange && !acceptTerms)
+                      }
+                    >
+                      {isCancellingScheduledChange
+                        ? 'Continue Subscription'
+                        : 'Confirm Changes'}
+                    </Button>
+                  </div>
+                </motion.div>
+              </ModalBody>
+            </>
+          );
+        }}
       </ModalContent>
     </Modal>
   );
