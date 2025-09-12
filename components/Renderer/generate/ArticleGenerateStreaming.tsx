@@ -1,15 +1,15 @@
 'use client';
 
-import { Button } from '@heroui/react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Button, Image } from '@heroui/react';
 import * as Icon from '@phosphor-icons/react';
 
 import { useArticleStreaming } from '@/hooks/useArticleStreaming';
+import type { ChatMessage } from '@/types/agent-chat';
 import { IContentFormat, IMode } from '@/types/api';
 import { IOutline } from '@/types/outline';
-import type { ChatMessage } from '@/types/agent-chat';
 
-import { AIMessage } from './sseChat/AIMessage';
+import { motion } from 'framer-motion';
+import { StreamMessage } from './StreamMessage';
 
 interface ArticleGenerateStreamingProps {
   topic: string;
@@ -64,30 +64,38 @@ export function ArticleGenerateStreaming({
 
   return (
     <div className="flex h-screen flex-col bg-gray-50">
-      {/* 顶部工具栏 */}
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-        <div className="flex items-center gap-4">
-          <Button
-            isIconOnly
-            variant="light"
-            onPress={handleBack}
-            className="size-8"
-          >
-            <ArrowLeftIcon className="size-5" />
-          </Button>
-          <h1 className="text-lg font-medium text-gray-900">{topic}</h1>
-        </div>
-      </div>
-
       {/* 主内容区域 */}
-      <div className="flex flex-1 items-center justify-center overflow-hidden p-6">
-        <div className="w-full max-w-3xl">
-          <div className="rounded-lg bg-white p-8 shadow-sm">
-            <AIMessage message={aiMessage} isStreaming={isStreaming} />
+      <div className="flex h-screen flex-col items-center justify-center gap-6 p-6">
+        {/* Logo 部分 - 固定高度 */}
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{
+            duration: 3,
+            ease: 'easeInOut',
+            repeat: Infinity,
+          }}
+        >
+          <Image
+            src="/icons/face.svg"
+            alt="thinking"
+            width={120}
+            height={120}
+          />
+        </motion.div>
 
-            {/* 错误状态下显示重试按钮 */}
-            {error && (
-              <div className="mt-6 flex items-center gap-4">
+        <div
+          className="flex w-full max-w-3xl flex-col rounded-lg "
+          style={{ maxHeight: 'calc(100vh - 120px - 100px)' }}
+        >
+          {/* 内容滚动容器 */}
+          <div className="overflow-y-auto p-8">
+            <StreamMessage message={aiMessage} isStreaming={isStreaming} />
+          </div>
+
+          {/* 错误信息 - 固定在底部 */}
+          {error && (
+            <div className="flex-shrink-0 border-t border-gray-100 p-6">
+              <div className="flex items-center gap-4">
                 <Button
                   size="sm"
                   color="primary"
@@ -95,12 +103,12 @@ export function ArticleGenerateStreaming({
                   onPress={reconnect}
                   startContent={<Icon.ArrowsClockwise size={16} />}
                 >
-                  重试
+                  retry
                 </Button>
                 <span className="text-sm text-red-500">{error.message}</span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

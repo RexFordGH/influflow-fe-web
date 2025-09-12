@@ -21,11 +21,12 @@ import { isLongformType } from '@/utils/contentFormat';
 
 import { ModeOptions } from '../home/WelcomeScreen';
 
-import { ArticleGenerateStreaming } from './ArticleGenerateStreaming';
+import { devLog } from '@/utils/devLog';
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
 import { DeleteConfirmModal } from './ArticleRenderer/DeleteConfirmModal';
 import { CreateArticleLoading } from './CreateLoading';
+import { ArticleGenerateStreaming } from './generate/ArticleGenerateStreaming';
 import { ImageEditModal } from './markdown/ImageEditModal';
 import { MarkdownRenderer } from './markdown/MarkdownRenderer';
 import EditableContentMindmap from './mindmap/MindmapRenderer';
@@ -410,6 +411,7 @@ export function ArticleRenderer({
         userInput={userInput}
         onBack={onBack}
         onComplete={(outline) => {
+          devLog('onComplete outline', outline);
           // 处理完成数据，与原 onGenerationComplete 逻辑一致
           const { nodes, edges } = convertThreadDataToMindmap(outline);
           setCurrentNodes(nodes);
