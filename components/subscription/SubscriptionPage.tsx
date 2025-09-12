@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
-import { Button } from '@heroui/react';
+import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -20,6 +20,7 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import CreditsUsageModal from './CreditsUsageModal';
 import CustomPlanModal from './CustomPlanModal';
+import HelpCenterModal from './HelpCenterModal';
 import PlanCard from './PlanCard';
 import PlanChangeModal from './PlanChangeModal';
 import UpgradeSuccessModal from './UpgradeSuccessModal';
@@ -34,6 +35,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
 
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
   const [isCustomPlanModalOpen, setIsCustomPlanModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [processingPlan, setProcessingPlan] = useState<PlanType | null>(null);
   const [planChangeModal, setPlanChangeModal] = useState<{
     isOpen: boolean;
@@ -569,6 +571,22 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
           </motion.div>
         </div>
 
+        {/* Help Center Footer */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1.0 }}
+          className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t border-black/10 bg-white px-[60px] py-6 rounded-b-[12px]"
+        >
+          <Image src={'/icons/influxy.svg'} width={84} height={24} />
+          <button
+            onClick={() => setIsHelpModalOpen(true)}
+            className="text-[14px] text-gray-600 underline transition-colors hover:text-black hover:underline"
+          >
+            Help Center
+          </button>
+        </motion.div>
+
         {/* Credits Usage Modal */}
         <CreditsUsageModal
           isOpen={isCreditsModalOpen}
@@ -601,6 +619,12 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         <CustomPlanModal
           isOpen={isCustomPlanModalOpen}
           onClose={() => setIsCustomPlanModalOpen(false)}
+        />
+
+        {/* Help Center Modal */}
+        <HelpCenterModal
+          isOpen={isHelpModalOpen}
+          onClose={() => setIsHelpModalOpen(false)}
         />
       </div>
     </motion.div>
