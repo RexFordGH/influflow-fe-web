@@ -4,6 +4,7 @@ import { Image, Tooltip } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
+import { enableArticleStreaming } from '@/constants/env';
 import { useAIEditing } from '@/hooks/useAIEditing';
 import { useContentManagement } from '@/hooks/useContentManagement';
 import { useGenerationState } from '@/hooks/useGenerationState';
@@ -21,6 +22,7 @@ import { isLongformType } from '@/utils/contentFormat';
 import { ModeOptions } from '../home/WelcomeScreen';
 
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
+import { ArticleGenerateStreaming } from './ArticleGenerateStreaming';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
 import { DeleteConfirmModal } from './ArticleRenderer/DeleteConfirmModal';
 import { CreateArticleLoading } from './CreateLoading';
@@ -98,7 +100,10 @@ export function ArticleRenderer({
 
   // 对于非 draft 模式，组件挂载后立即开始生成
   useEffect(() => {
-    if (!initialData && mode && topic && !generation.hasStartedGeneration) {
+    // 仅当不使用流式时才触发旧的生成逻辑
+    const shouldUseOldGeneration = !enableArticleStreaming;
+    
+    if (!initialData && mode && topic && !generation.hasStartedGeneration && shouldUseOldGeneration) {
       console.log('Starting generation for mode:', mode);
       generation.startGeneration({
         topic,
@@ -388,6 +393,32 @@ export function ArticleRenderer({
   ) {
     const hasError = !generation.isGenerating && !!generation.apiError;
 
+    // 判断是否使用流式生成
+    const shouldUseStreaming = enableArticleStreaming;
+
+    if (shouldUseStreaming && !hasError) {
+      // 使用流式生成UI
+      return (
+        <ArticleGenerateStreaming
+          topic={topic}
+          contentFormat={contentFormat}
+          mode={mode}
+          userInput={userInput}
+          onBack={onBack}
+          onComplete={(outline) => {
+            // 处理完成数据，与原 onGenerationComplete 逻辑一致
+            const { nodes, edges } = convertThreadDataToMindmap(outline);
+            setCurrentNodes(nodes);
+            setCurrentEdges(edges);
+            generation.setRawAPIData(outline);
+            onGenerationComplete?.(outline);
+          }}
+          onError={onGenerationError}
+        />
+      );
+    }
+
+    // 使用旧的加载页面
     return (
       <CreateArticleLoading
         topic={topic}
