@@ -7,7 +7,7 @@ import { Button } from '../base';
 
 interface PlanCardProps {
   planName: string;
-  price: string;
+  price: number;
   priceUnit?: string;
   features: string[];
   isCurrentPlan?: boolean;
@@ -34,23 +34,22 @@ const PlanCard = ({
   onSwitch,
   isLoading = false,
 }: PlanCardProps) => {
-  const isFreePlan = price === '0';
+  const isFreePlan = price === 0;
+  const formatPrice = (value: number) => value.toLocaleString('en-US');
 
   return (
     <motion.div
       whileHover={!isCurrentPlan ? { scale: 1.02, y: -5 } : {}}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`relative flex h-full min-w-[320px] flex-col rounded-[24px] bg-[#F8F8F8] p-10 transition-shadow ${
-        highlighted
-          ? 'border border-black bg-[#F8F8F8]'
-          : 'hover:shadow-lg'
+      className={`relative flex h-full w-[292px] flex-col rounded-[24px] bg-[#F8F8F8] p-6 transition-shadow ${
+        highlighted ? 'border border-black bg-[#F8F8F8]' : 'hover:shadow-lg'
       }`}
     >
       {/* Plan Name and Popular/Recommended Badge */}
-      <div className="mb-1 flex items-center justify-between">
+      <div className="relative mb-1 flex items-center justify-between">
         <h3 className="text-[20px] font-medium text-black">{planName}</h3>
         {(isMostPopular || isRecommended) && (
-          <div className="flex items-center gap-1 rounded-[8px] bg-[#EFEFEF] px-3 py-1">
+          <div className="absolute right-0 top-[2px] flex items-center gap-1 rounded-[8px] bg-[#EFEFEF] px-3 py-1">
             <svg
               width="13"
               height="12"
@@ -73,10 +72,12 @@ const PlanCard = ({
       {/* Price */}
       <div className="mb-3">
         {isFreePlan ? (
-          <span className="text-[32px] font-medium text-black">{price}</span>
+          <span className="text-[32px] font-medium text-black">0</span>
         ) : (
           <div className="flex items-baseline">
-            <span className="text-[32px] font-medium text-black">${price}</span>
+            <span className="text-[32px] font-medium text-black">
+              ${formatPrice(price)}
+            </span>
             <span className="text-[16px] font-medium text-[#A4A1A1]">
               {priceUnit}
             </span>

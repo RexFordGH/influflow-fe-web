@@ -1,4 +1,4 @@
-import { IContentFormat } from './api';
+import { IContentFormat, IMode } from './api';
 
 export interface ITweetContentItem {
   tweet_number: number;
@@ -18,5 +18,7 @@ export interface IOutline {
   nodes: ITweet[];
   topic: string;
   total_tweets: number;
-  updatedAt?: Date | number;
+  updatedAt?: Date | number | string;
+  mode: IMode;
+  search_enabled: boolean;
 }

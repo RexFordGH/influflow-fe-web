@@ -12,7 +12,6 @@ import { useEffect, useState } from 'react';
 
 import { DevEmailAuth } from '@/components/auth/DevEmailAuth';
 import { showEmailAuth } from '@/constants/env';
-import { useRedirect } from '@/hooks/useRedirect';
 import { createClient } from '@/lib/supabase/client';
 
 interface LoginModalProps {
@@ -24,7 +23,6 @@ interface LoginModalProps {
 export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
   const [showExistingUserLogin, setShowExistingUserLogin] = useState(true); // 默认显示登录
   const [error, setError] = useState('');
-  const { getAuthCallbackUrl } = useRedirect();
 
   // 处理外部传入的认证错误
   useEffect(() => {
@@ -33,19 +31,43 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
     }
   }, [authError]);
 
-  // 统一的 Twitter 登录处理函数
-  const handleTwitterAuth = async () => {
+  // 新用户注册 - 直接跳转到Twitter OAuth，无需邀请码
+  const handleNewUserRegister = async () => {
     const supabase = createClient();
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL!;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: getAuthCallbackUrl(),
+        redirectTo: `${origin}/api/auth/callback`,
       },
     });
 
     if (error) {
       console.error('Twitter login error:', error);
-      setError('Auth failed, please retry.');
+      setError('注册失败，请重试');
+    }
+  };
+
+  // 已有用户登录
+  const handleExistingUserLogin = async () => {
+    const supabase = createClient();
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL!;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'twitter',
+      options: {
+        redirectTo: `${origin}/api/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error('Twitter login error:', error);
+      setError('登录失败，请重试');
     }
   };
 
@@ -94,7 +116,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                       height={20}
                     />
                   }
-                  onPress={handleTwitterAuth}
+                  onPress={handleExistingUserLogin}
                 >
                   Continue with X
                 </Button>
@@ -130,7 +152,7 @@ export function LoginModal({ isOpen, onClose, authError }: LoginModalProps) {
                       height={20}
                     />
                   }
-                  onPress={handleTwitterAuth}
+                  onPress={handleNewUserRegister}
                 >
                   Sign up with X
                 </Button>

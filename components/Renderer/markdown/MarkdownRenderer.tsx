@@ -14,6 +14,7 @@ import {
 } from '@/utils/markdownUtils';
 import { copyImageToClipboard } from '@/utils/twitter';
 
+import ImageLoading from './ImageLoading';
 import { markdownStyles } from './markdownStyles';
 import { SectionRenderer } from './SectionRenderer';
 import { SectionRendererOfLongForm } from './SectionRendererOfLongForm';
@@ -60,13 +61,8 @@ interface MarkdownRendererProps {
   onDeleteImage?: (image: any) => void; // 新增：删除图片回调
   isOnboarding?: boolean;
   isTooltipOpenNum?: number;
-}
-
-interface CollectedImage {
-  src: string;
-  alt: string;
-  originalSectionId: string;
-  tweetId?: string;
+  onImageGalleryRef?: (el: HTMLDivElement | null) => void; // 新增：图片画廊ref回调
+  onImageItemRef?: (tweetId: string, el: HTMLDivElement | null) => void; // 新增：单个图片ref回调
 }
 
 export function MarkdownRenderer({
@@ -95,6 +91,8 @@ export function MarkdownRenderer({
   onDeleteImage,
   isOnboarding,
   isTooltipOpenNum,
+  onImageGalleryRef,
+  onImageItemRef,
 }: MarkdownRendererProps) {
   const [copyingImage, setCopyingImage] = useState<string | null>(null);
 
@@ -298,57 +296,104 @@ export function MarkdownRenderer({
         {isLongformType(
           tweetData?.content_format || content?.content_format || 'longform',
         ) &&
-          collectedImages.length > 0 && (
-            <div className="mt-[48px] flex w-[580px]  flex-col justify-center gap-[16px] overflow-hidden">
-              {collectedImages.map((image, index) => (
-                <div
-                  key={index}
-                  className="group relative flex aspect-video h-[400px] justify-center"
-                >
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    className="h-[400px] w-auto max-w-[500px] rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
-                  />
-                  <div className="absolute right-1.5 top-1.5 z-20 flex items-center justify-end gap-1">
-                    <Button
-                      isIconOnly
-                      isLoading={copyingImage === image.src}
-                      disabled={!!copyingImage}
-                      onPress={async () => {
-                        setCopyingImage(image.src);
-                        await copyImageToClipboard(image.src);
-                        setCopyingImage(null);
-                      }}
-                      className="hidden items-center justify-center rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-blue-500 hover:opacity-100 group-hover:flex"
-                      aria-label="Copy image"
-                    >
-                      <CopyIcon size={16} weight="bold" />
-                    </Button>
-                    <Button
-                      isIconOnly
-                      onPress={() => {
-                        onDeleteImage?.(image);
-                      }}
-                      className="hidden items-center justify-center rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
-                      aria-label="Delete image"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="size-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
+          (collectedImages.length > 0 ||
+            (generatingImageTweetIds &&
+              generatingImageTweetIds.length > 0)) && (
+            <div
+              ref={onImageGalleryRef}
+              className="mx-auto mt-[48px] flex w-[480px]  flex-col justify-center gap-[16px] overflow-hidden"
+            >
+              {/* 渲染已生成的图片 */}
+              {collectedImages.map((image, index) => {
+                // 检查这个图片是否正在重新生成
+                const isRegenerating =
+                  image.tweetId &&
+                  generatingImageTweetIds?.includes(image.tweetId);
+
+                return (
+                  <div
+                    key={index}
+                    ref={(el) => {
+                      if (image.tweetId && onImageItemRef) {
+                        onImageItemRef(image.tweetId, el);
+                      }
+                    }}
+                    className="group relative flex aspect-video h-[400px] justify-center overflow-hidden rounded-lg"
+                  >
+                    {isRegenerating ? (
+                      <ImageLoading />
+                    ) : (
+                      <>
+                        <Image
+                          src={image.src}
+                          alt={image.alt}
+                          className="h-[400px] w-auto max-w-[480px] rounded-lg object-cover shadow-md transition-transform duration-200 group-hover:scale-105"
                         />
-                      </svg>
-                    </Button>
+                        <div className="absolute right-1.5 top-1.5 z-20 flex items-center justify-end gap-1">
+                          <Button
+                            isIconOnly
+                            isLoading={copyingImage === image.src}
+                            disabled={!!copyingImage}
+                            onPress={async () => {
+                              setCopyingImage(image.src);
+                              await copyImageToClipboard(image.src);
+                              setCopyingImage(null);
+                            }}
+                            className="hidden items-center justify-center rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-blue-500 hover:opacity-100 group-hover:flex"
+                            aria-label="Copy image"
+                          >
+                            <CopyIcon size={16} weight="bold" />
+                          </Button>
+                          <Button
+                            isIconOnly
+                            onPress={() => {
+                              onDeleteImage?.(image);
+                            }}
+                            className="hidden items-center justify-center rounded-full bg-black/60 p-1 text-white opacity-80 transition-all hover:bg-red-500 hover:opacity-100 group-hover:flex"
+                            aria-label="Delete image"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="size-4"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
+
+              {/* 渲染正在生成但还没有图片的 tweet 的加载状态 */}
+              {generatingImageTweetIds?.map((tweetId) => {
+                // 只显示还没有对应图片的加载状态
+                const hasExistingImage = collectedImages.some(
+                  (img) => img.tweetId === tweetId,
+                );
+                if (hasExistingImage) return null;
+
+                return (
+                  <div
+                    key={tweetId}
+                    ref={(el) => {
+                      if (onImageItemRef) {
+                        onImageItemRef(tweetId, el);
+                      }
+                    }}
+                    className="group relative flex aspect-video h-[400px] justify-center"
+                  >
+                    <ImageLoading />
+                  </div>
+                );
+              })}
             </div>
           )}
       </div>

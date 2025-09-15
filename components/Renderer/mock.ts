@@ -181,4 +181,6 @@ export const FakeOutline: IOutline = {
   nodes: FakeData1,
   topic: 'fake data',
   total_tweets: 10,
+  mode: 'analysis',
+  search_enabled: true,
 };

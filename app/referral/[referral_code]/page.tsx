@@ -9,7 +9,6 @@ import { Topbar } from '@/components/layout/Topbar';
 import { showEmailAuth } from '@/constants/env';
 import { useCheckReferralCode } from '@/lib/api/referral';
 import { createClient } from '@/lib/supabase/client';
-import { useRedirect } from '@/hooks/useRedirect';
 
 function setCookie(name: string, value: string, days = 7) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -19,13 +18,11 @@ function setCookie(name: string, value: string, days = 7) {
 export default function ReferralLandingPage() {
   const params = useParams<{ referral_code: string }>();
   const supabase = createClient();
-  const { getAuthCallbackUrl } = useRedirect();
 
   const referralCode = decodeURIComponent(params.referral_code || '');
 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [canRegister, setCanRegister] = useState(false);
 
   const { mutateAsync: checkReferralCodeAsync, isPending: isVerifying } =
     useCheckReferralCode();
@@ -39,36 +36,37 @@ export default function ReferralLandingPage() {
     // Store referral code to Cookie and localStorage
     setCookie('ifw_referral_code', referralCode);
     window.localStorage.setItem('ifw_referral_code_v1', referralCode);
-
-    // Verify referral code in background
-    const verifyCode = async () => {
-      try {
-        const result = await checkReferralCodeAsync(referralCode);
-        setCanRegister(result.valid);
-        if (!result.valid) {
-          setError('Invalid or expired referral code');
-        }
-      } catch (err) {
-        console.error('Failed to verify referral code:', err);
-        setCanRegister(false);
-      }
-    };
-
-    verifyCode();
-  }, [referralCode, checkReferralCodeAsync]);
+  }, [referralCode]);
 
   const handleTwitterLogin = async () => {
     setIsLoading(true);
     setError('');
 
+    // Verify referral code first
+    try {
+      const result = await checkReferralCodeAsync(referralCode);
+      if (!result.valid) {
+        setError('Invalid or expired referral code');
+        setIsLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to verify referral code:', err);
+      setError('Failed to verify referral code');
+      setIsLoading(false);
+      return;
+    }
+
+    const next = '/';
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL!;
+    const redirectTo = `${origin}/api/auth/referral/callback/${encodeURIComponent(referralCode)}?next=${encodeURIComponent(next)}`;
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
-      options: { 
-        redirectTo: getAuthCallbackUrl('referral', { 
-          referralCode, 
-          next: '/' 
-        }),
-      },
+      options: { redirectTo },
     });
 
     if (error) {
@@ -109,10 +107,12 @@ export default function ReferralLandingPage() {
             <Image src="/icons/twitter.svg" alt="X" width={24} height={24} />
           }
           onPress={handleTwitterLogin}
-          isLoading={isLoading}
-          isDisabled={isLoading || !canRegister || isVerifying}
+          isLoading={isLoading || isVerifying}
+          isDisabled={isLoading || isVerifying || !referralCode}
         >
-          {isLoading ? 'Processing...' : 'Verify and Login with X'}
+          {isLoading || isVerifying
+            ? 'Processing...'
+            : 'Verify and Login with X'}
         </Button>
 
         {/* 开发环境：提供邮箱注册/登录用于测试 */}

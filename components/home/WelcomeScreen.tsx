@@ -25,7 +25,6 @@ import '@/styles/welcome-screen.css';
 import {
   IContentFormat,
   IMode,
-  ISuggestedTopic,
   ITrendingTopic,
   ITrendsRecommendTweet,
 } from '@/types/api';
@@ -39,12 +38,12 @@ import { BackgroundGradientAnimation } from '../ui/background-gradient-animation
 
 const TrendingTopicsPage = lazy(() =>
   import('@/components/trending/TrendingTopicsPage').then((module) => ({
-    default: module.TrendingTopicsPage,
+    default: module.NewTrendingTopicsPage,
   })),
 );
 
 interface WelcomeScreenProps {
-  onTrendingTopicSelect: (topic: ITrendingTopic | ISuggestedTopic) => void;
+  onTrendingTopicSelect: (topic: ITrendingTopic | string) => void;
   onTrendingTweetsSelect?: (selectedTweets: any[], topicTitle: string) => void;
   onTrendingSearchConfirm?: (
     searchTerm: string,
@@ -59,13 +58,13 @@ interface WelcomeScreenProps {
   hasCompletedOnboarding?: boolean | null;
 }
 
-const ContentFormatOptions = [
-  { key: 'longform', label: 'Long-form Threads', icon: '≣' },
+export const ContentFormatOptions = [
+  { key: 'longform', label: 'Long-form Post', icon: '≣' },
   { key: 'thread', label: 'Threads', icon: '≡' },
   { key: 'deep_research', label: 'Deep Research', icon: '≡' },
 ];
 
-const ModeOptions = [
+export const ModeOptions = [
   { key: 'lite', label: 'Lite Mode' },
   { key: 'analysis', label: 'Analysis Mode' },
   // { key: 'draft', label: 'Chatbot Mode' },
@@ -169,17 +168,18 @@ export const WelcomeScreen = ({
       console.log('User not authenticated, skipping onboarding');
       return;
     }
-    // 在页面等待1300ms后，再进入新手引导
+
+    // 在页面等待2000ms后，再进入新手引导
     setTimeout(() => {
-      const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+      const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
 
       if (typeof window === 'undefined') return;
 
       const hasCompleted =
         window.localStorage.getItem(ONBOARDING_KEY) === 'true';
 
-      // 设置本地状态以反映onboarding完成状态
-      setHasCompletedOnboardingLocal(hasCompleted);
+      // 如果新手引导完成需要打开则改为hasCompleted，false为永久关闭
+      setHasCompletedOnboardingLocal(false);
 
       if (hasCompleted) return;
 
@@ -199,7 +199,7 @@ export const WelcomeScreen = ({
           ) {
             tour.destroy();
 
-            const ONBOARDING_KEY = 'ifw_onboarding_completed_v1';
+            const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
             // Set ONBOARDING_KEY
             window.localStorage.setItem(ONBOARDING_KEY, 'true');
           }
@@ -332,7 +332,7 @@ export const WelcomeScreen = ({
               description:
                 'Personalize tone, mimic styles you love, and let AI write as you. Start by adding your intro to unlock fully tailored content.',
               side: 'top',
-              align: 'center',
+              align: 'end',
               popoverClass: 'customize-my-style driverjs-basic',
               onNextClick: async () => {
                 // 跳转到/profile页面
@@ -369,7 +369,7 @@ export const WelcomeScreen = ({
           tour.refresh();
         }
       });
-    }, 1300);
+    }, 2000);
   }, [isAuthenticated]);
 
   return (
@@ -555,11 +555,20 @@ export const WelcomeScreen = ({
                       src={'/icons/x-icon.svg'}
                       width={32}
                       height={32}
-                      className="shrink-0"
+                      className="shrink-0 rounded-[8px]"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="text-left text-[12px] font-[500] text-[#757575]">
-                        {tweet.author_name}
+                        {(() => {
+                          // 提取推文内容的前几个词作为预览
+                          const htmlContent = tweet.author_name;
+                          const textContent = htmlContent
+                            .replace(/<[^>]*>/g, '')
+                            .replace(/&[^;]+;/g, ' ');
+                          return textContent.length > 15
+                            ? textContent.substring(0, 15) + '...'
+                            : textContent;
+                        })()}
                       </p>
                       <p className="truncate text-[12px] text-[#8C8C8C]">
                         {(() => {
@@ -598,11 +607,20 @@ export const WelcomeScreen = ({
         {/* Trending Topics Section */}
         <motion.div
           ref={trendingRef}
-          className="relative m-3 flex min-h-screen items-center justify-center overflow-hidden rounded-[20px] bg-white"
+          className="relative isolate m-3 flex min-h-screen items-center justify-center overflow-hidden rounded-[20px] bg-white"
           initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
+          {/* 背景层：铺满整个 section，禁用事件 */}
+          <div className="pointer-events-none absolute inset-0 z-0 select-none">
+            <Image
+              src="/topic.svg"
+              alt="topic"
+              className="h-full w-screen object-cover"
+              draggable={false}
+            />
+          </div>
           <Suspense fallback={<TrendingTopicsLoader />}>
             <TrendingTopicsPage
               isVisible={true}

@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '@/constants/env';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { type IApiErrorResponse, type IBaseResponse } from '@/types/api';
 
 const supabase = createClient();
@@ -128,6 +129,11 @@ export async function apiRequest<T>(
       const baseResponse = parsed as IBaseResponse<unknown>;
 
       if (baseResponse?.status !== 'success') {
+        // 检测 code 42000 - 积分不足
+        if (baseResponse.code === 42000) {
+          useSubscriptionStore.getState().setShowNoCreditsModal(true);
+        }
+
         throw new ApiError(
           baseResponse.message || `API Error: ${baseResponse.code}`,
           baseResponse.code,
@@ -253,6 +259,11 @@ export async function apiDirectRequest<T>(
       const baseResponse = parsed as IBaseResponse<unknown>;
 
       if (baseResponse?.status !== 'success') {
+        // 检测 code 42000 - 积分不足
+        if (baseResponse.code === 42000) {
+          useSubscriptionStore.getState().setShowNoCreditsModal(true);
+        }
+
         throw new ApiError(
           baseResponse.message || `API Error: ${baseResponse.code}`,
           baseResponse.code,

@@ -34,6 +34,7 @@ export default function UpgradeSuccessModal({
               </h2>
               <button
                 onClick={onModalClose}
+                aria-label="Close"
                 className="rounded-lg p-1 transition-colors hover:bg-gray-100"
               >
                 <XMarkIcon className="size-5 text-gray-500" />

@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
-import { Button } from '@heroui/react';
+import { Button, Image } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -19,10 +19,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 import CreditsUsageModal from './CreditsUsageModal';
+import CustomPlanModal from './CustomPlanModal';
+import HelpCenterModal from './HelpCenterModal';
 import PlanCard from './PlanCard';
 import PlanChangeModal from './PlanChangeModal';
 import UpgradeSuccessModal from './UpgradeSuccessModal';
-import { CreditMap, FeatureMap, PriceMap } from './constants';
+import { CreditMap, FeatureMap, PlanLabelMap, PriceMap } from './constants';
 
 interface SubscriptionPageProps {
   onBack: () => void;
@@ -32,6 +34,8 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   const { isAuthenticated, openLoginModal } = useAuthStore();
 
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
+  const [isCustomPlanModalOpen, setIsCustomPlanModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [processingPlan, setProcessingPlan] = useState<PlanType | null>(null);
   const [planChangeModal, setPlanChangeModal] = useState<{
     isOpen: boolean;
@@ -71,10 +75,11 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
 
   // 页面加载时刷新订阅信息，确保数据最新
   useEffect(() => {
-    // 强制刷新订阅信息和积分规则
+    // 强制刷新订阅信息和积分规则，仅在已登录时
+    if (!isAuthenticated) return;
     refetchSubscriptionInfo();
     refetchCreditRules();
-  }, [refetchSubscriptionInfo, refetchCreditRules]); // 只在组件 mount 时执行
+  }, [isAuthenticated, refetchSubscriptionInfo, refetchCreditRules]); // 只在组件 mount 时执行
 
   // 检查 URL 参数中是否有 status 标记
   useEffect(() => {
@@ -178,9 +183,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
     // 如果是从 free 升级到付费套餐，创建 Checkout Session
     if (currentPlan === 'free' && plan !== 'free') {
       createCheckoutSession(plan, {
-        onSuccess: async (data) => {
-          // 先刷新订阅信息
-          await refetchSubscriptionInfo();
+        onSuccess: (data) => {
           // 直接使用服务端返回的 checkout_url
           if (data.checkout_url) {
             redirectToCheckout(data.checkout_url);
@@ -205,7 +208,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         onSuccess: async (data) => {
           // 判断是否是升级操作
           const isUpgradeOperation =
-            plan !== 'free' && currentPlan === 'starter' && plan === 'pro';
+            plan !== 'free' && getPlanLevel(plan) > getPlanLevel(currentPlan);
 
           if (isUpgradeOperation) {
             // 升级操作，显示成功弹窗
@@ -249,12 +252,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   };
 
   // 计算积分百分比
-  const totalCredits =
-    currentPlan === 'free'
-      ? CreditMap.free
-      : currentPlan === 'starter'
-        ? CreditMap.starter
-        : CreditMap.pro;
+  const totalCredits = CreditMap[currentPlan];
   const creditPercentage = Math.min((credits / totalCredits) * 100, 100);
 
   // 格式化日期
@@ -268,9 +266,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   };
 
   // 获取套餐显示名称
-  const getPlanDisplayName = (plan: PlanType) => {
-    return plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
-  };
+  const getPlanDisplayName = (plan: PlanType) => PlanLabelMap[plan];
 
   // 判断是否降级
   const getPlanLevel = (plan: PlanType): number => {
@@ -281,6 +277,8 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         return 1;
       case 'pro':
         return 2;
+      case 'premium':
+        return 3;
       default:
         return 0;
     }
@@ -311,7 +309,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] px-3 py-3"
+        className="sticky top-0 z-10 flex items-center justify-between bg-[#F8F8F8] p-3"
       >
         <div className="flex items-center">
           <Button
@@ -326,9 +324,9 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         </div>
       </motion.div>
 
-      <div className="fixed top-[56px] bottom-0 left-0 right-0 mx-3 mb-3 rounded-[12px] bg-white">
+      <div className="fixed inset-x-0 bottom-0 top-[56px] mx-3 mb-3 rounded-[12px] bg-white">
         {/* Main Content */}
-        <div className="mx-auto max-w-[1440px] px-[160px] py-[40px]">
+        <div className="mx-auto max-w-[1440px] px-[100px] py-[40px]">
           {/* Title */}
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
@@ -344,10 +342,10 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mb-10 flex gap-6"
+            className="mb-10 flex w-[1240px] shrink-0 gap-6"
           >
             {/* Remaining Credits */}
-            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] px-[48px] py-[24px]">
               <div className="mb-2 flex items-center gap-2">
                 <p className="text-[20px] font-medium text-black">
                   Remaining Credits
@@ -414,7 +412,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             </div>
 
             {/* Your Plan */}
-            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] py-[24px] px-[48px]">
+            <div className="flex-1 rounded-[24px] bg-[#F8F8F8] px-[48px] py-[24px]">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-[20px] font-medium text-black">
                   Your Plan
@@ -444,9 +442,9 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 {nextPlan && (
                   <div className="flex items-center justify-between">
                     <span className="text-[16px] text-black">
-                      Next Billing Plan::
+                      Next Billing Plan:
                     </span>
-                    <span className="text-[16px] text-black">
+                    <span className="text-[16px] leading-[24px] text-black">
                       {getPlanDisplayName(nextPlan)}
                     </span>
                   </div>
@@ -457,7 +455,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                   </span>
                   <Button
                     onPress={handleViewInvoices}
-                    className="bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-[24px] bg-transparent px-0 text-[16px] text-black underline transition-opacity hover:bg-transparent hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={isProcessing || isCreatingPortal}
                     isLoading={isCreatingPortal}
                   >
@@ -473,7 +471,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex gap-6"
+            className="flex gap-[24px]"
           >
             <motion.div
               initial={{ x: -20, opacity: 0 }}
@@ -483,7 +481,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             >
               <PlanCard
                 planName="Free Plan"
-                price={String(PriceMap.free)}
+                price={PriceMap.free}
                 features={FeatureMap.free}
                 isCurrentPlan={currentPlan === 'free'}
                 isDowngraded={isDowngraded('free')}
@@ -501,7 +499,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             >
               <PlanCard
                 planName="Starter Plan"
-                price={String(PriceMap.starter)}
+                price={PriceMap.starter}
                 priceUnit="/month"
                 features={FeatureMap.starter}
                 isCurrentPlan={currentPlan === 'starter'}
@@ -522,7 +520,7 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
             >
               <PlanCard
                 planName="Pro Plan"
-                price={String(PriceMap.pro)}
+                price={PriceMap.pro}
                 priceUnit="/month"
                 features={FeatureMap.pro}
                 isCurrentPlan={currentPlan === 'pro'}
@@ -534,8 +532,60 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
                 isLoading={processingPlan === 'pro'}
               />
             </motion.div>
+
+            <motion.div
+              initial={{ x: 30, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="flex-1"
+            >
+              <PlanCard
+                planName="Premium Plan"
+                price={PriceMap.premium}
+                priceUnit="/month"
+                features={FeatureMap.premium}
+                isCurrentPlan={currentPlan === 'premium'}
+                isDowngraded={isDowngraded('premium')}
+                isNextPlan={nextPlan === 'premium'}
+                isRecommended={currentPlan === 'pro'}
+                onSwitch={() => handleSwitchPlan('premium')}
+                highlighted={currentPlan === 'pro'}
+                isLoading={processingPlan === 'premium'}
+              />
+            </motion.div>
+          </motion.div>
+
+          {/* Custom Plan Link */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            className="mt-6 text-center"
+          >
+            <button
+              onClick={() => setIsCustomPlanModalOpen(true)}
+              className="font-poppins text-[16px] text-black underline transition-opacity hover:opacity-70"
+            >
+              Looking for a Custom Plan?
+            </button>
           </motion.div>
         </div>
+
+        {/* Help Center Footer */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1.0 }}
+          className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t border-black/10 bg-white px-[60px] py-6 rounded-b-[12px]"
+        >
+          <Image src={'/icons/influxy.svg'} width={84} height={24} />
+          <button
+            onClick={() => setIsHelpModalOpen(true)}
+            className="text-[14px] text-gray-600 underline transition-colors hover:text-black hover:underline"
+          >
+            Help Center
+          </button>
+        </motion.div>
 
         {/* Credits Usage Modal */}
         <CreditsUsageModal
@@ -563,6 +613,18 @@ export const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         <UpgradeSuccessModal
           isOpen={showUpgradeSuccessModal}
           onClose={() => setShowUpgradeSuccessModal(false)}
+        />
+
+        {/* Custom Plan Modal */}
+        <CustomPlanModal
+          isOpen={isCustomPlanModalOpen}
+          onClose={() => setIsCustomPlanModalOpen(false)}
+        />
+
+        {/* Help Center Modal */}
+        <HelpCenterModal
+          isOpen={isHelpModalOpen}
+          onClose={() => setIsHelpModalOpen(false)}
         />
       </div>
     </motion.div>
