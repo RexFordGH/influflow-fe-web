@@ -1,6 +1,7 @@
 @import './fonts.css';
 @import './editor.css';
 @import './driverjs.css';
+@import './styles.css';
 
 @tailwind base;
 @tailwind components;

@@ -11,10 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/base';
 import { useTopicTypes, useTrendingTopics } from '@/lib/api/services';
-import {
-  type ITrendingTopic,
-  type ITrendsRecommendTweet,
-} from '@/types/api';
+import { type ITrendingTopic, type ITrendsRecommendTweet } from '@/types/api';
 
 import { SearchModal } from './SearchModal';
 import {
@@ -203,62 +200,63 @@ const NewTrendingTopicItem = ({
   return (
     <div id={isOpen ? '' : 'trending-topics'}>
       {/* <CopyToClipboard text={topic.title}> */}
+
       <div className="flex items-start justify-start gap-[16px]">
         {/* <span className="pt-[6px] text-[18px] font-[500] text-[#8C8C8C]">
           #{index + 1}
         </span> */}
-
-        <button
-          onClick={handleToggle}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className={`
+        <div className="liquidGlass-wrapper dock">
+          <div
+            className={`liquidGlass-effect ${shouldShowHoveredState ? '[background-image:linear-gradient(to_right,rgba(115,167,255,0.2)_90%,rgba(115,167,255,0.2)_100%)]' : ''}`}
+          ></div>
+          <div className={`liquidGlass-tint `}></div>
+          <div className={`liquidGlass-shine`}></div>
+          <button
+            onClick={handleToggle}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className={`
+            liquidGlass-text
             group relative flex cursor-pointer items-center
             rounded-[20px] bg-clip-padding py-3 pl-12 pr-3 transition-colors
             duration-150
-            ${
-              shouldShowHoveredState
-                ? '[background-image:linear-gradient(to_right,rgba(115,167,255,0.2)_90%,rgba(115,167,255,0.2)_100%)]'
-                : '[background-blend-mode:overlay] [background-image:linear-gradient(to_right,#F2F7FF4D_0%,#F2F7FF4D_80%,#F2F7FC_100%),linear-gradient(to_bottom,#F2F7FF4D_0%,#F2F7FF4D_90%,#F2F7FC_100%)]'
-            }
-            [background-position:0_0,_0_0]
-            [background-repeat:no-repeat,_no-repeat]
-            [background-size:100%_100%,_100%_100%]
           `}
-          style={{ width: '100vw', height: '171px' }}
-        >
-          <p className="text-left text-lg font-medium text-black">
-            #{index + 1}
-          </p>
-          <div className="ml-[48px] flex min-w-0 flex-col items-start text-left">
-            <span className="mb-[12px] block text-[18px] font-medium leading-[26px]">
-              {topic.title}
-            </span>
-            <span className="block w-[684px] text-[14px] leading-[22px] text-[#575757]">
-              {topic.description}
-            </span>
-          </div>
+            style={{ width: '100vw', height: '171px' }}
+          >
+            <p className="text-left text-lg font-medium text-black">
+              #{index + 1}
+            </p>
+            <div className="ml-[48px] flex min-w-0 flex-col items-start text-left">
+              <span className="mb-[12px] block text-[18px] font-medium leading-[26px]">
+                {topic.title}
+              </span>
+              <span className="block w-[93%] text-[14px] leading-[22px] text-[#575757]">
+                {topic.description}
+              </span>
+            </div>
 
-          {/* 显示展开/收起图标 */}
-          <div className="absolute right-0 flex items-center gap-[10px] pr-[24px]">
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{
-                opacity: shouldShowHoveredState ? 1 : 0,
-                x: shouldShowHoveredState ? 0 : -10,
-              }}
-              transition={{ duration: 0.2 }}
-              className="text-gray-600"
-            >
-              {isOpen ? (
-                <ChevronDownIcon className="size-5" />
-              ) : (
-                <ChevronRightIcon className="size-5" />
-              )}
-            </motion.div>
-          </div>
-        </button>
+            {/* 显示展开/收起图标 */}
+            <div className="absolute right-0 flex items-center gap-[10px] pr-[24px]">
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{
+                  opacity: shouldShowHoveredState ? 1 : 0,
+                  x: shouldShowHoveredState ? 0 : -10,
+                }}
+                transition={{ duration: 0.2 }}
+                className="text-gray-600"
+              >
+                {isOpen ? (
+                  <ChevronDownIcon className="size-5" />
+                ) : (
+                  <ChevronRightIcon className="size-5" />
+                )}
+              </motion.div>
+            </div>
+          </button>
+        </div>
       </div>
+
       {/* </CopyToClipboard> */}
 
       {/* Trending Topic Tweets 展开区域 */}
@@ -655,7 +653,7 @@ export function NewTrendingTopicsPage({
   );
 
   return (
-    <div className="size-full overflow-y-auto bg-white">
+    <div className="size-full overflow-y-auto bg-white">      
       <div className="flex min-h-full flex-col">
         <div className="flex-1 px-[108px] py-12">
           <div className="mx-auto w-full max-w-4xl">
@@ -664,7 +662,29 @@ export function NewTrendingTopicsPage({
                 <p className="text-[20px] font-medium text-black">
                   Trending Topics
                 </p>
-                <button
+                <div className="wrapper">
+                  <div className="liquidGlass-wrapper menu">
+                    <div className="liquidGlass-effect"></div>
+                    <div className="liquidGlass-tint"></div>
+                    <div className="liquidGlass-shine"></div>
+                    <button
+                      onClick={() => setIsSearchModalOpen(true)}
+                      className="
+                          liquidGlass-text
+                          flex
+                          pl-[16px]
+                          w-[200px] items-center gap-1
+                          text-[#828282]
+                          font-normal
+                        "
+                    >
+                      <MagnifyingGlassIcon className="size-5" />
+                      <span className="text-[16px] font-normal">Search</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* <button
                   onClick={() => setIsSearchModalOpen(true)}
                   className="
                   flex
@@ -685,7 +705,7 @@ export function NewTrendingTopicsPage({
                 >
                   <MagnifyingGlassIcon className="size-5" />
                   <span className="text-[16px]">Search</span>
-                </button>
+                </button> */}
               </div>
 
               {/* type */}
