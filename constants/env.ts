@@ -10,3 +10,6 @@ export const API_BASE_URL = isLocal ? '/api/proxy' : API_HOST;
 
 export const showEmailAuth =
   !isProd && process.env.NEXT_PUBLIC_EMAIL_AUTH_ENABLED === 'true';
+
+export const enableArticleStreaming =
+  process.env.NEXT_PUBLIC_ENABLE_ARTICLE_STREAMING === 'true';
