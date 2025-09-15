@@ -1,24 +1,24 @@
 'use client';
 
-import { cn, Image } from '@heroui/react';
+import { cn } from '@heroui/react';
 
 import type { ChatMessage } from '@/types/agent-chat';
 
-import { StreamingTypewriter } from './StreamingTypewriter';
+import { StreamingTypewriter } from '../sseChat/StreamingTypewriter';
 
 interface AIMessageProps {
   message: ChatMessage;
   isStreaming: boolean;
 }
 
-export const AIMessage: React.FC<AIMessageProps> = ({
+export const StreamMessage: React.FC<AIMessageProps> = ({
   message,
   isStreaming,
 }) => {
   return (
     <div className="mb-6 flex max-w-full flex-col gap-[6px]">
       {/* AI 头像 */}
-      <Image src={'/icons/influxy.svg'} width={84} height={24} />
+      {/* <Image src={'/icons/influxy.svg'} width={84} height={24} /> */}
 
       {/* 消息内容 */}
       <div className={cn('text-[14px] max-w-full overflow-hidden')}>
@@ -26,7 +26,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           <div className="space-y-4">
             {/* 流式标题 - 始终显示在顶部，使用不同样式 */}
             {message.streamingTitle && (
-              <div className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700">
+              <div className="text-[16px] rounded-md py-2 font-medium text-gray-700">
                 <StreamingTypewriter
                   streamingContent={message.streamingTitle}
                   isStreaming={true}
@@ -37,7 +37,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
             )}
             {/* 流式内容 - 正文样式 */}
             {message.streamingContent && (
-              <div className="mt-3 text-gray-700">
+              <div className="mt-3 text-black/30">
                 <StreamingTypewriter
                   streamingContent={message.streamingContent}
                   isStreaming={true}
@@ -56,11 +56,11 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           <div className="space-y-4">
             {/* 完成状态 - 如果有标题和内容，分开显示 */}
             {message.streamingTitle && (
-              <div className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700">
+              <div className="rounded-md py-2 text-sm font-medium text-gray-700">
                 {message.streamingTitle}
               </div>
             )}
-            <div className="break-all text-black/70">
+            <div className="break-all text-black/40">
               {message.content || message.streamingContent}
             </div>
           </div>
