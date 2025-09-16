@@ -53,7 +53,8 @@ export function ArticleGenerateStreaming({
   // 当内容更新时自动滚动到底部
   useEffect(() => {
     if (scrollContainerRef.current && (streamingText || streamingTitle)) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      scrollContainerRef.current.scrollTop =
+        scrollContainerRef.current.scrollHeight;
     }
   }, [streamingText, streamingTitle]);
 
@@ -82,10 +83,10 @@ export function ArticleGenerateStreaming({
           }}
         >
           <Image
-            src="/icons/face.svg"
+            src="/icons/influxy.svg"
             alt="thinking"
-            width={120}
-            height={120}
+            width={168}
+            height={48}
           />
         </motion.div>
 
