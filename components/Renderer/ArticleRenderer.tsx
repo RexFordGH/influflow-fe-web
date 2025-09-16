@@ -4,6 +4,7 @@ import { Image, Tooltip } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
+import { enableArticleStreaming } from '@/constants/env';
 import { useAIEditing } from '@/hooks/useAIEditing';
 import { useContentManagement } from '@/hooks/useContentManagement';
 import { useGenerationState } from '@/hooks/useGenerationState';
@@ -20,10 +21,12 @@ import { isLongformType } from '@/utils/contentFormat';
 
 import { ModeOptions } from '../home/WelcomeScreen';
 
+import { devLog } from '@/utils/devLog';
 import { AIEditDialog } from './ArticleRenderer/AIEditDialog';
 import { ArticleToolbar } from './ArticleRenderer/ArticleToolbar';
 import { DeleteConfirmModal } from './ArticleRenderer/DeleteConfirmModal';
 import { CreateArticleLoading } from './CreateLoading';
+import { ArticleGenerateStreaming } from './generate/ArticleGenerateStreaming';
 import { ImageEditModal } from './markdown/ImageEditModal';
 import { MarkdownRenderer } from './markdown/MarkdownRenderer';
 import EditableContentMindmap from './mindmap/MindmapRenderer';
@@ -98,7 +101,17 @@ export function ArticleRenderer({
 
   // 对于非 draft 模式，组件挂载后立即开始生成
   useEffect(() => {
-    if (!initialData && mode && topic && !generation.hasStartedGeneration) {
+    // 仅当不使用流式时才触发旧的生成逻辑（包括 deep_research 模式）
+    const shouldUseOldGeneration =
+      !enableArticleStreaming || contentFormat === 'deep_research';
+
+    if (
+      !initialData &&
+      mode &&
+      topic &&
+      !generation.hasStartedGeneration &&
+      shouldUseOldGeneration
+    ) {
       console.log('Starting generation for mode:', mode);
       generation.startGeneration({
         topic,
@@ -381,10 +394,41 @@ export function ArticleRenderer({
     [images.handleImageSelect],
   );
 
-  // 如果正在生成或出错，显示加载页面
+  // 判断是否应该显示流式界面
+  // deep_research 内容格式不支持流式
+  const shouldShowStreaming =
+    enableArticleStreaming && contentFormat !== 'deep_research';
+
+  const shouldShowLoading =
+    !generation.rawAPIData && !initialData && !generation.apiError;
+
+  if (shouldShowStreaming && shouldShowLoading) {
+    return (
+      <ArticleGenerateStreaming
+        topic={topic}
+        contentFormat={contentFormat}
+        mode={mode}
+        userInput={userInput}
+        onBack={onBack}
+        onComplete={(outline) => {
+          devLog('onComplete outline', outline);
+          // 处理完成数据，与原 onGenerationComplete 逻辑一致
+          const { nodes, edges } = convertThreadDataToMindmap(outline);
+          setCurrentNodes(nodes);
+          setCurrentEdges(edges);
+          generation.setRawAPIData(outline);
+          onGenerationComplete?.(outline);
+        }}
+        onError={onGenerationError}
+      />
+    );
+  }
+
+  // 如果正在生成或没有数据，显示加载页面
   if (
-    generation.isGenerating ||
-    (!generation.generatedContent && !generation.rawAPIData && !initialData)
+    !shouldShowStreaming &&
+    (generation.isGenerating ||
+      (!generation.generatedContent && !generation.rawAPIData && !initialData))
   ) {
     const hasError = !generation.isGenerating && !!generation.apiError;
 
