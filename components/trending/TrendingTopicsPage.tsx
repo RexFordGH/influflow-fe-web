@@ -654,6 +654,8 @@ export function NewTrendingTopicsPage({
     [],
   );
 
+
+  // 取消写了不用的玻璃效果
   return (
     <div className="size-full overflow-y-auto bg-white">
       <div className="flex min-h-full flex-col">
