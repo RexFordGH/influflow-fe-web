@@ -24,24 +24,28 @@ export const CreditMap: Record<PlanType, number> = {
 export const FreePlanFeatures = [
   'Limited generation',
   `${CreditMap.free} free credits / month`,
+  `${CreditMap.free/10} articles can be generated`,
   'Great for trying out',
 ];
 
 export const StarterPlanFeatures = [
   'Larger monthly allowance',
   `${CreditMap.starter} free credits / month`,
+  `${CreditMap.starter/10} articles can be generated`,
   'Perfect for explorers',
 ];
 
 export const ProPlanFeatures = [
   'Generous credits for heavy usage',
   `${CreditMap.pro} free credits / month`,
+  `${CreditMap.pro/10} articles can be generated`,
   'Best for regular creators',
 ];
 
 export const PremiumPlanFeatures = [
   'Generous credits for super heavy usage',
   `${CreditMap.premium} free credits / month`,
+  `${CreditMap.premium/10} articles can be generated`,
   'Best for professionals',
 ];
 
