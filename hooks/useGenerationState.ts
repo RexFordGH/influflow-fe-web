@@ -91,8 +91,12 @@ export function useGenerationState({
         updatedAt: data.updatedAt || Date.now(),
       };
       setRawAPIDataInternal(newData);
+      // 一旦有可用的数据，认为生成流程已结束，解除界面禁用状态
+      setIsGenerating(false);
     } else {
       setRawAPIDataInternal(null);
+      // 清空数据时也确保不处于生成中状态
+      setIsGenerating(false);
     }
   }, []);
 

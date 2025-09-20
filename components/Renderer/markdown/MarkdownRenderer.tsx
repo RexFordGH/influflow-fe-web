@@ -149,6 +149,10 @@ export function MarkdownRenderer({
     return 'longform';
   }, [tweetData?.content_format, content?.content_format, sections]);
 
+  const isLong = useMemo(() => {
+    return isLongformType(getContentFormat());
+  }, [getContentFormat]);
+
   useEffect(() => {
     if (content) {
       devLog('MarkdownRenderer->outline', {
@@ -248,7 +252,7 @@ export function MarkdownRenderer({
     }
 
     // 根据 content_format 选择渲染器
-    const RendererSectionComponent = isLongformType(getContentFormat())
+    const RendererSectionComponent = isLong
       ? SectionRendererOfLongForm
       : SectionRenderer;
 
@@ -288,7 +292,12 @@ export function MarkdownRenderer({
       )}
     >
       <div className={markdownStyles.container.content}>
-        <div className={markdownStyles.container.sections}>
+        <div
+          className={cn(
+            markdownStyles.container.sections,
+            isLong ? '' : 'space-y-0',
+          )}
+        >
           {sections.map((section) => renderSection(section))}
         </div>
 
