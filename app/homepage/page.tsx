@@ -84,11 +84,11 @@ export default function HomePage() {
 
         <section className="mx-auto px-[15%] py-16 pb-[120px] pt-[72px] text-center">
           <p className="text-[40px] font-semibold italic">Our Vision</p>
-          <p className="mx-auto mt-20 text-center text-[20px]">
+          <p className="mx-auto mt-20 text-center text-[20px] w-[780px]">
             We envision a future where AI deeply understands every creator—their
             voice, style, and values—and amplifies their unique strengths.
           </p>
-          <p className="mx-auto mt-10 text-center text-[20px]">
+          <p className="mx-auto mt-10 text-center text-[20px] w-[780px]">
             Through this, creators, brands, and communities can collaborate on
             an open, intelligent platform that makes influence measurable,
             scalable, and truly impactful.
