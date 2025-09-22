@@ -31,8 +31,8 @@ export default function HomePage() {
             One-Stop Content Creation
             <br className="hidden md:block" /> In Your Own Voice
           </p>
-          <p className="mx-auto mt-6 w-[590px] text-[20px] text-black leading-[25px]">
-            Build your digital self and unlock a one-stop content engine that speaks, thinks, and creates just like you.          </p>
+          <p className="mx-auto mt-6 w-[590px] text-[20px] text-[#575757] leading-[25px]">
+            Build your digital self and unlock a one-stop content engine that speaks, thinks, and creates just like you.</p>
           <div className="mt-10 flex justify-center">
             <Link
               className="rounded-[16px] bg-gradient-to-r from-indigo-400 to-pink-400 px-8 py-3 text-[16px] font-medium text-white shadow-sm hover:opacity-90"
@@ -85,13 +85,10 @@ export default function HomePage() {
         <section className="mx-auto px-[15%] py-16 pb-[120px] pt-[72px] text-center">
           <p className="text-[40px] font-semibold italic">Our Vision</p>
           <p className="mx-auto mt-20 text-center text-[20px] w-[780px]">
-            We envision a future where AI deeply understands every creator—their
-            voice, style, and values—and amplifies their unique strengths.
+            We envision a future where AI deeply understands every creator—their voice, style, and values—and amplifies their unique strengths.
           </p>
-          <p className="mx-auto mt-10 text-center text-[20px] w-[780px]">
-            Through this, creators, brands, and communities can collaborate on
-            an open, intelligent platform that makes influence measurable,
-            scalable, and truly impactful.
+          <p className="mx-auto mt-10 text-center text-[20px] w-[840px]">
+          Through this, creators, brands, and communities can collaborate on an open, intelligent platform that makes influence measurable, scalable, and truly impactful.
           </p>
         </section>
 
@@ -225,7 +222,7 @@ function FAQ({ q, children }: FAQProps) {
       absolute right-[40px] top-1/2 -translate-y-1/2
       rotate-[-90deg] group-open:rotate-0
       transition-transform
-      pointer-events-none  /* 点击穿透，仍由 summary 负责开合 */
+      pointer-events-none 
     "
       />
 
