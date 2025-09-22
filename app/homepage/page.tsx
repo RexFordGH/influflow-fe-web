@@ -27,14 +27,12 @@ export default function HomePage() {
             containerClassName="absolute inset-0 -z-10 h-full w-full"
             interactive={true}
           />
-          <p className="text-[65px] text-black">
+          <p className="text-[65px] text-black h-[150px] leading-[80px]">
             One-Stop Content Creation
             <br className="hidden md:block" /> In Your Own Voice
           </p>
-          <p className="mx-auto mt-6 w-[640px] text-[24px] text-black">
-            Build your digital self and unlock a one-stop content engine that
-            speaks, thinks, and creates just like you.
-          </p>
+          <p className="mx-auto mt-6 w-[590px] text-[20px] text-black leading-[25px]">
+            Build your digital self and unlock a one-stop content engine that speaks, thinks, and creates just like you.          </p>
           <div className="mt-10 flex justify-center">
             <Link
               className="rounded-[16px] bg-gradient-to-r from-indigo-400 to-pink-400 px-8 py-3 text-[16px] font-medium text-white shadow-sm hover:opacity-90"
@@ -50,7 +48,7 @@ export default function HomePage() {
           <p className="mb-[12px] text-center text-[56px] font-medium italic text-black">
             Why Influxy
           </p>
-          <p className="mx-auto mb-[80px] w-[640px] text-center text-[24px] text-[#757575]">
+          <p className="mx-auto mb-[80px] w-[640px] text-center text-[20px] text-[#757575]">
             Influxy helps creators use AI to produce personalized content
             faster, at scale, and with consistency.
           </p>
@@ -86,11 +84,11 @@ export default function HomePage() {
 
         <section className="mx-auto px-[15%] py-16 pb-[120px] pt-[72px] text-center">
           <p className="text-[40px] font-semibold italic">Our Vision</p>
-          <p className="mx-auto mt-20 text-center text-[24px]">
+          <p className="mx-auto mt-20 text-center text-[20px]">
             We envision a future where AI deeply understands every creator—their
             voice, style, and values—and amplifies their unique strengths.
           </p>
-          <p className="mx-auto mt-10 text-center text-[24px]">
+          <p className="mx-auto mt-10 text-center text-[20px]">
             Through this, creators, brands, and communities can collaborate on
             an open, intelligent platform that makes influence measurable,
             scalable, and truly impactful.
@@ -98,9 +96,9 @@ export default function HomePage() {
         </section>
 
         <section className="mx-auto px-[15%] pb-6">
-          <h2 className="py-[80px] text-center text-2xl font-semibold md:text-3xl">
+          <p className="py-[80px] text-center text-[40px] font-semibold italic">
             FAQ
-          </h2>
+          </p>
           <div className="space-y-3">
             <FAQ q="What is Influxy?">
               More than a writing tool, Influxy is an all-in-one AI workspace
@@ -121,9 +119,9 @@ export default function HomePage() {
         </section>
 
         <section className="mx-auto max-w-5xl px-4 py-16">
-          <h3 className="mb-8 text-center text-xl font-semibold md:text-2xl">
+          <p className="mb-8 text-center text-[40px] font-semibold italic">
             Team Background
-          </h3>
+          </p>
           <div className="relative mx-auto w-full max-w-3xl">
             <Image
               src="/home/TeamBackground.svg"
