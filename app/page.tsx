@@ -1,10 +1,13 @@
 'use client';
 
 import { BackgroundGradientAnimation } from '@/components/ui/background-gradient-animation';
+import { useAuthStore } from '@/stores/authStore';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function HomePage() {
+  const { isAuthenticated, openLoginModal, logout } = useAuthStore();
+
   return (
     <div className="flex min-h-screen flex-col bg-[#FAFAFA]">
       {/* 顶部导航栏 */}
@@ -18,10 +21,14 @@ export default function HomePage() {
         <button 
         className="mr-3 h-[40px] w-[80px] rounded-[12px] bg-black text-white"
         onClick={() => {
-          window.location.href = '/home';
+          if (isAuthenticated) {
+            logout();
+          } else {
+            openLoginModal();
+          }
         }}
         >
-          Login
+          {isAuthenticated ? 'Log Out' : 'Login'}
         </button>
       </div>
 
@@ -39,18 +46,27 @@ export default function HomePage() {
           <p className="mx-auto mt-6 w-[590px] text-[20px] text-[#575757] leading-[25px]">
             Build your digital self and unlock a one-stop content engine that speaks, thinks, and creates just like you.</p>
           <div className="mt-10 flex justify-center">
-            <Link
-              className="rounded-[16px] bg-gradient-to-r from-indigo-400 to-pink-400 px-8 py-3 text-[16px] font-medium text-white shadow-sm hover:opacity-90"
-              href="/article-tutorial"
-            >
-              Get Started
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                className="rounded-[16px] bg-gradient-to-r from-indigo-400 to-pink-400 px-8 py-3 text-[16px] font-medium text-white shadow-sm hover:opacity-90"
+                href="/home"
+              >
+                Get Started
+              </Link>
+            ) : (
+              <button
+                className="rounded-[16px] bg-gradient-to-r from-indigo-400 to-pink-400 px-8 py-3 text-[16px] font-medium text-white shadow-sm hover:opacity-90"
+                onClick={() => openLoginModal()}
+              >
+                Get Started
+              </button>
+            )}
           </div>
           {/* TODO: 跳转链接 */}
         </section>
 
-        <section className="mx-auto px-[15%]">
-          <p className="mb-[12px] text-center text-[56px] font-medium italic text-black">
+        <section className="mx-auto px-[15%] pt-[30px]">
+          <p className="mb-[12px] text-center text-[56px] font-medium italic text-black ">
             Why Influxy
           </p>
           <p className="mx-auto mb-[80px] w-[640px] text-center text-[20px] text-[#757575]">
@@ -63,6 +79,8 @@ export default function HomePage() {
             title="Personalize Your Tone"
             description="Create your digital persona—AI that understands your tone, mimics the styles you love, and writes with a human touch. Add your intro to unlock content that feels truly like you."
             reversed={false}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
           />
 
           <Feature
@@ -70,6 +88,8 @@ export default function HomePage() {
             title="From Draft to Tweet in One Step"
             description="Our editor infuses Twitter's format into what you write—ready to post threads, generate visuals, or refine your content in one click."
             reversed={true}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
           />
 
           <Feature
@@ -77,6 +97,8 @@ export default function HomePage() {
             title="Get the Outline"
             description="Influxy makes insights instantly translatable into clear outlines and deeper understanding. Generate narrative maps and accelerate growth through an intuitive mind-map tool."
             reversed={false}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
           />
 
           <Feature
@@ -84,6 +106,8 @@ export default function HomePage() {
             title="Trending Made Simple"
             description="Stay on top of what's trending, get hot topics, sample tweets, and ready-to-use titles to spark your next viral idea."
             reversed={true}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
           />
         </section>
 
@@ -97,7 +121,7 @@ export default function HomePage() {
           </p>
         </section>
 
-        <section className="mx-auto px-[15%] pb-6">
+        <section className="mx-auto px-[15%] pb-6 min-h-[722px]">
           <p className="py-[80px] text-center text-[40px] font-semibold italic">
             FAQ
           </p>
@@ -143,6 +167,8 @@ type FeatureProps = {
   title: string;
   description: string;
   reversed?: boolean;
+  isAuthenticated: boolean;
+  openLoginModal: () => void;
 };
 
 function Feature({
@@ -150,6 +176,8 @@ function Feature({
   title,
   description,
   reversed = false,
+  isAuthenticated,
+  openLoginModal,
 }: FeatureProps) {
   const imageColClasses = `relative ${reversed ? 'md:order-2' : ''}`;
   const textColClasses = `${reversed ? 'md:ml-auto md:mr-[71px]' : 'md:mr-auto md:ml-[71px]'}`;
@@ -173,10 +201,15 @@ function Feature({
         <p className="mt-3 text-[14px] leading-5 text-[#757575]">
           {description}
         </p>
-        <button className="mt-[24px] rounded-[12px] bg-black px-4 py-3 text-[14px] text-white"
-        onClick={() => {
-          window.location.href = '/home';
-        }}
+        <button 
+          className="mt-[24px] rounded-[12px] bg-black px-4 py-3 text-[14px] text-white"
+          onClick={() => {
+            if (isAuthenticated) {
+              window.location.href = '/home';
+            } else {
+              openLoginModal();
+            }
+          }}
         >
           Try Now
         </button>
