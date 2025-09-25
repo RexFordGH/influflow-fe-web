@@ -570,8 +570,8 @@ export const ProfilePage = ({ onBack }: ProfilePageProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="fixed inset-x-0 bottom-0 top-[56px] mx-3 mb-3 rounded-[12px] bg-white">
-        <div className="mx-auto w-[130vh]">
+      <div className="mx-3 mb-3 rounded-[12px] bg-white p-6">
+        <div className="mx-auto max-w-4xl">
           {/* Style Section */}
           <div className="mb-10">
             <p className="mb-10 pt-10 text-center text-[32px] font-medium text-gray-900">
