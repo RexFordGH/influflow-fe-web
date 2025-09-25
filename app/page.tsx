@@ -1,492 +1,277 @@
 'use client';
 
-import { cn } from '@heroui/react';
-import { AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
-
-import {
-  GenerationOrchestrator,
-  GenerationProvider,
-} from '@/components/generation';
-import CreditBanner from '@/components/home/CreditBanner';
-import { MainContent } from '@/components/home/MainContent';
-import { ScrollProgressIndicator } from '@/components/home/ScrollProgressIndicator';
-import {
-  AppSidebar,
-  AppSidebarRef,
-} from '@/components/layout/sidebar/AppSidebar';
-import {
-  IArticleData,
-  SidebarItem,
-} from '@/components/layout/sidebar/types/sidebar.types';
-import { ProfileCompletePrompt } from '@/components/profile';
-import { FakeOutline } from '@/components/Renderer/mock';
+import { BackgroundGradientAnimation } from '@/components/ui/background-gradient-animation';
 import { useAuthStore } from '@/stores/authStore';
-import { useSubscriptionStore } from '@/stores/subscriptionStore';
-import {
-  type IContentFormat,
-  type IMode,
-  type ITrendingTopic,
-  type ITrendsRecommendTweet,
-} from '@/types/api';
-import { IOutline } from '@/types/outline';
-import {
-  isPromptDismissed,
-  needsProfileCompletion,
-  setPromptDismissed,
-} from '@/utils/profileStorage';
+import Image from 'next/image';
+import Link from 'next/link';
 
-const ArticleRenderer = dynamic(
-  () =>
-    import('@/components/Renderer/ArticleRenderer').then((mod) => ({
-      default: mod.ArticleRenderer,
-    })),
-  {
-    ssr: false,
-  },
-);
-
-const ChatDraftConfirmation = dynamic(
-  () =>
-    import('@/components/draft/ChatDraftConfirmation').then((mod) => ({
-      default: mod.ChatDraftConfirmation,
-    })),
-  {
-    ssr: false,
-  },
-);
-
-function HomeContent() {
-  const {
-    user,
-    isAuthenticated,
-    checkAuthStatus,
-    syncProfileFromSupabase,
-    openLoginModal,
-    setAuthError,
-  } = useAuthStore();
-  const { checkCreditsAndShowModal, refreshSubscriptionInfo } =
-    useSubscriptionStore();
-  const searchParams = useSearchParams();
-  const [showContentGeneration, setShowContentGeneration] = useState(false);
-  const [currentTopic, setCurrentTopic] = useState('');
-  const [topicInput, setTopicInput] = useState('');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [hasCreatedContentGeneration, setHasCreatedContentGeneration] =
-    useState(false);
-  const [showProfileCompletePrompt, setShowProfileCompletePrompt] =
-    useState(false);
-  const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
-  const [initialData, setInitialData] = useState<IOutline | undefined>(
-    undefined,
-  );
-  const [contentFormat, setContentFormat] =
-    useState<IContentFormat>('longform');
-  const [selectedTweets, setSelectedTweets] = useState<any[]>([]);
-  const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
-
-  // 生成模式相关状态
-  const [currentMode, setCurrentMode] = useState<IMode>('analysis');
-
-  // 草案确认相关状态
-  const [showDraftConfirmation, setShowDraftConfirmation] = useState(false);
-  const [draftTopic, setDraftTopic] = useState('');
-  const [draftContentFormat, setDraftContentFormat] =
-    useState<IContentFormat>('longform');
-  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
-
-  // 使用新架构的生成状态
-  const [showGenerationOrchestrator, setShowGenerationOrchestrator] =
-    useState(false);
-
-  // 侧边栏 ref
-  const sidebarRef = useRef<AppSidebarRef | null>(null);
-
-  // 滚动进度状态
-  const [scrollProgress, setScrollProgress] = useState<any>(null);
-
-  // Onboarding 状态
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
-    boolean | null
-  >(null);
-
-  useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
-
-  // useEffect(() => {
-  //   signUp({});
-  // }, [])
-
-  // 检查 onboarding 状态
-  useEffect(() => {
-    const ONBOARDING_KEY = 'ifw_onboarding_completed_v2';
-
-    if (typeof window === 'undefined') return;
-
-    const hasCompleted = window.localStorage.getItem(ONBOARDING_KEY) === 'true';
-    setHasCompletedOnboarding(hasCompleted);
-  }, []);
-
-  // 检查URL中的错误参数
-  useEffect(() => {
-    const error = searchParams.get('error');
-    if (error) {
-      const decodedError = decodeURIComponent(error);
-      setAuthError(decodedError);
-      openLoginModal(decodedError);
-      // 清理URL中的错误参数
-      const url = new URL(window.location.href);
-      url.searchParams.delete('error');
-      window.history.replaceState({}, '', url.toString());
-    }
-  }, [searchParams, setAuthError, openLoginModal]);
-
-  // 重置 profile 检查状态当认证状态变化时
-  useEffect(() => {
-    setHasCheckedProfile(false);
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    // 检查是否需要显示 profile 完善提示
-    const checkProfileCompletion = async () => {
-      if (isAuthenticated && user && !hasCheckedProfile) {
-        try {
-          // 先从 Supabase 拉取最新的 profile 数据并同步到 authStore
-          await syncProfileFromSupabase();
-
-          // 基于最新数据判断是否需要完善 profile
-          const updatedUser = useAuthStore.getState().user;
-          const needsCompletion = needsProfileCompletion(updatedUser);
-          const isDismissed = isPromptDismissed();
-
-          // 如果需要完善 profile 且用户还没有关闭过提示，则显示提示
-          if (needsCompletion && !isDismissed) {
-            setShowProfileCompletePrompt(true);
-          }
-
-          // 标记已经检查过，避免重复执行
-          setHasCheckedProfile(true);
-        } catch (error) {
-          console.error('Failed to sync profile from Supabase:', error);
-
-          // 如果同步失败，仍然基于当前用户数据进行判断
-          const needsCompletion = needsProfileCompletion(user);
-          const isDismissed = isPromptDismissed();
-
-          if (needsCompletion && !isDismissed) {
-            setShowProfileCompletePrompt(true);
-          }
-
-          // 即使失败也标记为已检查，避免无限重试
-          setHasCheckedProfile(true);
-        }
-      }
-    };
-
-    // 延迟 2 秒再进行检查
-    const timer = setTimeout(checkProfileCompletion, 2000);
-
-    // 清理定时器
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, syncProfileFromSupabase, hasCheckedProfile]);
-
-  const handleTopicSubmit = (
-    selectedContentFormat: IContentFormat,
-    mode: IMode,
-  ) => {
-    if (!isAuthenticated) {
-      openLoginModal();
-      return;
-    }
-
-    // 检查积分是否足够
-    if (!checkCreditsAndShowModal()) {
-      return;
-    }
-
-    if (topicInput.trim()) {
-      // 清除之前选择的笔记数据，确保重新生成新内容
-      setInitialData(undefined);
-
-      // 如果有选中的推文，将其链接附加到topic中
-      let finalTopic = topicInput;
-      if (selectedTweets.length > 0) {
-        const tweetUrls = selectedTweets.map((tweet) => tweet.url).join(', ');
-        finalTopic = `${topicInput}. Reference these popular posts: ${tweetUrls}`;
-      }
-
-      // 设置生成相关状态
-      setCurrentMode(mode);
-      setDraftTopic(finalTopic);
-      setDraftContentFormat(selectedContentFormat);
-
-      // 使用新架构启动生成流程
-      setShowGenerationOrchestrator(true);
-
-      // 清理输入
-      setTopicInput('');
-      setSelectedTweets([]); // 清除选中的推文
-    }
-  };
-
-  // 草案确认完成后的处理
-  const handleDraftConfirmed = (
-    topic: string,
-    contentFormat: IContentFormat,
-    sessionId?: string,
-  ) => {
-    setTimeout(() => {
-      setShowDraftConfirmation(false);
-    }, 1000);
-    setHasCreatedContentGeneration(true);
-    setCurrentTopic(topic);
-    setContentFormat(contentFormat);
-    setSessionId(sessionId);
-    setShowContentGeneration(true);
-  };
-
-  // 从草案确认返回
-  const handleBackFromDraft = () => {
-    setShowDraftConfirmation(false);
-    setDraftTopic('');
-  };
-
-  const handleBackToHome = () => {
-    setInitialData(undefined);
-    setShowContentGeneration(false);
-    setShowGenerationOrchestrator(false);
-    setCurrentTopic('');
-    setSelectedItemId(undefined); // 清除选中状态
-    setSessionId(undefined); // 清除 session_id
-    // 返回首页时重新拉取文章列表确保数据同步
-    sidebarRef.current?.refresh();
-  };
-
-  // 生成完成回调
-  const handleGenerationComplete = async (data: IOutline) => {
-    console.log('Generation completed:', data);
-    // 刷新侧边栏列表 - 等待刷新完成
-    await sidebarRef.current?.refresh();
-    // 刷新订阅信息以更新积分
-    await refreshSubscriptionInfo();
-  };
-
-  // 生成错误回调
-  const handleGenerationError = (error: Error) => {
-    console.error('Generation error:', error);
-    setShowGenerationOrchestrator(false);
-  };
-
-  const handleTrendingTopicSelect = (
-    topic: ITrendingTopic | string
-  ) => {
-    // 处理 string 或 ITrendingTopic 类型
-    const topicText = typeof topic === 'string' ? topic : topic.title;
-    setTopicInput(topicText);
-    // 清除之前选中的推文
-    setSelectedTweets([]);
-  };
-
-  const handleTrendingTweetsSelect = (tweets: any[], topicTitle: string) => {
-    // 只将topic标题设置到输入框
-    setTopicInput(topicTitle);
-    // 单独管理选中的推文
-    setSelectedTweets(tweets);
-  };
-
-  const handleRemoveSelectedTweet = (indexToRemove: number) => {
-    setSelectedTweets((prev) =>
-      prev.filter((_, index) => index !== indexToRemove),
-    );
-  };
-
-  const handleTrendingSearchConfirm = (
-    searchTerm: string,
-    selectedTweets: ITrendsRecommendTweet[],
-  ) => {
-    // 将搜索词设置到输入框
-    setTopicInput(searchTerm);
-    // 管理选中的推文
-    setSelectedTweets(selectedTweets);
-  };
-
-  const handleCloseProfileCompletePrompt = () => {
-    setShowProfileCompletePrompt(false);
-    setPromptDismissed(); // 记录用户已关闭提示
-  };
-
-  const handleTweetThreadClick = (tweetData: IArticleData) => {
-    // 1. 将 TweetThread 格式转换为 Outline 格式
-    const outlineData: IOutline = {
-      topic: tweetData.topic,
-      content_format: tweetData.content_format || 'longform',
-      nodes: tweetData.tweets, // 将 'tweets' 映射到 'nodes'
-      total_tweets: tweetData.tweets.reduce(
-        (acc: number, group: any) => acc + (group.tweets?.length || 0),
-        0,
-      ),
-      id: tweetData.id,
-      updatedAt: tweetData.updated_at ?? new Date(),
-      mode: tweetData.mode,
-      search_enabled: tweetData.search_enabled,
-    };
-
-    // 2. 设置 initialData 和 topic
-    setInitialData(outlineData);
-    setContentFormat(outlineData.content_format);
-    setCurrentTopic(outlineData.topic || 'Tweet Thread');
-
-    // 3. 切换视图
-    setShowContentGeneration(true);
-    setHasCreatedContentGeneration(true);
-  };
-
-  // 处理侧边栏列表项点击
-  const handleSidebarItemClick = (item: SidebarItem) => {
-    // 设置选中的项目ID
-    setSelectedItemId(item.id);
-
-    // 直接使用分页API已获取的完整数据
-    if (item.tweetData) {
-      handleTweetThreadClick(item.tweetData);
-    } else {
-      // 如果没有完整数据，使用简化数据作为回退
-      const fallbackData: IArticleData = {
-        id: item.id.replace('tweet-', ''),
-        topic: item.title,
-        content_format: 'longform',
-        tweets: [],
-        updated_at: item.updatedAt || item.createdAt,
-        created_at: item.createdAt,
-        mode: 'analysis',
-        search_enabled: true,
-      };
-      handleTweetThreadClick(fallbackData);
-    }
-  };
-
-  // 判断是否显示首页（即MainContent）
-  const isShowingHomePage =
-    !showGenerationOrchestrator &&
-    !showDraftConfirmation &&
-    !(hasCreatedContentGeneration && showContentGeneration && currentTopic);
+export default function HomePage() {
+  const { isAuthenticated, openLoginModal, logout } = useAuthStore();
 
   return (
-    <GenerationProvider initialMode={currentMode}>
-      <div className="relative h-screen overflow-hidden">
-        {/* 滚动进度指示器 - 仅在首页显示 */}
-        {isShowingHomePage && scrollProgress && (
-          <ScrollProgressIndicator scrollProgress={scrollProgress} />
-        )}
-        {/* Profile Complete Prompt */}
-        <ProfileCompletePrompt
-          isVisible={showProfileCompletePrompt}
-          onClose={handleCloseProfileCompletePrompt}
+    <div className="flex min-h-screen flex-col bg-[#FAFAFA]">
+      {/* 顶部导航栏 */}
+      <div className="flex w-full items-center justify-between bg-[#FAFAFA] py-3">
+        <img
+          className="ml-3"
+          src={'/images/logo.png'}
+          width={159}
+          height={48}
         />
-
-        {/* Generation Orchestrator - 新架构 */}
-        {showGenerationOrchestrator && (
-          <div className="absolute inset-0 z-50">
-            <GenerationOrchestrator
-              mode={currentMode}
-              topic={draftTopic}
-              contentFormat={draftContentFormat}
-              userInput={topicInput}
-              sessionId={sessionId}
-              onComplete={handleGenerationComplete}
-              onError={handleGenerationError}
-              onBack={handleBackToHome}
-            />
-          </div>
-        )}
-
-        {/* Legacy Draft Confirmation - 保留兼容旧流程 */}
-        {showDraftConfirmation && !showGenerationOrchestrator && (
-          <div className="absolute inset-0 z-50">
-            <ChatDraftConfirmation
-              topic={draftTopic}
-              contentFormat={draftContentFormat}
-              onBack={handleBackFromDraft}
-              onConfirm={handleDraftConfirmed}
-            />
-          </div>
-        )}
-
-        {/* Legacy Content Generation - 保留兼容旧流程 */}
-        {hasCreatedContentGeneration && !showGenerationOrchestrator && (
-          <div
-            className={cn(
-              'absolute inset-0 z-40',
-              showContentGeneration && currentTopic ? 'block' : 'hidden',
-            )}
-          >
-            <ArticleRenderer
-              topic={currentTopic}
-              contentFormat={contentFormat}
-              onBack={handleBackToHome}
-              initialData={
-                process.env.NEXT_PUBLIC_USE_FAKE_OUTLINE === 'true'
-                  ? FakeOutline
-                  : initialData
-              }
-              sessionId={sessionId}
-              onDataUpdate={async () => {
-                await sidebarRef.current?.refresh();
-              }}
-            />
-          </div>
-        )}
-
-        <CreditBanner />
-
-        {/* Main Content */}
-        <div
-          className={cn(
-            'flex h-screen overflow-hidden bg-gray-50',
-            showContentGeneration && currentTopic ? 'hidden' : 'flex',
-            showDraftConfirmation && !hasCreatedContentGeneration
-              ? 'hidden'
-              : 'flex',
-            showGenerationOrchestrator ? 'hidden' : 'flex',
-          )}
+        <button 
+        className="mr-3 h-[40px] w-[80px] rounded-[12px] bg-black text-white"
+        onClick={() => {
+          if (isAuthenticated) {
+            logout();
+          } else {
+            openLoginModal();
+          }
+        }}
         >
-          <AnimatePresence>
-            <AppSidebar
-              ref={sidebarRef}
-              onItemClick={handleSidebarItemClick}
-              selectedId={selectedItemId}
-              collapsed={sidebarCollapsed}
-              onToggleCollapse={() => setSidebarCollapsed(true)}
-            />
-          </AnimatePresence>
-
-          <MainContent
-            sidebarCollapsed={sidebarCollapsed}
-            onToggleSidebar={() => setSidebarCollapsed(false)}
-            onTrendingTopicSelect={handleTrendingTopicSelect}
-            onTrendingTweetsSelect={handleTrendingTweetsSelect}
-            onTrendingSearchConfirm={handleTrendingSearchConfirm}
-            selectedTweets={selectedTweets}
-            onRemoveSelectedTweet={handleRemoveSelectedTweet}
-            topicInput={topicInput}
-            onTopicInputChange={setTopicInput}
-            onTopicSubmit={handleTopicSubmit}
-            onScrollProgressChange={setScrollProgress}
-            hasCompletedOnboarding={hasCompletedOnboarding}
-          />
-        </div>
+          {isAuthenticated ? 'Log Out' : 'Login'}
+        </button>
       </div>
-    </GenerationProvider>
+
+      {/* 主体内容 */}
+      <main className="mx-3 min-h-screen flex-1 rounded-[12px] bg-white">
+        <section className="relative px-[15%] py-[18%] text-center z-10">
+          <BackgroundGradientAnimation
+            containerClassName="absolute inset-0 -z-10 h-full w-full"
+            interactive={true}
+          />
+          <p className="text-[65px] text-black h-[150px] leading-[80px]">
+            One-Stop Content Creation
+            <br className="hidden md:block" /> In Your Own Voice
+          </p>
+          <p className="mx-auto mt-6 w-[590px] text-[20px] text-[#575757] leading-[25px]">
+            Build your digital self and unlock a one-stop content engine that speaks, thinks, and creates just like you.</p>
+          <div className="mt-10 flex justify-center">
+            {isAuthenticated ? (
+              <Link
+                className="rounded-[16px] bg-gradient-to-r from-indigo-400 to-pink-400 px-8 py-3 text-[16px] font-medium text-white shadow-sm hover:opacity-90"
+                href="/home"
+              >
+                Get Started
+              </Link>
+            ) : (
+              <button
+                className="rounded-[16px] bg-gradient-to-r from-indigo-400 to-pink-400 px-8 py-3 text-[16px] font-medium text-white shadow-sm hover:opacity-90"
+                onClick={() => openLoginModal()}
+              >
+                Get Started
+              </button>
+            )}
+          </div>
+          {/* TODO: 跳转链接 */}
+        </section>
+
+        <section className="mx-auto px-[15%] pt-[30px]">
+          <p className="mb-[12px] text-center text-[56px] font-medium italic text-black ">
+            Why Influxy
+          </p>
+          <p className="mx-auto mb-[80px] w-[640px] text-center text-[20px] text-[#757575]">
+            Influxy helps creators use AI to produce personalized content
+            faster, at scale, and with consistency.
+          </p>
+
+          <Feature
+            image="/home/PersonalizeYourTone.svg"
+            title="Personalize Your Tone"
+            description="Create your digital persona—AI that understands your tone, mimics the styles you love, and writes with a human touch. Add your intro to unlock content that feels truly like you."
+            reversed={false}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
+          />
+
+          <Feature
+            image="/home/FromDraftTweet.svg"
+            title="From Draft to Tweet in One Step"
+            description="Our editor infuses Twitter's format into what you write—ready to post threads, generate visuals, or refine your content in one click."
+            reversed={true}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
+          />
+
+          <Feature
+            image="/home/GetTheOutline.svg"
+            title="Get the Outline"
+            description="Influxy makes insights instantly translatable into clear outlines and deeper understanding. Generate narrative maps and accelerate growth through an intuitive mind-map tool."
+            reversed={false}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
+          />
+
+          <Feature
+            image="/home/TrendingMadeSimple.svg"
+            title="Trending Made Simple"
+            description="Stay on top of what's trending, get hot topics, sample tweets, and ready-to-use titles to spark your next viral idea."
+            reversed={true}
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
+          />
+        </section>
+
+        <section className="mx-auto px-[15%] py-16 pb-[120px] pt-[72px] text-center">
+          <p className="text-[40px] font-semibold italic">Our Vision</p>
+          <p className="mx-auto mt-20 text-center text-[20px] w-[780px]">
+            We envision a future where AI deeply understands every creator—their voice, style, and values—and amplifies their unique strengths.
+          </p>
+          <p className="mx-auto mt-10 text-center text-[20px] w-[840px]">
+          Through this, creators, brands, and communities can collaborate on an open, intelligent platform that makes influence measurable, scalable, and truly impactful.
+          </p>
+        </section>
+
+        <section className="mx-auto px-[15%] pb-6 min-h-[722px]">
+          <p className="py-[80px] text-center text-[40px] font-semibold italic">
+            FAQ
+          </p>
+          <div className="space-y-3">
+            <FAQ q="What is Influxy?">
+              More than a writing tool, Influxy is an all-in-one AI workspace
+              that models your unique style. It helps you work smarter, not
+              harder — creating content that sounds like you, only sharper.
+            </FAQ>
+            <FAQ q="Who can use Influxy?">
+              Influxy is designed for creators, influencers, researchers, and
+              knowledge workers who want to turn their expertise and influence
+              into lasting value.
+            </FAQ>
+            <FAQ q="How is Influxy different from other AI writing tools?">
+              Unlike generic AI tools, Influxy learns your unique style and
+              context. It doesn't just generate text — it helps you create
+              authentic, branded content that truly sounds like you.
+            </FAQ>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-5xl px-4 py-16">
+          <p className="mb-8 text-center text-[40px] font-semibold italic">
+            Team Background
+          </p>
+          <div className="relative mx-auto w-full max-w-3xl">
+            <Image
+              src="/home/TeamBackground.svg"
+              alt="Team Background"
+              width={1200}
+              height={600}
+            />
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
 
-export default function Home() {
+type FeatureProps = {
+  image: string;
+  title: string;
+  description: string;
+  reversed?: boolean;
+  isAuthenticated: boolean;
+  openLoginModal: () => void;
+};
+
+function Feature({
+  image,
+  title,
+  description,
+  reversed = false,
+  isAuthenticated,
+  openLoginModal,
+}: FeatureProps) {
+  const imageColClasses = `relative ${reversed ? 'md:order-2' : ''}`;
+  const textColClasses = `${reversed ? 'md:ml-auto md:mr-[71px]' : 'md:mr-auto md:ml-[71px]'}`;
+
   return (
-    <Suspense fallback={<div></div>}>
-      <HomeContent />
-    </Suspense>
+    <div className="mb-[88px] grid items-center md:grid-cols-2">
+      <div className={imageColClasses}>
+        <div className="size-full">
+          <Image
+            src={image}
+            alt={title}
+            width={1200}
+            height={800}
+            className="h-auto w-full"
+          />
+        </div>
+      </div>
+
+      <div className={`${textColClasses} w-[350px]`}>
+        <p className="text-[24px] font-semibold">{title}</p>
+        <p className="mt-3 text-[14px] leading-5 text-[#757575]">
+          {description}
+        </p>
+        <button 
+          className="mt-[24px] rounded-[12px] bg-black px-4 py-3 text-[14px] text-white"
+          onClick={() => {
+            if (isAuthenticated) {
+              window.location.href = '/home';
+            } else {
+              openLoginModal();
+            }
+          }}
+        >
+          Try Now
+        </button>
+      </div>
+    </div>
+  );
+}
+
+type FAQProps = {
+  q: string;
+  children: React.ReactNode;
+};
+
+function FAQ({ q, children }: FAQProps) {
+  return (
+    <details
+      className="
+    group relative rounded-[20px] border border-gray-200
+    bg-[#EBE9E9] hover:bg-[#F2F7FF] hover:shadow-sm hover:open:bg-[#F2F7FF]
+    transition-all duration-300 overflow-hidden
+  "
+      onMouseEnter={(e) => {
+        const details = e.currentTarget;
+        details.open = true;
+      }}
+      onMouseLeave={(e) => {
+        const details = e.currentTarget;
+        details.open = false;
+      }}
+    >
+      <summary
+        className="
+      flex items-center cursor-default list-none justify-between
+      pt-10 pb-10 group-open:pb-6 transition-[padding] duration-300
+      pr-[56px]
+    "
+        onClick={(e) => {
+          // 阻止默认的点击切换行为
+          e.preventDefault();
+        }}
+      >
+        <span className="text-[20px] font-medium pl-[80px] italic">Q:</span>
+        <span className="text-[20px] font-medium mr-auto pl-10">{q}</span>
+      </summary>
+
+      {/* 关键：箭头相对 details 垂直居中 */}
+      <img
+        src="/icons/lsicon_down-outline.svg"
+        width={16}
+        height={16}
+        className="
+      absolute right-[40px] top-1/2 -translate-y-1/2
+      rotate-[-90deg] group-open:rotate-0
+      transition-transform
+      pointer-events-none 
+    "
+      />
+
+      <div className="text-sm leading-7 md:text-base flex items-baseline mb-10 w-[820px]">
+        <span className="text-[20px] font-medium pl-[80px] italic">A:</span>
+        <div className="text-[20px] font-medium mr-auto pl-10">{children}</div>
+      </div>
+    </details>
   );
 }
