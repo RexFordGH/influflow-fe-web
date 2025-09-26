@@ -198,7 +198,7 @@ function Feature({
 
       <div className={`${textColClasses} w-[350px]`}>
         <p className="text-[24px] font-semibold">{title}</p>
-        <p className="mt-3 text-[14px] leading-5 text-[#757575]">
+        <p className="mt-3 text-[16px] leading-5 text-[#4E4E4E]">
           {description}
         </p>
         <button 
